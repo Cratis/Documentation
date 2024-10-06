@@ -1,0 +1,3 @@
+[submodule "Chronicle"]
+	path = Chronicle
+	url = https://github.com/cratis/chronicle
