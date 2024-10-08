@@ -1,3 +1,9 @@
 [submodule "Chronicle"]
 	path = Chronicle
 	url = https://github.com/cratis/chronicle
+[submodule "ApplicationModel"]
+	path = ApplicationModel
+	url = https://github.com/cratis/ApplicationModel
+[submodule "Fundamentals"]
+	path = Fundamentals
+	url = https://github.com/cratis/fundamentals
