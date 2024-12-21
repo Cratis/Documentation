@@ -5,7 +5,8 @@
     "main": "index.js",
     "private": true,
     "scripts": {
-        "watch": "rm -rf ./_site && rm -rf ./obj && dotnet clean && dotnet restore && concurrently 'yarn serve' 'npm-watch build'",
+        "restore": "yarn && dotnet restore && dotnet tool restore",
+        "watch": "rm -rf ./_site && rm -rf ./obj && dotnet clean && concurrently 'yarn serve' 'npm-watch build'",
         "watch:docs": "rm -rf ./_site && concurrently 'yarn serve' 'npm-watch build'",
         "build": "dotnet docfx",
         "serve": "yarn http-server ./_site"
