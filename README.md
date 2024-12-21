@@ -13,7 +13,15 @@ If you have already cloned it without recursive sub modules, you can initialize 
 git submodule update --init --recursive
 ```
 
-To get started with local development perform a `dotnet restore` and then `yarn`.
+To pull the latest from all the repositories:
+
+```shell
+git submodule update --init --remote --recursive
+```
+
+To get started with local development, navigate to the `Source` folder and run `yarn restore`. This will make sure all NPM and NuGet packages, including
+tools are restored.
+
 Then all you need to do is run `yarn watch` and after build and the Web server has started navigate to [http://localhost:8080](http://localhost:8080).
 It will watch for any changes and rebuild and restart the web server after this.
 
