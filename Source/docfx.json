@@ -36,7 +36,7 @@
             "properties": {
                 "TargetFramework": "net9.0"
             },
-            "dest": "api/clients/aspnetcore",
+            "dest": "api/chronicle/clients/aspnetcore",
             "disableGitFeatures": false,
             "disableDefaultFilter": false
         },
@@ -97,6 +97,66 @@
                 "TargetFramework": "net9.0"
             },
             "dest": "api/chronicle/clients/orleans.xunit",
+            "disableGitFeatures": false,
+            "disableDefaultFilter": false
+        },
+        {
+            "src": [
+                {
+                    "files": [
+                        "Applications/Applications.csproj"
+                    ],
+                    "exclude": [
+                        "**/obj/**",
+                        "**/bin/**"
+                    ],
+                    "src": "../ApplicationModel/Source/DotNET"
+                }
+            ],
+            "properties": {
+                "TargetFramework": "net9.0"
+            },
+            "dest": "api/applicationmodel/applications",
+            "disableGitFeatures": false,
+            "disableDefaultFilter": false
+        },
+        {
+            "src": [
+                {
+                    "files": [
+                        "MongoDB/MongoDB.csproj"
+                    ],
+                    "exclude": [
+                        "**/obj/**",
+                        "**/bin/**"
+                    ],
+                    "src": "../ApplicationModel/Source/DotNET"
+                }
+            ],
+            "properties": {
+                "TargetFramework": "net9.0"
+            },
+            "dest": "api/applicationmodel/mongodb",
+            "disableGitFeatures": false,
+            "disableDefaultFilter": false
+        },
+        {
+            "src": [
+                {
+                    "files": [
+                        "Orleans/Orleans.csproj"
+                    ],
+                    "exclude": [
+                        "**/obj/**",
+                        "**/bin/**"
+                    ],
+                    "src": "../ApplicationModel/Source/DotNET"
+                }
+            ],
+            "properties": {
+                "TargetFramework": "net9.0"
+            },
+            "dest": "api/applicationmodel/orleans",
             "disableGitFeatures": false,
             "disableDefaultFilter": false
         }
