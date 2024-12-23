@@ -1,4 +1,6 @@
-- name: Chronicle
-  href: chronicle/toc.yml
-- name: Application Model
-  href: applicationmodel/toc.yml
+- name: Applications
+  href: applications/toc.yml
+- name: MongoDB
+  href: mongodb/toc.yml
+- name: Orleans
+  href: orleans/toc.yml

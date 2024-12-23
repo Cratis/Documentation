@@ -1,6 +1,4 @@
-- name: Applications
-  href: applications/toc.yml
-- name: MongoDB
-  href: mongodb/toc.yml
-- name: Orleans
-  href: orleans/toc.yml
+- name: .NET
+  href: dotnet/toc.yml
+- name: JavaScript / TypeScript
+  href: javascript/toc.yml

@@ -8,7 +8,7 @@
         "restore": "yarn && dotnet restore && dotnet tool restore",
         "watch": "rm -rf ./_site && rm -rf ./obj && dotnet clean && concurrently 'yarn serve' 'npm-watch build'",
         "watch:docs": "rm -rf ./_site && concurrently 'yarn serve' 'npm-watch build'",
-        "build": "dotnet docfx",
+        "build": "./build-tsdocs.sh && dotnet docfx",
         "serve": "yarn http-server ./_site"
     },
     "watch": {
@@ -35,6 +35,11 @@
     "devDependencies": {
         "concurrently": "7.3.0",
         "http-server": "14.1.1",
-        "npm-watch": "0.11.0"
-    }
+        "nodemon": "3.1.9",
+        "npm-watch": "0.11.0",
+        "typedoc": "^0.27.5",
+        "typedoc-plugin-markdown": "4.3.3",
+        "typescript": "5.7.2"
+    },
+    "packageManager": "yarn@4.5.3"
 }

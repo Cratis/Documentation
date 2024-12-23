@@ -116,7 +116,7 @@
             "properties": {
                 "TargetFramework": "net9.0"
             },
-            "dest": "api/applicationmodel/applications",
+            "dest": "api/applicationmodel/dotnet/applications",
             "disableGitFeatures": false,
             "disableDefaultFilter": false
         },
@@ -136,7 +136,7 @@
             "properties": {
                 "TargetFramework": "net9.0"
             },
-            "dest": "api/applicationmodel/mongodb",
+            "dest": "api/applicationmodel/dotnet/mongodb",
             "disableGitFeatures": false,
             "disableDefaultFilter": false
         },
@@ -156,7 +156,7 @@
             "properties": {
                 "TargetFramework": "net9.0"
             },
-            "dest": "api/applicationmodel/orleans",
+            "dest": "api/applicationmodel/dotnet/orleans",
             "disableGitFeatures": false,
             "disableDefaultFilter": false
         }

@@ -1,2 +1,8 @@
 - name: Applications
-  href: applications/toc.yml
+  href: applications/modules.md
+- name: React
+  href: applications.react/modules.md
+- name: React MVVM
+  href: applications.react.mvvm/modules.md
+- name: Vite
+  href: applications.vite/modules.md
