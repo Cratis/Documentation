@@ -3,9 +3,11 @@
         "applicationmodel",
         "Cratis",
         "docfx",
+        "fixts",
         "MVVM",
         "Singulink",
         "tsdocs",
+        "typedoc",
         "Vite"
     ]
 }
