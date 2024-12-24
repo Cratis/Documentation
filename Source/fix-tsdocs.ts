@@ -3,7 +3,10 @@ import { glob } from 'glob';
 import * as path from 'path';
 import * as fs from 'fs';
 
-const folders = ['api/applicationmodel/javascript'];
+const folders = [
+    'api/applicationmodel/javascript',
+    'api/fundamentals/javascript'
+];
 
 console.log('\n\nCreate TOCs for all folders\n');
 
