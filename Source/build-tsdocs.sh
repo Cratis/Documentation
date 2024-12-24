@@ -25,5 +25,7 @@ for i in "${!source_paths[@]}"; do
     cd "$source_path"
     yarn build
     popd
-    yarn typedoc --plugin typedoc-plugin-markdown -out "$target_path" --tsconfig "$source_path/tsconfig.json" "$source_path/**/*.ts"
+    yarn typedoc --plugin typedoc-plugin-markdown --hidePageHeader true --outputFileStrategy modules -out "$target_path" --tsconfig "$source_path/tsconfig.json" "$source_path/**/*.ts" --exclude "$source_path/dist/**/*" --exclude "$source_path/**/for_*/**/*"
 done
+
+yarn fixts

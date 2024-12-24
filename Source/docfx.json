@@ -166,6 +166,7 @@
             {
                 "files": [
                     "api/**.yml",
+                    "api/**.md",
                     "api/index.md"
                 ]
             },
