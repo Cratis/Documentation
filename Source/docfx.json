@@ -159,6 +159,26 @@
             "dest": "api/applicationmodel/dotnet/orleans",
             "disableGitFeatures": false,
             "disableDefaultFilter": false
+        },
+        {
+            "src": [
+                {
+                    "files": [
+                        "Fundamentals/Fundamentals.csproj"
+                    ],
+                    "exclude": [
+                        "**/obj/**",
+                        "**/bin/**"
+                    ],
+                    "src": "../Fundamentals/Source/DotNET"
+                }
+            ],
+            "properties": {
+                "TargetFramework": "net9.0"
+            },
+            "dest": "api/fundamentals/dotnet/fundamentals",
+            "disableGitFeatures": false,
+            "disableDefaultFilter": false
         }
     ],
     "build": {

@@ -9,7 +9,8 @@
         "restore": "yarn && dotnet restore && dotnet tool restore",
         "watch": "rm -rf ./_site && rm -rf ./obj && dotnet clean && concurrently 'yarn serve' 'npm-watch build'",
         "watch:docs": "rm -rf ./_site && concurrently 'yarn serve' 'npm-watch build'",
-        "build": "./build-tsdocs.sh && dotnet docfx",
+        "build:ts": "./build-tsdocs.sh",
+        "build": "yarn build:ts && dotnet docfx",
         "serve": "yarn http-server ./_site",
         "fixts": "NODE_OPTIONS=\"--loader ts-node/esm\" node fix-tsdocs.ts"
     },
