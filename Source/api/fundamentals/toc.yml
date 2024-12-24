@@ -1,4 +1,4 @@
 - name: .NET
-  href: dotnet/toc.yml
+  href: dotnet/fundamentals/toc.yml
 - name: JavaScript / TypeScript
   href: javascript/toc.yml
