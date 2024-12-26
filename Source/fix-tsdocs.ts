@@ -56,7 +56,7 @@ const createTableOfContentsFor = async (folder: string) => {
 
 for (const folder of folders) {
     const searchString = path.join(folder, '**/README.md');
-    console.log(`Creating TOCs for '${folder}'`);
+    console.log(`\nCreating TOCs for '${folder}'`);
     const readmeFiles = await glob(searchString);
 
     for (const file of readmeFiles) {

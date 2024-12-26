@@ -46,4 +46,4 @@ for i in "${!source_paths[@]}"; do
     yarn typedoc --plugin typedoc-plugin-markdown --hidePageHeader true --outputFileStrategy modules -out "$target_path" --tsconfig "$source_path/tsconfig.json" "$source_path/**/*.ts" --exclude "$source_path/dist/**/*" --exclude "$source_path/**/for_*/**/*"
 done
 
-# yarn fixts
+yarn fixts

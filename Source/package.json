@@ -6,15 +6,17 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "restore": "yarn && dotnet restore && dotnet tool restore",
+        "restore": "yarn && dotnet restore && dotnet tool restore && yarn build",
         "watch": "rm -rf ./_site && rm -rf ./obj && dotnet clean && concurrently 'yarn serve' 'npm-watch build'",
-        "watch:docs": "rm -rf ./_site && concurrently 'yarn serve' 'npm-watch build'",
+        "watch:articles": "rm -rf ./_site && concurrently 'yarn serve' 'npm-watch build':articles",
         "build:ts": "./build-tsdocs.sh",
         "build": "yarn build:ts && dotnet docfx",
+        "build:articles": "dotnet docfx build",
         "serve": "yarn http-server ./_site",
         "fixts": "NODE_OPTIONS=\"--loader ts-node/esm\" node fix-tsdocs.ts",
         "extract-snippets": "NODE_OPTIONS=\"--loader ts-node/esm\" node extract-code-snippets.ts",
-        "insert-snippets": "NODE_OPTIONS=\"--loader ts-node/esm\" node insert-sample-snippets.ts"
+        "insert-snippets": "NODE_OPTIONS=\"--loader ts-node/esm\" node insert-sample-snippets.ts",
+        "postinstall": "yarn restore"
     },
     "watch": {
         "build": {
@@ -23,6 +25,24 @@
                 "toc",
                 "index",
                 "../Source",
+                "../Samples",
+                "../Articles"
+            ],
+            "ignore": [
+                "_site/**",
+                "api/**",
+                "bin/**",
+                "obj/**"
+            ],
+            "extensions": "md,yml,cs,ts,tsx,html",
+            "quiet": false
+        },
+        "build:articles": {
+            "patterns": [
+                "app",
+                "toc",
+                "index",
+                "../Samples",
                 "../Articles"
             ],
             "ignore": [
@@ -36,7 +56,7 @@
         }
     },
     "author": "",
-    "license": "ISC",
+    "license": "MIT",
     "devDependencies": {
         "@types/js-yaml": "4.0.9",
         "@types/node": "22.10.2",
@@ -46,7 +66,7 @@
         "http-server": "14.1.1",
         "js-yaml": "4.1.0",
         "nodemon": "3.1.9",
-        "npm-watch": "0.11.0",
+        "npm-watch": "0.13.0",
         "ts-node": "10.9.2",
         "typedoc": "^0.27.5",
         "typedoc-plugin-markdown": "4.3.3",

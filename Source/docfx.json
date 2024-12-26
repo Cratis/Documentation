@@ -1,269 +1,267 @@
 {
-    "metadata": [
+  "metadata": [
+    {
+      "src": [
         {
-            "src": [
-                {
-                    "files": [
-                        "Clients/DotNET/DotNET.csproj"
-                    ],
-                    "exclude": [
-                        "**/obj/**",
-                        "**/bin/**"
-                    ],
-                    "src": "../Chronicle/Source"
-                }
-            ],
-            "properties": {
-                "TargetFramework": "net9.0"
-            },
-            "dest": "api/chronicle/clients/dotnet",
-            "disableGitFeatures": false,
-            "disableDefaultFilter": false
-        },
-        {
-            "src": [
-                {
-                    "files": [
-                        "Clients/AspNetCore/AspNetCore.csproj"
-                    ],
-                    "exclude": [
-                        "**/obj/**",
-                        "**/bin/**"
-                    ],
-                    "src": "../Chronicle/Source"
-                }
-            ],
-            "properties": {
-                "TargetFramework": "net9.0"
-            },
-            "dest": "api/chronicle/clients/aspnetcore",
-            "disableGitFeatures": false,
-            "disableDefaultFilter": false
-        },
-        {
-            "src": [
-                {
-                    "files": [
-                        "Clients/XUnit/XUnit.csproj"
-                    ],
-                    "exclude": [
-                        "**/obj/**",
-                        "**/bin/**"
-                    ],
-                    "src": "../Chronicle/Source"
-                }
-            ],
-            "properties": {
-                "TargetFramework": "net9.0"
-            },
-            "dest": "api/chronicle/clients/xunit",
-            "disableGitFeatures": false,
-            "disableDefaultFilter": false
-        },
-        {
-            "src": [
-                {
-                    "files": [
-                        "Clients/Orleans.InProcess/Orleans.InProcess.csproj"
-                    ],
-                    "exclude": [
-                        "**/obj/**",
-                        "**/bin/**"
-                    ],
-                    "src": "../Chronicle/Source"
-                }
-            ],
-            "properties": {
-                "TargetFramework": "net9.0"
-            },
-            "dest": "api/chronicle/clients/orleans.inprocess",
-            "disableGitFeatures": false,
-            "disableDefaultFilter": false
-        },
-        {
-            "src": [
-                {
-                    "files": [
-                        "Clients/Orleans.XUnit/Orleans.XUnit.csproj"
-                    ],
-                    "exclude": [
-                        "**/obj/**",
-                        "**/bin/**"
-                    ],
-                    "src": "../Chronicle/Source"
-                }
-            ],
-            "properties": {
-                "TargetFramework": "net9.0"
-            },
-            "dest": "api/chronicle/clients/orleans.xunit",
-            "disableGitFeatures": false,
-            "disableDefaultFilter": false
-        },
-        {
-            "src": [
-                {
-                    "files": [
-                        "Applications/Applications.csproj"
-                    ],
-                    "exclude": [
-                        "**/obj/**",
-                        "**/bin/**"
-                    ],
-                    "src": "../ApplicationModel/Source/DotNET"
-                }
-            ],
-            "properties": {
-                "TargetFramework": "net9.0"
-            },
-            "dest": "api/applicationmodel/dotnet/applications",
-            "disableGitFeatures": false,
-            "disableDefaultFilter": false
-        },
-        {
-            "src": [
-                {
-                    "files": [
-                        "MongoDB/MongoDB.csproj"
-                    ],
-                    "exclude": [
-                        "**/obj/**",
-                        "**/bin/**"
-                    ],
-                    "src": "../ApplicationModel/Source/DotNET"
-                }
-            ],
-            "properties": {
-                "TargetFramework": "net9.0"
-            },
-            "dest": "api/applicationmodel/dotnet/mongodb",
-            "disableGitFeatures": false,
-            "disableDefaultFilter": false
-        },
-        {
-            "src": [
-                {
-                    "files": [
-                        "Orleans/Orleans.csproj"
-                    ],
-                    "exclude": [
-                        "**/obj/**",
-                        "**/bin/**"
-                    ],
-                    "src": "../ApplicationModel/Source/DotNET"
-                }
-            ],
-            "properties": {
-                "TargetFramework": "net9.0"
-            },
-            "dest": "api/applicationmodel/dotnet/orleans",
-            "disableGitFeatures": false,
-            "disableDefaultFilter": false
-        },
-        {
-            "src": [
-                {
-                    "files": [
-                        "Fundamentals/Fundamentals.csproj"
-                    ],
-                    "exclude": [
-                        "**/obj/**",
-                        "**/bin/**"
-                    ],
-                    "src": "../Fundamentals/Source/DotNET"
-                }
-            ],
-            "properties": {
-                "TargetFramework": "net9.0"
-            },
-            "dest": "api/fundamentals/dotnet/fundamentals",
-            "disableGitFeatures": false,
-            "disableDefaultFilter": false
+          "files": [
+            "Clients/DotNET/DotNET.csproj"
+          ],
+          "exclude": [
+            "**/obj/**",
+            "**/bin/**"
+          ],
+          "src": "../Chronicle/Source"
         }
-    ],
-    "build": {
-        "content": [
-            {
-                "files": [
-                    "api/**.yml",
-                    "api/**.md",
-                    "api/index.md"
-                ]
-            },
-            {
-                "files": [
-                    "**/*.md",
-                    "**/toc.yml"
-                ],
-                "exclude": [
-                    "index.md"
-                ],
-                "src": "../Articles",
-                "dest": "articles"
-            },
-            {
-                "files": [
-                    "toc.yml",
-                    "*.md"
-                ]
-            }
-        ],
-        "resource": [
-            {
-                "files": [
-                    "images/**",
-                    "index.html"
-                ]
-            },
-            {
-                "files": [
-                    "**/*.png",
-                    "**/*.gif",
-                    "**/*.jpg"
-                ],
-                "src": "./Documentation",
-                "dest": "articles"
-            }
-        ],
-        "overwrite": [
-            {
-                "files": [
-                    "apidoc/**.md"
-                ],
-                "exclude": [
-                    "obj/**",
-                    "_site/**"
-                ]
-            }
-        ],
-        "dest": "_site",
-        "globalMetadataFiles": [],
-        "fileMetadataFiles": [],
-        "template": [
-            "default",
-            "modern",
-            "templates/material"
-        ],
-        "postProcessors": [
-            "ExtractSearchIndex"
-        ],
-        "markdownEngineName": "markdig",
-        "noLangKeyword": false,
-        "keepFileLink": false,
-        "cleanupCacheHistory": false,
-        "disableGitFeatures": false,
-        "globalMetadata": {
-            "_appTitle": "Cratis",
-            "_appName": "Cratis",
-            "_appFaviconPath": "images/favicon.png",
-            "_appLogoPath": "images/logo.svg",
-            "_appFooter": "Documentation",
-            "_copyrightFooter": "© Cratis. All rights reserved.",
-            "_enableSearch": true,
-            "_disableSideFilter": false,
-            "_enableNewTab": true,
-            "_disableContribution": false,
-            "_disableBreadcrumb": false
+      ],
+      "properties": {
+        "TargetFramework": "net9.0"
+      },
+      "dest": "api/chronicle/clients/dotnet",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    },
+    {
+      "src": [
+        {
+          "files": [
+            "Clients/AspNetCore/AspNetCore.csproj"
+          ],
+          "exclude": [
+            "**/obj/**",
+            "**/bin/**"
+          ],
+          "src": "../Chronicle/Source"
         }
+      ],
+      "properties": {
+        "TargetFramework": "net9.0"
+      },
+      "dest": "api/chronicle/clients/aspnetcore",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    },
+    {
+      "src": [
+        {
+          "files": [
+            "Clients/XUnit/XUnit.csproj"
+          ],
+          "exclude": [
+            "**/obj/**",
+            "**/bin/**"
+          ],
+          "src": "../Chronicle/Source"
+        }
+      ],
+      "properties": {
+        "TargetFramework": "net9.0"
+      },
+      "dest": "api/chronicle/clients/xunit",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    },
+    {
+      "src": [
+        {
+          "files": [
+            "Clients/Orleans.InProcess/Orleans.InProcess.csproj"
+          ],
+          "exclude": [
+            "**/obj/**",
+            "**/bin/**"
+          ],
+          "src": "../Chronicle/Source"
+        }
+      ],
+      "properties": {
+        "TargetFramework": "net9.0"
+      },
+      "dest": "api/chronicle/clients/orleans.inprocess",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    },
+    {
+      "src": [
+        {
+          "files": [
+            "Clients/Orleans.XUnit/Orleans.XUnit.csproj"
+          ],
+          "exclude": [
+            "**/obj/**",
+            "**/bin/**"
+          ],
+          "src": "../Chronicle/Source"
+        }
+      ],
+      "properties": {
+        "TargetFramework": "net9.0"
+      },
+      "dest": "api/chronicle/clients/orleans.xunit",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    },
+    {
+      "src": [
+        {
+          "files": [
+            "Applications/Applications.csproj"
+          ],
+          "exclude": [
+            "**/obj/**",
+            "**/bin/**"
+          ],
+          "src": "../ApplicationModel/Source/DotNET"
+        }
+      ],
+      "properties": {
+        "TargetFramework": "net9.0"
+      },
+      "dest": "api/applicationmodel/dotnet/applications",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    },
+    {
+      "src": [
+        {
+          "files": [
+            "MongoDB/MongoDB.csproj"
+          ],
+          "exclude": [
+            "**/obj/**",
+            "**/bin/**"
+          ],
+          "src": "../ApplicationModel/Source/DotNET"
+        }
+      ],
+      "properties": {
+        "TargetFramework": "net9.0"
+      },
+      "dest": "api/applicationmodel/dotnet/mongodb",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    },
+    {
+      "src": [
+        {
+          "files": [
+            "Orleans/Orleans.csproj"
+          ],
+          "exclude": [
+            "**/obj/**",
+            "**/bin/**"
+          ],
+          "src": "../ApplicationModel/Source/DotNET"
+        }
+      ],
+      "properties": {
+        "TargetFramework": "net9.0"
+      },
+      "dest": "api/applicationmodel/dotnet/orleans",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    },
+    {
+      "src": [
+        {
+          "files": [
+            "Fundamentals/Fundamentals.csproj"
+          ],
+          "exclude": [
+            "**/obj/**",
+            "**/bin/**"
+          ],
+          "src": "../Fundamentals/Source/DotNET"
+        }
+      ],
+      "properties": {
+        "TargetFramework": "net9.0"
+      },
+      "dest": "api/fundamentals/dotnet/fundamentals",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
     }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "api/**.yml",
+          "api/**.md",
+          "api/index.md"
+        ]
+      },
+      {
+        "files": [
+          "**.yml",
+          "**.md",
+          "index.md"
+        ],
+        "src": "../Articles",
+        "dest": "articles"
+      },
+      {
+        "files": [
+          "toc.yml",
+          "*.md"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**",
+          "index.html"
+        ]
+      },
+      {
+        "files": [
+          "**/*.png",
+          "**/*.gif",
+          "**/*.jpg"
+        ],
+        "src": "./Documentation",
+        "dest": "articles"
+      }
+    ],
+    "overwrite": [
+      {
+        "files": [
+          "apidoc/**.md"
+        ],
+        "exclude": [
+          "obj/**",
+          "_site/**"
+        ]
+      }
+    ],
+    "dest": "_site",
+    "globalMetadataFiles": [],
+    "fileMetadataFiles": [],
+    "template": [
+      "default",
+      "modern",
+      "templates/material"
+    ],
+    "postProcessors": [
+      "ExtractSearchIndex"
+    ],
+    "markdownEngineName": "markdig",
+    "noLangKeyword": false,
+    "keepFileLink": false,
+    "cleanupCacheHistory": false,
+    "disableGitFeatures": false,
+    "globalMetadata": {
+      "_appTitle": "Cratis",
+      "_appName": "Cratis",
+      "_appFaviconPath": "images/favicon.png",
+      "_appLogoPath": "images/logo.svg",
+      "_appFooter": "Documentation",
+      "_copyrightFooter": "© Cratis. All rights reserved.",
+      "_enableSearch": true,
+      "_disableSideFilter": false,
+      "_enableNewTab": true,
+      "_disableContribution": false,
+      "_disableBreadcrumb": false
+    }
+  }
 }
