@@ -7,3 +7,6 @@
 [submodule "Fundamentals"]
 	path = Fundamentals
 	url = https://github.com/cratis/fundamentals
+[submodule "Samples"]
+	path = Samples
+	url = https://github.com/cratis/samples
