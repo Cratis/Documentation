@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "netcorext.hash",
+        "ms-dotnettools.csdevkit",
+        "editorconfig.editorconfig",
+        "github.vscode-pull-request-github",
+        "stevencl.adddoccomments"
+    ]
+}
