@@ -12,7 +12,9 @@
         "build:ts": "./build-tsdocs.sh",
         "build": "yarn build:ts && dotnet docfx",
         "serve": "yarn http-server ./_site",
-        "fixts": "NODE_OPTIONS=\"--loader ts-node/esm\" node fix-tsdocs.ts"
+        "fixts": "NODE_OPTIONS=\"--loader ts-node/esm\" node fix-tsdocs.ts",
+        "extract-snippets": "NODE_OPTIONS=\"--loader ts-node/esm\" node extract-code-snippets.ts",
+        "insert-snippets": "NODE_OPTIONS=\"--loader ts-node/esm\" node insert-sample-snippets.ts"
     },
     "watch": {
         "build": {

@@ -1,17 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
+        <AssemblyName>SampleProcessor</AssemblyName>
         <TargetFramework>net9.0</TargetFramework>
+        <DocFXVersion>2.78.2</DocFXVersion>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Docfx.Common" Version="$(DocFXVersion)" />
         <PackageReference Include="docfx.console" GeneratePathProperty="true" Version="2.59.4">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
+        <PackageReference Include="Docfx.Plugins" Version="$(DocFXVersion)" />
+        <PackageReference Include="System.Composition" Version="9.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+        <Compile Remove="node_modules\**\*.cs" />
+    </ItemGroup>    
+
     <Target Name="docfx">
-        <Exec Command="mono $(Pkgdocfx_console)/tools/docfx.exe ./docfx.json --build"/>
+        <Exec Command="mono $(Pkgdocfx_console)/tools/docfx.exe ./docfx.json --build" />
     </Target>
 
 </Project>
