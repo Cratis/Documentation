@@ -37,8 +37,9 @@ jobs:
       - name: Add all changes
         continue-on-error: true
         run: git add .
-
+        
       - name: Commit changes
+        continue-on-error: true
         run: |
           git commit -m "Update submodules"
           git push origin HEAD
