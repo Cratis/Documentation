@@ -58,18 +58,19 @@ jobs:
           node-version: 20.x
           registry-url: "https://registry.npmjs.org" 
 
-      - name: Yarn install
+      - uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: |
+            Source/.yarn/cache
+            **/node_modules
+            **/.eslintcache
+            **/yarn.lock
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
+
+      - name: Build entire documentation site
         working-directory: ./Source
         run: yarn install 
-
-      - name: Restore tooling
-        working-directory: ./Source
-        run: yarn restore
-
-      - name: Build DocFX site
-        working-directory: ./DocFX
-        run: |
-          yarn build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
