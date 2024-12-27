@@ -6,7 +6,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "restore": "yarn && dotnet restore && dotnet tool restore && yarn build",
+        "restore": "dotnet restore && dotnet tool restore",
         "watch": "rm -rf ./_site && rm -rf ./obj && dotnet clean && concurrently 'yarn serve' 'npm-watch build'",
         "watch:articles": "rm -rf ./_site && concurrently 'yarn serve' 'npm-watch build':articles",
         "build:ts": "./build-tsdocs.sh",
@@ -16,7 +16,7 @@
         "fixts": "NODE_OPTIONS=\"--loader ts-node/esm\" node fix-tsdocs.ts",
         "extract-snippets": "NODE_OPTIONS=\"--loader ts-node/esm\" node extract-code-snippets.ts",
         "insert-snippets": "NODE_OPTIONS=\"--loader ts-node/esm\" node insert-sample-snippets.ts",
-        "postinstall": "yarn restore"
+        "postinstall": "yarn restore && yarn build"
     },
     "watch": {
         "build": {
