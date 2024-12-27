@@ -26,11 +26,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Checkout submodules
-        run: git submodule update --init --recursive
+      - name: Checkout, init and update submodules
+        run: git submodule update --init --remote --recursive
 
-      - name: Update submodules
-        run: git submodule update --remote --recursive
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Commit changes
         run: |
