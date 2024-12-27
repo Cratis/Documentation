@@ -48,7 +48,7 @@ for (const fileAndMarker of filesAndMarkers) {
     const snippetEndSearchString = fileAndMarker.snippetEndMarker;
 
     const files = await glob(`../Samples/**/*${fileAndMarker.fileExtension}`);
-    console.log('\n\nExtract code snippets\n');
+    console.log(`\n\nExtract code snippets for extension ${fileAndMarker.fileExtension}\n`);
 
     let count = 0;
 
