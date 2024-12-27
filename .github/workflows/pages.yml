@@ -34,9 +34,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Add all changes
+        continue-on-error: true
+        run: git add .
+
       - name: Commit changes
         run: |
-          git add .
           git commit -m "Update submodules"
           git push origin HEAD
 
