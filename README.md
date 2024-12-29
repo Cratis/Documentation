@@ -1,5 +1,7 @@
 # Documentation Site project
 
+[![Documentation site](https://github.com/Cratis/Documentation/actions/workflows/pages.yml/badge.svg)](https://github.com/Cratis/Documentation/actions/workflows/pages.yml)
+
 Documentation is kept close to the code that it documents, this means we have documentation in most Cratis repositories.
 The documentation is then added as Git sub modules. Check out this repository using the following:
 
