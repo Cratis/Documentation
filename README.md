@@ -19,6 +19,12 @@ To pull the latest from all the repositories:
 git submodule update --init --remote --recursive
 ```
 
+Sometimes, updating submodules leave them in a detached HEAD state, to you can then run:
+
+```shell
+git submodule foreach 'git checkout main && git pull'
+```
+
 To get started with local development, navigate to the `Source` folder and run `yarn restore`. This will make sure all NPM and NuGet packages, including
 tools are restored.
 
