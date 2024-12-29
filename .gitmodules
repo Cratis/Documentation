@@ -10,3 +10,6 @@
 [submodule "Samples"]
 	path = Samples
 	url = https://github.com/cratis/samples
+[submodule "GitHubLanding"]
+	path = GitHubLanding
+	url = https://github.com/cratis/.github
