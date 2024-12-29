@@ -1,4 +1,10 @@
-- name: Docs
-  href: docs/
-- name: Api Documentation
-  href: api/
+- name: Chronicle
+  href: docs/Chronicle/
+- name: Application Model
+  href: docs/ApplicationModel/
+- name: Fundamentals
+  href: docs/Fundamentals/
+- name: Contributing
+  href: docs/Contributing/
+- name: Join chat
+  href: https://discord.gg/kt4AMpV8WV
