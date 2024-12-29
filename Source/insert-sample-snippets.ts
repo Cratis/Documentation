@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Snippet } from 'Snippet';
 
-const markdownFiles = await glob('../Articles/**/*.md', { follow: true });
+const markdownFiles = await glob('Articles/**/*.md', { follow: true });
 
 const snippetsAsString = fs.readFileSync('snippets.json', 'utf-8');
 const snippets = JSON.parse(snippetsAsString) as { [key: string]: Snippet };

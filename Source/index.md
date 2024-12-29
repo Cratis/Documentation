@@ -1,5 +1,5 @@
 ---
-toc: ../Articles/toc.yml
+toc: Articles/toc.yml
 ---
 
 # Cratis

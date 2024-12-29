@@ -190,7 +190,7 @@
       },
       {
         "files": [ "**/*.{md,yml}" ],
-        "src": "../Articles",
+        "src": "Articles",
         "dest": "docs"
       }
     ],
@@ -205,7 +205,7 @@
           "**/*.gif",
           "**/*.jpg"
         ],
-        "src": "../Articles",
+        "src": "Articles",
         "dest": "docs"
       }
     ],

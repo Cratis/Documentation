@@ -1,8 +1,0 @@
-- name: Home
-  href: ~/index.md
-- name: Chronicle
-  href: Chronicle/toc.yml
-- name: Application Model
-  href: ApplicationModel/toc.yml
-- name: Fundamentals
-  href: Fundamentals/toc.yml

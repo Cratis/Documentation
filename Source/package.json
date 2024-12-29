@@ -21,12 +21,11 @@
     "watch": {
         "build": {
             "patterns": [
+                ".",
                 "app",
                 "toc",
                 "index",
-                "../Source",
-                "../Samples",
-                "../Articles"
+                "../Samples"
             ],
             "ignore": [
                 "_site/**",
@@ -43,8 +42,7 @@
                 "app",
                 "toc",
                 "index",
-                "../Samples",
-                "../Articles"
+                "../Samples"
             ],
             "ignore": [
                 "_site/**",
