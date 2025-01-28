@@ -43,7 +43,7 @@ for i in "${!source_paths[@]}"; do
     echo "Current directory: $(pwd)"
     yarn build
     popd
-    yarn typedoc --plugin typedoc-plugin-markdown --hidePageHeader true --outputFileStrategy modules -out "$target_path" --tsconfig "$source_path/tsconfig.json" "$source_path/**/*.ts" --exclude "$source_path/dist/**/*" --exclude "$source_path/**/for_*/**/*"
+    yarn typedoc --plugin typedoc-plugin-markdown --hidePageHeader true --outputFileStrategy modules -out "$target_path" --tsconfig "$source_path/tsconfig.json" "$source_path/**/*.ts" --exclude "$source_path/dist/**/*" --exclude "$source_path/**/for_*/**/*" --exclude "$source_path/**/global.d.ts"
 done
 
 yarn fixts
