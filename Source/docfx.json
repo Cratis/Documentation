@@ -122,21 +122,15 @@
       "disableDefaultFilter": false
     },
     {
-      "src": [
+      "src": [],
+      "references": [
         {
           "files": [
-            "MongoDB/MongoDB.csproj"
-          ],
-          "exclude": [
-            "**/obj/**",
-            "**/bin/**"
+            "bin/Release/net9.0/Cratis.Applications.MongoDB.dll"
           ],
           "src": "../ApplicationModel/Source/DotNET"
         }
       ],
-      "properties": {
-        "TargetFramework": "net9.0"
-      },
       "output": "api/applicationmodel/dotnet/mongodb",
       "disableGitFeatures": false,
       "disableDefaultFilter": false
@@ -185,19 +179,41 @@
   "build": {
     "content": [
       {
-        "files": [ "**/*.{md,yml}" ],
-        "exclude": [ "_site/**", "obj/**", "bin/**", "node_modules/**", "templates/**", ".yarn/**", ".config/**" ]
+        "files": [
+          "**/*.{md,yml}"
+        ],
+        "exclude": [
+          "_site/**",
+          "obj/**",
+          "bin/**",
+          "node_modules/**",
+          "templates/**",
+          ".yarn/**",
+          ".config/**"
+        ]
       },
       {
-        "files": [ "**/*.{md,yml}" ],
+        "files": [
+          "**/*.{md,yml}"
+        ],
         "src": "Articles",
         "dest": "docs"
       }
     ],
     "resource": [
       {
-        "files": [ "**/images/**"],
-        "exclude": [ "_site/**", "obj/**", "bin/**", "node_modules/**", "templates/**", ".yarn/**", ".config/**" ]
+        "files": [
+          "**/images/**"
+        ],
+        "exclude": [
+          "_site/**",
+          "obj/**",
+          "bin/**",
+          "node_modules/**",
+          "templates/**",
+          ".yarn/**",
+          ".config/**"
+        ]
       },
       {
         "files": [
@@ -229,7 +245,7 @@
     "globalMetadata": {
       "_appTitle": "cratis",
       "_appName": "cratis",
-      "_appFaviconPath": "images/favicon.png",
+      "_appFaviconPath": "favicon/favicon-512x512.png",
       "_appLogoPath": "images/logo.svg",
       "_appFooter": "Documentation",
       "_copyrightFooter": "© Cratis. All rights reserved.",

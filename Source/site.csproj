@@ -17,7 +17,11 @@
 
     <ItemGroup>
         <Compile Remove="node_modules\**\*.cs" />
-    </ItemGroup>    
+    </ItemGroup>
+
+    <Target Name="BuildApiDependencies">
+        <MSBuild Projects="../ApplicationModel/Source/DotNET/MongoDB/MongoDB.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
+    </Target>
 
     <Target Name="docfx">
         <Exec Command="mono $(Pkgdocfx_console)/tools/docfx.exe ./docfx.json --build" />

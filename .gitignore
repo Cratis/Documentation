@@ -321,6 +321,7 @@ Benchmarks/results
 /**/bin/
 /**/obj/
 _site
+_api
 Source/api/**
 
 

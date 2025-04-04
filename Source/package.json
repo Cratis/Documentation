@@ -10,7 +10,7 @@
         "watch": "rm -rf ./_site && rm -rf ./obj && dotnet clean && concurrently 'yarn serve' 'npm-watch build'",
         "watch:articles": "rm -rf ./_site && concurrently 'yarn serve' 'npm-watch build':articles",
         "build:ts": "./build-tsdocs.sh",
-        "build": "yarn build:ts && yarn extract-snippets && yarn insert-snippets && dotnet docfx",
+        "build": "yarn build:ts && yarn extract-snippets && yarn insert-snippets && dotnet build -t:BuildApiDependencies -c Release -p:TargetFramework=net9.0 && dotnet docfx",
         "build:articles": "dotnet docfx build",
         "serve": "yarn http-server ./_site",
         "fixts": "NODE_OPTIONS=\"--loader ts-node/esm\" node fix-tsdocs.ts",
