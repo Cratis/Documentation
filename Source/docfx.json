@@ -122,13 +122,12 @@
       "disableDefaultFilter": false
     },
     {
-      "src": [],
-      "references": [
+      "src": [
         {
           "files": [
             "bin/Release/net9.0/Cratis.Applications.MongoDB.dll"
           ],
-          "src": "../ApplicationModel/Source/DotNET"
+          "src": "../ApplicationModel/Source/DotNET/MongoDB"
         }
       ],
       "output": "api/applicationmodel/dotnet/mongodb",
