@@ -65,7 +65,7 @@
       "src": [
         {
           "files": [
-            "Clients/Orleans.InProcess/Orleans.InProcess.csproj"
+            "Clients/DotNET.InProcess/DotNET.InProcess.csproj"
           ],
           "exclude": [
             "**/obj/**",
@@ -77,7 +77,7 @@
       "properties": {
         "TargetFramework": "net9.0"
       },
-      "output": "api/chronicle/clients/orleans.inprocess",
+      "output": "api/chronicle/clients/dotnet.inprocess",
       "disableGitFeatures": false,
       "disableDefaultFilter": false
     },
