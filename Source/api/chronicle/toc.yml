@@ -5,6 +5,6 @@
 - name: XUnit
   href: clients/xunit/toc.yml
 - name: Orleans InProcess
-  href: clients/orleans.inprocess/toc.yml
+  href: clients/dotnet.inprocess/toc.yml
 - name: Orleans XUnit
   href: clients/orleans.xunit/toc.yml
