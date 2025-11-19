@@ -53,7 +53,7 @@ jobs:
       - name: Setup .Net
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "9.0.x"
+          dotnet-version: "10.0.x"
 
       - name: Setup node
         uses: actions/setup-node@v4
@@ -71,6 +71,7 @@ jobs:
             **/yarn.lock
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/package.json') }}
 
+      # Yarn install runs the post install script, which builds everything
       - name: Build entire documentation site
         working-directory: ./Source
         run: yarn install 

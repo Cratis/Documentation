@@ -115,7 +115,7 @@
         }
       ],
       "properties": {
-        "TargetFramework": "net9.0"
+        "TargetFramework": "net10.0"
       },
       "output": "api/applicationmodel/dotnet/applications",
       "disableGitFeatures": false,
@@ -125,7 +125,7 @@
       "src": [
         {
           "files": [
-            "bin/Release/net9.0/Cratis.Applications.MongoDB.dll"
+            "bin/Release/net10.0/Cratis.Applications.MongoDB.dll"
           ],
           "src": "../ApplicationModel/Source/DotNET/MongoDB"
         }
@@ -148,7 +148,7 @@
         }
       ],
       "properties": {
-        "TargetFramework": "net9.0"
+        "TargetFramework": "net10.0"
       },
       "output": "api/applicationmodel/dotnet/orleans",
       "disableGitFeatures": false,
@@ -168,7 +168,7 @@
         }
       ],
       "properties": {
-        "TargetFramework": "net9.0"
+        "TargetFramework": "net10.0"
       },
       "output": "api/fundamentals/dotnet/fundamentals",
       "disableGitFeatures": false,
