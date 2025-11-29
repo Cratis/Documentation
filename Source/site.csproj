@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <Target Name="BuildApiDependencies">
-        <Exec Command="dotnet build ../ApplicationModel/Source/DotNET/MongoDB/MongoDB.csproj -c $(Configuration)" />   
+        <Exec Command="dotnet build ../Arc/Source/DotNET/MongoDB/MongoDB.csproj -c $(Configuration)" />   
     </Target>
 
     <Target Name="docfx">

@@ -1,7 +1,7 @@
 - name: Chronicle
   href: docs/Chronicle/
-- name: Application Model
-  href: docs/ApplicationModel/
+- name: Arc
+  href: docs/Arc/
 - name: Fundamentals
   href: docs/Fundamentals/
 - name: Contributing

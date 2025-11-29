@@ -2,24 +2,24 @@
 echo "Building TypeScript documentation..."
 
 restore_paths=(
-    "../ApplicationModel"
+    "../Arc"
     "../Fundamentals"
 )
 
 # Define source and target paths
 source_paths=(
-    "../ApplicationModel/Source/JavaScript/Applications"
-    "../ApplicationModel/Source/JavaScript/Applications.React"
-    "../ApplicationModel/Source/JavaScript/Applications.React.MVVM"
-    "../ApplicationModel/Source/JavaScript/Applications.Vite"
+    "../Arc/Source/JavaScript/Arc"
+    "../Arc/Source/JavaScript/Arc.React"
+    "../Arc/Source/JavaScript/Arc.React.MVVM"
+    "../Arc/Source/JavaScript/Arc.Vite"
     "../Fundamentals/Source/JavaScript"
 )
 
 target_paths=(
-    "./api/applicationmodel/javascript/applications"
-    "./api/applicationmodel/javascript/applications.react"
-    "./api/applicationmodel/javascript/applications.react.mvvm"
-    "./api/applicationmodel/javascript/applications.vite"
+    "./api/arc/javascript/arc"
+    "./api/arc/javascript/arc.react"
+    "./api/arc/javascript/arc.react.mvvm"
+    "./api/arc/javascript/arc.vite"
     "./api/fundamentals/javascript"
 )
 

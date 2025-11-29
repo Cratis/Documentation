@@ -105,19 +105,19 @@
       "src": [
         {
           "files": [
-            "Applications/Applications.csproj"
+            "Arc/Arc.csproj"
           ],
           "exclude": [
             "**/obj/**",
             "**/bin/**"
           ],
-          "src": "../ApplicationModel/Source/DotNET"
+          "src": "../Arc/Source/DotNET"
         }
       ],
       "properties": {
         "TargetFramework": "net10.0"
       },
-      "output": "api/applicationmodel/dotnet/applications",
+      "output": "api/arc/dotnet/arc",
       "disableGitFeatures": false,
       "disableDefaultFilter": false
     },
@@ -125,32 +125,12 @@
       "src": [
         {
           "files": [
-            "bin/Release/net10.0/Cratis.Applications.MongoDB.dll"
+            "bin/Release/net10.0/Cratis.Arc.MongoDB.dll"
           ],
-          "src": "../ApplicationModel/Source/DotNET/MongoDB"
+          "src": "../Arc/Source/DotNET/MongoDB"
         }
       ],
-      "output": "api/applicationmodel/dotnet/mongodb",
-      "disableGitFeatures": false,
-      "disableDefaultFilter": false
-    },
-    {
-      "src": [
-        {
-          "files": [
-            "Orleans/Orleans.csproj"
-          ],
-          "exclude": [
-            "**/obj/**",
-            "**/bin/**"
-          ],
-          "src": "../ApplicationModel/Source/DotNET"
-        }
-      ],
-      "properties": {
-        "TargetFramework": "net10.0"
-      },
-      "output": "api/applicationmodel/dotnet/orleans",
+      "output": "api/arc/dotnet/mongodb",
       "disableGitFeatures": false,
       "disableDefaultFilter": false
     },
