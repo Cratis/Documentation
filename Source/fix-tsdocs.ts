@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 const folders = [
-    'api/applicationmodel/javascript',
+    'api/arc/javascript',
     'api/fundamentals/javascript'
 ];
 
