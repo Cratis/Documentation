@@ -73,14 +73,14 @@ It provides the core server, referred to as the **Kernel** with a .NET client SD
 
 [Get started](docs/Chronicle).
 
-## Application Model
+## Arc
 
-The Cratis Application model represents an opinionated approach to building consistent applications based on the concepts behind CQRS.
+Cratis Arc represents an opinionated approach to building consistent applications based on the concepts behind CQRS.
 It offers extensions for different frameworks and is built on top of ASP.NET Core. One of the traits the application model has is the
 bridging between the backend and the frontend. The application model provides a tool, called **ProxyGenerator** that generates TypeScript
 code for recognized artifacts matching the criteria of what is considered a **commmand** or a **query**.
 
-[Get started](docs/ApplicationModel).
+[Get started](docs/Arc).
 
 ## Fundamentals
 
