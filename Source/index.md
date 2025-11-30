@@ -71,7 +71,7 @@ html[data-bs-theme='light'] .cratisLogo g {
 Cratis Chronicle is an Event Sourcing database built with ease of use, productivity, compliance and maintainability in mind.
 It provides the core server, referred to as the **Kernel** with a .NET client SDK to access it and tooling built into it.
 
-[Get started](docs/Chronicle).
+[Get started](docs/Chronicle/index.md).
 
 ## Arc
 
@@ -80,7 +80,7 @@ It offers extensions for different frameworks and is built on top of ASP.NET Cor
 bridging between the backend and the frontend. The application model provides a tool, called **ProxyGenerator** that generates TypeScript
 code for recognized artifacts matching the criteria of what is considered a **commmand** or a **query**.
 
-[Get started](docs/Arc).
+[Get started](docs/Arc/index.md).
 
 ## Fundamentals
 
@@ -90,4 +90,4 @@ building blocks.
 
 You should look at it as a convenience layer on top of the existing base environment you're running in.
 
-[Get started](docs/Fundamentals).
+[Get started](docs/Fundamentals/index.md).
