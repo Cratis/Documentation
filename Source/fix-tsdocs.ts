@@ -8,6 +8,24 @@ const folders = [
     'api/fundamentals/javascript'
 ];
 
+// Parent API folders that need TOC files pointing to dotnet and javascript subfolders
+const parentApiTocs = [
+    {
+        folder: 'api/arc',
+        items: [
+            { name: '.NET', href: 'dotnet/toc.yml' },
+            { name: 'JavaScript / TypeScript', href: 'javascript/toc.yml' }
+        ]
+    },
+    {
+        folder: 'api/fundamentals',
+        items: [
+            { name: '.NET', href: 'dotnet/fundamentals/toc.yml' },
+            { name: 'JavaScript / TypeScript', href: 'javascript/toc.yml' }
+        ]
+    }
+];
+
 console.log('\n\nCreate TOCs for all folders\n');
 
 type TOCItem = {
@@ -65,6 +83,21 @@ for (const folder of folders) {
 
         createTableOfContentsFor(folderPath);
     }
+}
+
+// Create parent API TOC files
+console.log('\nCreating parent API TOC files...');
+for (const parentToc of parentApiTocs) {
+    const targetFile = path.join(parentToc.folder, 'toc.yml');
+    
+    // Ensure the directory exists
+    if (!fs.existsSync(parentToc.folder)) {
+        fs.mkdirSync(parentToc.folder, { recursive: true });
+    }
+    
+    const tocYaml = yaml.dump(parentToc.items);
+    fs.writeFileSync(targetFile, tocYaml);
+    console.log(`  Created ${targetFile}`);
 }
 
 console.log('\n');
