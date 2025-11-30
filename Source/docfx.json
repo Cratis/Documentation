@@ -15,7 +15,7 @@
         }
       ],
       "properties": {
-        "TargetFramework": "net9.0"
+        "TargetFramework": "net10.0"
       },
       "output": "api/chronicle/clients/dotnet",
       "disableGitFeatures": false,
@@ -35,7 +35,7 @@
         }
       ],
       "properties": {
-        "TargetFramework": "net9.0"
+        "TargetFramework": "net10.0"
       },
       "output": "api/chronicle/clients/aspnetcore",
       "disableGitFeatures": false,
@@ -55,7 +55,7 @@
         }
       ],
       "properties": {
-        "TargetFramework": "net9.0"
+        "TargetFramework": "net10.0"
       },
       "output": "api/chronicle/clients/xunit",
       "disableGitFeatures": false,
@@ -75,7 +75,7 @@
         }
       ],
       "properties": {
-        "TargetFramework": "net9.0"
+        "TargetFramework": "net10.0"
       },
       "output": "api/chronicle/clients/dotnet.inprocess",
       "disableGitFeatures": false,
@@ -95,7 +95,7 @@
         }
       ],
       "properties": {
-        "TargetFramework": "net9.0"
+        "TargetFramework": "net10.0"
       },
       "output": "api/chronicle/clients/orleans.xunit",
       "disableGitFeatures": false,
