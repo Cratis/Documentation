@@ -9740,10 +9740,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html",
           "hash": "8RWGWylXP1kv4FjVCEYObCMD1YI94+W+Cjz/ZRZJXSE="
         }
       },
@@ -9755,10 +9755,10 @@
         "DuplicateUids"
       ],
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootExtensions.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootExtensions.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootExtensions.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootExtensions.html",
           "hash": "H2A6StSl+bGwaXBbhG2Wbm6j5CtYiEjmTefgUAOmaaY="
         }
       },
@@ -9767,10 +9767,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html",
           "hash": "y/bu48ECeScJl47be+YoNprN39osFphISCb4gtZBJkM="
         }
       },
@@ -9779,10 +9779,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootTestFactory.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootTestFactory.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootTestFactory.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootTestFactory.html",
           "hash": "zJ6vZHVKNO3B6ah6i730bm07Q4YNoqjAfI2yN39qlbI="
         }
       },
@@ -9794,10 +9794,10 @@
         "DuplicateUids"
       ],
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.html",
           "hash": "BGIiTGyjtaQyJFmwmGUYofWTbgBsTUiYKVYoZUNJFkc="
         }
       },
@@ -9806,10 +9806,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html",
           "hash": "WNeWwFV9STq/jyy9ZRjbqwid5jjBIWQn9hbIENRTsiM="
         }
       },
@@ -9818,10 +9818,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Auditing.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Auditing.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Auditing.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Auditing.html",
           "hash": "dQBp8XKvOBYs3Cly3cmVXOMPHRcS6Hb5hUX5jhxCfKA="
         }
       },
@@ -9830,10 +9830,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html",
           "hash": "YwestPwzkCC1H4x6394phXNiyLJhDoqyl6OKZkrYwG0="
         }
       },
@@ -9842,10 +9842,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html",
           "hash": "AC4yU9fdj+IHFTqTwOC3knq5JYVLnq0AjYD5ckSp8t4="
         }
       },
@@ -9854,10 +9854,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventLogForTesting.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventLogForTesting.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventLogForTesting.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventLogForTesting.html",
           "hash": "ll3iuVgCbF38D4NWhzS7nc8tQcWaSxCtwjmLkpxM1n8="
         }
       },
@@ -9866,10 +9866,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html",
           "hash": "PiQQTPQFZ65u8GbPTBhiWAw1wlF3QH+pCEdpqK8oloY="
         }
       },
@@ -9878,10 +9878,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html",
           "hash": "s8OFL4/W2Q9tNJksA0zROUbeIynIdPHHB1gqFGnU5zY="
         }
       },
@@ -9890,10 +9890,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.html",
           "hash": "idcG7uTsSnuqHf/O+w3VDkdEdIEjrksKQXGp5tBns84="
         }
       },
@@ -9902,10 +9902,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger-1.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger-1.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger-1.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger-1.html",
           "hash": "MEzw7mOqzy0At0tscsoX/NGbv9LyETOiA3LInSsd4bc="
         }
       },
@@ -9914,10 +9914,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger.html",
           "hash": "SMKBC0HiWj4GCD86IrXmnPy/lwKBxGUQwtOBJ6us6Zw="
         }
       },
@@ -9926,10 +9926,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLoggerFactory.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLoggerFactory.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLoggerFactory.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLoggerFactory.html",
           "hash": "zShOCSoTSB/mjzTCS+279Ys5DwY4fRkQAn+IaxbPz2s="
         }
       },
@@ -9938,10 +9938,10 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.yml",
+      "source_relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.yml",
       "output": {
         ".html": {
-          "relative_path": "api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.html",
+          "relative_path": "api/chronicle/clients/testing/Cratis.Chronicle.XUnit.html",
           "hash": "ZMPSnEhNLhOF3tma9Om5ZlwRrUxBK1Oa1gvAF8baHCg="
         }
       },

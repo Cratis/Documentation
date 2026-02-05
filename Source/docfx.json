@@ -50,7 +50,7 @@
       "src": [
         {
           "files": [
-            "Clients/XUnit/XUnit.csproj"
+            "Clients/Testing/Testing.csproj"
           ],
           "exclude": [
             "**/obj/**",
@@ -62,7 +62,7 @@
       "properties": {
         "TargetFramework": "net10.0"
       },
-      "output": "api/chronicle/clients/xunit",
+      "output": "api/chronicle/clients/testing",
       "disableGitFeatures": false,
       "disableDefaultFilter": false
     },
@@ -83,26 +83,6 @@
         "TargetFramework": "net10.0"
       },
       "output": "api/chronicle/clients/dotnet.inprocess",
-      "disableGitFeatures": false,
-      "disableDefaultFilter": false
-    },
-    {
-      "src": [
-        {
-          "files": [
-            "Clients/Orleans.XUnit/Orleans.XUnit.csproj"
-          ],
-          "exclude": [
-            "**/obj/**",
-            "**/bin/**"
-          ],
-          "src": "../Chronicle/Source"
-        }
-      ],
-      "properties": {
-        "TargetFramework": "net10.0"
-      },
-      "output": "api/chronicle/clients/orleans.xunit",
       "disableGitFeatures": false,
       "disableDefaultFilter": false
     },

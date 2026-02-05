@@ -7547,20 +7547,20 @@ references:
   nameWithType: AggregateRootCommitResult.Successful
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions
   name: AggregateRootCommitResultShouldExtensions
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html
   commentId: T:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions
   nameWithType: AggregateRootCommitResultShouldExtensions
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.AssertOnEvent*
   name: AssertOnEvent
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_AssertOnEvent_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_AssertOnEvent_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.AssertOnEvent
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.AssertOnEvent
   nameWithType: AggregateRootCommitResultShouldExtensions.AssertOnEvent
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.AssertOnEvent``1(System.Object,System.Action{``0})
   name: AssertOnEvent<TEvent>(object, Action<TEvent>)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_AssertOnEvent__1_System_Object_System_Action___0__
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_AssertOnEvent__1_System_Object_System_Action___0__
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.AssertOnEvent``1(System.Object,System.Action{``0})
   name.vb: AssertOnEvent(Of TEvent)(Object, Action(Of TEvent))
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.AssertOnEvent<TEvent>(object, System.Action<TEvent>)
@@ -7569,40 +7569,40 @@ references:
   nameWithType.vb: AggregateRootCommitResultShouldExtensions.AssertOnEvent(Of TEvent)(Object, Action(Of TEvent))
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldBeFailed(Cratis.Chronicle.Aggregates.AggregateRootCommitResult)
   name: ShouldBeFailed(AggregateRootCommitResult)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldBeFailed_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldBeFailed_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldBeFailed(Cratis.Chronicle.Aggregates.AggregateRootCommitResult)
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldBeFailed(Cratis.Chronicle.Aggregates.AggregateRootCommitResult)
   nameWithType: AggregateRootCommitResultShouldExtensions.ShouldBeFailed(AggregateRootCommitResult)
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldBeFailed*
   name: ShouldBeFailed
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldBeFailed_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldBeFailed_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldBeFailed
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldBeFailed
   nameWithType: AggregateRootCommitResultShouldExtensions.ShouldBeFailed
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldBeSuccessful(Cratis.Chronicle.Aggregates.AggregateRootCommitResult)
   name: ShouldBeSuccessful(AggregateRootCommitResult)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldBeSuccessful_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldBeSuccessful_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldBeSuccessful(Cratis.Chronicle.Aggregates.AggregateRootCommitResult)
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldBeSuccessful(Cratis.Chronicle.Aggregates.AggregateRootCommitResult)
   nameWithType: AggregateRootCommitResultShouldExtensions.ShouldBeSuccessful(AggregateRootCommitResult)
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldBeSuccessful*
   name: ShouldBeSuccessful
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldBeSuccessful_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldBeSuccessful_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldBeSuccessful
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldBeSuccessful
   nameWithType: AggregateRootCommitResultShouldExtensions.ShouldBeSuccessful
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvent*
   name: ShouldContainEvent
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEvent_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEvent_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvent
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvent
   nameWithType: AggregateRootCommitResultShouldExtensions.ShouldContainEvent
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvent``1(Cratis.Chronicle.Aggregates.AggregateRootCommitResult,System.Func{``0,System.Boolean},System.Int32)
   name: ShouldContainEvent<TEvent>(AggregateRootCommitResult, Func<TEvent, bool>, int)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEvent__1_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_System_Func___0_System_Boolean__System_Int32_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEvent__1_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_System_Func___0_System_Boolean__System_Int32_
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvent``1(Cratis.Chronicle.Aggregates.AggregateRootCommitResult,System.Func{``0,System.Boolean},System.Int32)
   name.vb: ShouldContainEvent(Of TEvent)(AggregateRootCommitResult, Func(Of TEvent, Boolean), Integer)
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvent<TEvent>(Cratis.Chronicle.Aggregates.AggregateRootCommitResult, System.Func<TEvent, bool>, int)
@@ -7611,7 +7611,7 @@ references:
   nameWithType.vb: AggregateRootCommitResultShouldExtensions.ShouldContainEvent(Of TEvent)(AggregateRootCommitResult, Func(Of TEvent, Boolean), Integer)
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvent``1(Cratis.Chronicle.Aggregates.AggregateRootCommitResult,System.Int32)
   name: ShouldContainEvent<TEvent>(AggregateRootCommitResult, int)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEvent__1_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_System_Int32_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEvent__1_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_System_Int32_
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvent``1(Cratis.Chronicle.Aggregates.AggregateRootCommitResult,System.Int32)
   name.vb: ShouldContainEvent(Of TEvent)(AggregateRootCommitResult, Integer)
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvent<TEvent>(Cratis.Chronicle.Aggregates.AggregateRootCommitResult, int)
@@ -7620,7 +7620,7 @@ references:
   nameWithType.vb: AggregateRootCommitResultShouldExtensions.ShouldContainEvent(Of TEvent)(AggregateRootCommitResult, Integer)
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvents(Cratis.Chronicle.Aggregates.AggregateRootCommitResult,System.Action{System.Object}[])
   name: ShouldContainEvents(AggregateRootCommitResult, params Action<object>[])
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEvents_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_System_Action_System_Object____
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEvents_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_System_Action_System_Object____
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvents(Cratis.Chronicle.Aggregates.AggregateRootCommitResult,System.Action{System.Object}[])
   name.vb: ShouldContainEvents(AggregateRootCommitResult, ParamArray Action(Of Object)())
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvents(Cratis.Chronicle.Aggregates.AggregateRootCommitResult, params System.Action<object>[])
@@ -7629,7 +7629,7 @@ references:
   nameWithType.vb: AggregateRootCommitResultShouldExtensions.ShouldContainEvents(AggregateRootCommitResult, ParamArray Action(Of Object)())
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvents(Cratis.Chronicle.Aggregates.AggregateRootCommitResult,System.Object[])
   name: ShouldContainEvents(AggregateRootCommitResult, params object[])
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEvents_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_System_Object___
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEvents_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_System_Object___
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvents(Cratis.Chronicle.Aggregates.AggregateRootCommitResult,System.Object[])
   name.vb: ShouldContainEvents(AggregateRootCommitResult, ParamArray Object())
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvents(Cratis.Chronicle.Aggregates.AggregateRootCommitResult, params object[])
@@ -7638,14 +7638,14 @@ references:
   nameWithType.vb: AggregateRootCommitResultShouldExtensions.ShouldContainEvents(AggregateRootCommitResult, ParamArray Object())
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvents*
   name: ShouldContainEvents
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEvents_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEvents_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvents
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEvents
   nameWithType: AggregateRootCommitResultShouldExtensions.ShouldContainEvents
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEventsInOrder(Cratis.Chronicle.Aggregates.AggregateRootCommitResult,System.Func{System.Object,System.Boolean}[])
   name: ShouldContainEventsInOrder(AggregateRootCommitResult, params Func<object, bool>[])
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEventsInOrder_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_System_Func_System_Object_System_Boolean____
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEventsInOrder_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_System_Func_System_Object_System_Boolean____
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEventsInOrder(Cratis.Chronicle.Aggregates.AggregateRootCommitResult,System.Func{System.Object,System.Boolean}[])
   name.vb: ShouldContainEventsInOrder(AggregateRootCommitResult, ParamArray Func(Of Object, Boolean)())
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEventsInOrder(Cratis.Chronicle.Aggregates.AggregateRootCommitResult, params System.Func<object, bool>[])
@@ -7654,21 +7654,21 @@ references:
   nameWithType.vb: AggregateRootCommitResultShouldExtensions.ShouldContainEventsInOrder(AggregateRootCommitResult, ParamArray Func(Of Object, Boolean)())
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEventsInOrder*
   name: ShouldContainEventsInOrder
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEventsInOrder_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldContainEventsInOrder_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEventsInOrder
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldContainEventsInOrder
   nameWithType: AggregateRootCommitResultShouldExtensions.ShouldContainEventsInOrder
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldMatchEvent*
   name: ShouldMatchEvent
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldMatchEvent_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldMatchEvent_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldMatchEvent
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldMatchEvent
   nameWithType: AggregateRootCommitResultShouldExtensions.ShouldMatchEvent
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldMatchEvent``1(System.Object,System.Func{``0,System.Boolean})
   name: ShouldMatchEvent<TEvent>(object, Func<TEvent, bool>)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldMatchEvent__1_System_Object_System_Func___0_System_Boolean__
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldMatchEvent__1_System_Object_System_Func___0_System_Boolean__
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldMatchEvent``1(System.Object,System.Func{``0,System.Boolean})
   name.vb: ShouldMatchEvent(Of TEvent)(Object, Func(Of TEvent, Boolean))
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldMatchEvent<TEvent>(object, System.Func<TEvent, bool>)
@@ -7677,27 +7677,27 @@ references:
   nameWithType.vb: AggregateRootCommitResultShouldExtensions.ShouldMatchEvent(Of TEvent)(Object, Func(Of TEvent, Boolean))
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainAnyEvents(Cratis.Chronicle.Aggregates.AggregateRootCommitResult)
   name: ShouldNotContainAnyEvents(AggregateRootCommitResult)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldNotContainAnyEvents_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldNotContainAnyEvents_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainAnyEvents(Cratis.Chronicle.Aggregates.AggregateRootCommitResult)
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainAnyEvents(Cratis.Chronicle.Aggregates.AggregateRootCommitResult)
   nameWithType: AggregateRootCommitResultShouldExtensions.ShouldNotContainAnyEvents(AggregateRootCommitResult)
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainAnyEvents*
   name: ShouldNotContainAnyEvents
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldNotContainAnyEvents_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldNotContainAnyEvents_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainAnyEvents
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainAnyEvents
   nameWithType: AggregateRootCommitResultShouldExtensions.ShouldNotContainAnyEvents
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainEvent*
   name: ShouldNotContainEvent
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldNotContainEvent_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldNotContainEvent_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainEvent
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainEvent
   nameWithType: AggregateRootCommitResultShouldExtensions.ShouldNotContainEvent
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainEvent``1(Cratis.Chronicle.Aggregates.AggregateRootCommitResult)
   name: ShouldNotContainEvent<TEvent>(AggregateRootCommitResult)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldNotContainEvent__1_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldNotContainEvent__1_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainEvent``1(Cratis.Chronicle.Aggregates.AggregateRootCommitResult)
   name.vb: ShouldNotContainEvent(Of TEvent)(AggregateRootCommitResult)
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainEvent<TEvent>(Cratis.Chronicle.Aggregates.AggregateRootCommitResult)
@@ -7706,7 +7706,7 @@ references:
   nameWithType.vb: AggregateRootCommitResultShouldExtensions.ShouldNotContainEvent(Of TEvent)(AggregateRootCommitResult)
 - uid: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainEvent``1(Cratis.Chronicle.Aggregates.AggregateRootCommitResult,System.Func{``0,System.Boolean})
   name: ShouldNotContainEvent<TEvent>(AggregateRootCommitResult, Func<TEvent, bool>)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldNotContainEvent__1_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_System_Func___0_System_Boolean__
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootCommitResultShouldExtensions_ShouldNotContainEvent__1_Cratis_Chronicle_Aggregates_AggregateRootCommitResult_System_Func___0_System_Boolean__
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainEvent``1(Cratis.Chronicle.Aggregates.AggregateRootCommitResult,System.Func{``0,System.Boolean})
   name.vb: ShouldNotContainEvent(Of TEvent)(AggregateRootCommitResult, Func(Of TEvent, Boolean))
   fullName: Cratis.Chronicle.Aggregates.AggregateRootCommitResultShouldExtensions.ShouldNotContainEvent<TEvent>(Cratis.Chronicle.Aggregates.AggregateRootCommitResult, System.Func<TEvent, bool>)
@@ -7981,27 +7981,27 @@ references:
   nameWithType: AggregateRootExtensions.GetEventStreamType
 - uid: Cratis.Chronicle.Aggregates.AggregateRootExtensions.GetUncommittedEvents(Cratis.Chronicle.Aggregates.AggregateRoot)
   name: GetUncommittedEvents(AggregateRoot)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootExtensions_GetUncommittedEvents_Cratis_Chronicle_Aggregates_AggregateRoot_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootExtensions_GetUncommittedEvents_Cratis_Chronicle_Aggregates_AggregateRoot_
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootExtensions.GetUncommittedEvents(Cratis.Chronicle.Aggregates.AggregateRoot)
   fullName: Cratis.Chronicle.Aggregates.AggregateRootExtensions.GetUncommittedEvents(Cratis.Chronicle.Aggregates.AggregateRoot)
   nameWithType: AggregateRootExtensions.GetUncommittedEvents(AggregateRoot)
 - uid: Cratis.Chronicle.Aggregates.AggregateRootExtensions.GetUncommittedEvents*
   name: GetUncommittedEvents
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootExtensions_GetUncommittedEvents_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootExtensions_GetUncommittedEvents_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootExtensions.GetUncommittedEvents
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootExtensions.GetUncommittedEvents
   nameWithType: AggregateRootExtensions.GetUncommittedEvents
 - uid: Cratis.Chronicle.Aggregates.AggregateRootExtensions.SetState*
   name: SetState
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootExtensions_SetState_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootExtensions_SetState_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootExtensions.SetState
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootExtensions.SetState
   nameWithType: AggregateRootExtensions.SetState
 - uid: Cratis.Chronicle.Aggregates.AggregateRootExtensions.SetState``1(Cratis.Chronicle.Aggregates.AggregateRoot{``0},``0)
   name: SetState<TState>(AggregateRoot<TState>, TState)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootExtensions_SetState__1_Cratis_Chronicle_Aggregates_AggregateRoot___0____0_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootExtensions.html#Cratis_Chronicle_Aggregates_AggregateRootExtensions_SetState__1_Cratis_Chronicle_Aggregates_AggregateRoot___0____0_
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootExtensions.SetState``1(Cratis.Chronicle.Aggregates.AggregateRoot{``0},``0)
   name.vb: SetState(Of TState)(AggregateRoot(Of TState), TState)
   fullName: Cratis.Chronicle.Aggregates.AggregateRootExtensions.SetState<TState>(Cratis.Chronicle.Aggregates.AggregateRoot<TState>, TState)
@@ -8216,26 +8216,26 @@ references:
   nameWithType.vb: AggregateRootMutatorFactory.Create(Of TAggregateRoot)(IAggregateRootContext)
 - uid: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting
   name: AggregateRootMutatorForTesting
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html
   commentId: T:Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting
   fullName: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting
   nameWithType: AggregateRootMutatorForTesting
 - uid: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Dehydrate
   name: Dehydrate()
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html#Cratis_Chronicle_Aggregates_AggregateRootMutatorForTesting_Dehydrate
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html#Cratis_Chronicle_Aggregates_AggregateRootMutatorForTesting_Dehydrate
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Dehydrate
   fullName: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Dehydrate()
   nameWithType: AggregateRootMutatorForTesting.Dehydrate()
 - uid: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Dehydrate*
   name: Dehydrate
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html#Cratis_Chronicle_Aggregates_AggregateRootMutatorForTesting_Dehydrate_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html#Cratis_Chronicle_Aggregates_AggregateRootMutatorForTesting_Dehydrate_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Dehydrate
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Dehydrate
   nameWithType: AggregateRootMutatorForTesting.Dehydrate
 - uid: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Mutate(System.Object)
   name: Mutate(object)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html#Cratis_Chronicle_Aggregates_AggregateRootMutatorForTesting_Mutate_System_Object_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html#Cratis_Chronicle_Aggregates_AggregateRootMutatorForTesting_Mutate_System_Object_
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Mutate(System.Object)
   name.vb: Mutate(Object)
   fullName: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Mutate(object)
@@ -8244,20 +8244,20 @@ references:
   nameWithType.vb: AggregateRootMutatorForTesting.Mutate(Object)
 - uid: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Mutate*
   name: Mutate
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html#Cratis_Chronicle_Aggregates_AggregateRootMutatorForTesting_Mutate_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html#Cratis_Chronicle_Aggregates_AggregateRootMutatorForTesting_Mutate_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Mutate
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Mutate
   nameWithType: AggregateRootMutatorForTesting.Mutate
 - uid: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Rehydrate
   name: Rehydrate()
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html#Cratis_Chronicle_Aggregates_AggregateRootMutatorForTesting_Rehydrate
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html#Cratis_Chronicle_Aggregates_AggregateRootMutatorForTesting_Rehydrate
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Rehydrate
   fullName: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Rehydrate()
   nameWithType: AggregateRootMutatorForTesting.Rehydrate()
 - uid: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Rehydrate*
   name: Rehydrate
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html#Cratis_Chronicle_Aggregates_AggregateRootMutatorForTesting_Rehydrate_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.html#Cratis_Chronicle_Aggregates_AggregateRootMutatorForTesting_Rehydrate_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Rehydrate
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootMutatorForTesting.Rehydrate
@@ -8348,20 +8348,20 @@ references:
   nameWithType.vb: AggregateRootStateProviders.CreateFor(Of TState)(IAggregateRootContext)
 - uid: Cratis.Chronicle.Aggregates.AggregateRootTestFactory
   name: AggregateRootTestFactory
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootTestFactory.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootTestFactory.html
   commentId: T:Cratis.Chronicle.Aggregates.AggregateRootTestFactory
   fullName: Cratis.Chronicle.Aggregates.AggregateRootTestFactory
   nameWithType: AggregateRootTestFactory
 - uid: Cratis.Chronicle.Aggregates.AggregateRootTestFactory.Create*
   name: Create
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootTestFactory.html#Cratis_Chronicle_Aggregates_AggregateRootTestFactory_Create_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootTestFactory.html#Cratis_Chronicle_Aggregates_AggregateRootTestFactory_Create_
   commentId: Overload:Cratis.Chronicle.Aggregates.AggregateRootTestFactory.Create
   isSpec: "True"
   fullName: Cratis.Chronicle.Aggregates.AggregateRootTestFactory.Create
   nameWithType: AggregateRootTestFactory.Create
 - uid: Cratis.Chronicle.Aggregates.AggregateRootTestFactory.Create``1(Cratis.Chronicle.Events.EventSourceId,System.Object[])
   name: Create<TAggregateRoot>(EventSourceId, params object[])
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootTestFactory.html#Cratis_Chronicle_Aggregates_AggregateRootTestFactory_Create__1_Cratis_Chronicle_Events_EventSourceId_System_Object___
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootTestFactory.html#Cratis_Chronicle_Aggregates_AggregateRootTestFactory_Create__1_Cratis_Chronicle_Events_EventSourceId_System_Object___
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootTestFactory.Create``1(Cratis.Chronicle.Events.EventSourceId,System.Object[])
   name.vb: Create(Of TAggregateRoot)(EventSourceId, ParamArray Object())
   fullName: Cratis.Chronicle.Aggregates.AggregateRootTestFactory.Create<TAggregateRoot>(Cratis.Chronicle.Events.EventSourceId, params object[])
@@ -8370,7 +8370,7 @@ references:
   nameWithType.vb: AggregateRootTestFactory.Create(Of TAggregateRoot)(EventSourceId, ParamArray Object())
 - uid: Cratis.Chronicle.Aggregates.AggregateRootTestFactory.Create``2(Cratis.Chronicle.Events.EventSourceId,System.Object[])
   name: Create<TAggregateRoot, TState>(EventSourceId, params object[])
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.Aggregates.AggregateRootTestFactory.html#Cratis_Chronicle_Aggregates_AggregateRootTestFactory_Create__2_Cratis_Chronicle_Events_EventSourceId_System_Object___
+  href: api/chronicle/clients/testing/Cratis.Chronicle.Aggregates.AggregateRootTestFactory.html#Cratis_Chronicle_Aggregates_AggregateRootTestFactory_Create__2_Cratis_Chronicle_Events_EventSourceId_System_Object___
   commentId: M:Cratis.Chronicle.Aggregates.AggregateRootTestFactory.Create``2(Cratis.Chronicle.Events.EventSourceId,System.Object[])
   name.vb: Create(Of TAggregateRoot, TState)(EventSourceId, ParamArray Object())
   fullName: Cratis.Chronicle.Aggregates.AggregateRootTestFactory.Create<TAggregateRoot, TState>(Cratis.Chronicle.Events.EventSourceId, params object[])
@@ -28873,25 +28873,25 @@ references:
   nameWithType: UnitOfWorkManager.TryGetFor
 - uid: Cratis.Chronicle.XUnit
   name: Cratis.Chronicle.XUnit
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.html
   commentId: N:Cratis.Chronicle.XUnit
   fullName: Cratis.Chronicle.XUnit
   nameWithType: Cratis.Chronicle.XUnit
 - uid: Cratis.Chronicle.XUnit.Auditing
   name: Cratis.Chronicle.XUnit.Auditing
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Auditing.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Auditing.html
   commentId: N:Cratis.Chronicle.XUnit.Auditing
   fullName: Cratis.Chronicle.XUnit.Auditing
   nameWithType: Cratis.Chronicle.XUnit.Auditing
 - uid: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting
   name: CausationManagerForTesting
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html
   commentId: T:Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting
   fullName: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting
   nameWithType: CausationManagerForTesting
 - uid: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.Add(Cratis.Chronicle.Auditing.CausationType,System.Collections.Generic.IDictionary{System.String,System.String})
   name: Add(CausationType, IDictionary<string, string>)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html#Cratis_Chronicle_XUnit_Auditing_CausationManagerForTesting_Add_Cratis_Chronicle_Auditing_CausationType_System_Collections_Generic_IDictionary_System_String_System_String__
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html#Cratis_Chronicle_XUnit_Auditing_CausationManagerForTesting_Add_Cratis_Chronicle_Auditing_CausationType_System_Collections_Generic_IDictionary_System_String_System_String__
   commentId: M:Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.Add(Cratis.Chronicle.Auditing.CausationType,System.Collections.Generic.IDictionary{System.String,System.String})
   name.vb: Add(CausationType, IDictionary(Of String, String))
   fullName: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.Add(Cratis.Chronicle.Auditing.CausationType, System.Collections.Generic.IDictionary<string, string>)
@@ -28900,46 +28900,46 @@ references:
   nameWithType.vb: CausationManagerForTesting.Add(CausationType, IDictionary(Of String, String))
 - uid: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.Add*
   name: Add
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html#Cratis_Chronicle_XUnit_Auditing_CausationManagerForTesting_Add_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html#Cratis_Chronicle_XUnit_Auditing_CausationManagerForTesting_Add_
   commentId: Overload:Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.Add
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.Add
   nameWithType: CausationManagerForTesting.Add
 - uid: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.GetCurrentChain
   name: GetCurrentChain()
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html#Cratis_Chronicle_XUnit_Auditing_CausationManagerForTesting_GetCurrentChain
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html#Cratis_Chronicle_XUnit_Auditing_CausationManagerForTesting_GetCurrentChain
   commentId: M:Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.GetCurrentChain
   fullName: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.GetCurrentChain()
   nameWithType: CausationManagerForTesting.GetCurrentChain()
 - uid: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.GetCurrentChain*
   name: GetCurrentChain
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html#Cratis_Chronicle_XUnit_Auditing_CausationManagerForTesting_GetCurrentChain_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html#Cratis_Chronicle_XUnit_Auditing_CausationManagerForTesting_GetCurrentChain_
   commentId: Overload:Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.GetCurrentChain
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.GetCurrentChain
   nameWithType: CausationManagerForTesting.GetCurrentChain
 - uid: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.Root
   name: Root
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html#Cratis_Chronicle_XUnit_Auditing_CausationManagerForTesting_Root
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html#Cratis_Chronicle_XUnit_Auditing_CausationManagerForTesting_Root
   commentId: P:Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.Root
   fullName: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.Root
   nameWithType: CausationManagerForTesting.Root
 - uid: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.Root*
   name: Root
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html#Cratis_Chronicle_XUnit_Auditing_CausationManagerForTesting_Root_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.html#Cratis_Chronicle_XUnit_Auditing_CausationManagerForTesting_Root_
   commentId: Overload:Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.Root
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Auditing.CausationManagerForTesting.Root
   nameWithType: CausationManagerForTesting.Root
 - uid: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting
   name: ChronicleConnectionForTesting
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html
   commentId: T:Cratis.Chronicle.XUnit.ChronicleConnectionForTesting
   fullName: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting
   nameWithType: ChronicleConnectionForTesting
 - uid: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.#ctor
   name: ChronicleConnectionForTesting()
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting__ctor
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting__ctor
   commentId: M:Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.#ctor
   name.vb: New()
   fullName: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.ChronicleConnectionForTesting()
@@ -28948,7 +28948,7 @@ references:
   nameWithType.vb: ChronicleConnectionForTesting.New()
 - uid: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.#ctor*
   name: ChronicleConnectionForTesting
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting__ctor_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting__ctor_
   commentId: Overload:Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.#ctor
   isSpec: "True"
   name.vb: New
@@ -28958,52 +28958,52 @@ references:
   nameWithType.vb: ChronicleConnectionForTesting.New
 - uid: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Dispose
   name: Dispose()
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting_Dispose
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting_Dispose
   commentId: M:Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Dispose
   fullName: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Dispose()
   nameWithType: ChronicleConnectionForTesting.Dispose()
 - uid: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Dispose*
   name: Dispose
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting_Dispose_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting_Dispose_
   commentId: Overload:Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Dispose
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Dispose
   nameWithType: ChronicleConnectionForTesting.Dispose
 - uid: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Lifecycle
   name: Lifecycle
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting_Lifecycle
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting_Lifecycle
   commentId: P:Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Lifecycle
   fullName: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Lifecycle
   nameWithType: ChronicleConnectionForTesting.Lifecycle
 - uid: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Lifecycle*
   name: Lifecycle
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting_Lifecycle_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting_Lifecycle_
   commentId: Overload:Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Lifecycle
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Lifecycle
   nameWithType: ChronicleConnectionForTesting.Lifecycle
 - uid: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Services
   name: Services
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting_Services
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting_Services
   commentId: P:Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Services
   fullName: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Services
   nameWithType: ChronicleConnectionForTesting.Services
 - uid: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Services*
   name: Services
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting_Services_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.html#Cratis_Chronicle_XUnit_ChronicleConnectionForTesting_Services_
   commentId: Overload:Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Services
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.ChronicleConnectionForTesting.Services
   nameWithType: ChronicleConnectionForTesting.Services
 - uid: Cratis.Chronicle.XUnit.Defaults
   name: Defaults
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html
   commentId: T:Cratis.Chronicle.XUnit.Defaults
   fullName: Cratis.Chronicle.XUnit.Defaults
   nameWithType: Defaults
 - uid: Cratis.Chronicle.XUnit.Defaults.#ctor
   name: Defaults()
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults__ctor
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults__ctor
   commentId: M:Cratis.Chronicle.XUnit.Defaults.#ctor
   name.vb: New()
   fullName: Cratis.Chronicle.XUnit.Defaults.Defaults()
@@ -29012,7 +29012,7 @@ references:
   nameWithType.vb: Defaults.New()
 - uid: Cratis.Chronicle.XUnit.Defaults.#ctor*
   name: Defaults
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults__ctor_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults__ctor_
   commentId: Overload:Cratis.Chronicle.XUnit.Defaults.#ctor
   isSpec: "True"
   name.vb: New
@@ -29022,90 +29022,90 @@ references:
   nameWithType.vb: Defaults.New
 - uid: Cratis.Chronicle.XUnit.Defaults.ClientArtifactsProvider
   name: ClientArtifactsProvider
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_ClientArtifactsProvider
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_ClientArtifactsProvider
   commentId: P:Cratis.Chronicle.XUnit.Defaults.ClientArtifactsProvider
   fullName: Cratis.Chronicle.XUnit.Defaults.ClientArtifactsProvider
   nameWithType: Defaults.ClientArtifactsProvider
 - uid: Cratis.Chronicle.XUnit.Defaults.ClientArtifactsProvider*
   name: ClientArtifactsProvider
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_ClientArtifactsProvider_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_ClientArtifactsProvider_
   commentId: Overload:Cratis.Chronicle.XUnit.Defaults.ClientArtifactsProvider
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Defaults.ClientArtifactsProvider
   nameWithType: Defaults.ClientArtifactsProvider
 - uid: Cratis.Chronicle.XUnit.Defaults.EventSerializer
   name: EventSerializer
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_EventSerializer
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_EventSerializer
   commentId: P:Cratis.Chronicle.XUnit.Defaults.EventSerializer
   fullName: Cratis.Chronicle.XUnit.Defaults.EventSerializer
   nameWithType: Defaults.EventSerializer
 - uid: Cratis.Chronicle.XUnit.Defaults.EventSerializer*
   name: EventSerializer
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_EventSerializer_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_EventSerializer_
   commentId: Overload:Cratis.Chronicle.XUnit.Defaults.EventSerializer
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Defaults.EventSerializer
   nameWithType: Defaults.EventSerializer
 - uid: Cratis.Chronicle.XUnit.Defaults.EventStore
   name: EventStore
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_EventStore
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_EventStore
   commentId: P:Cratis.Chronicle.XUnit.Defaults.EventStore
   fullName: Cratis.Chronicle.XUnit.Defaults.EventStore
   nameWithType: Defaults.EventStore
 - uid: Cratis.Chronicle.XUnit.Defaults.EventStore*
   name: EventStore
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_EventStore_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_EventStore_
   commentId: Overload:Cratis.Chronicle.XUnit.Defaults.EventStore
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Defaults.EventStore
   nameWithType: Defaults.EventStore
 - uid: Cratis.Chronicle.XUnit.Defaults.EventTypes
   name: EventTypes
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_EventTypes
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_EventTypes
   commentId: P:Cratis.Chronicle.XUnit.Defaults.EventTypes
   fullName: Cratis.Chronicle.XUnit.Defaults.EventTypes
   nameWithType: Defaults.EventTypes
 - uid: Cratis.Chronicle.XUnit.Defaults.EventTypes*
   name: EventTypes
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_EventTypes_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_EventTypes_
   commentId: Overload:Cratis.Chronicle.XUnit.Defaults.EventTypes
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Defaults.EventTypes
   nameWithType: Defaults.EventTypes
 - uid: Cratis.Chronicle.XUnit.Defaults.Instance
   name: Instance
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_Instance
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_Instance
   commentId: F:Cratis.Chronicle.XUnit.Defaults.Instance
   fullName: Cratis.Chronicle.XUnit.Defaults.Instance
   nameWithType: Defaults.Instance
 - uid: Cratis.Chronicle.XUnit.Defaults.JsonSchemaGenerator
   name: JsonSchemaGenerator
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_JsonSchemaGenerator
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_JsonSchemaGenerator
   commentId: P:Cratis.Chronicle.XUnit.Defaults.JsonSchemaGenerator
   fullName: Cratis.Chronicle.XUnit.Defaults.JsonSchemaGenerator
   nameWithType: Defaults.JsonSchemaGenerator
 - uid: Cratis.Chronicle.XUnit.Defaults.JsonSchemaGenerator*
   name: JsonSchemaGenerator
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_JsonSchemaGenerator_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Defaults.html#Cratis_Chronicle_XUnit_Defaults_JsonSchemaGenerator_
   commentId: Overload:Cratis.Chronicle.XUnit.Defaults.JsonSchemaGenerator
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Defaults.JsonSchemaGenerator
   nameWithType: Defaults.JsonSchemaGenerator
 - uid: Cratis.Chronicle.XUnit.Events
   name: Cratis.Chronicle.XUnit.Events
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.html
   commentId: N:Cratis.Chronicle.XUnit.Events
   fullName: Cratis.Chronicle.XUnit.Events
   nameWithType: Cratis.Chronicle.XUnit.Events
 - uid: Cratis.Chronicle.XUnit.Events.EventLogForTesting
   name: EventLogForTesting
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventLogForTesting.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventLogForTesting.html
   commentId: T:Cratis.Chronicle.XUnit.Events.EventLogForTesting
   fullName: Cratis.Chronicle.XUnit.Events.EventLogForTesting
   nameWithType: EventLogForTesting
 - uid: Cratis.Chronicle.XUnit.Events.EventLogForTesting.#ctor(Cratis.Chronicle.Events.IEventTypes,Cratis.Chronicle.EventSequences.EventForEventSourceId[])
   name: EventLogForTesting(IEventTypes, params EventForEventSourceId[])
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventLogForTesting.html#Cratis_Chronicle_XUnit_Events_EventLogForTesting__ctor_Cratis_Chronicle_Events_IEventTypes_Cratis_Chronicle_EventSequences_EventForEventSourceId___
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventLogForTesting.html#Cratis_Chronicle_XUnit_Events_EventLogForTesting__ctor_Cratis_Chronicle_Events_IEventTypes_Cratis_Chronicle_EventSequences_EventForEventSourceId___
   commentId: M:Cratis.Chronicle.XUnit.Events.EventLogForTesting.#ctor(Cratis.Chronicle.Events.IEventTypes,Cratis.Chronicle.EventSequences.EventForEventSourceId[])
   name.vb: New(IEventTypes, ParamArray EventForEventSourceId())
   fullName: Cratis.Chronicle.XUnit.Events.EventLogForTesting.EventLogForTesting(Cratis.Chronicle.Events.IEventTypes, params Cratis.Chronicle.EventSequences.EventForEventSourceId[])
@@ -29114,7 +29114,7 @@ references:
   nameWithType.vb: EventLogForTesting.New(IEventTypes, ParamArray EventForEventSourceId())
 - uid: Cratis.Chronicle.XUnit.Events.EventLogForTesting.#ctor*
   name: EventLogForTesting
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventLogForTesting.html#Cratis_Chronicle_XUnit_Events_EventLogForTesting__ctor_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventLogForTesting.html#Cratis_Chronicle_XUnit_Events_EventLogForTesting__ctor_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventLogForTesting.#ctor
   isSpec: "True"
   name.vb: New
@@ -29124,13 +29124,13 @@ references:
   nameWithType.vb: EventLogForTesting.New
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting
   name: EventSequenceForTesting
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html
   commentId: T:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting
   nameWithType: EventSequenceForTesting
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.#ctor(Cratis.Chronicle.Events.IEventTypes,Cratis.Chronicle.EventSequences.EventForEventSourceId[])
   name: EventSequenceForTesting(IEventTypes, params EventForEventSourceId[])
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting__ctor_Cratis_Chronicle_Events_IEventTypes_Cratis_Chronicle_EventSequences_EventForEventSourceId___
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting__ctor_Cratis_Chronicle_Events_IEventTypes_Cratis_Chronicle_EventSequences_EventForEventSourceId___
   commentId: M:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.#ctor(Cratis.Chronicle.Events.IEventTypes,Cratis.Chronicle.EventSequences.EventForEventSourceId[])
   name.vb: New(IEventTypes, ParamArray EventForEventSourceId())
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.EventSequenceForTesting(Cratis.Chronicle.Events.IEventTypes, params Cratis.Chronicle.EventSequences.EventForEventSourceId[])
@@ -29139,7 +29139,7 @@ references:
   nameWithType.vb: EventSequenceForTesting.New(IEventTypes, ParamArray EventForEventSourceId())
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.#ctor*
   name: EventSequenceForTesting
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting__ctor_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting__ctor_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.#ctor
   isSpec: "True"
   name.vb: New
@@ -29149,7 +29149,7 @@ references:
   nameWithType.vb: EventSequenceForTesting.New
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Append(Cratis.Chronicle.Events.EventSourceId,System.Object,Cratis.Chronicle.Events.EventStreamType,Cratis.Chronicle.Events.EventStreamId,Cratis.Chronicle.Events.EventSourceType)
   name: Append(EventSourceId, object, EventStreamType?, EventStreamId?, EventSourceType?)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Append_Cratis_Chronicle_Events_EventSourceId_System_Object_Cratis_Chronicle_Events_EventStreamType_Cratis_Chronicle_Events_EventStreamId_Cratis_Chronicle_Events_EventSourceType_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Append_Cratis_Chronicle_Events_EventSourceId_System_Object_Cratis_Chronicle_Events_EventStreamType_Cratis_Chronicle_Events_EventStreamId_Cratis_Chronicle_Events_EventSourceType_
   commentId: M:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Append(Cratis.Chronicle.Events.EventSourceId,System.Object,Cratis.Chronicle.Events.EventStreamType,Cratis.Chronicle.Events.EventStreamId,Cratis.Chronicle.Events.EventSourceType)
   name.vb: Append(EventSourceId, Object, EventStreamType, EventStreamId, EventSourceType)
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Append(Cratis.Chronicle.Events.EventSourceId, object, Cratis.Chronicle.Events.EventStreamType?, Cratis.Chronicle.Events.EventStreamId?, Cratis.Chronicle.Events.EventSourceType?)
@@ -29158,14 +29158,14 @@ references:
   nameWithType.vb: EventSequenceForTesting.Append(EventSourceId, Object, EventStreamType, EventStreamId, EventSourceType)
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Append*
   name: Append
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Append_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Append_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Append
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Append
   nameWithType: EventSequenceForTesting.Append
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.AppendMany(Cratis.Chronicle.Events.EventSourceId,System.Collections.Generic.IEnumerable{System.Object},Cratis.Chronicle.Events.EventStreamType,Cratis.Chronicle.Events.EventStreamId,Cratis.Chronicle.Events.EventSourceType)
   name: AppendMany(EventSourceId, IEnumerable<object>, EventStreamType?, EventStreamId?, EventSourceType?)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_AppendMany_Cratis_Chronicle_Events_EventSourceId_System_Collections_Generic_IEnumerable_System_Object__Cratis_Chronicle_Events_EventStreamType_Cratis_Chronicle_Events_EventStreamId_Cratis_Chronicle_Events_EventSourceType_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_AppendMany_Cratis_Chronicle_Events_EventSourceId_System_Collections_Generic_IEnumerable_System_Object__Cratis_Chronicle_Events_EventStreamType_Cratis_Chronicle_Events_EventStreamId_Cratis_Chronicle_Events_EventSourceType_
   commentId: M:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.AppendMany(Cratis.Chronicle.Events.EventSourceId,System.Collections.Generic.IEnumerable{System.Object},Cratis.Chronicle.Events.EventStreamType,Cratis.Chronicle.Events.EventStreamId,Cratis.Chronicle.Events.EventSourceType)
   name.vb: AppendMany(EventSourceId, IEnumerable(Of Object), EventStreamType, EventStreamId, EventSourceType)
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.AppendMany(Cratis.Chronicle.Events.EventSourceId, System.Collections.Generic.IEnumerable<object>, Cratis.Chronicle.Events.EventStreamType?, Cratis.Chronicle.Events.EventStreamId?, Cratis.Chronicle.Events.EventSourceType?)
@@ -29174,7 +29174,7 @@ references:
   nameWithType.vb: EventSequenceForTesting.AppendMany(EventSourceId, IEnumerable(Of Object), EventStreamType, EventStreamId, EventSourceType)
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.AppendMany(System.Collections.Generic.IEnumerable{Cratis.Chronicle.EventSequences.EventForEventSourceId})
   name: AppendMany(IEnumerable<EventForEventSourceId>)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_AppendMany_System_Collections_Generic_IEnumerable_Cratis_Chronicle_EventSequences_EventForEventSourceId__
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_AppendMany_System_Collections_Generic_IEnumerable_Cratis_Chronicle_EventSequences_EventForEventSourceId__
   commentId: M:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.AppendMany(System.Collections.Generic.IEnumerable{Cratis.Chronicle.EventSequences.EventForEventSourceId})
   name.vb: AppendMany(IEnumerable(Of EventForEventSourceId))
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.AppendMany(System.Collections.Generic.IEnumerable<Cratis.Chronicle.EventSequences.EventForEventSourceId>)
@@ -29183,14 +29183,14 @@ references:
   nameWithType.vb: EventSequenceForTesting.AppendMany(IEnumerable(Of EventForEventSourceId))
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.AppendMany*
   name: AppendMany
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_AppendMany_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_AppendMany_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.AppendMany
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.AppendMany
   nameWithType: EventSequenceForTesting.AppendMany
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetForEventSourceIdAndEventTypes(Cratis.Chronicle.Events.EventSourceId,System.Collections.Generic.IEnumerable{Cratis.Chronicle.Events.EventType},Cratis.Chronicle.Events.EventStreamType,Cratis.Chronicle.Events.EventStreamId,Cratis.Chronicle.Events.EventSourceType)
   name: GetForEventSourceIdAndEventTypes(EventSourceId, IEnumerable<EventType>, EventStreamType?, EventStreamId?, EventSourceType?)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetForEventSourceIdAndEventTypes_Cratis_Chronicle_Events_EventSourceId_System_Collections_Generic_IEnumerable_Cratis_Chronicle_Events_EventType__Cratis_Chronicle_Events_EventStreamType_Cratis_Chronicle_Events_EventStreamId_Cratis_Chronicle_Events_EventSourceType_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetForEventSourceIdAndEventTypes_Cratis_Chronicle_Events_EventSourceId_System_Collections_Generic_IEnumerable_Cratis_Chronicle_Events_EventType__Cratis_Chronicle_Events_EventStreamType_Cratis_Chronicle_Events_EventStreamId_Cratis_Chronicle_Events_EventSourceType_
   commentId: M:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetForEventSourceIdAndEventTypes(Cratis.Chronicle.Events.EventSourceId,System.Collections.Generic.IEnumerable{Cratis.Chronicle.Events.EventType},Cratis.Chronicle.Events.EventStreamType,Cratis.Chronicle.Events.EventStreamId,Cratis.Chronicle.Events.EventSourceType)
   name.vb: GetForEventSourceIdAndEventTypes(EventSourceId, IEnumerable(Of EventType), EventStreamType, EventStreamId, EventSourceType)
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetForEventSourceIdAndEventTypes(Cratis.Chronicle.Events.EventSourceId, System.Collections.Generic.IEnumerable<Cratis.Chronicle.Events.EventType>, Cratis.Chronicle.Events.EventStreamType?, Cratis.Chronicle.Events.EventStreamId?, Cratis.Chronicle.Events.EventSourceType?)
@@ -29199,14 +29199,14 @@ references:
   nameWithType.vb: EventSequenceForTesting.GetForEventSourceIdAndEventTypes(EventSourceId, IEnumerable(Of EventType), EventStreamType, EventStreamId, EventSourceType)
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetForEventSourceIdAndEventTypes*
   name: GetForEventSourceIdAndEventTypes
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetForEventSourceIdAndEventTypes_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetForEventSourceIdAndEventTypes_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetForEventSourceIdAndEventTypes
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetForEventSourceIdAndEventTypes
   nameWithType: EventSequenceForTesting.GetForEventSourceIdAndEventTypes
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetFromSequenceNumber(Cratis.Chronicle.Events.EventSequenceNumber,Cratis.Chronicle.Events.EventSourceId,System.Collections.Generic.IEnumerable{Cratis.Chronicle.Events.EventType})
   name: GetFromSequenceNumber(EventSequenceNumber, EventSourceId?, IEnumerable<EventType>?)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetFromSequenceNumber_Cratis_Chronicle_Events_EventSequenceNumber_Cratis_Chronicle_Events_EventSourceId_System_Collections_Generic_IEnumerable_Cratis_Chronicle_Events_EventType__
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetFromSequenceNumber_Cratis_Chronicle_Events_EventSequenceNumber_Cratis_Chronicle_Events_EventSourceId_System_Collections_Generic_IEnumerable_Cratis_Chronicle_Events_EventType__
   commentId: M:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetFromSequenceNumber(Cratis.Chronicle.Events.EventSequenceNumber,Cratis.Chronicle.Events.EventSourceId,System.Collections.Generic.IEnumerable{Cratis.Chronicle.Events.EventType})
   name.vb: GetFromSequenceNumber(EventSequenceNumber, EventSourceId, IEnumerable(Of EventType))
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetFromSequenceNumber(Cratis.Chronicle.Events.EventSequenceNumber, Cratis.Chronicle.Events.EventSourceId?, System.Collections.Generic.IEnumerable<Cratis.Chronicle.Events.EventType>?)
@@ -29215,79 +29215,79 @@ references:
   nameWithType.vb: EventSequenceForTesting.GetFromSequenceNumber(EventSequenceNumber, EventSourceId, IEnumerable(Of EventType))
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetFromSequenceNumber*
   name: GetFromSequenceNumber
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetFromSequenceNumber_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetFromSequenceNumber_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetFromSequenceNumber
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetFromSequenceNumber
   nameWithType: EventSequenceForTesting.GetFromSequenceNumber
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetNextSequenceNumber
   name: GetNextSequenceNumber()
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetNextSequenceNumber
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetNextSequenceNumber
   commentId: M:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetNextSequenceNumber
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetNextSequenceNumber()
   nameWithType: EventSequenceForTesting.GetNextSequenceNumber()
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetNextSequenceNumber*
   name: GetNextSequenceNumber
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetNextSequenceNumber_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetNextSequenceNumber_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetNextSequenceNumber
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetNextSequenceNumber
   nameWithType: EventSequenceForTesting.GetNextSequenceNumber
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetTailSequenceNumber
   name: GetTailSequenceNumber()
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetTailSequenceNumber
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetTailSequenceNumber
   commentId: M:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetTailSequenceNumber
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetTailSequenceNumber()
   nameWithType: EventSequenceForTesting.GetTailSequenceNumber()
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetTailSequenceNumber*
   name: GetTailSequenceNumber
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetTailSequenceNumber_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetTailSequenceNumber_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetTailSequenceNumber
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetTailSequenceNumber
   nameWithType: EventSequenceForTesting.GetTailSequenceNumber
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetTailSequenceNumberForObserver(System.Type)
   name: GetTailSequenceNumberForObserver(Type)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetTailSequenceNumberForObserver_System_Type_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetTailSequenceNumberForObserver_System_Type_
   commentId: M:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetTailSequenceNumberForObserver(System.Type)
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetTailSequenceNumberForObserver(System.Type)
   nameWithType: EventSequenceForTesting.GetTailSequenceNumberForObserver(Type)
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetTailSequenceNumberForObserver*
   name: GetTailSequenceNumberForObserver
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetTailSequenceNumberForObserver_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_GetTailSequenceNumberForObserver_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetTailSequenceNumberForObserver
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.GetTailSequenceNumberForObserver
   nameWithType: EventSequenceForTesting.GetTailSequenceNumberForObserver
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.HasEventsFor(Cratis.Chronicle.Events.EventSourceId)
   name: HasEventsFor(EventSourceId)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_HasEventsFor_Cratis_Chronicle_Events_EventSourceId_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_HasEventsFor_Cratis_Chronicle_Events_EventSourceId_
   commentId: M:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.HasEventsFor(Cratis.Chronicle.Events.EventSourceId)
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.HasEventsFor(Cratis.Chronicle.Events.EventSourceId)
   nameWithType: EventSequenceForTesting.HasEventsFor(EventSourceId)
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.HasEventsFor*
   name: HasEventsFor
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_HasEventsFor_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_HasEventsFor_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.HasEventsFor
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.HasEventsFor
   nameWithType: EventSequenceForTesting.HasEventsFor
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Id
   name: Id
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Id
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Id
   commentId: P:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Id
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Id
   nameWithType: EventSequenceForTesting.Id
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Id*
   name: Id
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Id_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Id_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Id
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Id
   nameWithType: EventSequenceForTesting.Id
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Redact(Cratis.Chronicle.Events.EventSequenceNumber,Cratis.Chronicle.Events.RedactionReason)
   name: Redact(EventSequenceNumber, RedactionReason?)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Redact_Cratis_Chronicle_Events_EventSequenceNumber_Cratis_Chronicle_Events_RedactionReason_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Redact_Cratis_Chronicle_Events_EventSequenceNumber_Cratis_Chronicle_Events_RedactionReason_
   commentId: M:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Redact(Cratis.Chronicle.Events.EventSequenceNumber,Cratis.Chronicle.Events.RedactionReason)
   name.vb: Redact(EventSequenceNumber, RedactionReason)
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Redact(Cratis.Chronicle.Events.EventSequenceNumber, Cratis.Chronicle.Events.RedactionReason?)
@@ -29296,7 +29296,7 @@ references:
   nameWithType.vb: EventSequenceForTesting.Redact(EventSequenceNumber, RedactionReason)
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Redact(Cratis.Chronicle.Events.EventSourceId,Cratis.Chronicle.Events.RedactionReason,System.Type[])
   name: Redact(EventSourceId, RedactionReason?, params Type[])
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Redact_Cratis_Chronicle_Events_EventSourceId_Cratis_Chronicle_Events_RedactionReason_System_Type___
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Redact_Cratis_Chronicle_Events_EventSourceId_Cratis_Chronicle_Events_RedactionReason_System_Type___
   commentId: M:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Redact(Cratis.Chronicle.Events.EventSourceId,Cratis.Chronicle.Events.RedactionReason,System.Type[])
   name.vb: Redact(EventSourceId, RedactionReason, ParamArray Type())
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Redact(Cratis.Chronicle.Events.EventSourceId, Cratis.Chronicle.Events.RedactionReason?, params System.Type[])
@@ -29305,20 +29305,20 @@ references:
   nameWithType.vb: EventSequenceForTesting.Redact(EventSourceId, RedactionReason, ParamArray Type())
 - uid: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Redact*
   name: Redact
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Redact_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.html#Cratis_Chronicle_XUnit_Events_EventSequenceForTesting_Redact_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Redact
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventSequenceForTesting.Redact
   nameWithType: EventSequenceForTesting.Redact
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting
   name: EventStoreForTesting
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html
   commentId: T:Cratis.Chronicle.XUnit.Events.EventStoreForTesting
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting
   nameWithType: EventStoreForTesting
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.#ctor
   name: EventStoreForTesting()
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting__ctor
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting__ctor
   commentId: M:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.#ctor
   name.vb: New()
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.EventStoreForTesting()
@@ -29327,7 +29327,7 @@ references:
   nameWithType.vb: EventStoreForTesting.New()
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.#ctor*
   name: EventStoreForTesting
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting__ctor_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting__ctor_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.#ctor
   isSpec: "True"
   name.vb: New
@@ -29337,228 +29337,228 @@ references:
   nameWithType.vb: EventStoreForTesting.New
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.AggregateRootFactory
   name: AggregateRootFactory
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_AggregateRootFactory
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_AggregateRootFactory
   commentId: P:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.AggregateRootFactory
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.AggregateRootFactory
   nameWithType: EventStoreForTesting.AggregateRootFactory
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.AggregateRootFactory*
   name: AggregateRootFactory
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_AggregateRootFactory_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_AggregateRootFactory_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.AggregateRootFactory
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.AggregateRootFactory
   nameWithType: EventStoreForTesting.AggregateRootFactory
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Connection
   name: Connection
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Connection
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Connection
   commentId: P:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Connection
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Connection
   nameWithType: EventStoreForTesting.Connection
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Connection*
   name: Connection
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Connection_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Connection_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Connection
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Connection
   nameWithType: EventStoreForTesting.Connection
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Constraints
   name: Constraints
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Constraints
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Constraints
   commentId: P:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Constraints
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Constraints
   nameWithType: EventStoreForTesting.Constraints
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Constraints*
   name: Constraints
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Constraints_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Constraints_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Constraints
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Constraints
   nameWithType: EventStoreForTesting.Constraints
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.DiscoverAll
   name: DiscoverAll()
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_DiscoverAll
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_DiscoverAll
   commentId: M:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.DiscoverAll
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.DiscoverAll()
   nameWithType: EventStoreForTesting.DiscoverAll()
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.DiscoverAll*
   name: DiscoverAll
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_DiscoverAll_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_DiscoverAll_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.DiscoverAll
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.DiscoverAll
   nameWithType: EventStoreForTesting.DiscoverAll
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.EventLog
   name: EventLog
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_EventLog
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_EventLog
   commentId: P:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.EventLog
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.EventLog
   nameWithType: EventStoreForTesting.EventLog
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.EventLog*
   name: EventLog
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_EventLog_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_EventLog_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.EventLog
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.EventLog
   nameWithType: EventStoreForTesting.EventLog
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.EventTypes
   name: EventTypes
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_EventTypes
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_EventTypes
   commentId: P:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.EventTypes
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.EventTypes
   nameWithType: EventStoreForTesting.EventTypes
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.EventTypes*
   name: EventTypes
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_EventTypes_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_EventTypes_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.EventTypes
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.EventTypes
   nameWithType: EventStoreForTesting.EventTypes
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.FailedPartitions
   name: FailedPartitions
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_FailedPartitions
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_FailedPartitions
   commentId: P:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.FailedPartitions
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.FailedPartitions
   nameWithType: EventStoreForTesting.FailedPartitions
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.FailedPartitions*
   name: FailedPartitions
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_FailedPartitions_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_FailedPartitions_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.FailedPartitions
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.FailedPartitions
   nameWithType: EventStoreForTesting.FailedPartitions
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.GetEventSequence(Cratis.Chronicle.EventSequences.EventSequenceId)
   name: GetEventSequence(EventSequenceId)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_GetEventSequence_Cratis_Chronicle_EventSequences_EventSequenceId_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_GetEventSequence_Cratis_Chronicle_EventSequences_EventSequenceId_
   commentId: M:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.GetEventSequence(Cratis.Chronicle.EventSequences.EventSequenceId)
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.GetEventSequence(Cratis.Chronicle.EventSequences.EventSequenceId)
   nameWithType: EventStoreForTesting.GetEventSequence(EventSequenceId)
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.GetEventSequence*
   name: GetEventSequence
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_GetEventSequence_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_GetEventSequence_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.GetEventSequence
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.GetEventSequence
   nameWithType: EventStoreForTesting.GetEventSequence
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.GetNamespaces(System.Threading.CancellationToken)
   name: GetNamespaces(CancellationToken)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_GetNamespaces_System_Threading_CancellationToken_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_GetNamespaces_System_Threading_CancellationToken_
   commentId: M:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.GetNamespaces(System.Threading.CancellationToken)
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.GetNamespaces(System.Threading.CancellationToken)
   nameWithType: EventStoreForTesting.GetNamespaces(CancellationToken)
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.GetNamespaces*
   name: GetNamespaces
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_GetNamespaces_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_GetNamespaces_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.GetNamespaces
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.GetNamespaces
   nameWithType: EventStoreForTesting.GetNamespaces
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Name
   name: Name
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Name
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Name
   commentId: P:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Name
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Name
   nameWithType: EventStoreForTesting.Name
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Name*
   name: Name
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Name_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Name_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Name
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Name
   nameWithType: EventStoreForTesting.Name
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Namespace
   name: Namespace
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Namespace
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Namespace
   commentId: P:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Namespace
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Namespace
   nameWithType: EventStoreForTesting.Namespace
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Namespace*
   name: Namespace
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Namespace_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Namespace_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Namespace
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Namespace
   nameWithType: EventStoreForTesting.Namespace
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Projections
   name: Projections
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Projections
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Projections
   commentId: P:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Projections
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Projections
   nameWithType: EventStoreForTesting.Projections
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Projections*
   name: Projections
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Projections_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Projections_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Projections
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Projections
   nameWithType: EventStoreForTesting.Projections
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Reactors
   name: Reactors
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Reactors
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Reactors
   commentId: P:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Reactors
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Reactors
   nameWithType: EventStoreForTesting.Reactors
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Reactors*
   name: Reactors
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Reactors_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Reactors_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Reactors
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Reactors
   nameWithType: EventStoreForTesting.Reactors
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Reducers
   name: Reducers
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Reducers
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Reducers
   commentId: P:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Reducers
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Reducers
   nameWithType: EventStoreForTesting.Reducers
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Reducers*
   name: Reducers
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Reducers_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_Reducers_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Reducers
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.Reducers
   nameWithType: EventStoreForTesting.Reducers
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.RegisterAll
   name: RegisterAll()
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_RegisterAll
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_RegisterAll
   commentId: M:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.RegisterAll
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.RegisterAll()
   nameWithType: EventStoreForTesting.RegisterAll()
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.RegisterAll*
   name: RegisterAll
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_RegisterAll_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_RegisterAll_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.RegisterAll
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.RegisterAll
   nameWithType: EventStoreForTesting.RegisterAll
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.UnitOfWorkManager
   name: UnitOfWorkManager
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_UnitOfWorkManager
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_UnitOfWorkManager
   commentId: P:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.UnitOfWorkManager
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.UnitOfWorkManager
   nameWithType: EventStoreForTesting.UnitOfWorkManager
 - uid: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.UnitOfWorkManager*
   name: UnitOfWorkManager
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_UnitOfWorkManager_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.Events.EventStoreForTesting.html#Cratis_Chronicle_XUnit_Events_EventStoreForTesting_UnitOfWorkManager_
   commentId: Overload:Cratis.Chronicle.XUnit.Events.EventStoreForTesting.UnitOfWorkManager
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.Events.EventStoreForTesting.UnitOfWorkManager
   nameWithType: EventStoreForTesting.UnitOfWorkManager
 - uid: Cratis.Chronicle.XUnit.NullLogger
   name: NullLogger
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger.html
   commentId: T:Cratis.Chronicle.XUnit.NullLogger
   fullName: Cratis.Chronicle.XUnit.NullLogger
   nameWithType: NullLogger
 - uid: Cratis.Chronicle.XUnit.NullLogger.BeginScope*
   name: BeginScope
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_BeginScope_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_BeginScope_
   commentId: Overload:Cratis.Chronicle.XUnit.NullLogger.BeginScope
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.NullLogger.BeginScope
   nameWithType: NullLogger.BeginScope
 - uid: Cratis.Chronicle.XUnit.NullLogger.BeginScope``1(``0)
   name: BeginScope<TState>(TState)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_BeginScope__1___0_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_BeginScope__1___0_
   commentId: M:Cratis.Chronicle.XUnit.NullLogger.BeginScope``1(``0)
   name.vb: BeginScope(Of TState)(TState)
   fullName: Cratis.Chronicle.XUnit.NullLogger.BeginScope<TState>(TState)
@@ -29567,33 +29567,33 @@ references:
   nameWithType.vb: NullLogger.BeginScope(Of TState)(TState)
 - uid: Cratis.Chronicle.XUnit.NullLogger.Instance
   name: Instance
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_Instance
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_Instance
   commentId: F:Cratis.Chronicle.XUnit.NullLogger.Instance
   fullName: Cratis.Chronicle.XUnit.NullLogger.Instance
   nameWithType: NullLogger.Instance
 - uid: Cratis.Chronicle.XUnit.NullLogger.IsEnabled(Microsoft.Extensions.Logging.LogLevel)
   name: IsEnabled(LogLevel)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_IsEnabled_Microsoft_Extensions_Logging_LogLevel_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_IsEnabled_Microsoft_Extensions_Logging_LogLevel_
   commentId: M:Cratis.Chronicle.XUnit.NullLogger.IsEnabled(Microsoft.Extensions.Logging.LogLevel)
   fullName: Cratis.Chronicle.XUnit.NullLogger.IsEnabled(Microsoft.Extensions.Logging.LogLevel)
   nameWithType: NullLogger.IsEnabled(LogLevel)
 - uid: Cratis.Chronicle.XUnit.NullLogger.IsEnabled*
   name: IsEnabled
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_IsEnabled_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_IsEnabled_
   commentId: Overload:Cratis.Chronicle.XUnit.NullLogger.IsEnabled
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.NullLogger.IsEnabled
   nameWithType: NullLogger.IsEnabled
 - uid: Cratis.Chronicle.XUnit.NullLogger.Log*
   name: Log
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_Log_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_Log_
   commentId: Overload:Cratis.Chronicle.XUnit.NullLogger.Log
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.NullLogger.Log
   nameWithType: NullLogger.Log
 - uid: Cratis.Chronicle.XUnit.NullLogger.Log``1(Microsoft.Extensions.Logging.LogLevel,Microsoft.Extensions.Logging.EventId,``0,System.Exception,System.Func{``0,System.Exception,System.String})
   name: Log<TState>(LogLevel, EventId, TState, Exception?, Func<TState, Exception?, string>)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_Log__1_Microsoft_Extensions_Logging_LogLevel_Microsoft_Extensions_Logging_EventId___0_System_Exception_System_Func___0_System_Exception_System_String__
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger.html#Cratis_Chronicle_XUnit_NullLogger_Log__1_Microsoft_Extensions_Logging_LogLevel_Microsoft_Extensions_Logging_EventId___0_System_Exception_System_Func___0_System_Exception_System_String__
   commentId: M:Cratis.Chronicle.XUnit.NullLogger.Log``1(Microsoft.Extensions.Logging.LogLevel,Microsoft.Extensions.Logging.EventId,``0,System.Exception,System.Func{``0,System.Exception,System.String})
   name.vb: Log(Of TState)(LogLevel, EventId, TState, Exception, Func(Of TState, Exception, String))
   fullName: Cratis.Chronicle.XUnit.NullLogger.Log<TState>(Microsoft.Extensions.Logging.LogLevel, Microsoft.Extensions.Logging.EventId, TState, System.Exception?, System.Func<TState, System.Exception?, string>)
@@ -29602,7 +29602,7 @@ references:
   nameWithType.vb: NullLogger.Log(Of TState)(LogLevel, EventId, TState, Exception, Func(Of TState, Exception, String))
 - uid: Cratis.Chronicle.XUnit.NullLogger`1
   name: NullLogger<T>
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger-1.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger-1.html
   commentId: T:Cratis.Chronicle.XUnit.NullLogger`1
   name.vb: NullLogger(Of T)
   fullName: Cratis.Chronicle.XUnit.NullLogger<T>
@@ -29611,7 +29611,7 @@ references:
   nameWithType.vb: NullLogger(Of T)
 - uid: Cratis.Chronicle.XUnit.NullLogger`1.Instance
   name: Instance
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLogger-1.html#Cratis_Chronicle_XUnit_NullLogger_1_Instance
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLogger-1.html#Cratis_Chronicle_XUnit_NullLogger_1_Instance
   commentId: F:Cratis.Chronicle.XUnit.NullLogger`1.Instance
   fullName: Cratis.Chronicle.XUnit.NullLogger<T>.Instance
   fullName.vb: Cratis.Chronicle.XUnit.NullLogger(Of T).Instance
@@ -29619,26 +29619,26 @@ references:
   nameWithType.vb: NullLogger(Of T).Instance
 - uid: Cratis.Chronicle.XUnit.NullLoggerFactory
   name: NullLoggerFactory
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLoggerFactory.html
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLoggerFactory.html
   commentId: T:Cratis.Chronicle.XUnit.NullLoggerFactory
   fullName: Cratis.Chronicle.XUnit.NullLoggerFactory
   nameWithType: NullLoggerFactory
 - uid: Cratis.Chronicle.XUnit.NullLoggerFactory.AddProvider(Microsoft.Extensions.Logging.ILoggerProvider)
   name: AddProvider(ILoggerProvider)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLoggerFactory.html#Cratis_Chronicle_XUnit_NullLoggerFactory_AddProvider_Microsoft_Extensions_Logging_ILoggerProvider_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLoggerFactory.html#Cratis_Chronicle_XUnit_NullLoggerFactory_AddProvider_Microsoft_Extensions_Logging_ILoggerProvider_
   commentId: M:Cratis.Chronicle.XUnit.NullLoggerFactory.AddProvider(Microsoft.Extensions.Logging.ILoggerProvider)
   fullName: Cratis.Chronicle.XUnit.NullLoggerFactory.AddProvider(Microsoft.Extensions.Logging.ILoggerProvider)
   nameWithType: NullLoggerFactory.AddProvider(ILoggerProvider)
 - uid: Cratis.Chronicle.XUnit.NullLoggerFactory.AddProvider*
   name: AddProvider
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLoggerFactory.html#Cratis_Chronicle_XUnit_NullLoggerFactory_AddProvider_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLoggerFactory.html#Cratis_Chronicle_XUnit_NullLoggerFactory_AddProvider_
   commentId: Overload:Cratis.Chronicle.XUnit.NullLoggerFactory.AddProvider
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.NullLoggerFactory.AddProvider
   nameWithType: NullLoggerFactory.AddProvider
 - uid: Cratis.Chronicle.XUnit.NullLoggerFactory.CreateLogger(System.String)
   name: CreateLogger(string)
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLoggerFactory.html#Cratis_Chronicle_XUnit_NullLoggerFactory_CreateLogger_System_String_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLoggerFactory.html#Cratis_Chronicle_XUnit_NullLoggerFactory_CreateLogger_System_String_
   commentId: M:Cratis.Chronicle.XUnit.NullLoggerFactory.CreateLogger(System.String)
   name.vb: CreateLogger(String)
   fullName: Cratis.Chronicle.XUnit.NullLoggerFactory.CreateLogger(string)
@@ -29647,20 +29647,20 @@ references:
   nameWithType.vb: NullLoggerFactory.CreateLogger(String)
 - uid: Cratis.Chronicle.XUnit.NullLoggerFactory.CreateLogger*
   name: CreateLogger
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLoggerFactory.html#Cratis_Chronicle_XUnit_NullLoggerFactory_CreateLogger_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLoggerFactory.html#Cratis_Chronicle_XUnit_NullLoggerFactory_CreateLogger_
   commentId: Overload:Cratis.Chronicle.XUnit.NullLoggerFactory.CreateLogger
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.NullLoggerFactory.CreateLogger
   nameWithType: NullLoggerFactory.CreateLogger
 - uid: Cratis.Chronicle.XUnit.NullLoggerFactory.Dispose
   name: Dispose()
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLoggerFactory.html#Cratis_Chronicle_XUnit_NullLoggerFactory_Dispose
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLoggerFactory.html#Cratis_Chronicle_XUnit_NullLoggerFactory_Dispose
   commentId: M:Cratis.Chronicle.XUnit.NullLoggerFactory.Dispose
   fullName: Cratis.Chronicle.XUnit.NullLoggerFactory.Dispose()
   nameWithType: NullLoggerFactory.Dispose()
 - uid: Cratis.Chronicle.XUnit.NullLoggerFactory.Dispose*
   name: Dispose
-  href: api/chronicle/clients/xunit/Cratis.Chronicle.XUnit.NullLoggerFactory.html#Cratis_Chronicle_XUnit_NullLoggerFactory_Dispose_
+  href: api/chronicle/clients/testing/Cratis.Chronicle.XUnit.NullLoggerFactory.html#Cratis_Chronicle_XUnit_NullLoggerFactory_Dispose_
   commentId: Overload:Cratis.Chronicle.XUnit.NullLoggerFactory.Dispose
   isSpec: "True"
   fullName: Cratis.Chronicle.XUnit.NullLoggerFactory.Dispose
