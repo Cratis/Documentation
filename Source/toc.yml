@@ -1,11 +1,11 @@
 - name: Chronicle
-  href: docs/Chronicle/
+  href: docs/Chronicle/toc.yml
 - name: Arc
-  href: docs/Arc/
+  href: docs/Arc/toc.yml
 - name: Fundamentals
-  href: docs/Fundamentals/
+  href: docs/Fundamentals/toc.yml
 - name: Contributing
-  href: docs/Contributing/
+  href: docs/Contributing/toc.yml
 - name: Samples
   href: https://github.com/cratis/samples
 - name: YouTube

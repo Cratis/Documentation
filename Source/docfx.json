@@ -155,7 +155,9 @@
           ".yarn/**",
           ".config/**",
           "xrefmap.yml",
-          "api/**/README.md"
+          "api/**/README.md",
+          "../Arc/README.md",
+          "../Fundamentals/README.md"
         ]
       },
       {
