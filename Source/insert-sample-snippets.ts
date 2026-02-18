@@ -18,7 +18,24 @@ await Promise.all(markdownFiles.map(async file => {
     const content = await fs.promises.readFile(file, 'utf-8');
     let replaced = false;   
 
-    const updatedContent = content.replace(snippetRegex, (_, snippetName) => {
+    const updatedContent = content.replace(snippetRegex, (match, snippetName, offset) => {
+        // Check if the match is inside backticks or a code block
+        const beforeMatch = content.substring(0, offset);
+        
+        // Count backticks before the match
+        const backticksBefore = (beforeMatch.match(/`/g) || []).length;
+        
+        // If there's an odd number of backticks before, we're inside inline code
+        if (backticksBefore % 2 !== 0) {
+            return match; // Don't replace, keep the original
+        }
+        
+        // Check if we're inside a code block (```)
+        const codeBlocksBefore = (beforeMatch.match(/```/g) || []).length;
+        if (codeBlocksBefore % 2 !== 0) {
+            return match; // Don't replace, keep the original
+        }
+        
         if (!snippets[snippetName]) {
             console.error(`Snippet '${snippetName}' not found in snippets.json`);
             throw new Error(`Snippet '${snippetName}' not found in snippets.json`);
