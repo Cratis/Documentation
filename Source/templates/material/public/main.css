@@ -183,20 +183,16 @@ code {
 
 /* STORYBOOK INTEGRATION */
 .storybook-container {
-  position: fixed !important;
-  top: 60px !important; /* Account for navbar */
-  left: 320px !important; /* Account for sidebar */
-  right: 0 !important;
-  bottom: 0 !important;
-  width: auto !important;
-  height: auto !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  z-index: 1 !important;
+  width: 100%;
+  height: calc(100vh - 60px); /* Full viewport height minus navbar */
+  min-height: 600px;
+  margin: 0;
+  padding: 0;
 }
 
 .storybook-container iframe {
-  width: 100% !important;
-  height: 100% !important;
-  border: none !important;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
 }
