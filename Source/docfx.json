@@ -2,7 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
   "rules": {
     "InvalidFileLink": "warning",
-    "InvalidBookmark": "warning",
+    "InvalidBookmark": "suggestion",
     "DuplicateUids": "warning"
   },
   "metadata": [
@@ -164,6 +164,11 @@
         "files": [
           "**/*.{md,yml}"
         ],
+        "exclude": [
+          "**/node_modules/**",
+          "**/.yarn/**",
+          "**/storybook-static/node_modules/**"
+        ],
         "src": "Articles",
         "dest": "docs"
       }
@@ -210,12 +215,16 @@
           "bin/**",
           "templates/**",
           ".yarn/**",
-          ".config/**"
+          ".config/**",
+          "**/node_modules/**"
         ]
       },
       {
         "files": [
           "**/storybook-static/**"
+        ],
+        "exclude": [
+          "**/node_modules/**"
         ],
         "src": "../Samples"
       }
