@@ -1,6 +1,6 @@
 ---
 storybook:
-  path: ../../../Samples/test-storybook
+  path: ../Documentation/test-storybook
 ---
 
 # Test Storybook

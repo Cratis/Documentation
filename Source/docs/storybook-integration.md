@@ -25,14 +25,14 @@ The `path` field supports two types of paths:
 
    ```yaml
    storybook:
-     path: /Samples/my-storybook
+     path: /Source/docs/Documentation/my-storybook
    ```
 
 2. **Relative paths** (from the markdown file): Use relative path notation
 
    ```yaml
    storybook:
-     path: ../../../Samples/my-storybook
+     path: ../Documentation/my-storybook
    ```
 
 ## How It Works
@@ -76,7 +76,7 @@ Example `package.json`:
 
 ## Example
 
-See the [test storybook](test-storybook/index.md) for a working example. The source code for this example is available at [Samples/test-storybook](https://github.com/Cratis/Documentation/tree/main/Samples/test-storybook).
+See the [test storybook](test-storybook/index.md) for a working example. The source code for this example is available at [Source/docs/Documentation/test-storybook](https://github.com/Cratis/Documentation/tree/main/Source/docs/Documentation/test-storybook).
 
 ## Styling
 
