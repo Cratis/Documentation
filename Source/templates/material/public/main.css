@@ -182,9 +182,25 @@ code {
 }
 
 /* STORYBOOK INTEGRATION */
+
+/* When a storybook page is active, break out of container constraints to fill right side */
+main.container-xxl:has(.storybook-container) {
+  max-width: 100% !important;
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+}
+
+main.container-xxl:has(.storybook-container) > .affix {
+  display: none !important;
+}
+
+main.container-xxl:has(.storybook-container) > .content {
+  margin-right: 0 !important;
+}
+
 .storybook-container {
   width: 100%;
-  height: calc(100vh - 140px); /* Full viewport height minus navbar and footer */
+  height: calc(100vh - 140px);
   min-height: 600px;
   margin: 0;
   padding: 0;
