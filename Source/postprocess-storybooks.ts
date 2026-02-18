@@ -25,6 +25,12 @@ async function main() {
 
     const REPO_ROOT = path.resolve(SOURCE_DIR, '..');
 
+    // Create a .gitignore in _site to allow storybook-static files in the artifact upload
+    // The root .gitignore excludes **/storybook-static/ but we need them in the published site
+    const siteGitignorePath = path.join(SITE_OUTPUT, '.gitignore');
+    fs.writeFileSync(siteGitignorePath, '!**/storybook-static/\n', 'utf-8');
+    console.log('Created .gitignore in _site to allow storybook-static files');
+
     // Find all markdown files in current directory
     let markdownFiles = await glob('**/*.md', {
         cwd: SOURCE_DIR,
