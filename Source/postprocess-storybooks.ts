@@ -114,9 +114,18 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
         iframeSrc = `${storybookRelativePath}/index.html`;
     }
 
-    // Create the iframe HTML
+    // Create the iframe HTML that fills the full browser width
     const iframeHtml = `
-<div class="storybook-container" style="width: 100%; height: calc(100vh - 200px); min-height: 600px;">
+<div class="storybook-container" style="
+    position: relative;
+    width: 100vw;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    height: calc(100vh - 200px);
+    min-height: 600px;
+">
     <iframe src="${iframeSrc}" style="width: 100%; height: 100%; border: none;" title="Storybook"></iframe>
 </div>`;
 
