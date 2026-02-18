@@ -25,15 +25,39 @@ const SITE_OUTPUT = path.join(SOURCE_DIR, '_site');
 async function main() {
     console.log('Building Storybooks...');
 
-    // Find all markdown files
-    const markdownFiles = await glob('**/*.md', {
+    // Find all markdown files in current directory
+    let markdownFiles = await glob('**/*.md', {
         cwd: SOURCE_DIR,
         ignore: ['**/node_modules/**', '**/_site/**', '**/obj/**', '**/bin/**', '**/.yarn/**'],
         absolute: true,
         follow: true
     });
 
+    // Also explicitly search in submodule documentation directories (to handle symlink issues in CI)
+    const submoduleDirs = ['Arc', 'Chronicle', 'Fundamentals'];
+    for (const submodule of submoduleDirs) {
+        const submodulePath = path.join(REPO_ROOT, submodule, 'Documentation');
+        if (fs.existsSync(submodulePath)) {
+            const submoduleFiles = await glob('**/*.md', {
+                cwd: submodulePath,
+                ignore: ['**/node_modules/**', '**/.yarn/**'],
+                absolute: true,
+                follow: true
+            });
+            markdownFiles.push(...submoduleFiles);
+        }
+    }
+
+    // Deduplicate files by resolving real paths (handles symlinks)
+    const uniqueFiles = new Map<string, string>();
     for (const file of markdownFiles) {
+        const realPath = fs.realpathSync(file);
+        if (!uniqueFiles.has(realPath)) {
+            uniqueFiles.set(realPath, file);
+        }
+    }
+
+    for (const file of uniqueFiles.values()) {
         await processMarkdownFile(file);
     }
 

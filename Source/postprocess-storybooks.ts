@@ -23,15 +23,41 @@ const SITE_OUTPUT = path.join(SOURCE_DIR, '_site');
 async function main() {
     console.log('Post-processing Storybook pages...');
 
-    // Find all markdown files with storybook front matter
-    const markdownFiles = await glob('**/*.md', {
+    const REPO_ROOT = path.resolve(SOURCE_DIR, '..');
+
+    // Find all markdown files in current directory
+    let markdownFiles = await glob('**/*.md', {
         cwd: SOURCE_DIR,
         ignore: ['**/node_modules/**', '**/_site/**', '**/obj/**', '**/bin/**', '**/.yarn/**'],
         absolute: true,
         follow: true
     });
 
-    for (const mdFile of markdownFiles) {
+    // Also explicitly search in submodule documentation directories (to handle symlink issues in CI)
+    const submoduleDirs = ['Arc', 'Chronicle', 'Fundamentals'];
+    for (const submodule of submoduleDirs) {
+        const submodulePath = path.join(REPO_ROOT, submodule, 'Documentation');
+        if (fs.existsSync(submodulePath)) {
+            const submoduleFiles = await glob('**/*.md', {
+                cwd: submodulePath,
+                ignore: ['**/node_modules/**', '**/.yarn/**'],
+                absolute: true,
+                follow: true
+            });
+            markdownFiles.push(...submoduleFiles);
+        }
+    }
+
+    // Deduplicate files by resolving real paths (handles symlinks)
+    const uniqueFiles = new Map<string, string>();
+    for (const file of markdownFiles) {
+        const realPath = fs.realpathSync(file);
+        if (!uniqueFiles.has(realPath)) {
+            uniqueFiles.set(realPath, file);
+        }
+    }
+
+    for (const mdFile of uniqueFiles.values()) {
         await processMarkdownFile(mdFile);
     }
 
