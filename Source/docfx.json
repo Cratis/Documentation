@@ -199,6 +199,25 @@
           ".config/**",
           "api/**"
         ]
+      },
+      {
+        "files": [
+          "**/storybook-static/**"
+        ],
+        "exclude": [
+          "_site/**",
+          "obj/**",
+          "bin/**",
+          "templates/**",
+          ".yarn/**",
+          ".config/**"
+        ]
+      },
+      {
+        "files": [
+          "**/storybook-static/**"
+        ],
+        "src": "../Samples"
       }
     ],
     "output": "_site",

@@ -1,0 +1,11 @@
+{{!Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license.}}
+{{!master(layout/_master.tmpl)}}
+{{{rawTitle}}}
+{{#_storybookEnabled}}
+<div class="storybook-container" style="width: 100%; height: calc(100vh - 200px); min-height: 600px;">
+    <iframe src="{{{_storybookBuildPath}}}/index.html" style="width: 100%; height: 100%; border: none;" title="Storybook"></iframe>
+</div>
+{{/_storybookEnabled}}
+{{^_storybookEnabled}}
+{{{conceptual}}}
+{{/_storybookEnabled}}

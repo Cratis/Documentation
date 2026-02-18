@@ -326,3 +326,6 @@ Source/api/**
 
 
 snippets.json
+
+# Storybook build output
+**/storybook-static/
