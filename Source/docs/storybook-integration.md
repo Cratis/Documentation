@@ -80,6 +80,14 @@ See the [test storybook](test-storybook/index.md) for a working example. The sou
 
 ## Styling
 
-The storybook container is styled to fill the content area with a minimum height of 600px and a calculated height of `calc(100vh - 200px)` to account for the header and footer.
+The storybook iframe is styled to fill the entire viewport to the right of the sidebar navigation. The styling uses a fixed position layout that:
 
-You can customize the styling by adding CSS to your custom template or by modifying the `postprocess-storybooks.ts` script.
+- Extends from the navbar (top: 60px) to the bottom of the viewport
+- Starts after the sidebar (left: 320px) and extends to the right edge
+- Fills 100% of the available height and width in that space
+
+The CSS is defined in `Source/templates/material/public/main.css` under the `.storybook-container` class. You can customize the positioning by modifying:
+
+- `top`: Offset from the top (accounts for navbar height)
+- `left`: Offset from the left (accounts for sidebar width)
+- Other positioning values as needed for your theme

@@ -100,14 +100,10 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
     // Use the relative path directly - DocFX preserves the directory structure for resources
     const iframeSrc = `${storybookRelativePath}/index.html`;
 
-    // Create the iframe HTML that stretches from the article content area to the right edge
+    // Create the iframe HTML - styling is handled by CSS
     const iframeHtml = `
-<div class="storybook-container" style="
-    width: 100%;
-    height: calc(100vh - 200px);
-    min-height: 600px;
-">
-    <iframe src="${iframeSrc}" style="width: 100%; height: 100%; border: none;" title="Storybook"></iframe>
+<div class="storybook-container">
+    <iframe src="${iframeSrc}" title="Storybook"></iframe>
 </div>`;
 
     // Replace the article content with the iframe
