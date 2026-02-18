@@ -61,8 +61,8 @@ async function processMarkdownFile(mdFilePath: string) {
     console.log(`Found Storybook page: ${mdFilePath}`);
 
     // Calculate the corresponding HTML file in _site
-    const relativePath = path.relative(SOURCE_DIR, mdFilePath);
-    const htmlRelativePath = relativePath.replace(/\.md$/, '.html');
+    const mdRelativePath = path.relative(SOURCE_DIR, mdFilePath);
+    const htmlRelativePath = mdRelativePath.replace(/\.md$/, '.html');
     const htmlPath = path.join(SITE_OUTPUT, htmlRelativePath);
 
     if (!fs.existsSync(htmlPath)) {
@@ -75,9 +75,27 @@ async function processMarkdownFile(mdFilePath: string) {
     const resolvedStorybookPath = resolveStorybookPath(storybookPath, mdFilePath);
     const storybookBuildPath = path.join(resolvedStorybookPath, 'storybook-static');
 
-    // Calculate relative path from HTML to storybook-static
+    // Calculate relative path from HTML to storybook-static in the _site directory
+    // DocFX copies resources maintaining their structure from the source
     const htmlDir = path.dirname(htmlPath);
-    const storybookRelativePath = path.relative(htmlDir, path.join(SITE_OUTPUT, path.relative(SOURCE_DIR, storybookBuildPath))).replace(/\\/g, '/');
+    
+    // Determine where the storybook-static will be in _site
+    let storybookSitePath: string;
+    const parts = mdRelativePath.split(path.sep);
+    
+    // Check if from a submodule (docs/SubmoduleName/...)
+    if (parts.length >= 2 && parts[0] === 'docs' && parts[1] !== 'Documentation') {
+        // From submodule: DocFX copies from ../SubmoduleName to _site/
+        // So Source/JavaScript/Arc.React/storybook-static becomes _site/Source/JavaScript/Arc.React/storybook-static
+        const relativeToBuildPath = path.relative(path.join(SOURCE_DIR, '..', parts[1]), storybookBuildPath);
+        storybookSitePath = path.join(SITE_OUTPUT, relativeToBuildPath);
+    } else {
+        // From this repo
+        const relativeToBuildPath = path.relative(SOURCE_DIR, storybookBuildPath);
+        storybookSitePath = path.join(SITE_OUTPUT, relativeToBuildPath);
+    }
+    
+    const storybookRelativePath = path.relative(htmlDir, storybookSitePath).replace(/\\/g, '/');
 
     // Inject the iframe into the HTML
     injectStorybookIframe(htmlPath, storybookRelativePath);
