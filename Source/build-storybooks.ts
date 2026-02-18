@@ -100,8 +100,8 @@ async function buildStorybook(storybookPath: string, markdownFile: string) {
         // Check if node_modules exists
         const nodeModulesPath = path.join(storybookPath, 'node_modules');
         if (!fs.existsSync(nodeModulesPath) && hasDependencies) {
-            console.log(`Running yarn install in ${storybookPath}...`);
-            execSync('yarn install', {
+            console.log(`Running npm install in ${storybookPath}...`);
+            execSync('npm install', {
                 cwd: storybookPath,
                 stdio: 'inherit',
                 env: { ...process.env, NODE_OPTIONS: '' } // Clear NODE_OPTIONS to avoid conflicts
@@ -110,7 +110,7 @@ async function buildStorybook(storybookPath: string, markdownFile: string) {
 
         // Build storybook
         console.log(`Running storybook build in ${storybookPath}...`);
-        execSync('yarn build-storybook', {
+        execSync('npm run build-storybook', {
             cwd: storybookPath,
             stdio: 'inherit',
             env: { ...process.env, NODE_OPTIONS: '' } // Clear NODE_OPTIONS to avoid conflicts

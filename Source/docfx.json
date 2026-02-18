@@ -212,6 +212,12 @@
           ".yarn/**",
           ".config/**"
         ]
+      },
+      {
+        "files": [
+          "**/storybook-static/**"
+        ],
+        "src": "../Samples"
       }
     ],
     "output": "_site",
