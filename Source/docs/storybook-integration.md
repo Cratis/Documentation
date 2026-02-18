@@ -76,7 +76,7 @@ Example `package.json`:
 
 ## Example
 
-See the test storybook at `/Source/docs/test-storybook/index.md` for a working example.
+See the [test storybook](test-storybook/index.md) for a working example. The source code for this example is available at [Samples/test-storybook](https://github.com/Cratis/Documentation/tree/main/Samples/test-storybook).
 
 ## Styling
 
