@@ -104,7 +104,10 @@ async function buildStorybook(storybookPath: string, markdownFile: string) {
             execSync('npm install', {
                 cwd: storybookPath,
                 stdio: 'inherit',
-                env: { ...process.env, NODE_OPTIONS: '' } // Clear NODE_OPTIONS to avoid conflicts
+                // Clear NODE_OPTIONS to avoid ts-node loader conflicts from parent process
+                // The parent process uses --loader ts-node/esm which would cause errors
+                // when yarn/npm runs in subdirectories without ts-node installed
+                env: { ...process.env, NODE_OPTIONS: '' }
             });
         }
 
@@ -113,7 +116,10 @@ async function buildStorybook(storybookPath: string, markdownFile: string) {
         execSync('npm run build-storybook', {
             cwd: storybookPath,
             stdio: 'inherit',
-            env: { ...process.env, NODE_OPTIONS: '' } // Clear NODE_OPTIONS to avoid conflicts
+            // Clear NODE_OPTIONS to avoid ts-node loader conflicts from parent process
+            // The parent process uses --loader ts-node/esm which would cause errors
+            // when yarn/npm runs in subdirectories without ts-node installed
+            env: { ...process.env, NODE_OPTIONS: '' }
         });
 
         console.log(`Successfully built Storybook at ${storybookPath}`);

@@ -6,6 +6,7 @@ const fs = require('fs');
 
 /**
  * This method will be called at the start of exports.transform in conceptual.html.primary.js
+ * Currently a no-op, kept for future enhancements to storybook preprocessing
  */
 exports.preTransform = function (model) {
   return model;

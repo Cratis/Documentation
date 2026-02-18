@@ -99,14 +99,16 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
 
     // The storybookRelativePath might not be correct because DocFX flattens directory structures
     // We need to find the actual location of the storybook-static directory
-    // For now, let's extract just the storybook folder name and use a simpler relative path
+    // Extract the storybook folder name (last directory before storybook-static)
     
-    const storybookFolderMatch = storybookRelativePath.match(/([^/]+)\/storybook-static/);
+    const storybookFolderMatch = storybookRelativePath.match(/([^/]+)\/storybook-static$/);
     const storybookFolder = storybookFolderMatch ? storybookFolderMatch[1] : null;
     
     let iframeSrc = storybookRelativePath;
     if (storybookFolder) {
-        // Try the flattened path first
+        // DocFX flattens external resources from ../Samples to the root of _site
+        // This assumes the HTML is at docs/*/index.html, requiring ../../ to reach the site root
+        // TODO: Calculate this path dynamically based on actual nesting depth if structure changes
         iframeSrc = `../../${storybookFolder}/storybook-static/index.html`;
     } else {
         iframeSrc = `${storybookRelativePath}/index.html`;
