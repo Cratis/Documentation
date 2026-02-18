@@ -22,12 +22,14 @@ Your content here...
 The `path` field supports two types of paths:
 
 1. **Absolute paths** (from repository root): Start with `/`
+
    ```yaml
    storybook:
      path: /Samples/my-storybook
    ```
 
 2. **Relative paths** (from the markdown file): Use relative path notation
+
    ```yaml
    storybook:
      path: ../../../Samples/my-storybook
