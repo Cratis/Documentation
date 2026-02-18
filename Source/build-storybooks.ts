@@ -29,7 +29,8 @@ async function main() {
     const markdownFiles = await glob('**/*.md', {
         cwd: SOURCE_DIR,
         ignore: ['**/node_modules/**', '**/_site/**', '**/obj/**', '**/bin/**', '**/.yarn/**'],
-        absolute: true
+        absolute: true,
+        follow: true
     });
 
     for (const file of markdownFiles) {
@@ -40,7 +41,13 @@ async function main() {
 }
 
 async function processMarkdownFile(filePath: string) {
-    const content = fs.readFileSync(filePath, 'utf-8');
+    let content: string;
+    try {
+        content = fs.readFileSync(filePath, 'utf-8');
+    } catch (error) {
+        console.error(`Error reading file ${filePath}:`, error);
+        return;
+    }
 
     // Parse front matter
     const frontMatterMatch = content.match(/^---\s*\n(.*?)\n---\s*\n/s);
@@ -74,7 +81,21 @@ async function processMarkdownFile(filePath: string) {
 
 function resolveStorybookPath(storybookPath: string, markdownFile: string): string {
     if (storybookPath.startsWith('/')) {
-        // Absolute path from repository root
+        // Absolute path - infer repository from markdown file location
+        const relativePath = path.relative(SOURCE_DIR, markdownFile);
+        const parts = relativePath.split(path.sep);
+        
+        // Check if file is in a docs subfolder (docs/SubmoduleName/...)
+        // This indicates it's from a different repository/submodule
+        if (parts.length >= 2 && parts[0] === 'docs') {
+            const submoduleName = parts[1];
+            // Skip 'Documentation' folder as it's part of this repo
+            if (submoduleName !== 'Documentation') {
+                return path.join(REPO_ROOT, submoduleName, storybookPath.substring(1));
+            }
+        }
+        
+        // Default: resolve from repository root
         return path.join(REPO_ROOT, storybookPath.substring(1));
     } else {
         // Relative path from markdown file

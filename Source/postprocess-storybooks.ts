@@ -27,7 +27,8 @@ async function main() {
     const markdownFiles = await glob('**/*.md', {
         cwd: SOURCE_DIR,
         ignore: ['**/node_modules/**', '**/_site/**', '**/obj/**', '**/bin/**', '**/.yarn/**'],
-        absolute: true
+        absolute: true,
+        follow: true
     });
 
     for (const mdFile of markdownFiles) {
@@ -84,8 +85,22 @@ async function processMarkdownFile(mdFilePath: string) {
 
 function resolveStorybookPath(storybookPath: string, markdownFile: string): string {
     if (storybookPath.startsWith('/')) {
-        // Absolute path from repository root
+        // Absolute path - infer repository from markdown file location
+        const relativePath = path.relative(SOURCE_DIR, markdownFile);
+        const parts = relativePath.split(path.sep);
+        
+        // Check if file is in a docs subfolder (docs/SubmoduleName/...)
+        // This indicates it's from a different repository/submodule
         const repoRoot = path.resolve(SOURCE_DIR, '..');
+        if (parts.length >= 2 && parts[0] === 'docs') {
+            const submoduleName = parts[1];
+            // Skip 'Documentation' folder as it's part of this repo
+            if (submoduleName !== 'Documentation') {
+                return path.join(repoRoot, submoduleName, storybookPath.substring(1));
+            }
+        }
+        
+        // Default: resolve from repository root
         return path.join(repoRoot, storybookPath.substring(1));
     } else {
         // Relative path from markdown file
@@ -100,11 +115,51 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
     // Use the relative path directly - DocFX preserves the directory structure for resources
     const iframeSrc = `${storybookRelativePath}/index.html`;
 
-    // Create the iframe HTML - styling is handled by CSS
+    // Create the iframe HTML with theme synchronization script
     const iframeHtml = `
 <div class="storybook-container">
-    <iframe src="${iframeSrc}" title="Storybook"></iframe>
-</div>`;
+    <iframe id="storybook-iframe" src="${iframeSrc}" title="Storybook"></iframe>
+</div>
+<script>
+(function() {
+    const iframe = document.getElementById('storybook-iframe');
+    
+    // Function to sync theme to Storybook
+    function syncTheme() {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const theme = isDark ? 'dark' : 'light';
+        
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+                type: 'STORYBOOK_THEME_CHANGE',
+                theme: theme
+            }, '*');
+        }
+    }
+    
+    // Sync theme when iframe loads
+    iframe.addEventListener('load', function() {
+        setTimeout(syncTheme, 100);
+    });
+    
+    // Watch for theme changes on the document
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-bs-theme') {
+                syncTheme();
+            }
+        });
+    });
+    
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-bs-theme']
+    });
+    
+    // Initial sync
+    syncTheme();
+})();
+</script>`;
 
     // Replace the article content with the iframe
     // Find the article tag and replace its content
