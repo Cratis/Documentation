@@ -184,7 +184,7 @@ code {
 /* STORYBOOK INTEGRATION */
 .storybook-container {
   width: 100%;
-  height: calc(100vh - 60px); /* Full viewport height minus navbar */
+  height: calc(100vh - 140px); /* Full viewport height minus navbar and footer */
   min-height: 600px;
   margin: 0;
   padding: 0;

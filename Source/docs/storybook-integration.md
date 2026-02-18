@@ -83,8 +83,8 @@ See the [test storybook](test-storybook/index.md) for a working example. The sou
 The storybook iframe is styled to fill the available content area with the following approach:
 
 - **Width**: Fills 100% of the content area (automatically adjusts when sidebar is visible/hidden)
-- **Height**: Uses `calc(100vh - 60px)` to fill the viewport height minus the navbar
+- **Height**: Uses `calc(100vh - 140px)` to fill the viewport height minus the navbar and footer
 - **Minimum Height**: 600px fallback for smaller viewports
 - **Responsive**: Works with the sidebar toggle - when the sidebar is hidden on smaller screens, the Storybook expands to fill the full width
 
-The CSS is defined in `Source/templates/material/public/main.css` under the `.storybook-container` class. You can customize the height calculation by adjusting the navbar offset (currently 60px) to match your theme.
+The CSS is defined in `Source/templates/material/public/main.css` under the `.storybook-container` class. You can customize the height calculation by adjusting the offset (currently 140px) to match your theme's navbar and footer heights.
