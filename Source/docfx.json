@@ -228,6 +228,36 @@
           "**/node_modules/**"
         ],
         "src": "../Samples"
+      },
+      {
+        "files": [
+          "**/storybook-static/**"
+        ],
+        "exclude": [
+          "**/node_modules/**",
+          "**/Documentation/**"
+        ],
+        "src": "../Arc"
+      },
+      {
+        "files": [
+          "**/storybook-static/**"
+        ],
+        "exclude": [
+          "**/node_modules/**",
+          "**/Documentation/**"
+        ],
+        "src": "../Chronicle"
+      },
+      {
+        "files": [
+          "**/storybook-static/**"
+        ],
+        "exclude": [
+          "**/node_modules/**",
+          "**/Documentation/**"
+        ],
+        "src": "../Fundamentals"
       }
     ],
     "output": "_site",
