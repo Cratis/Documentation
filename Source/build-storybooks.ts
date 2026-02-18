@@ -3,6 +3,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 interface StorybookConfig {
     path: string;
@@ -88,13 +93,18 @@ async function buildStorybook(storybookPath: string, markdownFile: string) {
     }
 
     try {
+        // Check if package.json has dependencies
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+        const hasDependencies = packageJson.dependencies || packageJson.devDependencies;
+
         // Check if node_modules exists
         const nodeModulesPath = path.join(storybookPath, 'node_modules');
-        if (!fs.existsSync(nodeModulesPath)) {
+        if (!fs.existsSync(nodeModulesPath) && hasDependencies) {
             console.log(`Running yarn install in ${storybookPath}...`);
             execSync('yarn install', {
                 cwd: storybookPath,
-                stdio: 'inherit'
+                stdio: 'inherit',
+                env: { ...process.env, NODE_OPTIONS: '' } // Clear NODE_OPTIONS to avoid conflicts
             });
         }
 
@@ -102,7 +112,8 @@ async function buildStorybook(storybookPath: string, markdownFile: string) {
         console.log(`Running storybook build in ${storybookPath}...`);
         execSync('yarn build-storybook', {
             cwd: storybookPath,
-            stdio: 'inherit'
+            stdio: 'inherit',
+            env: { ...process.env, NODE_OPTIONS: '' } // Clear NODE_OPTIONS to avoid conflicts
         });
 
         console.log(`Successfully built Storybook at ${storybookPath}`);
