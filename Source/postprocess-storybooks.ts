@@ -263,9 +263,30 @@ async function processMarkdownFile(mdFilePath: string) {
     // Parse Storybook index and update TOC
     const storybookIndex = parseStorybookIndex(resolvedStorybookPath);
     if (storybookIndex) {
-        // Find the TOC file in the same directory as the markdown file
+        // Find the original source TOC file (not the copied one in docs/)
         const mdDir = path.dirname(mdFilePath);
-        const tocPath = path.join(mdDir, 'toc.yml');
+        let tocPath = path.join(mdDir, 'toc.yml');
+        
+        // If this is a file from docs/SubmoduleName/, we need to update the original source TOC
+        // not the copied one in Source/docs
+        const relativePath = path.relative(SOURCE_DIR, mdFilePath);
+        const parts = relativePath.split(path.sep);
+        
+        if (parts.length >= 2 && parts[0] === 'docs' && parts[1] !== 'Documentation') {
+            // This is from a submodule (Arc, Chronicle, Fundamentals, etc.)
+            const submoduleName = parts[1];
+            const pathInSubmodule = parts.slice(2).join(path.sep); // e.g., "frontend/react/storybook.md"
+            const dirInSubmodule = path.dirname(pathInSubmodule); // e.g., "frontend/react"
+            
+            // Map to the original source location
+            const repoRoot = path.resolve(SOURCE_DIR, '..');
+            const originalTocPath = path.join(repoRoot, submoduleName, 'Documentation', dirInSubmodule, 'toc.yml');
+            
+            if (fs.existsSync(originalTocPath)) {
+                tocPath = originalTocPath;
+                console.log(`Mapped TOC path to original source: ${tocPath}`);
+            }
+        }
         
         // Generate story hierarchy for TOC
         const storybookPageHref = path.basename(mdFilePath);
