@@ -57,6 +57,19 @@ function parseStorybookIndex(storybookPath: string): StorybookIndex | null {
     }
 }
 
+function findFirstStoryInHierarchy(item: TocItem): string | null {
+    if (item.href && item.href.includes('?story=')) {
+        return item.href;
+    }
+    if (item.items) {
+        for (const child of item.items) {
+            const found = findFirstStoryInHierarchy(child);
+            if (found) return found;
+        }
+    }
+    return null;
+}
+
 function buildTocFromStorybook(storybookIndex: StorybookIndex, storybookPageHref: string): TocItem[] {
     const stories = Object.values(storybookIndex.entries).filter(entry => entry.type === 'story');
     
@@ -88,6 +101,10 @@ function buildTocFromStorybook(storybookIndex: StorybookIndex, storybookPageHref
                 
                 // If this is the last part, add story links as children
                 if (i === parts.length - 1) {
+                    // Set href BEFORE items to ensure correct YAML property order
+                    if (titleStories.length > 0) {
+                        item.href = `${storybookPageHref}?story=${encodeURIComponent(titleStories[0].id)}`;
+                    }
                     item.items = titleStories.map(story => ({
                         name: story.name,
                         href: `${storybookPageHref}?story=${encodeURIComponent(story.id)}`
@@ -115,12 +132,24 @@ function buildTocFromStorybook(storybookIndex: StorybookIndex, storybookPageHref
                 // Recursively process children first
                 item.items = collapseRedundantNodes(item.items);
                 
-                // If this item has only one child and they have the same name,
-                // and the child has sub-items (stories or more hierarchy), collapse them
-                if (item.items.length === 1 && 
-                    item.name === item.items[0].name && 
-                    item.items[0].items) {
-                    return item.items[0];
+                // If this item has only one child without an href, collapse them
+                // This removes intermediate grouping nodes that add unnecessary depth
+                if (item.items.length === 1 && !item.href && item.items[0].items) {
+                    const child = item.items[0];
+                    // Use the child's name and inherit the child's items/href
+                    item.name = child.name;
+                    item.items = child.items;
+                    if (child.href) {
+                        item.href = child.href;
+                    }
+                }
+                
+                // After collapsing, ensure intermediate nodes have hrefs to first story
+                if (!item.href && item.items && item.items.length > 0) {
+                    const firstHref = findFirstStoryInHierarchy(item);
+                    if (firstHref) {
+                        item.href = firstHref;
+                    }
                 }
             }
             return item;
@@ -135,7 +164,36 @@ function buildTocFromStorybook(storybookIndex: StorybookIndex, storybookPageHref
         }
     }
     
-    return collapseRedundantNodes(topLevel);
+    const collapsed = collapseRedundantNodes(topLevel);
+    
+    // Ensure all parent nodes have hrefs to their first child story
+    for (const item of collapsed) {
+        if (!item.href && item.items) {
+            const firstHref = findFirstStoryInHierarchy(item);
+            if (firstHref) {
+                item.href = firstHref;
+            }
+        }
+    }
+    
+    return collapsed;
+}
+
+function findFirstStoryHref(items: TocItem[]): string | null {
+    for (const item of items) {
+        // If this item has an href (it's a leaf/story), return it
+        if (item.href && item.href.includes('?story=')) {
+            return item.href;
+        }
+        // Otherwise, recursively search children
+        if (item.items) {
+            const childHref = findFirstStoryHref(item.items);
+            if (childHref) {
+                return childHref;
+            }
+        }
+    }
+    return null;
 }
 
 function updateTocWithStorybook(tocPath: string, storybookPageName: string, storybookItems: TocItem[]) {
@@ -157,6 +215,14 @@ function updateTocWithStorybook(tocPath: string, storybookPageName: string, stor
         if (storybookIndex === -1) {
             console.warn(`Could not find Storybook page in TOC: ${tocPath}`);
             return;
+        }
+        
+        // Find the first story to link to
+        const firstStoryHref = findFirstStoryHref(storybookItems);
+        
+        // Update the Storybook page to link to the first story (avoid "No Preview")
+        if (firstStoryHref) {
+            toc[storybookIndex].href = firstStoryHref;
         }
         
         // Add the storybook items as children
@@ -260,42 +326,6 @@ async function processMarkdownFile(mdFilePath: string) {
     const resolvedStorybookPath = resolveStorybookPath(storybookPath, mdFilePath);
     const storybookBuildPath = path.join(resolvedStorybookPath, 'storybook-static');
 
-    // Parse Storybook index and update TOC
-    const storybookIndex = parseStorybookIndex(resolvedStorybookPath);
-    if (storybookIndex) {
-        // Find the original source TOC file (not the copied one in docs/)
-        const mdDir = path.dirname(mdFilePath);
-        let tocPath = path.join(mdDir, 'toc.yml');
-        
-        // If this is a file from docs/SubmoduleName/, we need to update the original source TOC
-        // not the copied one in Source/docs
-        const relativePath = path.relative(SOURCE_DIR, mdFilePath);
-        const parts = relativePath.split(path.sep);
-        
-        if (parts.length >= 2 && parts[0] === 'docs' && parts[1] !== 'Documentation') {
-            // This is from a submodule (Arc, Chronicle, Fundamentals, etc.)
-            const submoduleName = parts[1];
-            const pathInSubmodule = parts.slice(2).join(path.sep); // e.g., "frontend/react/storybook.md"
-            const dirInSubmodule = path.dirname(pathInSubmodule); // e.g., "frontend/react"
-            
-            // Map to the original source location
-            const repoRoot = path.resolve(SOURCE_DIR, '..');
-            const originalTocPath = path.join(repoRoot, submoduleName, 'Documentation', dirInSubmodule, 'toc.yml');
-            
-            if (fs.existsSync(originalTocPath)) {
-                tocPath = originalTocPath;
-                console.log(`Mapped TOC path to original source: ${tocPath}`);
-            }
-        }
-        
-        // Generate story hierarchy for TOC
-        const storybookPageHref = path.basename(mdFilePath);
-        const storybookItems = buildTocFromStorybook(storybookIndex, storybookPageHref);
-        
-        // Update the TOC with story hierarchy
-        updateTocWithStorybook(tocPath, 'Storybook', storybookItems);
-    }
-
     // Calculate relative path from HTML to storybook-static in the _site directory
     // DocFX copies resources maintaining their structure from the source
     const htmlDir = path.dirname(htmlPath);
@@ -386,6 +416,19 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
             // Use iframe.html with the story id parameter
             const baseUrl = '${storybookRelativePath}/iframe.html';
             iframe.src = baseUrl + '?id=' + encodeURIComponent(storyId) + '&viewMode=story';
+        } else {
+            // No story specified - redirect to first story from TOC nav
+            // Get the first child item with a story parameter from the navigation
+            const firstStoryLink = document.querySelector('nav .tocnav a[href*="?story="]');
+            if (firstStoryLink) {
+                const linkHref = firstStoryLink.getAttribute('href');
+                const storyMatch = linkHref.match(/[?&]story=([^&]+)/);
+                if (storyMatch) {
+                    const firstStoryId = decodeURIComponent(storyMatch[1]);
+                    const baseUrl = '${storybookRelativePath}/iframe.html';
+                    iframe.src = baseUrl + '?id=' + encodeURIComponent(firstStoryId) + '&viewMode=story';
+                }
+            }
         }
     }
     
@@ -411,7 +454,7 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
     // Initial sync
     syncTheme();
     
-    // Navigate to story if specified in URL
+    // Navigate to story if specified in URL, or redirect to first story
     navigateToStory();
 })();
 </script>`;

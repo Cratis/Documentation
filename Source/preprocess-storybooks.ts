@@ -56,6 +56,19 @@ function parseStorybookIndex(storybookPath: string): StorybookIndex | null {
     }
 }
 
+function findFirstStoryInHierarchy(item: TocItem): string | null {
+    if (item.href && item.href.includes('?story=')) {
+        return item.href;
+    }
+    if (item.items) {
+        for (const child of item.items) {
+            const found = findFirstStoryInHierarchy(child);
+            if (found) return found;
+        }
+    }
+    return null;
+}
+
 function buildTocFromStorybook(storybookIndex: StorybookIndex, storybookPageHref: string): TocItem[] {
     const stories = Object.values(storybookIndex.entries).filter(entry => entry.type === 'story');
     
@@ -87,6 +100,10 @@ function buildTocFromStorybook(storybookIndex: StorybookIndex, storybookPageHref
                 
                 // If this is the last part, add story links as children
                 if (i === parts.length - 1) {
+                    // Set href BEFORE items to ensure correct YAML property order
+                    if (titleStories.length > 0) {
+                        item.href = `${storybookPageHref}?story=${encodeURIComponent(titleStories[0].id)}`;
+                    }
                     item.items = titleStories.map(story => ({
                         name: story.name,
                         href: `${storybookPageHref}?story=${encodeURIComponent(story.id)}`
@@ -114,12 +131,24 @@ function buildTocFromStorybook(storybookIndex: StorybookIndex, storybookPageHref
                 // Recursively process children first
                 item.items = collapseRedundantNodes(item.items);
                 
-                // If this item has only one child and they have the same name,
-                // and the child has sub-items (stories or more hierarchy), collapse them
-                if (item.items.length === 1 && 
-                    item.name === item.items[0].name && 
-                    item.items[0].items) {
-                    return item.items[0];
+                // If this item has only one child without an href, collapse them
+                // This removes intermediate grouping nodes that add unnecessary depth
+                if (item.items.length === 1 && !item.href && item.items[0].items) {
+                    const child = item.items[0];
+                    // Use the child's name and inherit the child's items/href
+                    item.name = child.name;
+                    item.items = child.items;
+                    if (child.href) {
+                        item.href = child.href;
+                    }
+                }
+                
+                // After collapsing, ensure intermediate nodes have hrefs to first story
+                if (!item.href && item.items && item.items.length > 0) {
+                    const firstHref = findFirstStoryInHierarchy(item);
+                    if (firstHref) {
+                        item.href = firstHref;
+                    }
                 }
             }
             return item;
@@ -134,7 +163,19 @@ function buildTocFromStorybook(storybookIndex: StorybookIndex, storybookPageHref
         }
     }
     
-    return collapseRedundantNodes(topLevel);
+    const collapsed = collapseRedundantNodes(topLevel);
+    
+    // Ensure all parent nodes have hrefs to their first child story
+    for (const item of collapsed) {
+        if (!item.href && item.items) {
+            const firstHref = findFirstStoryInHierarchy(item);
+            if (firstHref) {
+                item.href = firstHref;
+            }
+        }
+    }
+    
+    return collapsed;
 }
 
 function updateTocWithStorybook(tocPath: string, storybookPageName: string, storybookItems: TocItem[]) {
