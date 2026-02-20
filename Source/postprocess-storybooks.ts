@@ -381,9 +381,9 @@ function resolveStorybookPath(storybookPath: string, markdownFile: string): stri
 function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) {
     let html = fs.readFileSync(htmlPath, 'utf-8');
 
-    // Use iframe.html for embedded view without navigation
-    // This provides the story view without the Storybook sidebar
-    const iframeSrc = `${storybookRelativePath}/iframe.html?viewMode=story`;
+    // Use index.html with nav=false to get full Storybook UI (toolbar + addon panels)
+    // but without the sidebar navigation (which is handled by DocFX TOC instead)
+    const iframeSrc = `${storybookRelativePath}/index.html?nav=false&panel=right&addonPanel=storybook/source-loader/panel`;
 
     // Create the iframe HTML with theme synchronization and story navigation script
     const iframeHtml = `
@@ -413,28 +413,45 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
         const storyId = urlParams.get('story');
         
         if (storyId && iframe) {
-            // Use iframe.html with the story id parameter
-            const baseUrl = '${storybookRelativePath}/iframe.html';
-            iframe.src = baseUrl + '?id=' + encodeURIComponent(storyId) + '&viewMode=story';
+            // Use index.html with story path for full UI (toolbar + code panel)
+            const baseUrl = '${storybookRelativePath}/index.html';
+            iframe.src = baseUrl + '?nav=false&panel=right&addonPanel=storybook/source-loader/panel&path=/story/' + encodeURIComponent(storyId);
         } else {
             // No story specified - redirect to first story from TOC nav
             // Get the first child item with a story parameter from the navigation
-            const firstStoryLink = document.querySelector('nav .tocnav a[href*="?story="]');
+            const firstStoryLink = document.querySelector('nav.toc a[href*="?story="]');
             if (firstStoryLink) {
                 const linkHref = firstStoryLink.getAttribute('href');
                 const storyMatch = linkHref.match(/[?&]story=([^&]+)/);
                 if (storyMatch) {
                     const firstStoryId = decodeURIComponent(storyMatch[1]);
-                    const baseUrl = '${storybookRelativePath}/iframe.html';
-                    iframe.src = baseUrl + '?id=' + encodeURIComponent(firstStoryId) + '&viewMode=story';
+                    const baseUrl = '${storybookRelativePath}/index.html';
+                    iframe.src = baseUrl + '?nav=false&panel=right&addonPanel=storybook/source-loader/panel&path=/story/' + encodeURIComponent(firstStoryId);
                 }
             }
         }
     }
     
-    // Sync theme when iframe loads
+    // Sync theme when iframe loads and auto-select Code panel
     iframe.addEventListener('load', function() {
         setTimeout(syncTheme, 100);
+        
+        // Auto-select the Code tab in the Storybook addon panel
+        // The selectedPanel config and URL param don't always work reliably
+        // so we click the Code tab directly after load
+        setTimeout(function() {
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                if (iframeDoc) {
+                    const codeTab = iframeDoc.getElementById('tabbutton-storybook-source-loader-panel');
+                    if (codeTab) {
+                        codeTab.click();
+                    }
+                }
+            } catch (e) {
+                // Cross-origin access may fail in some configurations
+            }
+        }, 500);
     });
     
     // Watch for theme changes on the document
@@ -456,6 +473,110 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
     
     // Navigate to story if specified in URL, or redirect to first story
     navigateToStory();
+    
+    // Fix breadcrumb: DocFX treats all TOC items pointing to storybook.html as matching
+    // the current page, causing ALL stories to appear in the breadcrumb.
+    // We fix this by rebuilding the breadcrumb from the TOC hierarchy.
+    function fixBreadcrumb() {
+        const breadcrumbNav = document.getElementById('breadcrumb');
+        if (!breadcrumbNav) return;
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyId = urlParams.get('story');
+        
+        // Find the deepest matching TOC link for the current story
+        // (Don't break on first match - last match = deepest/most specific)
+        let activeLink = null;
+        if (storyId) {
+            const tocLinks = document.querySelectorAll('#toc a[href*="?story="]');
+            for (const link of tocLinks) {
+                const href = link.getAttribute('href') || '';
+                const match = href.match(/[?&]story=([^&]+)/);
+                if (match && decodeURIComponent(match[1]) === storyId) {
+                    activeLink = link; // Keep updating - last match is the leaf node
+                }
+            }
+        }
+        
+        if (!activeLink) return;
+        
+        // Walk up the TOC DOM to collect the hierarchy path
+        // Stop at the storybook root item (href to storybook.html without ?story=)
+        const pathItems = [];
+        let current = activeLink.closest('li');
+        while (current) {
+            const linkEl = current.querySelector(':scope > a');
+            if (linkEl) {
+                const text = linkEl.textContent.trim();
+                const href = linkEl.getAttribute('href') || '';
+                if (text) {
+                    pathItems.unshift({ text, href });
+                }
+                // Stop at the storybook root node (has href to .html without ?story=)
+                if (href && href.includes('.html') && !href.includes('?story=')) {
+                    break;
+                }
+            }
+            // Move to parent list item (li > ul > li structure)
+            const parentUl = current.parentElement;
+            if (parentUl && parentUl.tagName === 'UL') {
+                current = parentUl.parentElement;
+                if (!current || current.tagName !== 'LI') {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        
+        // Rebuild breadcrumb: keep ancestor items that don't relate to storybook,
+        // then add the path from TOC walk (Storybook > Component > Story)
+        const breadcrumbList = breadcrumbNav.querySelector('ol, ul');
+        if (!breadcrumbList) return;
+        
+        const existingItems = breadcrumbList.querySelectorAll('li');
+        let newHtml = '';
+        
+        for (const li of existingItems) {
+            const link = li.querySelector('a');
+            if (link) {
+                const href = link.getAttribute('href') || '';
+                // Stop at items that point to the storybook page
+                if (href.includes('storybook.html') || href.includes('?story=')) break;
+                // Keep ancestor items (Arc, Frontend, React with empty hrefs)
+                newHtml += li.outerHTML;
+            }
+        }
+        
+        // Add storybook path from TOC hierarchy walk
+        for (const item of pathItems) {
+            if (item.href) {
+                newHtml += '<li class="breadcrumb-item"><a href="' + item.href + '">' + item.text + '</a></li>';
+            } else {
+                newHtml += '<li class="breadcrumb-item">' + item.text + '</li>';
+            }
+        }
+        
+        breadcrumbList.innerHTML = newHtml;
+    }
+    
+    // DocFX renders breadcrumb asynchronously, so wait for it
+    const breadcrumbObserver = new MutationObserver(function() {
+        const breadcrumbNav = document.getElementById('breadcrumb');
+        if (breadcrumbNav && breadcrumbNav.children.length > 0) {
+            breadcrumbObserver.disconnect();
+            setTimeout(fixBreadcrumb, 50);
+        }
+    });
+    
+    const breadcrumbEl = document.getElementById('breadcrumb');
+    if (breadcrumbEl) {
+        if (breadcrumbEl.children.length > 0) {
+            fixBreadcrumb();
+        } else {
+            breadcrumbObserver.observe(breadcrumbEl, { childList: true, subtree: true });
+        }
+    }
 })();
 </script>`;
 

@@ -100,7 +100,7 @@ function buildTocFromStorybook(storybookIndex: StorybookIndex, storybookPageHref
                 
                 // If this is the last part, add story links as children
                 if (i === parts.length - 1) {
-                    // Set href BEFORE items to ensure correct YAML property order
+                    // Set href to first story
                     if (titleStories.length > 0) {
                         item.href = `${storybookPageHref}?story=${encodeURIComponent(titleStories[0].id)}`;
                     }
@@ -131,15 +131,17 @@ function buildTocFromStorybook(storybookIndex: StorybookIndex, storybookPageHref
                 // Recursively process children first
                 item.items = collapseRedundantNodes(item.items);
                 
-                // If this item has only one child without an href, collapse them
+                // If this item has only one child, collapse them
                 // This removes intermediate grouping nodes that add unnecessary depth
-                if (item.items.length === 1 && !item.href && item.items[0].items) {
+                if (item.items.length === 1) {
                     const child = item.items[0];
-                    // Use the child's name and inherit the child's items/href
-                    item.name = child.name;
-                    item.items = child.items;
-                    if (child.href) {
-                        item.href = child.href;
+                    // If parent and child have the same name, collapse
+                    if (item.name === child.name || !item.href) {
+                        item.name = child.name;
+                        item.items = child.items;
+                        if (child.href) {
+                            item.href = child.href;
+                        }
                     }
                 }
                 
