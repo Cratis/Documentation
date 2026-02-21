@@ -258,6 +258,16 @@
           "**/Documentation/**"
         ],
         "src": "../Fundamentals"
+      },
+      {
+        "files": [
+          "**/storybook-static/**"
+        ],
+        "exclude": [
+          "**/node_modules/**",
+          "**/Documentation/**"
+        ],
+        "src": "../Components"
       }
     ],
     "output": "_site",

@@ -225,10 +225,10 @@ function resolveStorybookPath(storybookPath: string, markdownFile: string): stri
         const parts = relativePath.split(path.sep);
         
         if (parts.length >= 2) {
-            const submoduleName = parts[0]; // e.g., "Arc", "Chronicle", "Fundamentals"
+            const submoduleName = parts[0]; // e.g., "Arc", "Chronicle", "Fundamentals", "Components"
             
             // Check if this is a known submodule (not "Source" or "GitHubLanding" etc.)
-            const knownSubmodules = ['Arc', 'Chronicle', 'Fundamentals'];
+            const knownSubmodules = ['Arc', 'Chronicle', 'Fundamentals', 'Components'];
             if (knownSubmodules.includes(submoduleName)) {
                 // Resolve the path within the submodule
                 return path.join(REPO_ROOT, submoduleName, storybookPath.substring(1));
@@ -250,7 +250,7 @@ async function main() {
     const REPO_ROOT = path.resolve(SOURCE_DIR, '..');
 
     // Find all storybook.md files in submodule documentation directories
-    const submoduleDirs = ['Arc', 'Chronicle', 'Fundamentals'];
+    const submoduleDirs = ['Arc', 'Chronicle', 'Fundamentals', 'Components'];
     const markdownFiles: string[] = [];
 
     for (const submodule of submoduleDirs) {

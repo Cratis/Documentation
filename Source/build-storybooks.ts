@@ -34,7 +34,7 @@ async function main() {
     });
 
     // Also explicitly search in submodule documentation directories (to handle symlink issues in CI)
-    const submoduleDirs = ['Arc', 'Chronicle', 'Fundamentals'];
+    const submoduleDirs = ['Arc', 'Chronicle', 'Fundamentals', 'Components'];
     for (const submodule of submoduleDirs) {
         const submodulePath = path.join(REPO_ROOT, submodule, 'Documentation');
         if (fs.existsSync(submodulePath)) {
