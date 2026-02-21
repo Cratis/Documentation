@@ -13,3 +13,6 @@
 [submodule "GitHubLanding"]
 	path = GitHubLanding
 	url = https://github.com/cratis/.github
+[submodule "Components"]
+	path = Components
+	url = https://github.com/Cratis/Components
