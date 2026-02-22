@@ -18,7 +18,7 @@ interface FrontMatter {
     [key: string]: any;
 }
 
-const REPO_ROOT = path.resolve(__dirname, '..');
+const REPO_ROOT = path.resolve(__dirname, '../..');
 const SOURCE_DIR = __dirname;
 const SITE_OUTPUT = path.join(SOURCE_DIR, '_site');
 
@@ -105,21 +105,7 @@ async function processMarkdownFile(filePath: string) {
 
 function resolveStorybookPath(storybookPath: string, markdownFile: string): string {
     if (storybookPath.startsWith('/')) {
-        // Absolute path - infer repository from markdown file location
-        const relativePath = path.relative(SOURCE_DIR, markdownFile);
-        const parts = relativePath.split(path.sep);
-        
-        // Check if file is in a docs subfolder (docs/SubmoduleName/...)
-        // This indicates it's from a different repository/submodule
-        if (parts.length >= 2 && parts[0] === 'docs') {
-            const submoduleName = parts[1];
-            // Skip 'Documentation' folder as it's part of this repo
-            if (submoduleName !== 'Documentation') {
-                return path.join(REPO_ROOT, submoduleName, storybookPath.substring(1));
-            }
-        }
-        
-        // Default: resolve from repository root
+        // Absolute path - resolve from repository root
         return path.join(REPO_ROOT, storybookPath.substring(1));
     } else {
         // Relative path from markdown file

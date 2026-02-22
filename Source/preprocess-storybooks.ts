@@ -39,6 +39,7 @@ interface TocItem {
 }
 
 const SOURCE_DIR = __dirname;
+const REPO_ROOT = path.resolve(SOURCE_DIR, '../..');
 
 function parseStorybookIndex(storybookPath: string): StorybookIndex | null {
     const indexPath = path.join(storybookPath, 'storybook-static', 'index.json');
@@ -215,27 +216,8 @@ function updateTocWithStorybook(tocPath: string, storybookPageName: string, stor
 }
 
 function resolveStorybookPath(storybookPath: string, markdownFile: string): string {
-    const REPO_ROOT = path.resolve(SOURCE_DIR, '..');
-    
     if (storybookPath.startsWith('/')) {
-        // Absolute path - need to determine which submodule this belongs to
-        // markdownFile is like: /Volumes/Code/Cratis/Documentation/Arc/Documentation/frontend/react/storybook.md
-        // Extract the submodule name from the path
-        const relativePath = path.relative(REPO_ROOT, markdownFile);
-        const parts = relativePath.split(path.sep);
-        
-        if (parts.length >= 2) {
-            const submoduleName = parts[0]; // e.g., "Arc", "Chronicle", "Fundamentals", "Components"
-            
-            // Check if this is a known submodule (not "Source" or "GitHubLanding" etc.)
-            const knownSubmodules = ['Arc', 'Chronicle', 'Fundamentals', 'Components'];
-            if (knownSubmodules.includes(submoduleName)) {
-                // Resolve the path within the submodule
-                return path.join(REPO_ROOT, submoduleName, storybookPath.substring(1));
-            }
-        }
-        
-        // Fallback: resolve from repository root
+        // Absolute path - resolve from repository root
         return path.join(REPO_ROOT, storybookPath.substring(1));
     } else {
         // Relative path from markdown file

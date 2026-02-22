@@ -243,7 +243,7 @@ function updateTocWithStorybook(tocPath: string, storybookPageName: string, stor
 async function main() {
     console.log('Post-processing Storybook pages...');
 
-    const REPO_ROOT = path.resolve(SOURCE_DIR, '..');
+    const REPO_ROOT = path.resolve(SOURCE_DIR, '../..');
 
     // Create a .gitignore in _site to allow storybook-static files in the artifact upload
     // The root .gitignore excludes **/storybook-static/ but we need them in the published site
