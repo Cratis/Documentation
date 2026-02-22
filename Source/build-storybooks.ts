@@ -18,7 +18,7 @@ interface FrontMatter {
     [key: string]: any;
 }
 
-const REPO_ROOT = path.resolve(__dirname, '../..');
+const REPO_ROOT = path.resolve(__dirname, '..');
 const SOURCE_DIR = __dirname;
 const SITE_OUTPUT = path.join(SOURCE_DIR, '_site');
 
@@ -105,13 +105,75 @@ async function processMarkdownFile(filePath: string) {
 
 function resolveStorybookPath(storybookPath: string, markdownFile: string): string {
     if (storybookPath.startsWith('/')) {
-        // Absolute path - resolve from repository root
+        const repoRelativePath = path.relative(REPO_ROOT, markdownFile);
+        const repoParts = repoRelativePath.split(path.sep);
+        const knownSubmodules = ['Arc', 'Chronicle', 'Fundamentals', 'Components'];
+
+        let submoduleName: string | null = null;
+        if (repoParts.length >= 2 && knownSubmodules.includes(repoParts[0])) {
+            submoduleName = repoParts[0];
+        } else {
+            const sourceRelativePath = path.relative(SOURCE_DIR, markdownFile);
+            const sourceParts = sourceRelativePath.split(path.sep);
+            if (sourceParts.length >= 2 && sourceParts[0] === 'docs' && sourceParts[1] !== 'Documentation') {
+                submoduleName = sourceParts[1];
+            }
+        }
+
+        if (submoduleName) {
+            if (storybookPath.startsWith(`/${submoduleName}/`)) {
+                return path.join(REPO_ROOT, storybookPath.substring(1));
+            }
+            return path.join(REPO_ROOT, submoduleName, storybookPath.substring(1));
+        }
+
         return path.join(REPO_ROOT, storybookPath.substring(1));
     } else {
         // Relative path from markdown file
         const markdownDir = path.dirname(markdownFile);
         return path.resolve(markdownDir, storybookPath);
     }
+}
+
+function isYarnWorkspaceRoot(dirPath: string): boolean {
+    const packageJsonPath = path.join(dirPath, 'package.json');
+    if (!fs.existsSync(packageJsonPath)) {
+        return false;
+    }
+
+    try {
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8')) as {
+            workspaces?: string[] | { packages?: string[] };
+            packageManager?: string;
+        };
+        return Boolean(packageJson.workspaces) && Boolean(packageJson.packageManager?.startsWith('yarn@'));
+    } catch {
+        return false;
+    }
+}
+
+function findYarnWorkspaceRoot(startDir: string): string | null {
+    let current = startDir;
+    const repoRoot = REPO_ROOT;
+
+    while (true) {
+        if (isYarnWorkspaceRoot(current)) {
+            return current;
+        }
+
+        if (current === repoRoot) {
+            break;
+        }
+
+        const parent = path.dirname(current);
+        if (parent === current) {
+            break;
+        }
+
+        current = parent;
+    }
+
+    return null;
 }
 
 async function buildStorybook(storybookPath: string, markdownFile: string) {
@@ -128,23 +190,37 @@ async function buildStorybook(storybookPath: string, markdownFile: string) {
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
         const hasDependencies = packageJson.dependencies || packageJson.devDependencies;
 
-        // Check if node_modules exists
-        const nodeModulesPath = path.join(storybookPath, 'node_modules');
-        if (!fs.existsSync(nodeModulesPath) && hasDependencies) {
-            console.log(`Running npm install in ${storybookPath}...`);
-            execSync('npm install --legacy-peer-deps', {
-                cwd: storybookPath,
-                stdio: 'inherit',
-                // Clear NODE_OPTIONS to avoid ts-node loader conflicts from parent process
-                // The parent process uses --loader ts-node/esm which would cause errors
-                // when yarn/npm runs in subdirectories without ts-node installed
-                env: { ...process.env, NODE_OPTIONS: '' }
-            });
+        const workspaceRoot = findYarnWorkspaceRoot(storybookPath);
+        const installCwd = workspaceRoot ?? storybookPath;
+        const nodeModulesPath = path.join(installCwd, 'node_modules');
+
+        if (hasDependencies && !fs.existsSync(nodeModulesPath)) {
+            if (workspaceRoot) {
+                console.log(`Running yarn install in ${installCwd}...`);
+                execSync('yarn install', {
+                    cwd: installCwd,
+                    stdio: 'inherit',
+                    // Clear NODE_OPTIONS to avoid ts-node loader conflicts from parent process
+                    // The parent process uses --loader ts-node/esm which would cause errors
+                    // when yarn/npm runs in subdirectories without ts-node installed
+                    env: { ...process.env, NODE_OPTIONS: '' }
+                });
+            } else {
+                console.log(`Running npm install in ${storybookPath}...`);
+                execSync('npm install --legacy-peer-deps', {
+                    cwd: storybookPath,
+                    stdio: 'inherit',
+                    // Clear NODE_OPTIONS to avoid ts-node loader conflicts from parent process
+                    // The parent process uses --loader ts-node/esm which would cause errors
+                    // when yarn/npm runs in subdirectories without ts-node installed
+                    env: { ...process.env, NODE_OPTIONS: '' }
+                });
+            }
         }
 
         // Build storybook
         console.log(`Running storybook build in ${storybookPath}...`);
-        execSync('npm run build-storybook', {
+        execSync(workspaceRoot ? 'yarn build-storybook' : 'npm run build-storybook', {
             cwd: storybookPath,
             stdio: 'inherit',
             // Clear NODE_OPTIONS to avoid ts-node loader conflicts from parent process

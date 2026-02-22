@@ -39,7 +39,7 @@ interface TocItem {
 }
 
 const SOURCE_DIR = __dirname;
-const REPO_ROOT = path.resolve(SOURCE_DIR, '../..');
+const REPO_ROOT = path.resolve(SOURCE_DIR, '..');
 
 function parseStorybookIndex(storybookPath: string): StorybookIndex | null {
     const indexPath = path.join(storybookPath, 'storybook-static', 'index.json');
@@ -217,7 +217,28 @@ function updateTocWithStorybook(tocPath: string, storybookPageName: string, stor
 
 function resolveStorybookPath(storybookPath: string, markdownFile: string): string {
     if (storybookPath.startsWith('/')) {
-        // Absolute path - resolve from repository root
+        const repoRelativePath = path.relative(REPO_ROOT, markdownFile);
+        const repoParts = repoRelativePath.split(path.sep);
+        const knownSubmodules = ['Arc', 'Chronicle', 'Fundamentals', 'Components'];
+
+        let submoduleName: string | null = null;
+        if (repoParts.length >= 2 && knownSubmodules.includes(repoParts[0])) {
+            submoduleName = repoParts[0];
+        } else {
+            const sourceRelativePath = path.relative(SOURCE_DIR, markdownFile);
+            const sourceParts = sourceRelativePath.split(path.sep);
+            if (sourceParts.length >= 2 && sourceParts[0] === 'docs' && sourceParts[1] !== 'Documentation') {
+                submoduleName = sourceParts[1];
+            }
+        }
+
+        if (submoduleName) {
+            if (storybookPath.startsWith(`/${submoduleName}/`)) {
+                return path.join(REPO_ROOT, storybookPath.substring(1));
+            }
+            return path.join(REPO_ROOT, submoduleName, storybookPath.substring(1));
+        }
+
         return path.join(REPO_ROOT, storybookPath.substring(1));
     } else {
         // Relative path from markdown file

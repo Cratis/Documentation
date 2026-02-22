@@ -41,6 +41,7 @@ interface TocItem {
 
 const SOURCE_DIR = __dirname;
 const SITE_OUTPUT = path.join(SOURCE_DIR, '_site');
+const REPO_ROOT = path.resolve(SOURCE_DIR, '..');
 
 function parseStorybookIndex(storybookPath: string): StorybookIndex | null {
     const indexPath = path.join(storybookPath, 'storybook-static', 'index.json');
@@ -243,8 +244,6 @@ function updateTocWithStorybook(tocPath: string, storybookPageName: string, stor
 async function main() {
     console.log('Post-processing Storybook pages...');
 
-    const REPO_ROOT = path.resolve(SOURCE_DIR, '../..');
-
     // Create a .gitignore in _site to allow storybook-static files in the artifact upload
     // The root .gitignore excludes **/storybook-static/ but we need them in the published site
     const siteGitignorePath = path.join(SITE_OUTPUT, '.gitignore');
@@ -348,21 +347,18 @@ async function processMarkdownFile(mdFilePath: string) {
     // DocFX copies resources maintaining their structure from the source
     const htmlDir = path.dirname(htmlPath);
     
-    // Determine where the storybook-static will be in _site
-    let storybookSitePath: string;
-    const parts = mdRelativePath.split(path.sep);
-    
-    // Check if from a submodule (docs/SubmoduleName/...)
-    if (parts.length >= 2 && parts[0] === 'docs' && parts[1] !== 'Documentation') {
-        // From submodule: DocFX copies from ../SubmoduleName to _site/
-        // So Source/JavaScript/Arc.React/storybook-static becomes _site/Source/JavaScript/Arc.React/storybook-static
-        const relativeToBuildPath = path.relative(path.join(SOURCE_DIR, '..', parts[1]), storybookBuildPath);
-        storybookSitePath = path.join(SITE_OUTPUT, relativeToBuildPath);
-    } else {
-        // From this repo
-        const relativeToBuildPath = path.relative(SOURCE_DIR, storybookBuildPath);
-        storybookSitePath = path.join(SITE_OUTPUT, relativeToBuildPath);
+    const submoduleName = getSubmoduleName(mdFilePath);
+    const siteCandidates: string[] = [];
+
+    if (submoduleName) {
+        const submoduleRoot = path.join(REPO_ROOT, submoduleName);
+        siteCandidates.push(path.join(SITE_OUTPUT, path.relative(submoduleRoot, storybookBuildPath)));
     }
+
+    siteCandidates.push(path.join(SITE_OUTPUT, path.relative(REPO_ROOT, storybookBuildPath)));
+    siteCandidates.push(path.join(SITE_OUTPUT, path.relative(SOURCE_DIR, storybookBuildPath)));
+
+    const storybookSitePath = siteCandidates.find(candidate => fs.existsSync(candidate)) ?? siteCandidates[0];
     
     const storybookRelativePath = path.relative(htmlDir, storybookSitePath).replace(/\\/g, '/');
 
@@ -370,25 +366,36 @@ async function processMarkdownFile(mdFilePath: string) {
     injectStorybookIframe(htmlPath, storybookRelativePath);
 }
 
+function getSubmoduleName(markdownFile: string): string | null {
+    const repoRelativePath = path.relative(REPO_ROOT, markdownFile);
+    const repoParts = repoRelativePath.split(path.sep);
+    const knownSubmodules = ['Arc', 'Chronicle', 'Fundamentals', 'Components'];
+
+    if (repoParts.length >= 2 && knownSubmodules.includes(repoParts[0])) {
+        return repoParts[0];
+    }
+
+    const sourceRelativePath = path.relative(SOURCE_DIR, markdownFile);
+    const sourceParts = sourceRelativePath.split(path.sep);
+    if (sourceParts.length >= 2 && sourceParts[0] === 'docs' && sourceParts[1] !== 'Documentation') {
+        return sourceParts[1];
+    }
+
+    return null;
+}
+
 function resolveStorybookPath(storybookPath: string, markdownFile: string): string {
     if (storybookPath.startsWith('/')) {
-        // Absolute path - infer repository from markdown file location
-        const relativePath = path.relative(SOURCE_DIR, markdownFile);
-        const parts = relativePath.split(path.sep);
-        
-        // Check if file is in a docs subfolder (docs/SubmoduleName/...)
-        // This indicates it's from a different repository/submodule
-        const repoRoot = path.resolve(SOURCE_DIR, '..');
-        if (parts.length >= 2 && parts[0] === 'docs') {
-            const submoduleName = parts[1];
-            // Skip 'Documentation' folder as it's part of this repo
-            if (submoduleName !== 'Documentation') {
-                return path.join(repoRoot, submoduleName, storybookPath.substring(1));
+        const submoduleName = getSubmoduleName(markdownFile);
+
+        if (submoduleName) {
+            if (storybookPath.startsWith(`/${submoduleName}/`)) {
+                return path.join(REPO_ROOT, storybookPath.substring(1));
             }
+            return path.join(REPO_ROOT, submoduleName, storybookPath.substring(1));
         }
-        
-        // Default: resolve from repository root
-        return path.join(repoRoot, storybookPath.substring(1));
+
+        return path.join(REPO_ROOT, storybookPath.substring(1));
     } else {
         // Relative path from markdown file
         const markdownDir = path.dirname(markdownFile);
