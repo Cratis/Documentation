@@ -2,6 +2,7 @@ import { glob } from 'glob';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
+import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -249,6 +250,24 @@ async function main() {
     const siteGitignorePath = path.join(SITE_OUTPUT, '.gitignore');
     fs.writeFileSync(siteGitignorePath, '!**/storybook-static/\n', 'utf-8');
     console.log('Created .gitignore in _site to allow storybook-static files');
+
+    // Ensure storybook-static files from submodules are copied to _site if docfx didn't copy them
+    // This happens when storybook files are built after docfx runs
+    const submoduleDirs = ['Arc', 'Chronicle', 'Fundamentals', 'Components'];
+    for (const submodule of submoduleDirs) {
+        const submoduleSourcePath = path.join(REPO_ROOT, submodule, 'Source');
+        const submoduleStorybookPath = path.join(submoduleSourcePath, 'storybook-static');
+        const submoduleSitePath = path.join(SITE_OUTPUT, submodule, 'Source', 'storybook-static');
+
+        if (fs.existsSync(submoduleStorybookPath) && !fs.existsSync(submoduleSitePath)) {
+            console.log(`Copying storybook-static from ${submodule} to _site...`);
+            // Create parent directories
+            fs.mkdirSync(path.dirname(submoduleSitePath), { recursive: true });
+            // Copy storybook files
+            execSync(`cp -r "${submoduleStorybookPath}" "${submoduleSitePath}"`, { stdio: 'inherit' });
+            console.log(`Copied storybook-static from ${submodule}`);
+        }
+    }
 
     // Find all markdown files in current directory
     let markdownFiles = await glob('**/*.md', {

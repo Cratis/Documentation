@@ -146,7 +146,7 @@ async function buildStorybook(storybookPath: string, markdownFile: string) {
         const nodeModulesPath = path.join(storybookPath, 'node_modules');
         if (!fs.existsSync(nodeModulesPath) && hasDependencies) {
             console.log(`Running npm install in ${storybookPath}...`);
-            execSync('npm install', {
+            execSync('npm install --legacy-peer-deps', {
                 cwd: storybookPath,
                 stdio: 'inherit',
                 // Clear NODE_OPTIONS to avoid ts-node loader conflicts from parent process
