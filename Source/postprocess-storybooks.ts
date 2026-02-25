@@ -425,7 +425,7 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
 
     // Use index.html with nav=false to get full Storybook UI (toolbar + addon panels)
     // but without the sidebar navigation (which is handled by DocFX TOC instead)
-    const iframeSrc = `${storybookRelativePath}/index.html?nav=false&panel=right&addonPanel=storybook/source-loader/panel`;
+    const iframeSrc = `${storybookRelativePath}/index.html?nav=false&panel=right&addonPanel=storybook/docs`;
 
     // Create the iframe HTML with theme synchronization and story navigation script
     const iframeHtml = `
@@ -457,7 +457,7 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
         if (storyId && iframe) {
             // Use index.html with story path for full UI (toolbar + code panel)
             const baseUrl = '${storybookRelativePath}/index.html';
-            iframe.src = baseUrl + '?nav=false&panel=right&addonPanel=storybook/source-loader/panel&path=/story/' + encodeURIComponent(storyId);
+            iframe.src = baseUrl + '?nav=false&panel=right&addonPanel=storybook/docs&path=/story/' + encodeURIComponent(storyId);
         } else {
             // No story specified - redirect to first story from TOC nav
             // Get the first child item with a story parameter from the navigation
@@ -468,7 +468,7 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
                 if (storyMatch) {
                     const firstStoryId = decodeURIComponent(storyMatch[1]);
                     const baseUrl = '${storybookRelativePath}/index.html';
-                    iframe.src = baseUrl + '?nav=false&panel=right&addonPanel=storybook/source-loader/panel&path=/story/' + encodeURIComponent(firstStoryId);
+                    iframe.src = baseUrl + '?nav=false&panel=right&addonPanel=storybook/docs&path=/story/' + encodeURIComponent(firstStoryId);
                 }
             }
         }
@@ -485,7 +485,7 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
             try {
                 const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                 if (iframeDoc) {
-                    const codeTab = iframeDoc.getElementById('tabbutton-storybook-source-loader-panel');
+                    const codeTab = iframeDoc.getElementById('tabbutton-storybook-docs');
                     if (codeTab) {
                         codeTab.click();
                     }
