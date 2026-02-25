@@ -331,11 +331,28 @@ async function processMarkdownFile(mdFilePath: string) {
     // Calculate the corresponding HTML file in _site
     const mdRelativePath = path.relative(SOURCE_DIR, mdFilePath);
     const htmlRelativePath = mdRelativePath.replace(/\.md$/, '.html');
-    const htmlPath = path.join(SITE_OUTPUT, htmlRelativePath);
+    let htmlPath = path.join(SITE_OUTPUT, htmlRelativePath);
 
     if (!fs.existsSync(htmlPath)) {
-        console.warn(`HTML file not found: ${htmlPath}`);
-        return;
+        // Fallback: when the file was discovered via direct submodule scan (not symlink),
+        // the path relative to SOURCE_DIR is wrong (e.g. ../../Arc/Documentation/...). 
+        // Try the DocFX output path via the Source/docs/<submodule> symlink structure instead.
+        const subName = getSubmoduleName(mdFilePath);
+        if (subName) {
+            const subDocRoot = path.join(REPO_ROOT, subName, 'Documentation');
+            const relFromDocRoot = path.relative(subDocRoot, mdFilePath);
+            const fallbackHtmlPath = path.join(SITE_OUTPUT, 'docs', subName, relFromDocRoot.replace(/\.md$/, '.html'));
+            if (fs.existsSync(fallbackHtmlPath)) {
+                htmlPath = fallbackHtmlPath;
+                console.log(`Using fallback HTML path: ${fallbackHtmlPath}`);
+            } else {
+                console.warn(`HTML file not found: ${htmlPath} or ${fallbackHtmlPath}`);
+                return;
+            }
+        } else {
+            console.warn(`HTML file not found: ${htmlPath}`);
+            return;
+        }
     }
 
     // Calculate the relative path from the HTML file to the storybook build
@@ -602,6 +619,52 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
             breadcrumbObserver.observe(breadcrumbEl, { childList: true, subtree: true });
         }
     }
+    
+    // Fix TOC active state: DocFX marks ALL story links as active because they all
+    // share the same storybook.html page URL, differing only by the ?story= query param.
+    // We remove the active class from all story items and re-apply it only to the item
+    // matching the current ?story= parameter.
+    function fixTocActiveState() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const storyId = urlParams.get('story');
+        
+        const allStoryLinks = document.querySelectorAll('#toc a[href*="?story="]');
+        
+        // Remove active from all story-related list items
+        allStoryLinks.forEach(function(link) {
+            const li = link.closest('li');
+            if (li) li.classList.remove('active');
+        });
+        
+        if (!storyId) return;
+        
+        // Find the deepest matching link (last match = leaf/story node)
+        let matchingLink = null;
+        for (const link of allStoryLinks) {
+            const href = link.getAttribute('href') || '';
+            const match = href.match(/[?&]story=([^&]+)/);
+            if (match && decodeURIComponent(match[1]) === storyId) {
+                matchingLink = link;
+            }
+        }
+        
+        if (!matchingLink) return;
+        
+        // Mark the matching item and all its ancestors active
+        let el = matchingLink.closest('li');
+        while (el) {
+            el.classList.add('active');
+            const parentUl = el.parentElement;
+            if (!parentUl) break;
+            const parentLi = parentUl.closest('li');
+            // Stop at the TOC root — don't bubble past the storybook section
+            if (!parentLi) break;
+            el = parentLi;
+        }
+    }
+    
+    // Run after all page scripts have executed (DocFX TOC JS included)
+    window.addEventListener('load', fixTocActiveState);
 })();
 </script>`;
 
