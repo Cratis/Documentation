@@ -551,9 +551,7 @@ html { scroll-behavior: smooth; }
         <h2>&#x1F3D7;&#xFE0F; The Cratis stack</h2>
         <p>Click any layer &#8212; watch it crack open and reveal what&#x2019;s inside.</p>
     </div>
-
     <div class="cratis-stack">
-
         <!-- Studio -->
         <div class="cratis-box-wrapper"
              style="--box-color:#7c3aed; --box-accent:#a78bfa; --box-glow:rgba(124,58,237,0.48); --box-depth:rgba(55,18,115,0.92); --box-link-bg:rgba(124,58,237,0.28); --box-link-hover:rgba(124,58,237,0.5);">
@@ -586,9 +584,7 @@ html { scroll-behavior: smooth; }
                 </div>
             </div>
         </div>
-
         <div class="cratis-connector"><div class="cratis-connector-line"></div><span class="cratis-connector-arrow">&#x25BC;</span></div>
-
         <!-- Chronicle -->
         <div class="cratis-box-wrapper"
              style="--box-color:#2563eb; --box-accent:#60a5fa; --box-glow:rgba(37,99,235,0.48); --box-depth:rgba(19,51,140,0.92); --box-link-bg:rgba(37,99,235,0.28); --box-link-hover:rgba(37,99,235,0.5);">
@@ -621,9 +617,7 @@ html { scroll-behavior: smooth; }
                 </div>
             </div>
         </div>
-
         <div class="cratis-connector"><div class="cratis-connector-line"></div><span class="cratis-connector-arrow">&#x25BC;</span></div>
-
         <!-- Components -->
         <div class="cratis-box-wrapper"
              style="--box-color:#0891b2; --box-accent:#22d3ee; --box-glow:rgba(8,145,178,0.48); --box-depth:rgba(5,90,114,0.92); --box-link-bg:rgba(8,145,178,0.28); --box-link-hover:rgba(8,145,178,0.5);">
@@ -656,9 +650,7 @@ html { scroll-behavior: smooth; }
                 </div>
             </div>
         </div>
-
         <div class="cratis-connector"><div class="cratis-connector-line"></div><span class="cratis-connector-arrow">&#x25BC;</span></div>
-
         <!-- Arc -->
         <div class="cratis-box-wrapper"
              style="--box-color:#059669; --box-accent:#34d399; --box-glow:rgba(5,150,105,0.48); --box-depth:rgba(3,95,66,0.92); --box-link-bg:rgba(5,150,105,0.28); --box-link-hover:rgba(5,150,105,0.5);">
@@ -691,9 +683,7 @@ html { scroll-behavior: smooth; }
                 </div>
             </div>
         </div>
-
         <div class="cratis-connector"><div class="cratis-connector-line"></div><span class="cratis-connector-arrow">&#x25BC;</span></div>
-
         <!-- Fundamentals -->
         <div class="cratis-box-wrapper"
              style="--box-color:#d97706; --box-accent:#fbbf24; --box-glow:rgba(217,119,6,0.48); --box-depth:rgba(138,75,0,0.92); --box-link-bg:rgba(217,119,6,0.28); --box-link-hover:rgba(217,119,6,0.5);">
@@ -726,7 +716,6 @@ html { scroll-behavior: smooth; }
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -756,7 +745,6 @@ html { scroll-behavior: smooth; }
         }
     }
     window.cratissToggle = cratissToggle;
-
     // Copy to clipboard with fallback
     function cratissCopy(text, btn) {
         if (!btn) return;
@@ -788,7 +776,6 @@ html { scroll-behavior: smooth; }
         }
     }
     window.cratissCopy = cratissCopy;
-
     // Keyboard accessibility
     document.addEventListener('keydown', function (e) {
         if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.classList.contains('cratis-box')) {
