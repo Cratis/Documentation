@@ -1,429 +1,480 @@
 <style>
 /* ============================================================
-   Cratis Landing Page
+   Cratis Landing Page — Dark & Dramatic
    ============================================================ */
 
+/* ---- Global dark canvas ---------------------------------- */
 .cratis-landing {
-    font-family: 'Roboto', 'Segoe UI', sans-serif;
+    --bg:   #090b16;
+    --bg-2: #0d1120;
+    --bg-3: #131828;
+    --border: rgba(255,255,255,0.07);
+    --text:   rgba(255,255,255,0.88);
+    --muted:  rgba(255,255,255,0.48);
+    background: var(--bg);
+    border-radius: 16px;
+    color: var(--text);
+    font-family: 'Roboto','Segoe UI',sans-serif;
+    overflow: hidden;
+    margin: -8px;
 }
 
-/* ---------- HERO ---------- */
+/* ---- HERO ------------------------------------------------ */
 .cratis-hero {
     text-align: center;
-    padding: 80px 30px 60px;
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 55%, #0c1445 100%);
-    border-radius: 16px;
-    margin-bottom: 56px;
+    padding: 90px 32px 76px;
+    background: linear-gradient(155deg, #07091a 0%, #12164d 52%, #0b0e2c 100%);
     position: relative;
     overflow: hidden;
 }
 
+/* Star-field */
 .cratis-hero::before {
     content: '';
-    position: absolute;
-    inset: 0;
+    position: absolute; inset: 0;
+    background-image:
+        radial-gradient(1px   1px   at 10% 16%, rgba(200,210,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px   1px   at 30% 62%, rgba(200,210,255,0.5) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 52% 27%, rgba(99,102,241,0.9)  0%, transparent 100%),
+        radial-gradient(1px   1px   at 70% 71%, rgba(200,210,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px   1px   at 87% 11%, rgba(139,92,246,0.8)  0%, transparent 100%),
+        radial-gradient(2px   2px   at 21% 83%, rgba(99,102,241,0.5)  0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 63% 47%, rgba(200,210,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px   1px   at 43% 91%, rgba(139,92,246,0.65) 0%, transparent 100%),
+        radial-gradient(1px   1px   at 77% 37%, rgba(200,210,255,0.5) 0%, transparent 100%),
+        radial-gradient(2px   2px   at 94% 57%, rgba(99,102,241,0.45) 0%, transparent 100%),
+        radial-gradient(1px   1px   at 57% 75%, rgba(200,210,255,0.35) 0%, transparent 100%),
+        radial-gradient(1px   1px   at  3% 44%, rgba(139,92,246,0.5)  0%, transparent 100%);
+    animation: starFloat 16s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+@keyframes starFloat {
+    0%   { opacity: 0.55; transform: scale(1) translateY(0); }
+    100% { opacity: 1;    transform: scale(1.04) translateY(-7px); }
+}
+
+/* Ambient colour blobs */
+.cratis-hero::after {
+    content: '';
+    position: absolute; inset: 0;
     background:
-        radial-gradient(circle at 25% 50%, rgba(99,102,241,0.18) 0%, transparent 55%),
-        radial-gradient(circle at 75% 50%, rgba(139,92,246,0.13) 0%, transparent 55%);
-    animation: heroGlow 8s ease-in-out infinite alternate;
+        radial-gradient(ellipse 65% 45% at 22% 55%, rgba(99,102,241,0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 65% 45% at 78% 45%, rgba(139,92,246,0.11) 0%, transparent 60%);
     pointer-events: none;
 }
 
-@keyframes heroGlow {
-    0%   { opacity: 0.7; transform: scale(1); }
-    100% { opacity: 1;   transform: scale(1.05); }
-}
-
 .cratis-hero-logo {
-    width: 280px;
-    max-width: 75%;
-    height: auto;
-    margin-bottom: 24px;
+    width: 270px; max-width: 72%;
     filter: brightness(0) invert(1);
-    position: relative;
-    z-index: 1;
-    box-shadow: none;
-    border-radius: 0;
+    margin-bottom: 30px;
+    position: relative; z-index: 1;
+    box-shadow: none; border-radius: 0;
+    animation: logoFloat 7s ease-in-out infinite;
+}
+@keyframes logoFloat {
+    0%,100% { transform: translateY(0);   filter: brightness(0) invert(1) drop-shadow(0 0  0px transparent); }
+    50%     { transform: translateY(-7px); filter: brightness(0) invert(1) drop-shadow(0 0 22px rgba(99,102,241,0.45)); }
 }
 
 .cratis-hero h1 {
     color: #ffffff !important;
-    font-size: 2.4rem;
-    font-weight: 700;
-    margin-bottom: 14px;
-    position: relative;
-    z-index: 1;
+    font-size: 2.65rem; font-weight: 800;
+    margin-bottom: 18px;
+    position: relative; z-index: 1;
     border-bottom: none !important;
+    letter-spacing: -0.025em;
+    text-shadow: 0 0 70px rgba(99,102,241,0.55);
 }
 
-.cratis-hero p.cratis-tagline {
-    color: rgba(255,255,255,0.82);
-    font-size: 1.15rem;
-    max-width: 580px;
-    margin: 0 auto 36px;
-    line-height: 1.75;
-    position: relative;
-    z-index: 1;
+.cratis-hero-tagline {
+    color: rgba(255,255,255,0.72);
+    font-size: 1.12rem; line-height: 1.8;
+    max-width: 560px;
+    margin: 0 auto 44px;
+    position: relative; z-index: 1;
 }
 
 .cratis-hero-ctas {
-    display: flex;
-    gap: 14px;
-    justify-content: center;
-    flex-wrap: wrap;
-    position: relative;
-    z-index: 1;
+    display: flex; gap: 14px;
+    justify-content: center; flex-wrap: wrap;
+    position: relative; z-index: 1;
 }
 
 .cratis-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 11px 26px;
-    border-radius: 40px;
-    font-weight: 600;
-    font-size: 0.95rem;
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 28px; border-radius: 40px;
+    font-weight: 700; font-size: 0.95rem;
     text-decoration: none !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-    cursor: pointer;
-    border: none;
+    cursor: pointer; border: none; letter-spacing: 0.01em;
+    transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease;
 }
-
 .cratis-btn-primary {
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: #ffffff !important;
-    box-shadow: 0 4px 16px rgba(99,102,241,0.42);
+    box-shadow: 0 4px 22px rgba(99,102,241,0.52);
 }
-
 .cratis-btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 7px 22px rgba(99,102,241,0.6);
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 36px rgba(99,102,241,0.78);
     color: #ffffff !important;
 }
-
 .cratis-btn-ghost {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.07);
     color: #ffffff !important;
-    border: 1px solid rgba(255,255,255,0.28);
+    border: 1px solid rgba(255,255,255,0.2);
     backdrop-filter: blur(8px);
 }
-
 .cratis-btn-ghost:hover {
-    background: rgba(255,255,255,0.2);
-    transform: translateY(-2px);
+    background: rgba(255,255,255,0.15);
+    transform: translateY(-4px) scale(1.05);
+    border-color: rgba(255,255,255,0.4);
     color: #ffffff !important;
 }
 
-/* ---------- SECTION HEADERS ---------- */
-.cratis-section-header {
-    margin-bottom: 32px;
+/* ---- GETTING STARTED ------------------------------------ */
+.cratis-getting-started {
+    padding: 56px 36px 60px;
+    background: var(--bg-2);
+    border-top: 1px solid var(--border);
 }
-
+.cratis-section-header { margin-bottom: 30px; }
 .cratis-section-header h2 {
-    font-size: 1.9rem;
-    font-weight: 700;
+    color: #ffffff !important;
+    font-size: 1.85rem; font-weight: 800;
     margin-bottom: 6px;
     border-bottom: none !important;
+    letter-spacing: -0.015em;
 }
-
-.cratis-section-header p {
-    color: var(--bs-secondary-color, #6c757d);
-    font-size: 1.05rem;
-    margin: 0;
-}
-
-/* ---------- SCROLL HINT ---------- */
-.cratis-scroll-hint {
-    text-align: center;
-    margin-bottom: 48px;
-    color: var(--bs-secondary-color, #6c757d);
-    font-size: 0.9rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-}
-
-.cratis-scroll-hint-arrow {
-    font-size: 1.6rem;
-    animation: bounceDown 2s ease-in-out infinite;
-    line-height: 1;
-}
-
-@keyframes bounceDown {
-    0%, 100% { transform: translateY(0); }
-    50%       { transform: translateY(6px); }
-}
-
-/* ---------- GETTING STARTED ---------- */
-.cratis-getting-started {
-    margin-bottom: 64px;
-}
+.cratis-section-header p { color: var(--muted); font-size: 1rem; margin: 0; }
 
 .cratis-steps {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-    gap: 22px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
 }
-
 .cratis-step-card {
-    background: var(--bs-body-bg, #fff);
-    border: 1px solid var(--bs-border-color, #dee2e6);
-    border-radius: 14px;
-    padding: 26px;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px;
+    position: relative; overflow: hidden;
+    transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease;
 }
-
+.cratis-step-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    opacity: 0.5; transition: opacity .25s ease;
+}
 .cratis-step-card:hover {
-    box-shadow: 0 6px 24px rgba(0,0,0,0.10);
-    transform: translateY(-2px);
+    border-color: rgba(99,102,241,0.45);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 36px rgba(0,0,0,0.38), 0 0 0 1px rgba(99,102,241,0.15);
 }
+.cratis-step-card:hover::before { opacity: 1; }
 
 .step-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: #fff;
-    border-radius: 50%;
-    font-weight: 700;
-    font-size: 0.95rem;
-    margin-bottom: 14px;
-    box-shadow: none;
-}
-
-.cratis-step-card h3 {
-    font-size: 1.05rem;
-    font-weight: 600;
-    margin-bottom: 6px;
-}
-
-.cratis-step-card p {
-    color: var(--bs-secondary-color, #6c757d);
-    font-size: 0.88rem;
+    color: #fff; border-radius: 50%;
+    font-weight: 800; font-size: 0.9rem;
     margin-bottom: 12px;
-    line-height: 1.6;
+    box-shadow: 0 4px 14px rgba(99,102,241,0.48);
 }
+.cratis-step-card h3 { color: rgba(255,255,255,0.95) !important; font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+.cratis-step-card p  { color: var(--muted); font-size: 0.875rem; margin-bottom: 14px; line-height: 1.65; }
 
 .cratis-code {
-    background: #0f172a;
-    color: #e2e8f0;
+    background: #05070e;
+    border: 1px solid rgba(255,255,255,0.07);
     border-radius: 8px;
-    padding: 10px 14px;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    font-size: 0.83rem;
-    overflow-x: auto;
-    margin-bottom: 6px;
-    position: relative;
-    box-shadow: none;
+    padding: 10px 46px 10px 14px;
+    font-family: 'Consolas','Monaco','Courier New',monospace;
+    font-size: 0.82rem; overflow-x: auto;
+    margin-bottom: 8px; position: relative;
+    color: #e2e8f0; box-shadow: none;
 }
-
-.cratis-code .cmd-dollar {
-    color: #6366f1;
-    user-select: none;
-    margin-right: 6px;
-}
+.cratis-code .cmd-dollar { color: #818cf8; user-select: none; margin-right: 6px; font-weight: 700; }
 
 .cratis-copy-btn {
-    position: absolute;
-    top: 7px;
-    right: 7px;
-    background: rgba(255,255,255,0.1);
-    border: none;
-    color: #94a3b8;
-    border-radius: 4px;
-    padding: 2px 8px;
-    font-size: 0.72rem;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    position: absolute; top: 7px; right: 7px;
+    background: rgba(99,102,241,0.12);
+    border: 1px solid rgba(99,102,241,0.25);
+    color: rgba(255,255,255,0.5);
+    border-radius: 4px; padding: 2px 8px;
+    font-size: 0.7rem; cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
     font-family: inherit;
 }
+.cratis-copy-btn:hover { background: rgba(99,102,241,0.38); color: #fff; border-color: rgba(99,102,241,0.6); }
 
-.cratis-copy-btn:hover {
-    background: rgba(255,255,255,0.22);
-    color: #ffffff;
+/* ---- SCROLL HINT ---------------------------------------- */
+.cratis-scroll-hint {
+    text-align: center; padding: 22px 0;
+    color: rgba(255,255,255,0.3);
+    font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    background: var(--bg-2); border-top: 1px solid var(--border);
+}
+.cratis-scroll-hint-arrow {
+    font-size: 1.25rem;
+    animation: bounceDown 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(99,102,241,1));
+    color: rgba(99,102,241,0.85);
+}
+@keyframes bounceDown {
+    0%,100% { transform: translateY(0); opacity: 0.6; }
+    50%      { transform: translateY(9px); opacity: 1; }
 }
 
-/* ---------- ARCHITECTURE STACK ---------- */
-.cratis-architecture {
-    margin-bottom: 64px;
+/* ---- ARCHITECTURE SECTION ------------------------------- */
+.cratis-arch-section {
+    padding: 56px 36px 88px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
 }
+.cratis-stack { max-width: 720px; margin: 0 auto; }
 
-.cratis-stack {
-    max-width: 680px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-}
+/* =========================================================
+   BOX WRAPPER — provides 3D depth slice behind each box
+   ========================================================= */
+.cratis-box-wrapper { position: relative; margin-bottom: 4px; }
 
-/* Each box */
-.cratis-box {
+/* The physical depth layer offset bottom-right */
+.cratis-box-wrapper::after {
+    content: '';
+    position: absolute;
+    bottom: -9px; right: -9px;
+    top:     9px; left:  9px;
     border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    position: relative;
-    user-select: none;
+    background: var(--box-depth);
+    z-index: 0; opacity: 0.55;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    pointer-events: none;
 }
+.cratis-box-wrapper:hover::after { transform: translate(5px,5px); opacity: 0.75; }
 
+/* =========================================================
+   BOX — the clickable layer card
+   ========================================================= */
+.cratis-box {
+    position: relative; z-index: 1;
+    border-radius: 14px; overflow: hidden;
+    cursor: pointer; user-select: none;
+    border-left: 8px solid var(--box-accent);
+    transition:
+        transform 0.28s cubic-bezier(0.34,1.56,0.64,1),
+        box-shadow 0.28s ease;
+}
 .cratis-box:hover {
-    transform: translateY(-3px) scale(1.01);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    transform: translate(-7px,-10px);
+    box-shadow:
+        0 24px 60px var(--box-glow),
+        0 0 0 1px rgba(255,255,255,0.06) inset;
 }
 
+/* Shake/crack animation on open */
+@keyframes boxCrack {
+    0%   { transform: translateX(0)   rotate(0deg)    scale(1); }
+    12%  { transform: translateX(-9px) rotate(-2deg)  scale(1.028); }
+    28%  { transform: translateX( 9px) rotate( 2deg)  scale(1.034); }
+    44%  { transform: translateX(-6px) rotate(-1.3deg) scale(1.016); }
+    60%  { transform: translateX( 6px) rotate( 1deg)  scale(1.022); }
+    76%  { transform: translateX(-3px) rotate(-0.5deg); }
+    100% { transform: translateX(0)   rotate(0deg)    scale(1); }
+}
+.cratis-box.is-cracking { animation: boxCrack 0.3s ease; }
+
+/* Header */
 .cratis-box-header {
     padding: 18px 22px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: filter 0.2s ease;
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative; overflow: hidden;
 }
+/* Diagonal stripe texture */
+.cratis-box-header::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+        -55deg, transparent 0, transparent 16px,
+        rgba(255,255,255,0.028) 16px, rgba(255,255,255,0.028) 18px
+    );
+    pointer-events: none;
+}
+/* Shimmer scan on hover */
+.cratis-box-header::after {
+    content: ''; position: absolute;
+    top: 0; left: -145%; width: 75%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent);
+    pointer-events: none;
+}
+.cratis-box:hover .cratis-box-header::after { animation: shimmer 0.7s ease forwards; }
+@keyframes shimmer { 0% { left: -145%; } 100% { left: 165%; } }
 
-.cratis-box:hover .cratis-box-header {
-    filter: brightness(1.08);
-}
-
-.cratis-box-header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+.cratis-box-header-left { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
 
 .cratis-box-icon {
-    font-size: 1.7rem;
-    line-height: 1;
-    box-shadow: none;
-    border-radius: 0;
+    font-size: 2.2rem; line-height: 1;
+    box-shadow: none; border-radius: 0;
+    filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+    transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1), filter 0.32s ease;
+}
+.cratis-box:hover .cratis-box-icon {
+    transform: scale(1.22) rotate(-12deg);
+    filter: drop-shadow(0 0 18px rgba(255,255,255,0.6));
 }
 
 .cratis-box-title {
-    color: #ffffff;
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin: 0;
-    line-height: 1.2;
+    color: #fff; font-size: 1.25rem; font-weight: 800; margin: 0;
+    letter-spacing: -0.015em;
+    text-shadow: 0 1px 10px rgba(0,0,0,0.35);
 }
-
-.cratis-box-desc {
-    color: rgba(255,255,255,0.78);
-    font-size: 0.78rem;
-    margin: 2px 0 0;
-    line-height: 1.3;
-}
+.cratis-box-desc { color: rgba(255,255,255,0.65); font-size: 0.76rem; margin: 3px 0 0; }
 
 .cratis-box-toggle {
-    color: rgba(255,255,255,0.85);
-    font-size: 1.1rem;
-    line-height: 1;
-    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
-    flex-shrink: 0;
+    color: rgba(255,255,255,0.8); font-size: 1rem; line-height: 1;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.12); border-radius: 50%;
+    flex-shrink: 0; position: relative; z-index: 1;
+    transition: transform 0.42s cubic-bezier(0.34,1.56,0.64,1), background 0.2s ease;
 }
-
-.cratis-box.is-open .cratis-box-toggle {
-    transform: rotate(180deg);
-}
+.cratis-box.is-open .cratis-box-toggle { transform: rotate(180deg); background: rgba(255,255,255,0.22); }
 
 .coming-soon-pill {
     display: inline-block;
-    background: rgba(255,255,255,0.18);
-    color: rgba(255,255,255,0.9);
-    font-size: 0.66rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 2px 9px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.3);
-    margin-left: 8px;
-    vertical-align: middle;
+    background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.88);
+    font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.22);
+    margin-left: 10px; vertical-align: middle;
+    animation: pillPulse 3s ease-in-out infinite;
 }
+@keyframes pillPulse { 0%,100% { opacity: 0.9; } 50% { opacity: 0.55; } }
 
-/* Collapsible body */
+/* Box body */
 .cratis-box-body {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s cubic-bezier(0.4,0,0.2,1);
-    background: var(--bs-body-bg, #fff);
-    border: 1px solid var(--bs-border-color, #dee2e6);
-    border-top: none;
-    border-radius: 0 0 14px 14px;
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.52s cubic-bezier(0.4,0,0.2,1);
+    background: rgba(0,0,0,0.42);
+    border-top: 1px solid rgba(255,255,255,0.05);
 }
+.cratis-box.is-open .cratis-box-body { max-height: 540px; }
 
-.cratis-box.is-open .cratis-box-body {
-    max-height: 420px;
-}
-
-.cratis-box-body-inner {
-    padding: 18px 22px 10px;
+/* =========================================================
+   FEATURE CARDS — physically drop in on open
+   ========================================================= */
+.cratis-cards-grid {
+    padding: 18px 18px 6px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 6px 12px;
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 10px;
 }
 
-@keyframes featurePop {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
+@keyframes cardFall {
+    0% {
+        opacity: 0;
+        transform: translateY(-110px) rotate(var(--c-rot, 0deg)) scale(0.32);
+        filter: blur(6px);
+    }
+    52% { opacity: 1; filter: blur(0); }
+    66% { transform: translateY(11px) rotate(calc(var(--c-rot, 0deg) * 0.08)) scale(1.08); }
+    80% { transform: translateY(-5px) scale(0.97); }
+    91% { transform: translateY(3px)  scale(1.02); }
+    100% {
+        opacity: 1;
+        transform: translateY(0) rotate(0deg) scale(1);
+        filter: blur(0);
+    }
 }
 
-.cratis-feature {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.875rem;
-    color: var(--bs-body-color);
-    padding: 3px 0;
-    animation: featurePop 0.35s ease both;
+.cratis-feature-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-top: 2px solid var(--box-color);
+    border-radius: 10px;
+    padding: 11px 12px 10px;
+    color: rgba(255,255,255,0.84);
+    font-size: 0.8rem; font-weight: 500; line-height: 1.45;
+    opacity: 0;
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.cratis-box.is-open .cratis-feature-card {
+    animation: cardFall 0.56s cubic-bezier(0.34,1.56,0.64,1) forwards;
 }
 
-.cratis-feature-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    box-shadow: none;
-}
+/* Per-card rotation + staggered delay */
+.cratis-box.is-open .cratis-feature-card:nth-child(1) { --c-rot: -16deg; animation-delay: 0.02s; }
+.cratis-box.is-open .cratis-feature-card:nth-child(2) { --c-rot:  13deg; animation-delay: 0.07s; }
+.cratis-box.is-open .cratis-feature-card:nth-child(3) { --c-rot:  -9deg; animation-delay: 0.12s; }
+.cratis-box.is-open .cratis-feature-card:nth-child(4) { --c-rot:  15deg; animation-delay: 0.17s; }
+.cratis-box.is-open .cratis-feature-card:nth-child(5) { --c-rot: -12deg; animation-delay: 0.22s; }
+.cratis-box.is-open .cratis-feature-card:nth-child(6) { --c-rot:   9deg; animation-delay: 0.27s; }
+.cratis-box.is-open .cratis-feature-card:nth-child(7) { --c-rot: -14deg; animation-delay: 0.32s; }
+.cratis-box.is-open .cratis-feature-card:nth-child(8) { --c-rot:  11deg; animation-delay: 0.37s; }
 
-.cratis-box-body-footer {
-    padding: 8px 22px 16px;
+.cratis-feature-card:hover {
+    transform: translateY(-4px) scale(1.07);
+    background: rgba(255,255,255,0.11);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.55), 0 0 16px var(--box-glow);
 }
+.cf-icon { font-size: 1rem; display: block; margin-bottom: 5px; }
+.cf-text  { display: block; }
 
+/* Box footer */
+.cratis-box-footer { padding: 6px 18px 18px; }
 .cratis-box-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.83rem;
-    font-weight: 600;
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 0.82rem; font-weight: 700;
     text-decoration: none !important;
-    padding: 6px 15px;
-    border-radius: 20px;
-    transition: transform 0.2s ease, background 0.2s ease;
+    padding: 7px 18px; border-radius: 20px;
     color: #ffffff !important;
+    background: var(--box-link-bg);
+    border: 1px solid rgba(255,255,255,0.14);
+    letter-spacing: 0.01em;
+    transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease, background 0.22s ease;
 }
-
 .cratis-box-link:hover {
-    transform: translateX(3px);
+    transform: translateX(7px) scale(1.05);
+    box-shadow: 0 4px 20px var(--box-glow);
+    background: var(--box-link-hover);
+    border-color: rgba(255,255,255,0.3);
     color: #ffffff !important;
 }
 
-/* Stack arrow connector */
-.cratis-stack-arrow {
-    display: flex;
-    justify-content: center;
-    padding: 4px 0;
-    color: var(--bs-secondary-color, #aaa);
-    font-size: 1.3rem;
-    animation: bounceDown 2s ease-in-out infinite;
-    line-height: 1;
+/* ---- Connector arrows ----------------------------------- */
+.cratis-connector {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 7px 0 11px; position: relative;
 }
+.cratis-connector::before {
+    content: ''; position: absolute; bottom: 13px;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(99,102,241,0.1);
+    animation: connPulse 2.2s ease-in-out infinite;
+}
+@keyframes connPulse {
+    0%,100% { transform: scale(0.65); opacity: 0.9; }
+    50%      { transform: scale(1.7);  opacity: 0.1; }
+}
+.cratis-connector-line {
+    width: 2px; height: 18px;
+    background: linear-gradient(to bottom, rgba(99,102,241,0.7), rgba(139,92,246,0.35));
+    margin-bottom: 1px;
+    animation: lineFlow 2.2s ease-in-out infinite;
+}
+@keyframes lineFlow { 0%,100% { opacity: 0.35; } 50% { opacity: 1; } }
+.cratis-connector-arrow {
+    font-size: 1.1rem; color: rgba(139,92,246,0.9); line-height: 1;
+    filter: drop-shadow(0 0 9px rgba(99,102,241,1));
+    animation: arrowBounce 2.2s ease-in-out infinite;
+    position: relative; z-index: 1;
+}
+@keyframes arrowBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
 </style>
 
 <div class="cratis-landing">
 
-<!-- ========== HERO ========== -->
+<!-- ===================== HERO ===================== -->
 <div class="cratis-hero">
     <svg class="cratis-hero-logo" width="600pt" height="328pt" viewBox="0 0 600 328" preserveAspectRatio="xMidYMid meet" aria-label="Cratis logo">
         <g transform="translate(0,328) scale(0.1,-0.1)" stroke="none">
@@ -439,17 +490,17 @@
         </g>
     </svg>
     <h1>Build better software, faster.</h1>
-    <p class="cratis-tagline">Cratis is a suite of open-source libraries and tools for building robust, event-driven .NET applications — with productivity, compliance, and maintainability at its core.</p>
+    <p class="cratis-hero-tagline">Cratis is a suite of open-source libraries and tools for building robust, event-driven .NET applications&#160;&#8212; with productivity, compliance, and maintainability at its core.</p>
     <div class="cratis-hero-ctas">
-        <a href="docs/Chronicle/" class="cratis-btn cratis-btn-primary">🚀 Get Started</a>
-        <a href="https://github.com/cratis" class="cratis-btn cratis-btn-ghost" target="_blank" rel="noopener">⭐ GitHub</a>
+        <a href="docs/Chronicle/" class="cratis-btn cratis-btn-primary">&#x1F680; Get Started</a>
+        <a href="https://github.com/cratis" class="cratis-btn cratis-btn-ghost" target="_blank" rel="noopener">&#x2B50; GitHub</a>
     </div>
 </div>
 
-<!-- ========== GETTING STARTED ========== -->
+<!-- ===================== GETTING STARTED ===================== -->
 <div class="cratis-getting-started">
     <div class="cratis-section-header">
-        <h2>🛠️ Get started in two steps</h2>
+        <h2>&#x1F6E0;&#xFE0F; Get started in two steps</h2>
         <p>Install the .NET templates and spin up your first Cratis application in minutes.</p>
     </div>
     <div class="cratis-steps">
@@ -457,7 +508,7 @@
             <div class="step-badge">1</div>
             <h3>Install the Cratis templates</h3>
             <p>Add the official Cratis project templates to your .NET CLI. You only need to do this once.</p>
-            <div class="cratis-code" id="cmd1">
+            <div class="cratis-code">
                 <span class="cmd-dollar">$</span>dotnet new install Cratis.Templates
                 <button class="cratis-copy-btn" onclick="cratissCopy('dotnet new install Cratis.Templates', this)">Copy</button>
             </div>
@@ -465,183 +516,203 @@
         <div class="cratis-step-card">
             <div class="step-badge">2</div>
             <h3>Create your application</h3>
-            <p>Scaffold a new Cratis application complete with Chronicle, Arc, and a React frontend — all wired up and ready to go.</p>
-            <div class="cratis-code" id="cmd2">
+            <p>Scaffold a new Cratis application complete with Chronicle, Arc, and a React frontend &#8212; all wired up and ready to go.</p>
+            <div class="cratis-code">
                 <span class="cmd-dollar">$</span>dotnet new cratis -n MyApp
                 <button class="cratis-copy-btn" onclick="cratissCopy('dotnet new cratis -n MyApp', this)">Copy</button>
             </div>
-            <div class="cratis-code" id="cmd3">
+            <div class="cratis-code">
                 <span class="cmd-dollar">$</span>cd MyApp &amp;&amp; dotnet run
-                <button class="cratis-copy-btn" onclick="cratissCopy('cd MyApp && dotnet run', this)">Copy</button>
+                <button class="cratis-copy-btn" onclick="cratissCopy('cd MyApp &amp;&amp; dotnet run', this)">Copy</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ========== SCROLL HINT ========== -->
+<!-- ===================== SCROLL HINT ===================== -->
 <div class="cratis-scroll-hint">
     <span>Explore the Cratis stack</span>
-    <span class="cratis-scroll-hint-arrow">⬇</span>
+    <span class="cratis-scroll-hint-arrow">&#x2B07;</span>
 </div>
 
-<!-- ========== ARCHITECTURE STACK ========== -->
-<div class="cratis-architecture">
+<!-- ===================== ARCHITECTURE STACK ===================== -->
+<div class="cratis-arch-section">
     <div class="cratis-section-header">
-        <h2>🏗️ The Cratis stack</h2>
-        <p>Click any layer to discover what it offers. Each layer builds on the ones below it.</p>
+        <h2>&#x1F3D7;&#xFE0F; The Cratis stack</h2>
+        <p>Click any layer &#8212; watch it crack open and reveal what&#x2019;s inside.</p>
     </div>
 
     <div class="cratis-stack">
 
         <!-- Studio -->
-        <div class="cratis-box" id="box-studio" onclick="cratissToggle('box-studio')" role="button" tabindex="0" aria-expanded="false">
-            <div class="cratis-box-header" style="background: linear-gradient(135deg, #5b21b6, #7c3aed);">
-                <div class="cratis-box-header-left">
-                    <span class="cratis-box-icon">🎨</span>
-                    <div>
-                        <div class="cratis-box-title">Studio <span class="coming-soon-pill">coming soon</span></div>
-                        <div class="cratis-box-desc">Visual management & observability for the Cratis ecosystem</div>
+        <div class="cratis-box-wrapper"
+             style="--box-color:#7c3aed; --box-accent:#a78bfa; --box-glow:rgba(124,58,237,0.48); --box-depth:rgba(55,18,115,0.92); --box-link-bg:rgba(124,58,237,0.28); --box-link-hover:rgba(124,58,237,0.5);">
+            <div class="cratis-box" id="box-studio" role="button" tabindex="0" aria-expanded="false"
+                 onclick="cratissToggle('box-studio')">
+                <div class="cratis-box-header" style="background:linear-gradient(135deg,#4c1d95,#7c3aed);">
+                    <div class="cratis-box-header-left">
+                        <span class="cratis-box-icon">&#x1F3A8;</span>
+                        <div>
+                            <div class="cratis-box-title">Studio <span class="coming-soon-pill">coming soon</span></div>
+                            <div class="cratis-box-desc">Visual management &amp; observability for the Cratis ecosystem</div>
+                        </div>
                     </div>
+                    <span class="cratis-box-toggle">&#x25BC;</span>
                 </div>
-                <span class="cratis-box-toggle">▼</span>
-            </div>
-            <div class="cratis-box-body" aria-hidden="true">
-                <div class="cratis-box-body-inner">
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#7c3aed;"></span>Visual management interface</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#7c3aed;"></span>Real-time event stream viewer</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#7c3aed;"></span>Event replay &amp; history rewind</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#7c3aed;"></span>Debug application state visually</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#7c3aed;"></span>Manage observers &amp; reactors</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#7c3aed;"></span>Browse &amp; query the event store</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#7c3aed;"></span>Performance dashboards</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#7c3aed;"></span>Multi-tenant overview</div>
-                </div>
-                <div class="cratis-box-body-footer">
-                    <a href="https://cratis.studio" target="_blank" rel="noopener" class="cratis-box-link" style="background: #7c3aed;">🌐 cratis.studio ↗</a>
+                <div class="cratis-box-body" aria-hidden="true">
+                    <div class="cratis-cards-grid">
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F5A5;&#xFE0F;</span><span class="cf-text">Visual management interface</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4E1;</span><span class="cf-text">Real-time event stream viewer</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x23EE;&#xFE0F;</span><span class="cf-text">Event replay &amp; history rewind</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F50D;</span><span class="cf-text">Debug application state</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F441;&#xFE0F;</span><span class="cf-text">Manage observers &amp; reactors</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F5C3;&#xFE0F;</span><span class="cf-text">Browse &amp; query the event store</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4CA;</span><span class="cf-text">Performance dashboards</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F3E2;</span><span class="cf-text">Multi-tenant overview</span></div>
+                    </div>
+                    <div class="cratis-box-footer">
+                        <a href="https://cratis.studio" target="_blank" rel="noopener" class="cratis-box-link">&#x1F310; cratis.studio &#x2197;</a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="cratis-stack-arrow">⬇</div>
+        <div class="cratis-connector"><div class="cratis-connector-line"></div><span class="cratis-connector-arrow">&#x25BC;</span></div>
 
         <!-- Chronicle -->
-        <div class="cratis-box" id="box-chronicle" onclick="cratissToggle('box-chronicle')" role="button" tabindex="0" aria-expanded="false">
-            <div class="cratis-box-header" style="background: linear-gradient(135deg, #1d4ed8, #2563eb);">
-                <div class="cratis-box-header-left">
-                    <span class="cratis-box-icon">📜</span>
-                    <div>
-                        <div class="cratis-box-title">Chronicle</div>
-                        <div class="cratis-box-desc">Purpose-built Event Sourcing database for .NET</div>
+        <div class="cratis-box-wrapper"
+             style="--box-color:#2563eb; --box-accent:#60a5fa; --box-glow:rgba(37,99,235,0.48); --box-depth:rgba(19,51,140,0.92); --box-link-bg:rgba(37,99,235,0.28); --box-link-hover:rgba(37,99,235,0.5);">
+            <div class="cratis-box" id="box-chronicle" role="button" tabindex="0" aria-expanded="false"
+                 onclick="cratissToggle('box-chronicle')">
+                <div class="cratis-box-header" style="background:linear-gradient(135deg,#1e40af,#2563eb);">
+                    <div class="cratis-box-header-left">
+                        <span class="cratis-box-icon">&#x1F4DC;</span>
+                        <div>
+                            <div class="cratis-box-title">Chronicle</div>
+                            <div class="cratis-box-desc">Purpose-built Event Sourcing database for .NET</div>
+                        </div>
                     </div>
+                    <span class="cratis-box-toggle">&#x25BC;</span>
                 </div>
-                <span class="cratis-box-toggle">▼</span>
-            </div>
-            <div class="cratis-box-body" aria-hidden="true">
-                <div class="cratis-box-body-inner">
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#2563eb;"></span>Event Sourcing database</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#2563eb;"></span>Automatic event replay</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#2563eb;"></span>Read model projections</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#2563eb;"></span>Multi-tenancy out of the box</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#2563eb;"></span>Observers &amp; reaction system</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#2563eb;"></span>Compliance &amp; GDPR built-in</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#2563eb;"></span>Complete audit trail</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#2563eb;"></span>.NET &amp; TypeScript SDKs</div>
-                </div>
-                <div class="cratis-box-body-footer">
-                    <a href="docs/Chronicle/" class="cratis-box-link" style="background: #2563eb;">📖 Documentation →</a>
+                <div class="cratis-box-body" aria-hidden="true">
+                    <div class="cratis-cards-grid">
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4E5;</span><span class="cf-text">Event Sourcing database</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F504;</span><span class="cf-text">Automatic event replay</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F5FA;&#xFE0F;</span><span class="cf-text">Read model projections</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F3E2;</span><span class="cf-text">Multi-tenancy out of the box</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F442;</span><span class="cf-text">Observers &amp; reaction system</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F512;</span><span class="cf-text">Compliance &amp; GDPR built-in</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4CB;</span><span class="cf-text">Complete audit trail</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F50C;</span><span class="cf-text">.NET &amp; TypeScript SDKs</span></div>
+                    </div>
+                    <div class="cratis-box-footer">
+                        <a href="docs/Chronicle/" class="cratis-box-link">&#x1F4D6; Documentation &#x2192;</a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="cratis-stack-arrow">⬇</div>
+        <div class="cratis-connector"><div class="cratis-connector-line"></div><span class="cratis-connector-arrow">&#x25BC;</span></div>
 
         <!-- Components -->
-        <div class="cratis-box" id="box-components" onclick="cratissToggle('box-components')" role="button" tabindex="0" aria-expanded="false">
-            <div class="cratis-box-header" style="background: linear-gradient(135deg, #0e7490, #0891b2);">
-                <div class="cratis-box-header-left">
-                    <span class="cratis-box-icon">🧩</span>
-                    <div>
-                        <div class="cratis-box-title">Components</div>
-                        <div class="cratis-box-desc">Cratis design system &amp; React UI component library</div>
+        <div class="cratis-box-wrapper"
+             style="--box-color:#0891b2; --box-accent:#22d3ee; --box-glow:rgba(8,145,178,0.48); --box-depth:rgba(5,90,114,0.92); --box-link-bg:rgba(8,145,178,0.28); --box-link-hover:rgba(8,145,178,0.5);">
+            <div class="cratis-box" id="box-components" role="button" tabindex="0" aria-expanded="false"
+                 onclick="cratissToggle('box-components')">
+                <div class="cratis-box-header" style="background:linear-gradient(135deg,#0e7490,#0891b2);">
+                    <div class="cratis-box-header-left">
+                        <span class="cratis-box-icon">&#x1F9E9;</span>
+                        <div>
+                            <div class="cratis-box-title">Components</div>
+                            <div class="cratis-box-desc">Cratis design system &amp; React UI component library</div>
+                        </div>
                     </div>
+                    <span class="cratis-box-toggle">&#x25BC;</span>
                 </div>
-                <span class="cratis-box-toggle">▼</span>
-            </div>
-            <div class="cratis-box-body" aria-hidden="true">
-                <div class="cratis-box-body-inner">
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#0891b2;"></span>React component library</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#0891b2;"></span>Cratis design system</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#0891b2;"></span>Dark &amp; light themes</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#0891b2;"></span>TypeScript-first</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#0891b2;"></span>Accessible by design</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#0891b2;"></span>Storybook integration</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#0891b2;"></span>Consistent UX patterns</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#0891b2;"></span>Tree-shakeable bundles</div>
-                </div>
-                <div class="cratis-box-body-footer">
-                    <a href="docs/Components/" class="cratis-box-link" style="background: #0891b2;">📖 Documentation →</a>
+                <div class="cratis-box-body" aria-hidden="true">
+                    <div class="cratis-cards-grid">
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x269B;&#xFE0F;</span><span class="cf-text">React component library</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F3A8;</span><span class="cf-text">Cratis design system</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F319;</span><span class="cf-text">Dark &amp; light themes</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F537;</span><span class="cf-text">TypeScript-first</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x267F;</span><span class="cf-text">Accessible by design</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4D6;</span><span class="cf-text">Storybook integration</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F3AF;</span><span class="cf-text">Consistent UX patterns</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F333;</span><span class="cf-text">Tree-shakeable bundles</span></div>
+                    </div>
+                    <div class="cratis-box-footer">
+                        <a href="docs/Components/" class="cratis-box-link">&#x1F4D6; Documentation &#x2192;</a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="cratis-stack-arrow">⬇</div>
+        <div class="cratis-connector"><div class="cratis-connector-line"></div><span class="cratis-connector-arrow">&#x25BC;</span></div>
 
         <!-- Arc -->
-        <div class="cratis-box" id="box-arc" onclick="cratissToggle('box-arc')" role="button" tabindex="0" aria-expanded="false">
-            <div class="cratis-box-header" style="background: linear-gradient(135deg, #047857, #059669);">
-                <div class="cratis-box-header-left">
-                    <span class="cratis-box-icon">⚡</span>
-                    <div>
-                        <div class="cratis-box-title">Arc</div>
-                        <div class="cratis-box-desc">Opinionated CQRS application framework for ASP.NET Core</div>
+        <div class="cratis-box-wrapper"
+             style="--box-color:#059669; --box-accent:#34d399; --box-glow:rgba(5,150,105,0.48); --box-depth:rgba(3,95,66,0.92); --box-link-bg:rgba(5,150,105,0.28); --box-link-hover:rgba(5,150,105,0.5);">
+            <div class="cratis-box" id="box-arc" role="button" tabindex="0" aria-expanded="false"
+                 onclick="cratissToggle('box-arc')">
+                <div class="cratis-box-header" style="background:linear-gradient(135deg,#047857,#059669);">
+                    <div class="cratis-box-header-left">
+                        <span class="cratis-box-icon">&#x26A1;</span>
+                        <div>
+                            <div class="cratis-box-title">Arc</div>
+                            <div class="cratis-box-desc">Opinionated CQRS application framework for ASP.NET Core</div>
+                        </div>
                     </div>
+                    <span class="cratis-box-toggle">&#x25BC;</span>
                 </div>
-                <span class="cratis-box-toggle">▼</span>
-            </div>
-            <div class="cratis-box-body" aria-hidden="true">
-                <div class="cratis-box-body-inner">
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#059669;"></span>CQRS application framework</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#059669;"></span>ASP.NET Core integration</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#059669;"></span>Commands &amp; Queries pattern</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#059669;"></span>TypeScript ProxyGenerator</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#059669;"></span>Automatic API generation</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#059669;"></span>Frontend/backend type bridge</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#059669;"></span>MongoDB integration</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#059669;"></span>Validation built-in</div>
-                </div>
-                <div class="cratis-box-body-footer">
-                    <a href="docs/Arc/" class="cratis-box-link" style="background: #059669;">📖 Documentation →</a>
+                <div class="cratis-box-body" aria-hidden="true">
+                    <div class="cratis-cards-grid">
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x26A1;</span><span class="cf-text">CQRS application framework</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F310;</span><span class="cf-text">ASP.NET Core integration</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4E4;</span><span class="cf-text">Commands &amp; Queries pattern</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F504;</span><span class="cf-text">TypeScript ProxyGenerator</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F916;</span><span class="cf-text">Automatic API generation</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F517;</span><span class="cf-text">Frontend/backend type bridge</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F343;</span><span class="cf-text">MongoDB integration</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x2705;</span><span class="cf-text">Validation built-in</span></div>
+                    </div>
+                    <div class="cratis-box-footer">
+                        <a href="docs/Arc/" class="cratis-box-link">&#x1F4D6; Documentation &#x2192;</a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="cratis-stack-arrow">⬇</div>
+        <div class="cratis-connector"><div class="cratis-connector-line"></div><span class="cratis-connector-arrow">&#x25BC;</span></div>
 
         <!-- Fundamentals -->
-        <div class="cratis-box" id="box-fundamentals" onclick="cratissToggle('box-fundamentals')" role="button" tabindex="0" aria-expanded="false">
-            <div class="cratis-box-header" style="background: linear-gradient(135deg, #b45309, #d97706);">
-                <div class="cratis-box-header-left">
-                    <span class="cratis-box-icon">🧱</span>
-                    <div>
-                        <div class="cratis-box-title">Fundamentals</div>
-                        <div class="cratis-box-desc">Core utilities, helpers &amp; building blocks for .NET &amp; JS</div>
+        <div class="cratis-box-wrapper"
+             style="--box-color:#d97706; --box-accent:#fbbf24; --box-glow:rgba(217,119,6,0.48); --box-depth:rgba(138,75,0,0.92); --box-link-bg:rgba(217,119,6,0.28); --box-link-hover:rgba(217,119,6,0.5);">
+            <div class="cratis-box" id="box-fundamentals" role="button" tabindex="0" aria-expanded="false"
+                 onclick="cratissToggle('box-fundamentals')">
+                <div class="cratis-box-header" style="background:linear-gradient(135deg,#b45309,#d97706);">
+                    <div class="cratis-box-header-left">
+                        <span class="cratis-box-icon">&#x1F9F1;</span>
+                        <div>
+                            <div class="cratis-box-title">Fundamentals</div>
+                            <div class="cratis-box-desc">Core utilities, helpers &amp; building blocks for .NET &amp; JS</div>
+                        </div>
                     </div>
+                    <span class="cratis-box-toggle">&#x25BC;</span>
                 </div>
-                <span class="cratis-box-toggle">▼</span>
-            </div>
-            <div class="cratis-box-body" aria-hidden="true">
-                <div class="cratis-box-body-inner">
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#d97706;"></span>Core utilities &amp; helpers</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#d97706;"></span>.NET &amp; JavaScript support</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#d97706;"></span>Concepts &amp; value objects</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#d97706;"></span>Type system extensions</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#d97706;"></span>JSON serialization helpers</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#d97706;"></span>Reactive programming support</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#d97706;"></span>Testing utilities</div>
-                    <div class="cratis-feature"><span class="cratis-feature-dot" style="background:#d97706;"></span>Extension methods</div>
-                </div>
-                <div class="cratis-box-body-footer">
-                    <a href="docs/Fundamentals/" class="cratis-box-link" style="background: #d97706;">📖 Documentation →</a>
+                <div class="cratis-box-body" aria-hidden="true">
+                    <div class="cratis-cards-grid">
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F9F0;</span><span class="cf-text">Core utilities &amp; helpers</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F48E;</span><span class="cf-text">.NET &amp; JavaScript support</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F3F7;&#xFE0F;</span><span class="cf-text">Concepts &amp; value objects</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F527;</span><span class="cf-text">Type system extensions</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4E6;</span><span class="cf-text">JSON serialization helpers</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x267E;&#xFE0F;</span><span class="cf-text">Reactive programming support</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F9EA;</span><span class="cf-text">Testing utilities</span></div>
+                        <div class="cratis-feature-card"><span class="cf-icon">&#x2795;</span><span class="cf-text">Extension methods</span></div>
+                    </div>
+                    <div class="cratis-box-footer">
+                        <a href="docs/Fundamentals/" class="cratis-box-link">&#x1F4D6; Documentation &#x2192;</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -653,29 +724,30 @@
 
 <script>
 (function () {
-    // Toggle box open/closed
+    // Toggle: crack/shake then open; plain close on second click
     function cratissToggle(id) {
         var box = document.getElementById(id);
         if (!box) return;
         var isOpen = box.classList.contains('is-open');
-        box.classList.toggle('is-open', !isOpen);
-        box.setAttribute('aria-expanded', String(!isOpen));
-        var body = box.querySelector('.cratis-box-body');
-        if (body) body.setAttribute('aria-hidden', String(isOpen));
-        // Animate features in staggered fashion
-        if (!isOpen) {
-            var features = box.querySelectorAll('.cratis-feature');
-            features.forEach(function (f, i) {
-                f.style.animationDelay = (i * 40) + 'ms';
-                f.style.animation = 'none';
-                void f.offsetWidth; // force reflow to restart CSS animation from the beginning
-                f.style.animation = '';
-            });
+        if (isOpen) {
+            box.classList.remove('is-open');
+            box.setAttribute('aria-expanded', 'false');
+            var body = box.querySelector('.cratis-box-body');
+            if (body) body.setAttribute('aria-hidden', 'true');
+        } else {
+            box.classList.add('is-cracking');
+            setTimeout(function () {
+                box.classList.remove('is-cracking');
+                box.classList.add('is-open');
+                box.setAttribute('aria-expanded', 'true');
+                var body = box.querySelector('.cratis-box-body');
+                if (body) body.setAttribute('aria-hidden', 'false');
+            }, 300);
         }
     }
     window.cratissToggle = cratissToggle;
 
-    // Copy to clipboard
+    // Copy to clipboard with fallback
     function cratissCopy(text, btn) {
         if (!btn) return;
         var orig = btn.textContent;
@@ -707,9 +779,9 @@
     }
     window.cratissCopy = cratissCopy;
 
-    // Keyboard accessibility for boxes
+    // Keyboard accessibility
     document.addEventListener('keydown', function (e) {
-        if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.classList && e.target.classList.contains('cratis-box')) {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.classList.contains('cratis-box')) {
             e.preventDefault();
             cratissToggle(e.target.id);
         }
