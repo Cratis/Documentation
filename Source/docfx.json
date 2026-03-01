@@ -145,6 +145,11 @@
     "content": [
       {
         "files": [
+          "index.html"
+        ]
+      },
+      {
+        "files": [
           "**/*.{md,yml}"
         ],
         "exclude": [
