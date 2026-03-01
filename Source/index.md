@@ -1,10 +1,17 @@
 ---
 title: Home
+_disableToc: true
+_disableAffix: true
+_disableBreadcrumb: true
+_disableContribution: true
 ---
 <style>
 /* ============================================================
    Cratis Landing Page — Dark & Dramatic
    ============================================================ */
+
+/* ---- Smooth scroll ---------------------------------------- */
+html { scroll-behavior: smooth; }
 
 /* ---- Global dark canvas ---------------------------------- */
 .cratis-landing {
@@ -495,13 +502,13 @@ title: Home
     <h1>Build better software, faster.</h1>
     <p class="cratis-hero-tagline">Cratis is a suite of open-source libraries and tools for building robust, event-driven .NET applications&#160;&#8212; with productivity, compliance, and maintainability at its core.</p>
     <div class="cratis-hero-ctas">
-        <a href="docs/Chronicle/" class="cratis-btn cratis-btn-primary">&#x1F680; Get Started</a>
+        <a href="#getting-started" class="cratis-btn cratis-btn-primary">&#x1F680; Get Started</a>
         <a href="https://github.com/cratis" class="cratis-btn cratis-btn-ghost" target="_blank" rel="noopener">&#x2B50; GitHub</a>
     </div>
 </div>
 
 <!-- ===================== GETTING STARTED ===================== -->
-<div class="cratis-getting-started">
+<div id="getting-started" class="cratis-getting-started">
     <div class="cratis-section-header">
         <h2>&#x1F6E0;&#xFE0F; Get started in two steps</h2>
         <p>Install the .NET templates and spin up your first Cratis application in minutes.</p>

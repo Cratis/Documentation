@@ -7,8 +7,8 @@
     "type": "module",
     "scripts": {
         "restore": "dotnet restore && dotnet tool restore",
-        "watch": "rm -rf ./_site && rm -rf ./obj && dotnet clean && concurrently 'yarn serve' 'npm-watch build'",
-        "watch:articles": "rm -rf ./_site && concurrently 'yarn serve' 'npm-watch build':articles",
+        "watch": "dotnet docfx docfx.json --serve --watch",
+        "watch:articles": "dotnet docfx docfx.json --serve --watch",
         "build:ts": "./build-tsdocs.sh",
         "build:storybooks": "NODE_OPTIONS=\"--loader ts-node/esm\" node build-storybooks.ts",
         "preprocess:storybooks": "NODE_OPTIONS=\"--loader ts-node/esm\" node preprocess-storybooks.ts",
