@@ -273,7 +273,7 @@ html { scroll-behavior: smooth; }
     bottom: 0; left: 50%;
     width: 148px;
     /* Start: tiny, invisible, stacked at the box opening */
-    transform: translate(calc(-50% + var(--bx, 0px)), 60px) scale(0.12) rotate(0deg);
+    transform: translate(calc(-50% + var(--bx, 0px)), 60px) scale(0) rotate(0deg);
     opacity: 0;
     transition:
         transform 0.72s cubic-bezier(0.34, 1.45, 0.64, 1) var(--bd, 0s),
@@ -611,7 +611,7 @@ html { scroll-behavior: smooth; }
 <div class="cratis-arch-section">
     <div class="cratis-section-header">
         <h2>&#x1F3D7;&#xFE0F; The Cratis stack</h2>
-        <p>Click any box &#8212; the lid flies open and its secrets spill out.</p>
+        <p>Click any box &#8212; the lid flies open, secrets spill out. Click another to swap.</p>
     </div>
     <div class="cratis-stack">
         <!-- Studio -->
@@ -836,17 +836,29 @@ html { scroll-behavior: smooth; }
 
 <script>
 (function () {
-    // Toggle: crack/shake, open lid + scatter cards; plain close on second click
+    // Close a single box (cards reverse-genie back in)
+    function cratissClose(box) {
+        if (!box) return;
+        var wrapper = box.parentElement;
+        var scatter = wrapper ? wrapper.querySelector('.box-scatter') : null;
+        box.classList.remove('is-open');
+        box.setAttribute('aria-expanded', 'false');
+        if (scatter) scatter.setAttribute('aria-hidden', 'true');
+    }
+    // Toggle: one box open at a time; crack/open or close on same-box click
     function cratissToggle(id) {
         var box = document.getElementById(id);
         if (!box) return;
         var wrapper = box.parentElement;
         var scatter = wrapper ? wrapper.querySelector('.box-scatter') : null;
         var isOpen = box.classList.contains('is-open');
+        // Close every other open box first (reverse-genie cards fly back in)
+        var openBoxes = document.querySelectorAll('.cratis-box.is-open');
+        for (var i = 0; i < openBoxes.length; i++) {
+            if (openBoxes[i] !== box) { cratissClose(openBoxes[i]); }
+        }
         if (isOpen) {
-            box.classList.remove('is-open');
-            box.setAttribute('aria-expanded', 'false');
-            if (scatter) scatter.setAttribute('aria-hidden', 'true');
+            cratissClose(box);
         } else {
             box.classList.add('is-cracking');
             setTimeout(function () {
