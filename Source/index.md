@@ -245,68 +245,172 @@ html { scroll-behavior: smooth; }
 }
 .cratis-stack { max-width: 720px; margin: 0 auto; }
 
-/* =========================================================
-   BOX WRAPPER — provides 3D depth slice behind each box
-   ========================================================= */
-.cratis-box-wrapper { position: relative; margin-bottom: 4px; }
+/* =====================================================
+   CARDBOARD BOX — each layer is a box you can open
+   ===================================================== */
 
-/* The physical depth layer offset bottom-right */
-.cratis-box-wrapper::after {
-    content: '';
+/* Wrapper: relative context for scatter cloud + open-state space */
+.cratis-box-wrapper {
+    position: relative;
+    margin-bottom: 4px;
+    padding-top: 0;
+    transition: padding-top 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.cratis-box-wrapper:has(.cratis-box.is-open) {
+    padding-top: 316px;
+}
+
+/* ---- Scatter cloud: 8 cards that fly UPWARD out of the box ---- */
+.box-scatter {
     position: absolute;
-    bottom: -9px; right: -9px;
-    top:     9px; left:  9px;
-    border-radius: 14px;
-    background: var(--box-depth);
-    z-index: 0; opacity: 0.55;
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    top: 0; left: -6%; right: -6%;
+    height: 316px;
+    pointer-events: none;
+    overflow: visible;
+}
+.box-scatter .cratis-feature-card {
+    position: absolute;
+    bottom: 0; left: 50%;
+    width: 148px;
+    /* Start: tiny, invisible, stacked at the box opening */
+    transform: translate(calc(-50% + var(--bx, 0px)), 60px) scale(0.12) rotate(0deg);
+    opacity: 0;
+    transition:
+        transform 0.72s cubic-bezier(0.34, 1.45, 0.64, 1) var(--bd, 0s),
+        opacity   0.32s ease                               var(--bd, 0s),
+        box-shadow 0.18s ease;
     pointer-events: none;
 }
-.cratis-box-wrapper:hover::after { transform: translate(5px,5px); opacity: 0.75; }
+/* Scattered / landed state */
+.cratis-box-wrapper:has(.cratis-box.is-open) .box-scatter .cratis-feature-card {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--bx, 0px)), var(--by, -180px)) scale(1) rotate(var(--br, 0deg));
+    pointer-events: auto;
+}
+/* Hover boost (preserves scatter transform) */
+.cratis-box-wrapper:has(.cratis-box.is-open) .box-scatter .cratis-feature-card:hover {
+    transform: translate(calc(-50% + var(--bx, 0px)), calc(var(--by, -180px) - 9px)) scale(1.09) rotate(calc(var(--br, 0deg) * 0.4));
+    box-shadow: 0 18px 38px rgba(0,0,0,0.55), 0 0 24px var(--box-glow) !important;
+}
 
-/* =========================================================
-   BOX — the clickable layer card
-   ========================================================= */
+/* ---- The cardboard box ---- */
 .cratis-box {
-    position: relative; z-index: 1;
-    border-radius: 14px; overflow: hidden;
+    position: relative;
     cursor: pointer; user-select: none;
-    border-left: 8px solid var(--box-accent);
+    border-radius: 8px 8px 10px 10px;
+    overflow: visible;
+    /* 3D right-face illusion via layered box-shadow */
+    box-shadow:
+        11px 0px  0 -2px var(--box-side),
+        11px 9px  0  0   rgba(0,0,0,0.48),
+        0   18px 46px    rgba(0,0,0,0.5);
     transition:
-        transform 0.28s cubic-bezier(0.34,1.56,0.64,1),
+        transform  0.28s cubic-bezier(0.34, 1.4, 0.64, 1),
         box-shadow 0.28s ease;
 }
 .cratis-box:hover {
-    transform: translate(-7px,-10px);
+    transform: translate(-7px, -10px);
     box-shadow:
-        0 24px 60px var(--box-glow),
-        0 0 0 1px rgba(255,255,255,0.06) inset;
+        18px 0px  0 -2px var(--box-side),
+        18px 15px 0  0   rgba(0,0,0,0.55),
+        0   32px 68px    var(--box-glow),
+        0   14px 40px    rgba(0,0,0,0.5);
 }
-
-/* Shake/crack animation on open */
+/* Shake/crack on click */
 @keyframes boxCrack {
-    0%   { transform: translateX(0)   rotate(0deg)    scale(1); }
-    12%  { transform: translateX(-9px) rotate(-2deg)  scale(1.028); }
-    28%  { transform: translateX( 9px) rotate( 2deg)  scale(1.034); }
-    44%  { transform: translateX(-6px) rotate(-1.3deg) scale(1.016); }
-    60%  { transform: translateX( 6px) rotate( 1deg)  scale(1.022); }
-    76%  { transform: translateX(-3px) rotate(-0.5deg); }
-    100% { transform: translateX(0)   rotate(0deg)    scale(1); }
+    0%   { transform: translate(0,0)    rotate(0deg)    scale(1); }
+    15%  { transform: translate(-9px,0) rotate(-2.5deg) scale(1.03); }
+    30%  { transform: translate(9px,0)  rotate(2.5deg)  scale(1.04); }
+    50%  { transform: translate(-5px,0) rotate(-1.3deg) scale(1.015); }
+    70%  { transform: translate(5px,0)  rotate(1deg)    scale(1.02); }
+    85%  { transform: translate(-2px,0) rotate(-0.4deg); }
+    100% { transform: translate(0,0)    rotate(0deg)    scale(1); }
 }
-.cratis-box.is-cracking { animation: boxCrack 0.3s ease; }
+.cratis-box.is-cracking { animation: boxCrack 0.32s ease; }
 
-/* Header */
+/* ---- Lid flap scene ---- */
+.box-lid-scene {
+    position: absolute;
+    top: 0; left: 0; right: 11px;
+    height: 0;
+    overflow: visible;
+    z-index: 20;
+    pointer-events: none;
+}
+.box-flap {
+    position: absolute;
+    top: -62px; height: 62px; width: 51.5%;
+    /* Cardboard gradient + corrugated texture */
+    background-image:
+        repeating-linear-gradient(90deg,
+            transparent 0, transparent 5px,
+            rgba(0,0,0,0.038) 5px, rgba(0,0,0,0.038) 6px
+        ),
+        linear-gradient(180deg, var(--box-flap-light) 0%, var(--box-flap-dark) 100%);
+    transform-origin: bottom center;
+    /* Closed: fold flat into box (vanishes along top edge) */
+    transform: perspective(420px) rotateX(82deg);
+    transition: transform 0.6s cubic-bezier(0.34, 1.0, 0.64, 1);
+    box-shadow: inset 0 -4px 12px rgba(0,0,0,0.18);
+    pointer-events: none;
+}
+.box-flap-left {
+    left: 0; transform-origin: bottom left;
+    border-right: 1px solid rgba(0,0,0,0.13);
+    border-radius: 5px 0 0 0;
+}
+.box-flap-right {
+    right: 0; transform-origin: bottom right;
+    border-left: 1px solid rgba(0,0,0,0.13);
+    border-radius: 0 5px 0 0;
+}
+/* Open: flaps fold backward and splay outward */
+.cratis-box.is-open .box-flap-left  { transform: perspective(420px) rotateX(-50deg) rotateZ(-14deg); transition-delay: 0.06s; }
+.cratis-box.is-open .box-flap-right { transform: perspective(420px) rotateX(-50deg) rotateZ(14deg); }
+
+/* ---- Interior light beam (glows upward when box is open) ---- */
+.box-light {
+    position: absolute;
+    top: 0; left: 5%; right: 5%;
+    height: 0;
+    overflow: visible;
+    pointer-events: none;
+    z-index: 8;
+}
+.box-light::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 180px;
+    transform: translateY(-100%);
+    opacity: 0;
+    background: radial-gradient(ellipse 80% 100% at 50% 100%,
+        rgba(255, 250, 220, 0.97) 0%,
+        rgba(255, 235, 140, 0.60) 26%,
+        rgba(255, 200,  65, 0.24) 55%,
+        transparent 100%
+    );
+    transition: opacity 0.48s ease 0.24s;
+    pointer-events: none;
+}
+.cratis-box.is-open .box-light::before {
+    opacity: 1;
+}
+
+/* ---- Box front face header ---- */
 .cratis-box-header {
-    padding: 18px 22px;
+    padding: 20px 22px;
     display: flex; align-items: center; justify-content: space-between;
     position: relative; overflow: hidden;
+    border-radius: 8px 8px 0 0;
+    border-left: 8px solid var(--box-accent);
 }
 /* Diagonal stripe texture */
 .cratis-box-header::before {
     content: ''; position: absolute; inset: 0;
     background: repeating-linear-gradient(
-        -55deg, transparent 0, transparent 16px,
-        rgba(255,255,255,0.028) 16px, rgba(255,255,255,0.028) 18px
+        -55deg, transparent 0, transparent 14px,
+        rgba(255,255,255,0.026) 14px, rgba(255,255,255,0.026) 16px
     );
     pointer-events: none;
 }
@@ -314,42 +418,33 @@ html { scroll-behavior: smooth; }
 .cratis-box-header::after {
     content: ''; position: absolute;
     top: 0; left: -145%; width: 75%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.16), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
     pointer-events: none;
 }
-.cratis-box:hover .cratis-box-header::after { animation: shimmer 0.7s ease forwards; }
+.cratis-box:hover .cratis-box-header::after { animation: shimmer 0.65s ease forwards; }
 @keyframes shimmer { 0% { left: -145%; } 100% { left: 165%; } }
 
 .cratis-box-header-left { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
-
 .cratis-box-icon {
-    font-size: 2.2rem; line-height: 1;
-    box-shadow: none; border-radius: 0;
+    font-size: 2.3rem; line-height: 1;
     filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
-    transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1), filter 0.32s ease;
+    transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.32s ease;
 }
 .cratis-box:hover .cratis-box-icon {
-    transform: scale(1.22) rotate(-12deg);
-    filter: drop-shadow(0 0 18px rgba(255,255,255,0.6));
+    transform: scale(1.25) rotate(-14deg);
+    filter: drop-shadow(0 0 20px rgba(255,255,255,0.65));
 }
-
-.cratis-box-title {
-    color: #fff; font-size: 1.25rem; font-weight: 800; margin: 0;
-    letter-spacing: -0.015em;
-    text-shadow: 0 1px 10px rgba(0,0,0,0.35);
-}
-.cratis-box-desc { color: rgba(255,255,255,0.65); font-size: 0.76rem; margin: 3px 0 0; }
-
+.cratis-box-title { color: #fff; font-size: 1.25rem; font-weight: 800; margin: 0; letter-spacing: -0.015em; text-shadow: 0 1px 10px rgba(0,0,0,0.4); }
+.cratis-box-desc  { color: rgba(255,255,255,0.65); font-size: 0.76rem; margin: 3px 0 0; }
 .cratis-box-toggle {
-    color: rgba(255,255,255,0.8); font-size: 1rem; line-height: 1;
+    color: rgba(255,255,255,0.8); font-size: 0.9rem; line-height: 1;
     width: 28px; height: 28px;
     display: flex; align-items: center; justify-content: center;
     background: rgba(255,255,255,0.12); border-radius: 50%;
     flex-shrink: 0; position: relative; z-index: 1;
-    transition: transform 0.42s cubic-bezier(0.34,1.56,0.64,1), background 0.2s ease;
+    transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease;
 }
 .cratis-box.is-open .cratis-box-toggle { transform: rotate(180deg); background: rgba(255,255,255,0.22); }
-
 .coming-soon-pill {
     display: inline-block;
     background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.88);
@@ -361,77 +456,44 @@ html { scroll-behavior: smooth; }
 }
 @keyframes pillPulse { 0%,100% { opacity: 0.9; } 50% { opacity: 0.55; } }
 
-/* Box body */
-.cratis-box-body {
-    max-height: 0; overflow: hidden;
-    transition: max-height 0.52s cubic-bezier(0.4,0,0.2,1);
-    background: rgba(0,0,0,0.42);
-    border-top: 1px solid rgba(255,255,255,0.05);
-}
-.cratis-box.is-open .cratis-box-body { max-height: 540px; }
-
-/* =========================================================
-   FEATURE CARDS — physically drop in on open
-   ========================================================= */
-.cratis-cards-grid {
-    padding: 18px 18px 6px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
-    gap: 10px;
+/* ---- Box bottom bar ---- */
+.cratis-box-bottom {
+    padding: 10px 22px 14px;
+    background: rgba(0,0,0,0.32);
+    border-radius: 0 0 10px 10px;
+    border-top: 1px solid rgba(255,255,255,0.055);
 }
 
-@keyframes cardFall {
-    0% {
-        opacity: 0;
-        transform: translateY(-110px) rotate(var(--c-rot, 0deg)) scale(0.32);
-        filter: blur(6px);
-    }
-    52% { opacity: 1; filter: blur(0); }
-    66% { transform: translateY(11px) rotate(calc(var(--c-rot, 0deg) * 0.08)) scale(1.08); }
-    80% { transform: translateY(-5px) scale(0.97); }
-    91% { transform: translateY(3px)  scale(1.02); }
-    100% {
-        opacity: 1;
-        transform: translateY(0) rotate(0deg) scale(1);
-        filter: blur(0);
-    }
+/* ---- Docs link row (fades in when box is open) ---- */
+.box-docs-row {
+    text-align: center;
+    padding-top: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease 0.6s;
+    pointer-events: none;
+}
+.cratis-box-wrapper:has(.cratis-box.is-open) .box-docs-row {
+    opacity: 1;
+    pointer-events: auto;
 }
 
+/* ---- Feature card ---- */
 .cratis-feature-card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-top: 2px solid var(--box-color);
+    background: rgba(14, 18, 38, 0.96);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-top: 2px solid var(--box-accent);
     border-radius: 10px;
     padding: 11px 12px 10px;
-    color: rgba(255,255,255,0.84);
-    font-size: 0.8rem; font-weight: 500; line-height: 1.45;
-    opacity: 0;
-    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-}
-.cratis-box.is-open .cratis-feature-card {
-    animation: cardFall 0.56s cubic-bezier(0.34,1.56,0.64,1) forwards;
-}
-
-/* Per-card rotation + staggered delay */
-.cratis-box.is-open .cratis-feature-card:nth-child(1) { --c-rot: -16deg; animation-delay: 0.02s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(2) { --c-rot:  13deg; animation-delay: 0.07s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(3) { --c-rot:  -9deg; animation-delay: 0.12s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(4) { --c-rot:  15deg; animation-delay: 0.17s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(5) { --c-rot: -12deg; animation-delay: 0.22s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(6) { --c-rot:   9deg; animation-delay: 0.27s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(7) { --c-rot: -14deg; animation-delay: 0.32s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(8) { --c-rot:  11deg; animation-delay: 0.37s; }
-
-.cratis-feature-card:hover {
-    transform: translateY(-4px) scale(1.07);
-    background: rgba(255,255,255,0.11);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.55), 0 0 16px var(--box-glow);
+    color: rgba(255,255,255,0.85);
+    font-size: 0.79rem; font-weight: 500; line-height: 1.45;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04) inset;
+    transition: box-shadow 0.2s ease;
 }
 .cf-icon { font-size: 1rem; display: block; margin-bottom: 5px; }
 .cf-text  { display: block; }
 
-/* Box footer */
-.cratis-box-footer { padding: 6px 18px 18px; }
+/* ---- Box link ---- */
 .cratis-box-link {
     display: inline-flex; align-items: center; gap: 7px;
     font-size: 0.82rem; font-weight: 700;
@@ -441,7 +503,7 @@ html { scroll-behavior: smooth; }
     background: var(--box-link-bg);
     border: 1px solid rgba(255,255,255,0.14);
     letter-spacing: 0.01em;
-    transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.22s ease, background 0.22s ease;
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, background 0.22s ease;
 }
 .cratis-box-link:hover {
     transform: translateX(7px) scale(1.05);
@@ -451,7 +513,7 @@ html { scroll-behavior: smooth; }
     color: #ffffff !important;
 }
 
-/* ---- Connector arrows ----------------------------------- */
+/* ---- Connector arrows ---- */
 .cratis-connector {
     display: flex; flex-direction: column; align-items: center;
     padding: 7px 0 11px; position: relative;
@@ -549,14 +611,33 @@ html { scroll-behavior: smooth; }
 <div class="cratis-arch-section">
     <div class="cratis-section-header">
         <h2>&#x1F3D7;&#xFE0F; The Cratis stack</h2>
-        <p>Click any layer &#8212; watch it crack open and reveal what&#x2019;s inside.</p>
+        <p>Click any box &#8212; the lid flies open and its secrets spill out.</p>
     </div>
     <div class="cratis-stack">
         <!-- Studio -->
         <div class="cratis-box-wrapper"
-             style="--box-color:#7c3aed; --box-accent:#a78bfa; --box-glow:rgba(124,58,237,0.48); --box-depth:rgba(55,18,115,0.92); --box-link-bg:rgba(124,58,237,0.28); --box-link-hover:rgba(124,58,237,0.5);">
+             style="--box-accent:#a78bfa; --box-glow:rgba(124,58,237,0.48); --box-side:rgba(55,18,115,0.85); --box-flap-light:rgba(90,40,180,0.88); --box-flap-dark:rgba(55,18,115,0.92); --box-link-bg:rgba(124,58,237,0.28); --box-link-hover:rgba(124,58,237,0.5);">
+            <!-- Cards scatter upward when box is opened -->
+            <div class="box-scatter" aria-hidden="true">
+        <div class="cratis-feature-card" style="--bx:-238px;--by:-272px;--br:-18deg;--bd:0.05s"><span class="cf-icon">&#x1F5A5;&#xFE0F;</span><span class="cf-text">Visual management interface</span></div>
+        <div class="cratis-feature-card" style="--bx:-78px;--by:-286px;--br:12deg;--bd:0.10s"><span class="cf-icon">&#x1F4E1;</span><span class="cf-text">Real-time event stream viewer</span></div>
+        <div class="cratis-feature-card" style="--bx:82px;--by:-282px;--br:-7deg;--bd:0.07s"><span class="cf-icon">&#x23EE;&#xFE0F;</span><span class="cf-text">Event replay &amp; history rewind</span></div>
+        <div class="cratis-feature-card" style="--bx:238px;--by:-268px;--br:15deg;--bd:0.13s"><span class="cf-icon">&#x1F50D;</span><span class="cf-text">Debug application state</span></div>
+        <div class="cratis-feature-card" style="--bx:-224px;--by:-160px;--br:9deg;--bd:0.19s"><span class="cf-icon">&#x1F441;&#xFE0F;</span><span class="cf-text">Manage observers &amp; reactors</span></div>
+        <div class="cratis-feature-card" style="--bx:-52px;--by:-170px;--br:-14deg;--bd:0.23s"><span class="cf-icon">&#x1F5C3;&#xFE0F;</span><span class="cf-text">Browse &amp; query event store</span></div>
+        <div class="cratis-feature-card" style="--bx:112px;--by:-158px;--br:8deg;--bd:0.27s"><span class="cf-icon">&#x1F4CA;</span><span class="cf-text">Performance dashboards</span></div>
+        <div class="cratis-feature-card" style="--bx:252px;--by:-148px;--br:-19deg;--bd:0.16s"><span class="cf-icon">&#x1F3E2;</span><span class="cf-text">Multi-tenant overview</span></div>
+            </div>
             <div class="cratis-box" id="box-studio" role="button" tabindex="0" aria-expanded="false"
                  onclick="cratissToggle('box-studio')">
+                <!-- Lid flap scene -->
+                <div class="box-lid-scene">
+                    <div class="box-flap box-flap-left"></div>
+                    <div class="box-flap box-flap-right"></div>
+                </div>
+                <!-- Light beam from inside when open -->
+                <div class="box-light"></div>
+                <!-- Box front face / label -->
                 <div class="cratis-box-header" style="background:linear-gradient(135deg,#4c1d95,#7c3aed);">
                     <div class="cratis-box-header-left">
                         <span class="cratis-box-icon">&#x1F3A8;</span>
@@ -567,29 +648,39 @@ html { scroll-behavior: smooth; }
                     </div>
                     <span class="cratis-box-toggle">&#x25BC;</span>
                 </div>
-                <div class="cratis-box-body" aria-hidden="true">
-                    <div class="cratis-cards-grid">
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F5A5;&#xFE0F;</span><span class="cf-text">Visual management interface</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4E1;</span><span class="cf-text">Real-time event stream viewer</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x23EE;&#xFE0F;</span><span class="cf-text">Event replay &amp; history rewind</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F50D;</span><span class="cf-text">Debug application state</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F441;&#xFE0F;</span><span class="cf-text">Manage observers &amp; reactors</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F5C3;&#xFE0F;</span><span class="cf-text">Browse &amp; query the event store</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4CA;</span><span class="cf-text">Performance dashboards</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F3E2;</span><span class="cf-text">Multi-tenant overview</span></div>
-                    </div>
-                    <div class="cratis-box-footer">
-                        <a href="https://cratis.studio" target="_blank" rel="noopener" class="cratis-box-link">&#x1F310; cratis.studio &#x2197;</a>
-                    </div>
+                <div class="cratis-box-bottom">
+                    <span style="color:#a78bfa;opacity:0.7;font-size:0.73rem;font-weight:600;letter-spacing:0.05em;">&#x1F4E6; Click to open the box</span>
                 </div>
+            </div>
+            <div class="box-docs-row">
+                <a href="https://cratis.studio" target="_blank" rel="noopener" class="cratis-box-link">&#x1F310; cratis.studio &#x2197;</a>
             </div>
         </div>
         <div class="cratis-connector"><div class="cratis-connector-line"></div><span class="cratis-connector-arrow">&#x25BC;</span></div>
         <!-- Chronicle -->
         <div class="cratis-box-wrapper"
-             style="--box-color:#2563eb; --box-accent:#60a5fa; --box-glow:rgba(37,99,235,0.48); --box-depth:rgba(19,51,140,0.92); --box-link-bg:rgba(37,99,235,0.28); --box-link-hover:rgba(37,99,235,0.5);">
+             style="--box-accent:#60a5fa; --box-glow:rgba(37,99,235,0.48); --box-side:rgba(19,51,140,0.85); --box-flap-light:rgba(40,90,220,0.88); --box-flap-dark:rgba(22,55,165,0.92); --box-link-bg:rgba(37,99,235,0.28); --box-link-hover:rgba(37,99,235,0.5);">
+            <!-- Cards scatter upward when box is opened -->
+            <div class="box-scatter" aria-hidden="true">
+        <div class="cratis-feature-card" style="--bx:-238px;--by:-272px;--br:-18deg;--bd:0.05s"><span class="cf-icon">&#x1F4E5;</span><span class="cf-text">Event Sourcing database</span></div>
+        <div class="cratis-feature-card" style="--bx:-78px;--by:-286px;--br:12deg;--bd:0.10s"><span class="cf-icon">&#x1F504;</span><span class="cf-text">Automatic event replay</span></div>
+        <div class="cratis-feature-card" style="--bx:82px;--by:-282px;--br:-7deg;--bd:0.07s"><span class="cf-icon">&#x1F5FA;&#xFE0F;</span><span class="cf-text">Read model projections</span></div>
+        <div class="cratis-feature-card" style="--bx:238px;--by:-268px;--br:15deg;--bd:0.13s"><span class="cf-icon">&#x1F3E2;</span><span class="cf-text">Multi-tenancy out of the box</span></div>
+        <div class="cratis-feature-card" style="--bx:-224px;--by:-160px;--br:9deg;--bd:0.19s"><span class="cf-icon">&#x1F442;</span><span class="cf-text">Observers &amp; reaction system</span></div>
+        <div class="cratis-feature-card" style="--bx:-52px;--by:-170px;--br:-14deg;--bd:0.23s"><span class="cf-icon">&#x1F512;</span><span class="cf-text">Compliance &amp; GDPR built-in</span></div>
+        <div class="cratis-feature-card" style="--bx:112px;--by:-158px;--br:8deg;--bd:0.27s"><span class="cf-icon">&#x1F4CB;</span><span class="cf-text">Complete audit trail</span></div>
+        <div class="cratis-feature-card" style="--bx:252px;--by:-148px;--br:-19deg;--bd:0.16s"><span class="cf-icon">&#x1F50C;</span><span class="cf-text">.NET &amp; TypeScript SDKs</span></div>
+            </div>
             <div class="cratis-box" id="box-chronicle" role="button" tabindex="0" aria-expanded="false"
                  onclick="cratissToggle('box-chronicle')">
+                <!-- Lid flap scene -->
+                <div class="box-lid-scene">
+                    <div class="box-flap box-flap-left"></div>
+                    <div class="box-flap box-flap-right"></div>
+                </div>
+                <!-- Light beam from inside when open -->
+                <div class="box-light"></div>
+                <!-- Box front face / label -->
                 <div class="cratis-box-header" style="background:linear-gradient(135deg,#1e40af,#2563eb);">
                     <div class="cratis-box-header-left">
                         <span class="cratis-box-icon">&#x1F4DC;</span>
@@ -600,29 +691,39 @@ html { scroll-behavior: smooth; }
                     </div>
                     <span class="cratis-box-toggle">&#x25BC;</span>
                 </div>
-                <div class="cratis-box-body" aria-hidden="true">
-                    <div class="cratis-cards-grid">
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4E5;</span><span class="cf-text">Event Sourcing database</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F504;</span><span class="cf-text">Automatic event replay</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F5FA;&#xFE0F;</span><span class="cf-text">Read model projections</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F3E2;</span><span class="cf-text">Multi-tenancy out of the box</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F442;</span><span class="cf-text">Observers &amp; reaction system</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F512;</span><span class="cf-text">Compliance &amp; GDPR built-in</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4CB;</span><span class="cf-text">Complete audit trail</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F50C;</span><span class="cf-text">.NET &amp; TypeScript SDKs</span></div>
-                    </div>
-                    <div class="cratis-box-footer">
-                        <a href="docs/Chronicle/" class="cratis-box-link">&#x1F4D6; Documentation &#x2192;</a>
-                    </div>
+                <div class="cratis-box-bottom">
+                    <span style="color:#60a5fa;opacity:0.7;font-size:0.73rem;font-weight:600;letter-spacing:0.05em;">&#x1F4E6; Click to open the box</span>
                 </div>
+            </div>
+            <div class="box-docs-row">
+                <a href="docs/Chronicle/" class="cratis-box-link">&#x1F4D6; Documentation &#x2192;</a>
             </div>
         </div>
         <div class="cratis-connector"><div class="cratis-connector-line"></div><span class="cratis-connector-arrow">&#x25BC;</span></div>
         <!-- Components -->
         <div class="cratis-box-wrapper"
-             style="--box-color:#0891b2; --box-accent:#22d3ee; --box-glow:rgba(8,145,178,0.48); --box-depth:rgba(5,90,114,0.92); --box-link-bg:rgba(8,145,178,0.28); --box-link-hover:rgba(8,145,178,0.5);">
+             style="--box-accent:#22d3ee; --box-glow:rgba(8,145,178,0.48); --box-side:rgba(5,90,114,0.85); --box-flap-light:rgba(12,140,180,0.88); --box-flap-dark:rgba(8,100,140,0.92); --box-link-bg:rgba(8,145,178,0.28); --box-link-hover:rgba(8,145,178,0.5);">
+            <!-- Cards scatter upward when box is opened -->
+            <div class="box-scatter" aria-hidden="true">
+        <div class="cratis-feature-card" style="--bx:-238px;--by:-272px;--br:-18deg;--bd:0.05s"><span class="cf-icon">&#x269B;&#xFE0F;</span><span class="cf-text">React component library</span></div>
+        <div class="cratis-feature-card" style="--bx:-78px;--by:-286px;--br:12deg;--bd:0.10s"><span class="cf-icon">&#x1F3A8;</span><span class="cf-text">Cratis design system</span></div>
+        <div class="cratis-feature-card" style="--bx:82px;--by:-282px;--br:-7deg;--bd:0.07s"><span class="cf-icon">&#x1F319;</span><span class="cf-text">Dark &amp; light themes</span></div>
+        <div class="cratis-feature-card" style="--bx:238px;--by:-268px;--br:15deg;--bd:0.13s"><span class="cf-icon">&#x1F537;</span><span class="cf-text">TypeScript-first</span></div>
+        <div class="cratis-feature-card" style="--bx:-224px;--by:-160px;--br:9deg;--bd:0.19s"><span class="cf-icon">&#x267F;</span><span class="cf-text">Accessible by design</span></div>
+        <div class="cratis-feature-card" style="--bx:-52px;--by:-170px;--br:-14deg;--bd:0.23s"><span class="cf-icon">&#x1F4D6;</span><span class="cf-text">Storybook integration</span></div>
+        <div class="cratis-feature-card" style="--bx:112px;--by:-158px;--br:8deg;--bd:0.27s"><span class="cf-icon">&#x1F3AF;</span><span class="cf-text">Consistent UX patterns</span></div>
+        <div class="cratis-feature-card" style="--bx:252px;--by:-148px;--br:-19deg;--bd:0.16s"><span class="cf-icon">&#x1F333;</span><span class="cf-text">Tree-shakeable bundles</span></div>
+            </div>
             <div class="cratis-box" id="box-components" role="button" tabindex="0" aria-expanded="false"
                  onclick="cratissToggle('box-components')">
+                <!-- Lid flap scene -->
+                <div class="box-lid-scene">
+                    <div class="box-flap box-flap-left"></div>
+                    <div class="box-flap box-flap-right"></div>
+                </div>
+                <!-- Light beam from inside when open -->
+                <div class="box-light"></div>
+                <!-- Box front face / label -->
                 <div class="cratis-box-header" style="background:linear-gradient(135deg,#0e7490,#0891b2);">
                     <div class="cratis-box-header-left">
                         <span class="cratis-box-icon">&#x1F9E9;</span>
@@ -633,29 +734,39 @@ html { scroll-behavior: smooth; }
                     </div>
                     <span class="cratis-box-toggle">&#x25BC;</span>
                 </div>
-                <div class="cratis-box-body" aria-hidden="true">
-                    <div class="cratis-cards-grid">
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x269B;&#xFE0F;</span><span class="cf-text">React component library</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F3A8;</span><span class="cf-text">Cratis design system</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F319;</span><span class="cf-text">Dark &amp; light themes</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F537;</span><span class="cf-text">TypeScript-first</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x267F;</span><span class="cf-text">Accessible by design</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4D6;</span><span class="cf-text">Storybook integration</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F3AF;</span><span class="cf-text">Consistent UX patterns</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F333;</span><span class="cf-text">Tree-shakeable bundles</span></div>
-                    </div>
-                    <div class="cratis-box-footer">
-                        <a href="docs/Components/" class="cratis-box-link">&#x1F4D6; Documentation &#x2192;</a>
-                    </div>
+                <div class="cratis-box-bottom">
+                    <span style="color:#22d3ee;opacity:0.7;font-size:0.73rem;font-weight:600;letter-spacing:0.05em;">&#x1F4E6; Click to open the box</span>
                 </div>
+            </div>
+            <div class="box-docs-row">
+                <a href="docs/Components/" class="cratis-box-link">&#x1F4D6; Documentation &#x2192;</a>
             </div>
         </div>
         <div class="cratis-connector"><div class="cratis-connector-line"></div><span class="cratis-connector-arrow">&#x25BC;</span></div>
         <!-- Arc -->
         <div class="cratis-box-wrapper"
-             style="--box-color:#059669; --box-accent:#34d399; --box-glow:rgba(5,150,105,0.48); --box-depth:rgba(3,95,66,0.92); --box-link-bg:rgba(5,150,105,0.28); --box-link-hover:rgba(5,150,105,0.5);">
+             style="--box-accent:#34d399; --box-glow:rgba(5,150,105,0.48); --box-side:rgba(3,95,66,0.85); --box-flap-light:rgba(8,160,110,0.88); --box-flap-dark:rgba(5,115,75,0.92); --box-link-bg:rgba(5,150,105,0.28); --box-link-hover:rgba(5,150,105,0.5);">
+            <!-- Cards scatter upward when box is opened -->
+            <div class="box-scatter" aria-hidden="true">
+        <div class="cratis-feature-card" style="--bx:-238px;--by:-272px;--br:-18deg;--bd:0.05s"><span class="cf-icon">&#x26A1;</span><span class="cf-text">CQRS application framework</span></div>
+        <div class="cratis-feature-card" style="--bx:-78px;--by:-286px;--br:12deg;--bd:0.10s"><span class="cf-icon">&#x1F310;</span><span class="cf-text">ASP.NET Core integration</span></div>
+        <div class="cratis-feature-card" style="--bx:82px;--by:-282px;--br:-7deg;--bd:0.07s"><span class="cf-icon">&#x1F4E4;</span><span class="cf-text">Commands &amp; Queries pattern</span></div>
+        <div class="cratis-feature-card" style="--bx:238px;--by:-268px;--br:15deg;--bd:0.13s"><span class="cf-icon">&#x1F504;</span><span class="cf-text">TypeScript ProxyGenerator</span></div>
+        <div class="cratis-feature-card" style="--bx:-224px;--by:-160px;--br:9deg;--bd:0.19s"><span class="cf-icon">&#x1F916;</span><span class="cf-text">Automatic API generation</span></div>
+        <div class="cratis-feature-card" style="--bx:-52px;--by:-170px;--br:-14deg;--bd:0.23s"><span class="cf-icon">&#x1F517;</span><span class="cf-text">Frontend/backend type bridge</span></div>
+        <div class="cratis-feature-card" style="--bx:112px;--by:-158px;--br:8deg;--bd:0.27s"><span class="cf-icon">&#x1F343;</span><span class="cf-text">MongoDB integration</span></div>
+        <div class="cratis-feature-card" style="--bx:252px;--by:-148px;--br:-19deg;--bd:0.16s"><span class="cf-icon">&#x2705;</span><span class="cf-text">Validation built-in</span></div>
+            </div>
             <div class="cratis-box" id="box-arc" role="button" tabindex="0" aria-expanded="false"
                  onclick="cratissToggle('box-arc')">
+                <!-- Lid flap scene -->
+                <div class="box-lid-scene">
+                    <div class="box-flap box-flap-left"></div>
+                    <div class="box-flap box-flap-right"></div>
+                </div>
+                <!-- Light beam from inside when open -->
+                <div class="box-light"></div>
+                <!-- Box front face / label -->
                 <div class="cratis-box-header" style="background:linear-gradient(135deg,#047857,#059669);">
                     <div class="cratis-box-header-left">
                         <span class="cratis-box-icon">&#x26A1;</span>
@@ -666,29 +777,39 @@ html { scroll-behavior: smooth; }
                     </div>
                     <span class="cratis-box-toggle">&#x25BC;</span>
                 </div>
-                <div class="cratis-box-body" aria-hidden="true">
-                    <div class="cratis-cards-grid">
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x26A1;</span><span class="cf-text">CQRS application framework</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F310;</span><span class="cf-text">ASP.NET Core integration</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4E4;</span><span class="cf-text">Commands &amp; Queries pattern</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F504;</span><span class="cf-text">TypeScript ProxyGenerator</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F916;</span><span class="cf-text">Automatic API generation</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F517;</span><span class="cf-text">Frontend/backend type bridge</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F343;</span><span class="cf-text">MongoDB integration</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x2705;</span><span class="cf-text">Validation built-in</span></div>
-                    </div>
-                    <div class="cratis-box-footer">
-                        <a href="docs/Arc/" class="cratis-box-link">&#x1F4D6; Documentation &#x2192;</a>
-                    </div>
+                <div class="cratis-box-bottom">
+                    <span style="color:#34d399;opacity:0.7;font-size:0.73rem;font-weight:600;letter-spacing:0.05em;">&#x1F4E6; Click to open the box</span>
                 </div>
+            </div>
+            <div class="box-docs-row">
+                <a href="docs/Arc/" class="cratis-box-link">&#x1F4D6; Documentation &#x2192;</a>
             </div>
         </div>
         <div class="cratis-connector"><div class="cratis-connector-line"></div><span class="cratis-connector-arrow">&#x25BC;</span></div>
         <!-- Fundamentals -->
         <div class="cratis-box-wrapper"
-             style="--box-color:#d97706; --box-accent:#fbbf24; --box-glow:rgba(217,119,6,0.48); --box-depth:rgba(138,75,0,0.92); --box-link-bg:rgba(217,119,6,0.28); --box-link-hover:rgba(217,119,6,0.5);">
+             style="--box-accent:#fbbf24; --box-glow:rgba(217,119,6,0.48); --box-side:rgba(138,75,0,0.85); --box-flap-light:rgba(210,140,10,0.88); --box-flap-dark:rgba(165,100,5,0.92); --box-link-bg:rgba(217,119,6,0.28); --box-link-hover:rgba(217,119,6,0.5);">
+            <!-- Cards scatter upward when box is opened -->
+            <div class="box-scatter" aria-hidden="true">
+        <div class="cratis-feature-card" style="--bx:-238px;--by:-272px;--br:-18deg;--bd:0.05s"><span class="cf-icon">&#x1F9F0;</span><span class="cf-text">Core utilities &amp; helpers</span></div>
+        <div class="cratis-feature-card" style="--bx:-78px;--by:-286px;--br:12deg;--bd:0.10s"><span class="cf-icon">&#x1F48E;</span><span class="cf-text">.NET &amp; JavaScript support</span></div>
+        <div class="cratis-feature-card" style="--bx:82px;--by:-282px;--br:-7deg;--bd:0.07s"><span class="cf-icon">&#x1F3F7;&#xFE0F;</span><span class="cf-text">Concepts &amp; value objects</span></div>
+        <div class="cratis-feature-card" style="--bx:238px;--by:-268px;--br:15deg;--bd:0.13s"><span class="cf-icon">&#x1F527;</span><span class="cf-text">Type system extensions</span></div>
+        <div class="cratis-feature-card" style="--bx:-224px;--by:-160px;--br:9deg;--bd:0.19s"><span class="cf-icon">&#x1F4E6;</span><span class="cf-text">JSON serialization helpers</span></div>
+        <div class="cratis-feature-card" style="--bx:-52px;--by:-170px;--br:-14deg;--bd:0.23s"><span class="cf-icon">&#x267E;&#xFE0F;</span><span class="cf-text">Reactive programming support</span></div>
+        <div class="cratis-feature-card" style="--bx:112px;--by:-158px;--br:8deg;--bd:0.27s"><span class="cf-icon">&#x1F9EA;</span><span class="cf-text">Testing utilities</span></div>
+        <div class="cratis-feature-card" style="--bx:252px;--by:-148px;--br:-19deg;--bd:0.16s"><span class="cf-icon">&#x2795;</span><span class="cf-text">Extension methods</span></div>
+            </div>
             <div class="cratis-box" id="box-fundamentals" role="button" tabindex="0" aria-expanded="false"
                  onclick="cratissToggle('box-fundamentals')">
+                <!-- Lid flap scene -->
+                <div class="box-lid-scene">
+                    <div class="box-flap box-flap-left"></div>
+                    <div class="box-flap box-flap-right"></div>
+                </div>
+                <!-- Light beam from inside when open -->
+                <div class="box-light"></div>
+                <!-- Box front face / label -->
                 <div class="cratis-box-header" style="background:linear-gradient(135deg,#b45309,#d97706);">
                     <div class="cratis-box-header-left">
                         <span class="cratis-box-icon">&#x1F9F1;</span>
@@ -699,21 +820,12 @@ html { scroll-behavior: smooth; }
                     </div>
                     <span class="cratis-box-toggle">&#x25BC;</span>
                 </div>
-                <div class="cratis-box-body" aria-hidden="true">
-                    <div class="cratis-cards-grid">
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F9F0;</span><span class="cf-text">Core utilities &amp; helpers</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F48E;</span><span class="cf-text">.NET &amp; JavaScript support</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F3F7;&#xFE0F;</span><span class="cf-text">Concepts &amp; value objects</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F527;</span><span class="cf-text">Type system extensions</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F4E6;</span><span class="cf-text">JSON serialization helpers</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x267E;&#xFE0F;</span><span class="cf-text">Reactive programming support</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x1F9EA;</span><span class="cf-text">Testing utilities</span></div>
-                        <div class="cratis-feature-card"><span class="cf-icon">&#x2795;</span><span class="cf-text">Extension methods</span></div>
-                    </div>
-                    <div class="cratis-box-footer">
-                        <a href="docs/Fundamentals/" class="cratis-box-link">&#x1F4D6; Documentation &#x2192;</a>
-                    </div>
+                <div class="cratis-box-bottom">
+                    <span style="color:#fbbf24;opacity:0.7;font-size:0.73rem;font-weight:600;letter-spacing:0.05em;">&#x1F4E6; Click to open the box</span>
                 </div>
+            </div>
+            <div class="box-docs-row">
+                <a href="docs/Fundamentals/" class="cratis-box-link">&#x1F4D6; Documentation &#x2192;</a>
             </div>
         </div>
     </div>
@@ -721,27 +833,28 @@ html { scroll-behavior: smooth; }
 
 </div><!-- end .cratis-landing -->
 
+
 <script>
 (function () {
-    // Toggle: crack/shake then open; plain close on second click
+    // Toggle: crack/shake, open lid + scatter cards; plain close on second click
     function cratissToggle(id) {
         var box = document.getElementById(id);
         if (!box) return;
+        var wrapper = box.parentElement;
+        var scatter = wrapper ? wrapper.querySelector('.box-scatter') : null;
         var isOpen = box.classList.contains('is-open');
         if (isOpen) {
             box.classList.remove('is-open');
             box.setAttribute('aria-expanded', 'false');
-            var body = box.querySelector('.cratis-box-body');
-            if (body) body.setAttribute('aria-hidden', 'true');
+            if (scatter) scatter.setAttribute('aria-hidden', 'true');
         } else {
             box.classList.add('is-cracking');
             setTimeout(function () {
                 box.classList.remove('is-cracking');
                 box.classList.add('is-open');
                 box.setAttribute('aria-expanded', 'true');
-                var body = box.querySelector('.cratis-box-body');
-                if (body) body.setAttribute('aria-hidden', 'false');
-            }, 300);
+                if (scatter) scatter.setAttribute('aria-hidden', 'false');
+            }, 320);
         }
     }
     window.cratissToggle = cratissToggle;
