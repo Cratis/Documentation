@@ -406,6 +406,19 @@ html { scroll-behavior: smooth; }
     }
 }
 
+@keyframes cardHide {
+    0% {
+        opacity: 1;
+        transform: translate(var(--card-x, 0px), var(--card-y, 0px)) rotate(var(--card-rot, 0deg)) scale(1);
+        filter: blur(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(var(--card-x, 0px), calc(var(--card-y, 0px) + 30px)) rotate(var(--card-rot, 0deg)) scale(0.92);
+        filter: blur(4px);
+    }
+}
+
 .cratis-feature-card {
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.08);
@@ -420,6 +433,10 @@ html { scroll-behavior: smooth; }
 }
 .cratis-box.is-open .cratis-feature-card {
     animation: cardReveal var(--card-duration, 0.5s) cubic-bezier(0.2,0.8,0.2,1) var(--card-delay, 0s) forwards;
+}
+
+.cratis-box.is-closing .cratis-feature-card {
+    animation: cardHide var(--card-close-duration, 0.34s) cubic-bezier(0.4,0,0.2,1) forwards;
 }
 
 .cratis-feature-card:hover {
@@ -734,8 +751,15 @@ html { scroll-behavior: smooth; }
 
 <script>
 (function () {
+    var animationQueue = Promise.resolve();
+
     function randomBetween(min, max) {
         return min + Math.random() * (max - min);
+    }
+
+    function parseSeconds(value, fallback) {
+        var parsed = parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : fallback;
     }
 
     function randomizeCards(box) {
@@ -748,35 +772,105 @@ html { scroll-behavior: smooth; }
             var rotation = randomBetween(-9, 9);
             var delay = Math.pow(Math.random(), 0.72) * 0.42;
             var duration = randomBetween(0.34, 0.64);
+            var closeDuration = randomBetween(0.24, 0.42);
 
             card.style.setProperty('--card-x', offsetX.toFixed(2) + 'px');
             card.style.setProperty('--card-y', offsetY.toFixed(2) + 'px');
             card.style.setProperty('--card-rot', rotation.toFixed(2) + 'deg');
             card.style.setProperty('--card-delay', delay.toFixed(3) + 's');
             card.style.setProperty('--card-duration', duration.toFixed(3) + 's');
+            card.style.setProperty('--card-close-duration', closeDuration.toFixed(3) + 's');
         }
+    }
+
+    function getCloseDurationMs(box) {
+        var cards = box.querySelectorAll('.cratis-feature-card');
+        var maxSeconds = 0.2;
+        for (var index = 0; index < cards.length; index++) {
+            var card = cards[index];
+            var closeDuration = parseSeconds(card.style.getPropertyValue('--card-close-duration'), 0.34);
+            if (closeDuration > maxSeconds) maxSeconds = closeDuration;
+        }
+        return Math.ceil((maxSeconds + 0.06) * 1000);
+    }
+
+    function openBox(box) {
+        var wrapper = box.closest('.cratis-box-wrapper');
+        randomizeCards(box);
+        box.classList.remove('is-closing');
+        box.classList.add('is-open');
+        if (wrapper) wrapper.classList.add('is-open');
+        box.setAttribute('aria-expanded', 'true');
+        var body = box.querySelector('.cratis-box-body');
+        if (body) body.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeBox(box, animated) {
+        return new Promise(function (resolve) {
+            if (!box) {
+                resolve();
+                return;
+            }
+
+            var wrapper = box.closest('.cratis-box-wrapper');
+            var body = box.querySelector('.cratis-box-body');
+
+            if (!animated) {
+                box.classList.remove('is-open', 'is-closing');
+                if (wrapper) wrapper.classList.remove('is-open');
+                box.setAttribute('aria-expanded', 'false');
+                if (body) body.setAttribute('aria-hidden', 'true');
+                resolve();
+                return;
+            }
+
+            if (!box.classList.contains('is-open')) {
+                box.classList.remove('is-closing');
+                if (wrapper) wrapper.classList.remove('is-open');
+                box.setAttribute('aria-expanded', 'false');
+                if (body) body.setAttribute('aria-hidden', 'true');
+                resolve();
+                return;
+            }
+
+            box.classList.add('is-closing');
+            box.setAttribute('aria-expanded', 'false');
+            if (body) body.setAttribute('aria-hidden', 'true');
+
+            setTimeout(function () {
+                box.classList.remove('is-open', 'is-closing');
+                if (wrapper) wrapper.classList.remove('is-open');
+                resolve();
+            }, getCloseDurationMs(box));
+        });
     }
 
     // Toggle box open/close
     function cratissToggle(id) {
         var box = document.getElementById(id);
         if (!box) return;
-        var wrapper = box.closest('.cratis-box-wrapper');
-        var isOpen = box.classList.contains('is-open');
-        if (isOpen) {
-            box.classList.remove('is-open');
-            if (wrapper) wrapper.classList.remove('is-open');
-            box.setAttribute('aria-expanded', 'false');
-            var body = box.querySelector('.cratis-box-body');
-            if (body) body.setAttribute('aria-hidden', 'true');
-        } else {
-            randomizeCards(box);
-            box.classList.add('is-open');
-            if (wrapper) wrapper.classList.add('is-open');
-            box.setAttribute('aria-expanded', 'true');
-            var body = box.querySelector('.cratis-box-body');
-            if (body) body.setAttribute('aria-hidden', 'false');
-        }
+
+        animationQueue = animationQueue.then(function () {
+            var isOpen = box.classList.contains('is-open');
+            var currentlyOpen = document.querySelectorAll('.cratis-box.is-open');
+
+            var sequence = Promise.resolve();
+
+            for (var index = 0; index < currentlyOpen.length; index++) {
+                var openCandidate = currentlyOpen[index];
+                if (openCandidate !== box) {
+                    sequence = sequence.then(function (candidate) {
+                        return function () { return closeBox(candidate, true); };
+                    }(openCandidate));
+                }
+            }
+
+            if (isOpen) {
+                return sequence.then(function () { return closeBox(box, true); });
+            }
+
+            return sequence.then(function () { openBox(box); });
+        }).catch(function () {});
     }
     window.cratissToggle = cratissToggle;
 
