@@ -391,7 +391,7 @@ border-top: 1px solid rgba(255,255,255,0.05);
 .cratis-box.is-open .cratis-box-body { max-height: 540px; }
 
 /* =========================================================
-FEATURE CARDS — physically drop in on open
+FEATURE CARDS — randomized scatter reveal on open
 ========================================================= */
 .cratis-cards-grid {
 padding: 18px 18px 6px;
@@ -400,19 +400,16 @@ grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
 gap: 10px;
 }
 
-@keyframes cardFall {
+@keyframes cardReveal {
 0% {
 opacity: 0;
-transform: translateY(-110px) rotate(var(--c-rot, 0deg)) scale(0.32);
-filter: blur(6px);
+transform: translate(var(--card-x, 0px), calc(var(--card-y, 0px) + 30px)) rotate(var(--card-rot, 0deg)) scale(0.92);
+filter: blur(4px);
 }
-52% { opacity: 1; filter: blur(0); }
-66% { transform: translateY(11px) rotate(calc(var(--c-rot, 0deg) * 0.08)) scale(1.08); }
-80% { transform: translateY(-5px) scale(0.97); }
-91% { transform: translateY(3px)  scale(1.02); }
+40% { opacity: 1; }
 100% {
 opacity: 1;
-transform: translateY(0) rotate(0deg) scale(1);
+transform: translate(var(--card-x, 0px), var(--card-y, 0px)) rotate(var(--card-rot, 0deg)) scale(1);
 filter: blur(0);
 }
 }
@@ -426,24 +423,15 @@ padding: 11px 12px 10px;
 color: rgba(255,255,255,0.84);
 font-size: 0.8rem; font-weight: 500; line-height: 1.45;
 opacity: 0;
+transform: translate(var(--card-x, 0px), calc(var(--card-y, 0px) + 30px)) rotate(var(--card-rot, 0deg)) scale(0.92);
 transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 .cratis-box.is-open .cratis-feature-card {
-animation: cardFall 0.56s cubic-bezier(0.34,1.56,0.64,1) forwards;
+animation: cardReveal var(--card-duration, 0.5s) cubic-bezier(0.2,0.8,0.2,1) var(--card-delay, 0s) forwards;
 }
 
-/* Per-card rotation + staggered delay */
-.cratis-box.is-open .cratis-feature-card:nth-child(1) { --c-rot: -16deg; animation-delay: 0.02s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(2) { --c-rot:  13deg; animation-delay: 0.07s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(3) { --c-rot:  -9deg; animation-delay: 0.12s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(4) { --c-rot:  15deg; animation-delay: 0.17s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(5) { --c-rot: -12deg; animation-delay: 0.22s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(6) { --c-rot:   9deg; animation-delay: 0.27s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(7) { --c-rot: -14deg; animation-delay: 0.32s; }
-.cratis-box.is-open .cratis-feature-card:nth-child(8) { --c-rot:  11deg; animation-delay: 0.37s; }
-
 .cratis-feature-card:hover {
-transform: translateY(-4px) scale(1.07);
+transform: translate(var(--card-x, 0px), calc(var(--card-y, 0px) - 4px)) rotate(var(--card-rot, 0deg)) scale(1.05);
 background: rgba(255,255,255,0.11);
 box-shadow: 0 8px 24px rgba(0,0,0,0.55), 0 0 16px var(--box-glow);
 }
@@ -754,6 +742,29 @@ onclick="cratissToggle('box-fundamentals')">
 
 <script>
 (function () {
+function randomBetween(min, max) {
+return min + Math.random() * (max - min);
+}
+
+function randomizeCards(box) {
+if (!box) return;
+var cards = box.querySelectorAll('.cratis-feature-card');
+for (var index = 0; index < cards.length; index++) {
+var card = cards[index];
+var offsetX = randomBetween(-18, 18);
+var offsetY = randomBetween(-14, 14);
+var rotation = randomBetween(-9, 9);
+var delay = Math.pow(Math.random(), 0.72) * 0.42;
+var duration = randomBetween(0.34, 0.64);
+
+card.style.setProperty('--card-x', offsetX.toFixed(2) + 'px');
+card.style.setProperty('--card-y', offsetY.toFixed(2) + 'px');
+card.style.setProperty('--card-rot', rotation.toFixed(2) + 'deg');
+card.style.setProperty('--card-delay', delay.toFixed(3) + 's');
+card.style.setProperty('--card-duration', duration.toFixed(3) + 's');
+}
+}
+
 // Toggle box open/close
 function cratissToggle(id) {
 var box = document.getElementById(id);
@@ -767,6 +778,7 @@ box.setAttribute('aria-expanded', 'false');
 var body = box.querySelector('.cratis-box-body');
 if (body) body.setAttribute('aria-hidden', 'true');
 } else {
+randomizeCards(box);
 box.classList.add('is-open');
 if (wrapper) wrapper.classList.add('is-open');
 box.setAttribute('aria-expanded', 'true');
