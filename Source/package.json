@@ -15,6 +15,7 @@
         "postprocess:storybooks": "NODE_OPTIONS=\"--loader ts-node/esm\" node postprocess-storybooks.ts",
         "build": "yarn build:storybooks && yarn build:ts && yarn extract-snippets && yarn insert-snippets && yarn preprocess:storybooks && dotnet build -t:BuildApiDependencies -c Release -p:TargetFramework=net10.0 && dotnet docfx && yarn postprocess:storybooks",
         "build:articles": "yarn preprocess:storybooks && dotnet docfx build && yarn postprocess:storybooks",
+        "serve:landing": "yarn dlx browser-sync start --server . --startPath index.html --files index.html --port 8089 --no-ui --no-notify",
         "serve": "yarn http-server ./_site",
         "fixts": "NODE_OPTIONS=\"--loader ts-node/esm\" node fix-tsdocs.ts",
         "extract-snippets": "NODE_OPTIONS=\"--loader ts-node/esm\" node extract-code-snippets.ts",
