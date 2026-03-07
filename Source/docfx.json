@@ -177,6 +177,11 @@
     "resource": [
       {
         "files": [
+          "index.html"
+        ]
+      },
+      {
+        "files": [
           "**/images/**"
         ],
         "exclude": [
