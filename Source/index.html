@@ -1031,11 +1031,12 @@ html, body { margin: 0; padding: 0; background: #090b16; }
     function randomizeCards(box) {
         if (!box) return;
         var cards = box.querySelectorAll('.cratis-feature-card');
+        var isMobile = window.innerWidth <= 768;
         for (var index = 0; index < cards.length; index++) {
             var card = cards[index];
-            var offsetX = randomBetween(-18, 18);
-            var offsetY = randomBetween(-14, 14);
-            var rotation = randomBetween(-9, 9);
+            var offsetX = isMobile ? 0 : randomBetween(-18, 18);
+            var offsetY = isMobile ? 0 : randomBetween(-14, 14);
+            var rotation = isMobile ? 0 : randomBetween(-9, 9);
             var delay = Math.pow(Math.random(), 0.72) * 0.42;
             var duration = randomBetween(0.34, 0.64);
             var closeDuration = randomBetween(0.24, 0.42);
