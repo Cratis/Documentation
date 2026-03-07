@@ -1,3 +1,4 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 /* ============================================================
    Cratis Landing Page — Dark & Dramatic
@@ -502,6 +503,256 @@ html { scroll-behavior: smooth; }
     position: relative; z-index: 1;
 }
 @keyframes arrowBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+
+/* ---- Responsive layout ---------------------------------- */
+@media (max-width: 1024px) {
+    .cratis-landing {
+        --section-gutter: 24px;
+        border-radius: 12px;
+    }
+
+    .cratis-hero {
+        padding: 72px var(--section-gutter) 60px;
+    }
+
+    .cratis-hero h1 {
+        font-size: clamp(2rem, 6vw, 2.4rem);
+    }
+
+    .cratis-hero-tagline {
+        font-size: 1rem;
+        line-height: 1.65;
+        margin-bottom: 34px;
+    }
+
+    .cratis-steps {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .cratis-landing {
+        --section-gutter: 18px;
+        margin: -4px;
+        border-radius: 10px;
+    }
+
+    .cratis-hero {
+        padding: 56px var(--section-gutter) 48px;
+    }
+
+    .cratis-hero-logo {
+        width: 210px;
+        max-width: 84%;
+        margin-bottom: 22px;
+    }
+
+    .cratis-hero h1 {
+        font-size: clamp(1.75rem, 8vw, 2.2rem);
+        margin-bottom: 14px;
+    }
+
+    .cratis-hero-tagline {
+        font-size: 0.96rem;
+        line-height: 1.6;
+        margin-bottom: 24px;
+    }
+
+    .cratis-hero-ctas {
+        flex-direction: column;
+        align-items: stretch;
+        width: min(360px, 100%);
+        margin: 0 auto;
+        gap: 10px;
+    }
+
+    .cratis-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px 18px;
+    }
+
+    .cratis-getting-started {
+        padding: 44px var(--section-gutter) 48px;
+    }
+
+    .cratis-arch-section {
+        padding: 44px var(--section-gutter) 64px;
+    }
+
+    .cratis-section-header h2 {
+        font-size: 1.55rem;
+        line-height: 1.25;
+    }
+
+    .cratis-section-header p {
+        font-size: 0.94rem;
+        line-height: 1.5;
+    }
+
+    .cratis-step-card {
+        padding: 20px;
+    }
+
+    .cratis-code {
+        font-size: 0.78rem;
+        padding: 10px 44px 10px 12px;
+    }
+
+    .cratis-box-wrapper {
+        margin-bottom: 6px;
+    }
+
+    .cratis-box-wrapper::before {
+        width: 320px;
+        height: 180px;
+        top: -8px;
+    }
+
+    .cratis-box-wrapper::after {
+        display: none;
+    }
+
+    .cratis-box-header {
+        padding: 14px;
+    }
+
+    .cratis-box-header-left {
+        min-width: 0;
+        gap: 10px;
+    }
+
+    .cratis-box-icon {
+        font-size: 1.65rem;
+    }
+
+    .cratis-box-title {
+        font-size: 1rem;
+    }
+
+    .cratis-box-desc {
+        font-size: 0.72rem;
+        line-height: 1.4;
+    }
+
+    .coming-soon-pill {
+        margin-left: 6px;
+        font-size: 0.56rem;
+    }
+
+    .cratis-cards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 14px 14px 4px;
+        gap: 8px;
+    }
+
+    .cratis-feature-card {
+        padding: 9px 10px;
+        font-size: 0.75rem;
+        line-height: 1.35;
+    }
+
+    .cratis-box-footer {
+        padding: 4px 14px 14px;
+    }
+
+    .cratis-box-link {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .cratis-box:hover,
+    .cratis-box-link:hover {
+        transform: none;
+    }
+
+    .cratis-scroll-hint {
+        padding: 16px 0;
+    }
+}
+
+@media (max-width: 520px) {
+    .cratis-landing {
+        --section-gutter: 14px;
+        margin: 0 -6px;
+    }
+
+    .cratis-hero {
+        padding: 48px var(--section-gutter) 40px;
+    }
+
+    .cratis-hero-logo {
+        width: 176px;
+    }
+
+    .cratis-hero h1 {
+        font-size: clamp(1.55rem, 9vw, 1.95rem);
+    }
+
+    .cratis-section-header h2 {
+        font-size: 1.35rem;
+    }
+
+    .cratis-step-card h3 {
+        font-size: 1rem;
+    }
+
+    .cratis-code {
+        font-size: 0.74rem;
+        padding: 9px 40px 9px 10px;
+    }
+
+    .cratis-copy-btn {
+        top: 5px;
+        right: 5px;
+        font-size: 0.66rem;
+        padding: 2px 7px;
+    }
+
+    .cratis-box-header {
+        padding: 12px;
+    }
+
+    .cratis-box-title {
+        font-size: 0.93rem;
+    }
+
+    .cratis-box-desc {
+        font-size: 0.68rem;
+    }
+
+    .cratis-box-toggle {
+        width: 24px;
+        height: 24px;
+        font-size: 0.85rem;
+    }
+
+    .cratis-cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cratis-feature-card {
+        font-size: 0.76rem;
+    }
+
+    .cratis-box.is-open .cratis-box-body {
+        max-height: 900px;
+    }
+
+    .cratis-connector::before {
+        width: 20px;
+        height: 20px;
+        bottom: 10px;
+    }
+
+    .cratis-connector-line {
+        height: 14px;
+    }
+
+    .cratis-connector-arrow {
+        font-size: 1rem;
+    }
+}
 </style>
 
 <div class="cratis-landing">
@@ -523,7 +774,7 @@ html { scroll-behavior: smooth; }
         </g>
     </svg>
     <h1>Build better software, faster.</h1>
-    <p class="cratis-hero-tagline">Cratis is a suite of open-source libraries and tools for building robust, event-driven .NET applications&#160;&#8212; with productivity, compliance, and maintainability at its core.</p>
+    <p class="cratis-hero-tagline">Cratis is a suite of open-source libraries and tools for building robust, event sourced .NET applications&#160;&#8212; with productivity, compliance, and maintainability at its core.</p>
     <div class="cratis-hero-ctas">
         <a href="#getting-started" class="cratis-btn cratis-btn-primary">&#x1F680; Get Started</a>
         <a href="https://github.com/cratis" class="cratis-btn cratis-btn-ghost" target="_blank" rel="noopener">&#x2B50; GitHub</a>
