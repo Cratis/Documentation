@@ -14,6 +14,8 @@ html { scroll-behavior: smooth; }
     --border: rgba(255,255,255,0.07);
     --text:   rgba(255,255,255,0.88);
     --muted:  rgba(255,255,255,0.48);
+    --section-gutter: 32px;
+    --section-max-width: 960px;
     background: var(--bg);
     border-radius: 16px;
     color: var(--text);
@@ -22,10 +24,16 @@ html { scroll-behavior: smooth; }
     margin: -8px;
 }
 
+.cratis-section-content {
+    width: 100%;
+    max-width: var(--section-max-width);
+    margin: 0 auto;
+}
+
 /* ---- HERO ------------------------------------------------ */
 .cratis-hero {
     text-align: center;
-    padding: 90px 32px 76px;
+    padding: 90px var(--section-gutter) 76px;
     background: linear-gradient(155deg, #07091a 0%, #12164d 52%, #0b0e2c 100%);
     position: relative;
     overflow: hidden;
@@ -136,7 +144,7 @@ html { scroll-behavior: smooth; }
 
 /* ---- GETTING STARTED ------------------------------------ */
 .cratis-getting-started {
-    padding: 56px 36px 60px;
+    padding: 56px var(--section-gutter) 60px;
     background: var(--bg-2);
     border-top: 1px solid var(--border);
 }
@@ -232,11 +240,11 @@ html { scroll-behavior: smooth; }
 
 /* ---- ARCHITECTURE SECTION ------------------------------- */
 .cratis-arch-section {
-    padding: 56px 36px 88px;
+    padding: 56px var(--section-gutter) 88px;
     background: var(--bg);
     border-top: 1px solid var(--border);
 }
-.cratis-stack { max-width: 720px; margin: 0 auto; }
+.cratis-stack { width: 100%; max-width: none; margin: 0; }
 
 /* =========================================================
    BOX WRAPPER — provides 3D depth slice behind each box
@@ -294,7 +302,7 @@ html { scroll-behavior: smooth; }
 .cratis-box {
     position: relative; z-index: 1;
     border-radius: 14px; overflow: hidden;
-    cursor: pointer; user-select: none;
+    cursor: default; user-select: none;
     border-left: 8px solid var(--box-accent);
     transition:
         transform 0.28s cubic-bezier(0.34,1.56,0.64,1),
@@ -311,6 +319,7 @@ html { scroll-behavior: smooth; }
 .cratis-box-header {
     padding: 18px 22px;
     display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer;
     position: relative; overflow: hidden;
 }
 /* Diagonal stripe texture */
@@ -427,9 +436,10 @@ html { scroll-behavior: smooth; }
     padding: 11px 12px 10px;
     color: rgba(255,255,255,0.84);
     font-size: 0.8rem; font-weight: 500; line-height: 1.45;
+    cursor: default;
     opacity: 0;
     transform: translate(var(--card-x, 0px), calc(var(--card-y, 0px) + 30px)) rotate(var(--card-rot, 0deg)) scale(0.92);
-    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    transition: none;
 }
 .cratis-box.is-open .cratis-feature-card {
     animation: cardReveal var(--card-duration, 0.5s) cubic-bezier(0.2,0.8,0.2,1) var(--card-delay, 0s) forwards;
@@ -437,12 +447,6 @@ html { scroll-behavior: smooth; }
 
 .cratis-box.is-closing .cratis-feature-card {
     animation: cardHide var(--card-close-duration, 0.34s) cubic-bezier(0.4,0,0.2,1) forwards;
-}
-
-.cratis-feature-card:hover {
-    transform: translate(var(--card-x, 0px), calc(var(--card-y, 0px) - 4px)) rotate(var(--card-rot, 0deg)) scale(1.05);
-    background: rgba(255,255,255,0.11);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.55), 0 0 16px var(--box-glow);
 }
 .cf-icon { font-size: 1rem; display: block; margin-bottom: 5px; }
 .cf-text  { display: block; }
@@ -503,6 +507,7 @@ html { scroll-behavior: smooth; }
 
 <!-- ===================== HERO ===================== -->
 <div class="cratis-hero">
+    <div class="cratis-section-content">
     <svg class="cratis-hero-logo" width="600pt" height="328pt" viewBox="0 0 600 328" preserveAspectRatio="xMidYMid meet" aria-label="Cratis logo">
         <g transform="translate(0,328) scale(0.1,-0.1)" stroke="none">
             <path d="M974 2789 c-319 -182 -592 -343 -607 -358 -16 -14 -34 -35 -40 -46 -8 -14 -10 -229 -9 -735 l3 -715 23 -35 c18 -26 74 -64 222 -151 110 -64 374 -219 589 -344 214 -126 400 -231 413 -233 13 -3 31 3 42 13 19 17 20 33 20 307 0 233 -3 294 -15 317 -10 21 -93 74 -327 211 -172 101 -324 194 -338 207 l-25 23 0 401 0 401 27 23 c14 12 161 100 327 194 177 101 310 184 325 202 l26 31 0 293 c0 318 -1 325 -55 325 -12 0 -283 -149 -601 -331z"/>
@@ -523,10 +528,12 @@ html { scroll-behavior: smooth; }
         <a href="https://github.com/cratis" class="cratis-btn cratis-btn-ghost" target="_blank" rel="noopener">&#x2B50; GitHub</a>
         <a href="docs/Chronicle/" class="cratis-btn cratis-btn-ghost" target="_blank" rel="noopener">&#x1F4D6; Documentation</a>
     </div>
+    </div>
 </div>
 
 <!-- ===================== GETTING STARTED ===================== -->
 <div id="getting-started" class="cratis-getting-started">
+    <div class="cratis-section-content">
     <div class="cratis-section-header">
         <h2>&#x1F6E0;&#xFE0F; Get started in two steps</h2>
         <p>Install the .NET templates and spin up your first Cratis application in minutes.</p>
@@ -555,6 +562,7 @@ html { scroll-behavior: smooth; }
             </div>
         </div>
     </div>
+    </div>
 </div>
 
 <!-- ===================== SCROLL HINT ===================== -->
@@ -565,6 +573,7 @@ html { scroll-behavior: smooth; }
 
 <!-- ===================== ARCHITECTURE STACK ===================== -->
 <div class="cratis-arch-section">
+    <div class="cratis-section-content">
     <div class="cratis-section-header">
         <h2>&#x1F3D7;&#xFE0F; The Cratis stack</h2>
         <p>Click any layer &#8212; see what&#x2019;s inside every box.</p>
@@ -575,9 +584,8 @@ html { scroll-behavior: smooth; }
         <!-- Studio -->
         <div class="cratis-box-wrapper"
              style="--box-color:#7c3aed; --box-accent:#a78bfa; --box-glow:rgba(124,58,237,0.48); --box-depth:rgba(55,18,115,0.92); --box-link-bg:rgba(124,58,237,0.28); --box-link-hover:rgba(124,58,237,0.5);">
-            <div class="cratis-box" id="box-studio" role="button" tabindex="0" aria-expanded="false"
-                 onclick="cratissToggle('box-studio')">
-                <div class="cratis-box-header" style="background:linear-gradient(135deg,#4c1d95,#7c3aed);">
+              <div class="cratis-box" id="box-studio" role="button" tabindex="0" aria-expanded="false">
+                 <div class="cratis-box-header" style="background:linear-gradient(135deg,#4c1d95,#7c3aed);" onclick="cratissToggle('box-studio')">
                     <div class="cratis-box-header-left">
                         <span class="cratis-box-icon">&#x1F3A8;</span>
                         <div>
@@ -610,9 +618,8 @@ html { scroll-behavior: smooth; }
         <!-- Chronicle -->
         <div class="cratis-box-wrapper"
              style="--box-color:#2563eb; --box-accent:#60a5fa; --box-glow:rgba(37,99,235,0.48); --box-depth:rgba(19,51,140,0.92); --box-link-bg:rgba(37,99,235,0.28); --box-link-hover:rgba(37,99,235,0.5);">
-            <div class="cratis-box" id="box-chronicle" role="button" tabindex="0" aria-expanded="false"
-                 onclick="cratissToggle('box-chronicle')">
-                <div class="cratis-box-header" style="background:linear-gradient(135deg,#1e40af,#2563eb);">
+              <div class="cratis-box" id="box-chronicle" role="button" tabindex="0" aria-expanded="false">
+                 <div class="cratis-box-header" style="background:linear-gradient(135deg,#1e40af,#2563eb);" onclick="cratissToggle('box-chronicle')">
                     <div class="cratis-box-header-left">
                         <span class="cratis-box-icon">&#x1F4DC;</span>
                         <div>
@@ -645,9 +652,8 @@ html { scroll-behavior: smooth; }
         <!-- Components -->
         <div class="cratis-box-wrapper"
              style="--box-color:#0891b2; --box-accent:#22d3ee; --box-glow:rgba(8,145,178,0.48); --box-depth:rgba(5,90,114,0.92); --box-link-bg:rgba(8,145,178,0.28); --box-link-hover:rgba(8,145,178,0.5);">
-            <div class="cratis-box" id="box-components" role="button" tabindex="0" aria-expanded="false"
-                 onclick="cratissToggle('box-components')">
-                <div class="cratis-box-header" style="background:linear-gradient(135deg,#0e7490,#0891b2);">
+              <div class="cratis-box" id="box-components" role="button" tabindex="0" aria-expanded="false">
+                 <div class="cratis-box-header" style="background:linear-gradient(135deg,#0e7490,#0891b2);" onclick="cratissToggle('box-components')">
                     <div class="cratis-box-header-left">
                         <span class="cratis-box-icon">&#x1F9E9;</span>
                         <div>
@@ -680,9 +686,8 @@ html { scroll-behavior: smooth; }
         <!-- Arc -->
         <div class="cratis-box-wrapper"
              style="--box-color:#059669; --box-accent:#34d399; --box-glow:rgba(5,150,105,0.48); --box-depth:rgba(3,95,66,0.92); --box-link-bg:rgba(5,150,105,0.28); --box-link-hover:rgba(5,150,105,0.5);">
-            <div class="cratis-box" id="box-arc" role="button" tabindex="0" aria-expanded="false"
-                 onclick="cratissToggle('box-arc')">
-                <div class="cratis-box-header" style="background:linear-gradient(135deg,#047857,#059669);">
+              <div class="cratis-box" id="box-arc" role="button" tabindex="0" aria-expanded="false">
+                 <div class="cratis-box-header" style="background:linear-gradient(135deg,#047857,#059669);" onclick="cratissToggle('box-arc')">
                     <div class="cratis-box-header-left">
                         <span class="cratis-box-icon">&#x26A1;</span>
                         <div>
@@ -715,9 +720,8 @@ html { scroll-behavior: smooth; }
         <!-- Fundamentals -->
         <div class="cratis-box-wrapper"
              style="--box-color:#d97706; --box-accent:#fbbf24; --box-glow:rgba(217,119,6,0.48); --box-depth:rgba(138,75,0,0.92); --box-link-bg:rgba(217,119,6,0.28); --box-link-hover:rgba(217,119,6,0.5);">
-            <div class="cratis-box" id="box-fundamentals" role="button" tabindex="0" aria-expanded="false"
-                 onclick="cratissToggle('box-fundamentals')">
-                <div class="cratis-box-header" style="background:linear-gradient(135deg,#b45309,#d97706);">
+              <div class="cratis-box" id="box-fundamentals" role="button" tabindex="0" aria-expanded="false">
+                 <div class="cratis-box-header" style="background:linear-gradient(135deg,#b45309,#d97706);" onclick="cratissToggle('box-fundamentals')">
                     <div class="cratis-box-header-left">
                         <span class="cratis-box-icon">&#x1F9F1;</span>
                         <div>
@@ -745,6 +749,7 @@ html { scroll-behavior: smooth; }
             </div>
         </div>
 
+    </div>
     </div>
 </div>
 
