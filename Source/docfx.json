@@ -145,11 +145,6 @@
     "content": [
       {
         "files": [
-          "index.html"
-        ]
-      },
-      {
-        "files": [
           "**/*.{md,yml}"
         ],
         "exclude": [
@@ -180,6 +175,11 @@
       }
     ],
     "resource": [
+      {
+        "files": [
+          "index.html"
+        ]
+      },
       {
         "files": [
           "**/images/**"
