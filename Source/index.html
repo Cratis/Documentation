@@ -167,8 +167,11 @@ html, body { margin: 0; padding: 0; background: #090b16; }
 
 .cratis-steps {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 20px;
+}
+.cratis-step-card--run {
+    grid-column: 1 / -1;
 }
 .cratis-step-card {
     background: var(--bg-3);
@@ -532,6 +535,10 @@ html, body { margin: 0; padding: 0; background: #090b16; }
     .cratis-steps {
         grid-template-columns: 1fr;
     }
+
+    .cratis-step-card--run {
+        grid-column: auto;
+    }
 }
 
 @media (max-width: 768px) {
@@ -797,7 +804,7 @@ html, body { margin: 0; padding: 0; background: #090b16; }
 <div id="getting-started" class="cratis-getting-started">
     <div class="cratis-section-content">
     <div class="cratis-section-header">
-        <h2>&#x1F6E0;&#xFE0F; Get started in two steps</h2>
+        <h2>&#x1F6E0;&#xFE0F; Get started in 3 steps</h2>
         <p>Install the .NET templates and spin up your first Cratis application in minutes.</p>
     </div>
     <div class="cratis-steps">
@@ -818,9 +825,22 @@ html, body { margin: 0; padding: 0; background: #090b16; }
                 <span class="cmd-dollar">$</span>dotnet new cratis -n MyApp --allow-scripts Yes
                 <button class="cratis-copy-btn" onclick="cratissCopy('dotnet new cratis -n MyApp --allow-scripts Yes', this)">Copy</button>
             </div>
+        </div>
+        <div class="cratis-step-card cratis-step-card--run">
+            <div class="step-badge">3</div>
+            <h3>Run</h3>
+            <p>Start supporting services, then run backend and frontend from your new app folder.</p>
             <div class="cratis-code">
-                <span class="cmd-dollar">$</span>cd MyApp &amp;&amp; docker compose up -d &amp;&amp; dotnet run &amp;&amp; yarn dev
-                <button class="cratis-copy-btn" onclick="cratissCopy('cd MyApp &amp;&amp; docker compose up -d &amp;&amp; dotnet run &amp;&amp; yarn dev', this)">Copy</button>
+                <span class="cmd-dollar">$</span>cd MyApp &amp;&amp; docker compose up -d
+                <button class="cratis-copy-btn" onclick="cratissCopy('cd MyApp &amp;&amp; docker compose up -d', this)">Copy</button>
+            </div>
+            <div class="cratis-code">
+                <span class="cmd-dollar">$</span>dotnet run
+                <button class="cratis-copy-btn" onclick="cratissCopy('dotnet run', this)">Copy</button>
+            </div>
+            <div class="cratis-code">
+                <span class="cmd-dollar">$</span>yarn dev
+                <button class="cratis-copy-btn" onclick="cratissCopy('yarn dev', this)">Copy</button>
             </div>
         </div>
     </div>
