@@ -62,15 +62,9 @@
 }
 
 /* ---- Always hide the dark/light mode toggle button ---- */
-button[onclick*="toggleTheme"],
-.theme-switch,
-.btn-theme,
-[data-bs-toggle*="theme"],
-[title*="dark mode"],
-[title*="light mode"],
-[aria-label*="dark mode"],
-[aria-label*="light mode"],
-[aria-label*="Switch to"] {
+/* The docfx modern template renders: <div class='dropdown'><a title='Change theme' ...> */
+a.btn[title="Change theme"],
+.dropdown:has(a.btn[title="Change theme"]) {
   display: none !important;
 }
 
