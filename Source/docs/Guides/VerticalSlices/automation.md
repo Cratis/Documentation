@@ -159,17 +159,17 @@ public class ReservationExpiryReactor(
 
 ### What is happening here?
 
-**`[Passive]`** on `PendingReservation` is important. This projection exists only to support decisions inside `CancelExpiredReservation.Handle()` — it is not intended to be queried by the frontend. `[Passive]` means Chronicle will not proactively observe and replay the projection; it is computed on demand when the command asks for it.
+**`[Passive]`** on `PendingReservation` is important. This projection exists only to support decisions inside `CancelExpiredReservation.Handle()` — it is not intended to be queried by the frontend. `[Passive]` means [Chronicle](/docs/Chronicle/) will not proactively observe and replay the [projection](/docs/Chronicle/projections/); it is computed on demand when the command asks for it.
 
-**`PendingReservationProjection`** uses the fluent `IProjectionFor<T>` interface here instead of attribute convention, because the projection has a `.RemovedWith<T>()` rule: when the book is borrowed or the reservation is already cancelled, the document is removed from the collection. Attribute-based mapping can express `[RemovedWith<T>]` too — the fluent form is shown here to illustrate the alternative.
+**`PendingReservationProjection`** uses the fluent [`IProjectionFor<T>`](/docs/Chronicle/projections/) interface here instead of attribute convention, because the projection has a `.RemovedWith<T>()` rule: when the book is borrowed or the reservation is already cancelled, the document is removed from the collection. Attribute-based mapping can express `[RemovedWith<T>]` too — the fluent form is shown here to illustrate the alternative.
 
-**`CancelExpiredReservation.Handle(PendingReservation? reservation)`** demonstrates the **Dynamic Consistency Boundary (DCB)** pattern. When the command pipeline receives this command, it first resolves the `PendingReservation` for the given `ReservationId` — the `[Passive]` projection is computed from the event log at that moment — and injects it as a parameter into `Handle()`. If the reservation does not exist or has not yet expired, `Handle()` returns `null` (no event). Otherwise it returns `ReservationExpired`.
+**`CancelExpiredReservation.Handle(PendingReservation? reservation)`** demonstrates the **[Dynamic Consistency Boundary (DCB)](/docs/Chronicle/dynamic-consistency-boundary/)** pattern. When the [command pipeline](/docs/Arc/backend/commands/command-pipeline/) receives this command, it first resolves the `PendingReservation` for the given `ReservationId` — the `[Passive]` projection is computed from the event log at that moment — and injects it as a parameter into `Handle()`. If the reservation does not exist or has not yet expired, `Handle()` returns `null` (no event). Otherwise it returns `ReservationExpired`.
 
 This is a critical design: the command is the consistency boundary. It reads the current state **at the moment of execution**, decides whether to act, and either produces an event or does nothing. No stale state, no race conditions from separate read/check/write steps.
 
-**`IReactor`** is a marker interface. Chronicle discovers reactor methods by their first parameter type. `HandleBookReserved` is called every time a `BookReserved` event is appended to any event source. `EventContext` provides metadata like the event source ID, the sequence number, and the timestamp.
+**[`IReactor`](/docs/Chronicle/reactors/)** is a marker interface. [Chronicle](/docs/Chronicle/) discovers reactor methods by their first parameter type. `HandleBookReserved` is called every time a `BookReserved` event is appended to any event source. `EventContext` provides metadata like the event source ID, the sequence number, and the timestamp.
 
-**`ICommandPipeline`** is constructor-injected. The reactor calls `commandPipeline.Execute(new CancelExpiredReservation(...))` to trigger the cancellation command — going back through the full command pipeline, including validation.
+**[`ICommandPipeline`](/docs/Arc/backend/commands/command-pipeline/)** is constructor-injected. The reactor calls `commandPipeline.Execute(new CancelExpiredReservation(...))` to trigger the cancellation command — going back through the full [Arc](/docs/Arc/) command pipeline, including validation.
 
 ---
 
@@ -207,11 +207,11 @@ Design your reactor methods to be safe:
 
 | Layer | Artifact | Technology |
 | ----- | -------- | ---------- |
-| Read model (internal) | `PendingReservation` with `[Passive]` | Chronicle projection |
-| Cancellation event | `ReservationExpired` | Chronicle `[EventType]` |
-| Command + DCB rule | `CancelExpiredReservation` | Arc `[Command]` + `Handle(ReadModel?)` |
-| Automation driver | `ReservationExpiryReactor` | Chronicle `IReactor` |
-| Command execution | `ICommandPipeline.Execute(...)` | Arc command pipeline |
+| Read model (internal) | `PendingReservation` with `[Passive]` | [Chronicle](/docs/Chronicle/) [projection](/docs/Chronicle/projections/) |
+| Cancellation event | `ReservationExpired` | [Chronicle](/docs/Chronicle/) [`[EventType]`](/docs/Chronicle/events/) |
+| Command + DCB rule | `CancelExpiredReservation` | [Arc](/docs/Arc/) [`[Command]`](/docs/Arc/backend/commands/model-bound/) + `Handle(ReadModel?)` |
+| Automation driver | `ReservationExpiryReactor` | [Chronicle](/docs/Chronicle/) [`IReactor`](/docs/Chronicle/reactors/) |
+| Command execution | `ICommandPipeline.Execute(...)` | [Arc](/docs/Arc/) [command pipeline](/docs/Arc/backend/commands/command-pipeline/) |
 
 No scheduled tasks. No database polling. No message queue workers. The event log is the engine; the reactor is the wiring. Every cancellation is an event — auditable, replayable, and traceable.
 

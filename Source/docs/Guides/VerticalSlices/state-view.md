@@ -75,15 +75,15 @@ public record Author(
 
 ### What is happening here?
 
-**`[ReadModel]`** registers the record with Chronicle as a MongoDB-backed projection target. Chronicle automatically creates and maintains the collection. You never write a MongoDB query to update it — Chronicle does that from the event stream.
+**[`[ReadModel]`](/docs/Chronicle/read-models/)** registers the record with [Chronicle](/docs/Chronicle/) as a MongoDB-backed projection target. Chronicle automatically creates and maintains the collection. You never write a MongoDB query to update it — Chronicle does that from the event stream.
 
-**`[FromEvent<AuthorRegistered>]`** is a projection shorthand: *"when an `AuthorRegistered` event is appended, map its properties to this read model using convention."* Chronicle matches properties by name. `FirstName` on the event maps to `FirstName` on the read model, `LastName` to `LastName`. No explicit mapping code needed.
+**[`[FromEvent<AuthorRegistered>]`](/docs/Chronicle/projections/)** is a projection shorthand: *“when an `AuthorRegistered` event is appended, map its properties to this read model using convention.”* Chronicle matches properties by name. `FirstName` on the event maps to `FirstName` on the read model, `LastName` to `LastName`. No explicit mapping code needed.
 
 **`[Key]`** on `AuthorId` tells Chronicle which property is the read model's primary key, and how to correlate events to read model instances. Because `RegisterAuthor.Handle()` returns an `AuthorId` as the event source identity, Chronicle stores the `AuthorRegistered` event under that ID — and the projection updates the `Author` document with the same ID.
 
-**`AllAuthors`** is a static query method. Method parameters are automatically resolved from DI — `IMongoCollection<Author>` is provided because the type is a `[ReadModel]`. The return type `ISubject<IEnumerable<Author>>` is a reactive observable: the frontend receives the current list immediately, and then receives a new emission whenever any document in the collection changes. No polling. No WebSockets to configure manually.
+**`AllAuthors`** is a static query method. Method parameters are automatically resolved from DI — `IMongoCollection<Author>` is provided because the type is a `[ReadModel]`. The return type `ISubject<IEnumerable<Author>>` is a reactive [observable query](/docs/Arc/backend/queries/): the frontend receives the current list immediately, and then receives a new emission whenever any document in the collection changes. No polling. No WebSockets to configure manually.
 
-> **Run `dotnet build`** after saving `Listing.cs`. This generates the `AllAuthors.ts` query proxy and the `Author.ts` model type used by the frontend component.
+> **Run `dotnet build`** after saving `Listing.cs`. This generates the `AllAuthors.ts` query proxy and the `Author.ts` model type via [Arc's proxy generation](/docs/Arc/backend/proxy-generation/) used by the frontend component.
 
 ---
 
@@ -121,6 +121,7 @@ AutoMap is on by default. `.From<AuthorRegistered>()` alone is enough when names
 ```tsx
 // Features/Authors/Listing/Listing.tsx
 import { useState } from 'react';
+import { useDialog } from '@cratis/arc.react/dialogs';
 import { Column } from 'primereact/column';
 import { DataPage, MenuItem, MenuItems, Columns } from '@cratis/components';
 import { AllAuthors } from './queries/AllAuthors';
@@ -128,7 +129,7 @@ import { AddAuthor } from '../Registration/AddAuthor';
 import type { Author } from './queries/Author';
 
 export const Listing = () => {
-    const [addVisible, setAddVisible] = useState(false);
+    const [AddAuthorDialog, showAddAuthor] = useDialog(AddAuthor);
     const [selected, setSelected] = useState<Author | undefined>(undefined);
 
     return (
@@ -144,7 +145,7 @@ export const Listing = () => {
                     <MenuItem
                         label="Add Author"
                         icon="pi pi-plus"
-                        command={() => setAddVisible(true)}
+                        command={() => showAddAuthor()}
                     />
                 </MenuItems>
 
@@ -154,10 +155,7 @@ export const Listing = () => {
                 </Columns>
             </DataPage>
 
-            <AddAuthor
-                visible={addVisible}
-                onClose={() => setAddVisible(false)}
-            />
+            <AddAuthorDialog />
         </>
     );
 };
@@ -165,9 +163,11 @@ export const Listing = () => {
 
 ### What is happening here?
 
-**`AllAuthors`** is the generated query proxy — an `IObservableQueryFor<Author[]>` implementation. `DataPage` calls it once, subscribes to its observable, and re-renders whenever the backend pushes a new list. If another user registers an author in another browser tab, this list updates without any manual refresh.
+**`AllAuthors`** is the generated query proxy — an `IObservableQueryFor<Author[]>` implementation. [`DataPage`](/docs/Components/DataPage/) calls it once, subscribes to its observable, and re-renders whenever the backend pushes a new list. If another user registers an author in another browser tab, this list updates without any manual refresh.
 
-**`DataPage`** from `@cratis/components` provides the complete page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. You declare columns as children using PrimeReact's `Column` and the component does everything else.
+**[`DataPage`](/docs/Components/DataPage/)** from `@cratis/components` provides the complete page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. You declare columns as children using PrimeReact's `Column` and the component does everything else.
+
+**`useDialog(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/docs/Arc/frontend/react/) returns a tuple: `AddAuthorDialog` is a wrapper component that you render in JSX, and `showAddAuthor` is a function that opens the dialog. The dialog manages its own visibility internally — no `useState` for `visible`/`setVisible`. When the user confirms, the [`CommandDialog`](/docs/Components/CommandDialog/) inside `AddAuthor` executes the command automatically.
 
 **`MenuItem`** in the `MenuItems` slot adds an action to the toolbar. Using `disableOnUnselected={true}` would grey the item out until the user selects a row — useful for edit and delete actions.
 
@@ -209,10 +209,10 @@ import { Authors } from './Features/Authors/Authors';
 
 | Layer | Artifact | Technology |
 | ----- | -------- | ---------- |
-| Read model | `Author` record | Chronicle `[ReadModel]` + `[FromEvent<T>]` |
-| Query | `AllAuthors` static method | Chronicle `ISubject<IEnumerable<T>>` |
-| Generated proxy | `AllAuthors.ts` | Arc proxy generation |
-| Listing page | `Listing.tsx` | `@cratis/components` `DataPage` |
+| Read model | `Author` record | [Chronicle](/docs/Chronicle/) [`[ReadModel]`](/docs/Chronicle/read-models/) + [`[FromEvent<T>]`](/docs/Chronicle/projections/) |
+| Query | `AllAuthors` static method | [Chronicle](/docs/Chronicle/) `ISubject<IEnumerable<T>>` |
+| Generated proxy | `AllAuthors.ts` | [Arc proxy generation](/docs/Arc/backend/proxy-generation/) |
+| Listing page | `Listing.tsx` | [`@cratis/components`](/docs/Components/) [`DataPage`](/docs/Components/DataPage/) |
 
 The read model and its query fit in one record. The projection is zero-configuration convention mapping. The frontend subscribes to a live stream, not a static snapshot. The UI automatically reflects every state change appended anywhere in the system — including changes from the [Register Author](./state-change.md) slice.
 

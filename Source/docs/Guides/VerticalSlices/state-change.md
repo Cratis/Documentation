@@ -49,7 +49,7 @@ One folder. One `.cs` file for all backend artefacts. One `.tsx` file for the UI
 
 ## Step 1 — Concepts
 
-Before writing the command, introduce strongly-typed value objects using `ConceptAs<T>`. Raw strings and `Guid`s have no domain meaning; `AuthorName` and `AuthorId` do.
+Before writing the command, introduce strongly-typed value objects using [`ConceptAs<T>`](/docs/Fundamentals/). Raw strings and `Guid`s have no domain meaning; `AuthorName` and `AuthorId` do.
 
 ```csharp
 // Features/Authors/AuthorId.cs
@@ -135,15 +135,15 @@ public record RegisterAuthor(AuthorName FirstName, AuthorName LastName)
 
 ### What is happening here?
 
-**`[EventType]`** marks the record as a Chronicle event. The framework uses the type name as the event identifier — no GUID argument, no string argument. Every property is an immutable fact; there are no nullable fields. If first name and last name are both required, the event proves it.
+**[`[EventType]`](/docs/Chronicle/events/)** marks the record as a [Chronicle](/docs/Chronicle/) event. The framework uses the type name as the event identifier — no GUID argument, no string argument. Every property is an immutable fact; there are no nullable fields. If first name and last name are both required, the event proves it.
 
-**`CommandValidator<T>`** extends FluentValidation. It runs automatically before `Handle()` is ever called. If any rule fails the command pipeline short-circuits and returns validation errors to the caller — no exception throwing required.
+**[`CommandValidator<T>`](/docs/Arc/backend/commands/command-validation/)** extends FluentValidation. It runs automatically before `Handle()` is ever called. If any rule fails the [command pipeline](/docs/Arc/backend/commands/command-pipeline/) short-circuits and returns validation errors to the caller — no exception throwing required.
 
-**`IConstraint`** is a Chronicle-level uniqueness guard that spans across all event sources (i.e. all authors). It observes every `AuthorRegistered` event and builds an index of `"FirstName LastName"` values. If the combination already exists the command is rejected before `Handle()` runs.
+**[`IConstraint`](/docs/Chronicle/constraints/)** is a [Chronicle](/docs/Chronicle/)-level uniqueness guard that spans across all event sources (i.e. all authors). It observes every `AuthorRegistered` event and builds an index of `"FirstName LastName"` values. If the combination already exists the command is rejected before `Handle()` runs.
 
-**`[Command]` with `Handle()`** is the Arc model-bound command pattern. The return value is a tuple: the first element (`AuthorId`) becomes the `CommandResult.Response` value that the frontend receives; the second element (`AuthorRegistered`) is the Chronicle event to append. The framework resolves the event source ID from the `AuthorId` return value automatically.
+**[`[Command]` with `Handle()`](/docs/Arc/backend/commands/model-bound/)** is the [Arc](/docs/Arc/) model-bound command pattern. The return value is a tuple: the first element (`AuthorId`) becomes the `CommandResult.Response` value that the frontend receives; the second element (`AuthorRegistered`) is the [Chronicle](/docs/Chronicle/) event to append. The framework resolves the event source ID from the `AuthorId` return value automatically.
 
-> **Build before writing frontend code.** Run `dotnet build` after saving `Registration.cs`. This generates a TypeScript proxy (`RegisterAuthor.ts`) in your frontend project — without it, the React component has nothing to import.
+> **Build before writing frontend code.** Run `dotnet build` after saving `Registration.cs`. This generates a TypeScript proxy (`RegisterAuthor.ts`) via [Arc's proxy generation](/docs/Arc/backend/proxy-generation/) in your frontend project — without it, the React component has nothing to import.
 
 ---
 
@@ -153,45 +153,43 @@ With the proxy generated, the frontend component is straightforward.
 
 ```tsx
 // Features/Authors/Registration/AddAuthor.tsx
-import { useState } from 'react';
-import { CommandDialog } from '@cratis/components';
+import { DialogProps } from '@cratis/arc.react/dialogs';
+import { CommandDialog } from '@cratis/components/CommandDialog';
+import { InputTextField } from '@cratis/components/CommandForm';
 import { RegisterAuthor } from './commands/RegisterAuthor';
 
-export const AddAuthor = () => {
-    const [visible, setVisible] = useState(false);
-
+export const AddAuthor = ({ closeDialog }: DialogProps) => {
     return (
-        <>
-            <button
-                className="p-button p-button-primary"
-                onClick={() => setVisible(true)}
-            >
-                Add Author
-            </button>
-
-            <CommandDialog
-                command={RegisterAuthor}
-                visible={visible}
-                header="Register Author"
-                confirmLabel="Register"
-                onConfirm={() => setVisible(false)}
-                onCancel={() => setVisible(false)}
+        <CommandDialog<RegisterAuthor>
+            command={RegisterAuthor}
+            title="Register Author"
+            okLabel="Register"
+        >
+            <InputTextField<RegisterAuthor>
+                value={instance => instance.firstName}
+                title="First name"
             />
-        </>
+            <InputTextField<RegisterAuthor>
+                value={instance => instance.lastName}
+                title="Last name"
+            />
+        </CommandDialog>
     );
 };
 ```
 
-`CommandDialog` from `@cratis/components` does the heavy lifting:
+The dialog component receives `closeDialog` from [`DialogProps`](/docs/Components/Dialogs/) — it does not manage its own visibility. A parent component (like the listing page) uses the [`useDialog`](/docs/Arc/frontend/react/) hook to show and hide this dialog.
+
+[`CommandDialog`](/docs/Components/CommandDialog/) from `@cratis/components` does the heavy lifting:
 
 - It reads the `RegisterAuthor` proxy to know what fields exist
-- It renders a form with the correct input types and labels
+- [`InputTextField`](/docs/Components/CommandForm/) renders typed form fields bound to command properties
 - It runs the frontend-side validation defined in the proxy
-- It calls the Arc command pipeline when the user confirms
+- It calls the [Arc command pipeline](/docs/Arc/backend/commands/command-pipeline/) when the user confirms
 - It surfaces any backend validation errors directly in the form
 - It gives the user a success or error response without you writing any `fetch` calls
 
-The `onConfirm` callback receives a `CommandResult` — if the result is successful you can read `result.response` to get the `AuthorId` that the backend returned.
+The parent awaits the result with `const [result] = await showAddAuthor()` — if the dialog confirms successfully, the command has already executed.
 
 ---
 
@@ -243,11 +241,11 @@ These specs run against Chronicle's in-memory test harness — no Docker, no Mon
 
 | Layer | Artifact | Technology |
 | ----- | -------- | ---------- |
-| Domain event | `AuthorRegistered` | Chronicle `[EventType]` |
-| Command + handler | `RegisterAuthor` with `Handle()` | Arc `[Command]` model-bound |
-| Input validation | `RegisterAuthorValidator` | Arc `CommandValidator<T>` + FluentValidation |
-| Uniqueness constraint | `UniqueAuthorName` | Chronicle `IConstraint` |
-| React form | `AddAuthor.tsx` | `@cratis/components` `CommandDialog` |
+| Domain event | `AuthorRegistered` | [Chronicle](/docs/Chronicle/) [`[EventType]`](/docs/Chronicle/events/) |
+| Command + handler | `RegisterAuthor` with `Handle()` | [Arc](/docs/Arc/) [`[Command]`](/docs/Arc/backend/commands/model-bound/) model-bound |
+| Input validation | `RegisterAuthorValidator` | [Arc](/docs/Arc/) [`CommandValidator<T>`](/docs/Arc/backend/commands/command-validation/) + FluentValidation |
+| Uniqueness constraint | `UniqueAuthorName` | [Chronicle](/docs/Chronicle/) [`IConstraint`](/docs/Chronicle/constraints/) |
+| React form | `AddAuthor.tsx` | [`@cratis/components`](/docs/Components/) [`CommandDialog`](/docs/Components/CommandDialog/) |
 
 The entire write side — event, validator, constraint, command — is in one file. The frontend is one component that imports one generated proxy. Zero boilerplate. Zero glue code. The framework wires it together.
 

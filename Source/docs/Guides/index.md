@@ -2,7 +2,7 @@
 
 Guides are end-to-end tutorials that show you how to build real software using the full Cratis stack — from event-sourced backend to reactive frontend — with concrete, working examples.
 
-Rather than covering individual APIs in isolation, each guide builds a complete vertical slice of a real system. You will see how **Chronicle**, **Arc**, and **Components** fit together at every layer, and why that combination matters.
+Rather than covering individual APIs in isolation, each guide builds a complete vertical slice of a real system. You will see how **[Chronicle](/docs/Chronicle/)**, **[Arc](/docs/Arc/)**, and **[Components](/docs/Components/)** fit together at every layer, and why that combination matters.
 
 ## What you will find here
 
