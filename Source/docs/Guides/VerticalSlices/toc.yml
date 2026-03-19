@@ -1,0 +1,10 @@
+- name: Overview
+  href: index.md
+- name: State Change — Register an Author
+  href: state-change.md
+- name: State View — List Authors
+  href: state-view.md
+- name: Automation — Cancel Expired Reservations
+  href: automation.md
+- name: Translation — Import Members from HR
+  href: translator.md
