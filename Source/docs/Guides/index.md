@@ -8,6 +8,7 @@ Rather than covering individual APIs in isolation, each guide builds a complete 
 
 | Section | Description |
 | ------- | ----------- |
+| [Camel Casing](./CamelCasing/index.md) | How to configure camel casing consistently for Chronicle projections and Arc MongoDB documents from a Cratis meta package setup. |
 | [Vertical Slices](./VerticalSlices/index.md) | Step-by-step tutorials that build an event-sourced Library system one slice at a time, following Event Modeling patterns. |
 
 ## Approach
