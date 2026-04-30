@@ -121,15 +121,16 @@ AutoMap is on by default. `.From<AuthorRegistered>()` alone is enough when names
 ```tsx
 // Features/Authors/Listing/Listing.tsx
 import { useState } from 'react';
-import { useDialog } from '@cratis/arc.react/dialogs';
+import { DialogResult, useDialog } from '@cratis/arc.react/dialogs';
+import { CommandResult } from '@cratis/arc/commands';
 import { Column } from 'primereact/column';
 import { DataPage, MenuItem, MenuItems, Columns } from '@cratis/components';
 import { AllAuthors } from './queries/AllAuthors';
-import { AddAuthor } from '../Registration/AddAuthor';
+import { AddAuthor, type RegisterAuthorResponse } from '../Registration/AddAuthor';
 import type { Author } from './queries/Author';
 
 export const Listing = () => {
-    const [AddAuthorDialog, showAddAuthor] = useDialog(AddAuthor);
+    const [AddAuthorDialog, showAddAuthor] = useDialog<CommandResult<RegisterAuthorResponse>>(AddAuthor);
     const [selected, setSelected] = useState<Author | undefined>(undefined);
 
     return (
@@ -145,7 +146,10 @@ export const Listing = () => {
                     <MenuItem
                         label="Add Author"
                         icon="pi pi-plus"
-                        command={() => showAddAuthor()}
+                        command={async () => {
+                            const [dialogResult] = await showAddAuthor();
+                            // DataPage auto-refreshes via the observable query
+                        }}
                     />
                 </MenuItems>
 
@@ -167,9 +171,9 @@ export const Listing = () => {
 
 **[`DataPage`](/docs/Components/DataPage/)** from `@cratis/components` provides the complete page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. You declare columns as children using PrimeReact's `Column` and the component does everything else.
 
-**`useDialog(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/docs/Arc/frontend/react/) returns a tuple: `AddAuthorDialog` is a wrapper component that you render in JSX, and `showAddAuthor` is a function that opens the dialog. The dialog manages its own visibility internally — no `useState` for `visible`/`setVisible`. When the user confirms, the [`CommandDialog`](/docs/Components/CommandDialog/) inside `AddAuthor` executes the command automatically.
+**`useDialog<CommandResult<RegisterAuthorResponse>>(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/docs/Arc/frontend/react/) returns a tuple: `AddAuthorDialog` is a wrapper component that you render in JSX, and `showAddAuthor` is an async function that opens the dialog and returns `[dialogResult, commandResult]` when it closes. The type parameter `CommandResult<RegisterAuthorResponse>` flows end-to-end — the dialog uses `useDialogContext` with the same type, so close-data is fully typed.
 
-**`MenuItem`** in the `MenuItems` slot adds an action to the toolbar. Using `disableOnUnselected={true}` would grey the item out until the user selects a row — useful for edit and delete actions.
+**`MenuItem`** in the `MenuItems` slot adds an action to the toolbar. The `command` handler `await`s the dialog — you can inspect the result if needed, but since `DataPage` subscribes to the observable query, the list updates automatically after a successful registration.
 
 The `AddAuthor` component is imported from the Registration slice — slices within the same feature compose naturally because they share the `AuthorId` and `AuthorName` concepts from the parent folder.
 

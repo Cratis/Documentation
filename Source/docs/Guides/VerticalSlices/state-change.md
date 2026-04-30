@@ -153,17 +153,26 @@ With the proxy generated, the frontend component is straightforward.
 
 ```tsx
 // Features/Authors/Registration/AddAuthor.tsx
-import { DialogProps } from '@cratis/arc.react/dialogs';
+import { DialogResult, useDialogContext } from '@cratis/arc.react/dialogs';
+import { CommandResult } from '@cratis/arc/commands';
 import { CommandDialog } from '@cratis/components/CommandDialog';
 import { InputTextField } from '@cratis/components/CommandForm';
 import { RegisterAuthor } from './commands/RegisterAuthor';
 
-export const AddAuthor = ({ closeDialog }: DialogProps) => {
+type RegisterAuthorResponse = {
+    authorId: string;
+};
+
+export const AddAuthor = () => {
+    const { closeDialog } = useDialogContext<CommandResult<RegisterAuthorResponse>>();
+
     return (
         <CommandDialog<RegisterAuthor>
             command={RegisterAuthor}
             title="Register Author"
             okLabel="Register"
+            onConfirm={async () => closeDialog(DialogResult.Ok)}
+            onCancel={() => closeDialog(DialogResult.Cancelled)}
         >
             <InputTextField<RegisterAuthor>
                 value={instance => instance.firstName}
@@ -178,7 +187,7 @@ export const AddAuthor = ({ closeDialog }: DialogProps) => {
 };
 ```
 
-The dialog component receives `closeDialog` from [`DialogProps`](/docs/Components/Dialogs/) — it does not manage its own visibility. A parent component (like the listing page) uses the [`useDialog`](/docs/Arc/frontend/react/) hook to show and hide this dialog.
+The dialog component uses `useDialogContext` from [`@cratis/arc.react/dialogs`](/docs/Arc/frontend/react/) to get the `closeDialog` function. It does not receive props for visibility — all dialog lifecycle is managed by the framework. A parent component uses the [`useDialog`](/docs/Arc/frontend/react/) hook to show and await this dialog.
 
 [`CommandDialog`](/docs/Components/CommandDialog/) from `@cratis/components` does the heavy lifting:
 
@@ -186,10 +195,22 @@ The dialog component receives `closeDialog` from [`DialogProps`](/docs/Component
 - [`InputTextField`](/docs/Components/CommandForm/) renders typed form fields bound to command properties
 - It runs the frontend-side validation defined in the proxy
 - It calls the [Arc command pipeline](/docs/Arc/backend/commands/command-pipeline/) when the user confirms
+- `onConfirm` fires only after command execution succeeds
 - It surfaces any backend validation errors directly in the form
 - It gives the user a success or error response without you writing any `fetch` calls
 
-The parent awaits the result with `const [result] = await showAddAuthor()` — if the dialog confirms successfully, the command has already executed.
+The parent awaits the result:
+
+```tsx
+const [AddAuthorDialog, showAddAuthor] = useDialog<CommandResult<RegisterAuthorResponse>>(AddAuthor);
+
+const handleAdd = async () => {
+    const [dialogResult, commandResult] = await showAddAuthor();
+    if (dialogResult === DialogResult.Ok && commandResult?.isSuccess) {
+        // The author was registered; commandResult.response.authorId is available
+    }
+};
+```
 
 ---
 
