@@ -4,7 +4,7 @@ These guides build a real-time multi-room chat application using Arc's [observab
 
 ---
 
-## The Three Guides
+## The Four Guides
 
 ### [In-Memory](./in-memory.md)
 
@@ -34,16 +34,27 @@ Covers:
 - Appending `ChangeSet.added` items to local state
 - Deriving secondary state from the delta: scroll-to-bottom logic and an unread message counter
 
+### [Incremental Pushes](./incremental-pushes.md)
+
+The backend changes fundamentally. `ChatRoom` becomes a pure pub/sub channel with no history — a plain `Subject` that fires only new messages. `ChatService` owns the history. The `ForRoom` query uses a `ReplaySubject(1)` to emit the full history once as the initial payload, then forwards each new message individually. The network payload per message stays constant regardless of conversation length.
+
+Covers:
+- Separating pub/sub (`ChatRoom`) from history (`ChatService`)
+- Why `ReplaySubject(1)` is needed when the first payload is emitted before Arc subscribes
+- Why `use()` — not `useChangeStream()` — is correct when the backend sends incremental payloads
+- A `useEffect` accumulator that appends both the initial history and each new arrival
+
 ---
 
-## What All Three Share
+## What All Four Share
 
-The `ISubject<IEnumerable<ChatMessage>>` return type on `ForRoom` is the contract between the query method and the Arc framework. It does not change regardless of whether the data comes from an in-memory service, a RabbitMQ consumer, or any other source. The generated TypeScript proxy and the React component are identical across all three backends.
+The `ISubject<IEnumerable<ChatMessage>>` return type on `ForRoom` is the contract between the query method and the Arc framework. It does not change regardless of how the backend sources or stages its data. The generated TypeScript proxy is identical across all four guides.
 
-| | In-Memory | RabbitMQ | Frontend State |
-| - | --------- | -------- | -------------- |
-| Backend data source | `BehaviorSubject` | RabbitMQ + persistence | Same as in-memory |
-| Observable query | Identical | Identical | Identical |
-| Generated proxy | Identical | Identical | Identical |
-| React hook | `use()` | `use()` | `useChangeStream()` |
-| Component manages local state | No | No | Yes |
+| | In-Memory | RabbitMQ | Frontend State | Incremental Pushes |
+| - | --------- | -------- | -------------- | ------------------ |
+| Backend emits | Full history | Full history | Full history | History once, then single messages |
+| History lives in | `ChatRoom` | `ChatRoom` | `ChatRoom` | `ChatService` |
+| Relay type | `BehaviorSubject` | `BehaviorSubject` | `BehaviorSubject` | `ReplaySubject(1)` |
+| Network per message | Grows | Grows | Grows | Constant |
+| React hook | `use()` | `use()` | `useChangeStream()` | `use()` |
+| Component accumulates | No | No | Yes — via `added` | Yes — via `data` |

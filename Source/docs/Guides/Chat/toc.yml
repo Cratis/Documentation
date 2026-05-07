@@ -6,3 +6,5 @@
   href: rabbitmq.md
 - name: Frontend-Managed State
   href: change-stream.md
+- name: Incremental Pushes
+  href: incremental-pushes.md
