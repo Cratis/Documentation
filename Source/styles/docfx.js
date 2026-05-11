@@ -1035,7 +1035,7 @@ $(function () {
         return;
       }
       try {
-        window.localStorage.setItem(tabsStorageKey, state.selectedTabs.join());
+        window.localStorage.setItem(tabsStorageKey, state.selectedTabs.join(','));
       }
       catch (_a) {
       }

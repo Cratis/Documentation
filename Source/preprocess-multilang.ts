@@ -85,16 +85,18 @@ await Promise.all(markdownFiles.map(async file => {
     const content = await fs.promises.readFile(file, 'utf-8');
     let replaced = false;
 
-    const updatedContent = content.replace(multilangRegex, (match, title, offset, _fullContent) => {
+    const updatedContent = content.replace(multilangRegex, (match, title, offset) => {
         const beforeMatch = content.substring(0, offset);
-
-        const backticksBefore = (beforeMatch.match(/`/g) || []).length;
-        if (backticksBefore % 2 !== 0) {
-            return match;
-        }
 
         const codeBlocksBefore = (beforeMatch.match(/```/g) || []).length;
         if (codeBlocksBefore % 2 !== 0) {
+            return match;
+        }
+
+        const closedCodeBlocksRegex = /```[\s\S]*?```/g;
+        const beforeMatchWithoutCodeBlocks = beforeMatch.replace(closedCodeBlocksRegex, '');
+        const backticksBefore = (beforeMatchWithoutCodeBlocks.match(/`/g) || []).length;
+        if (backticksBefore % 2 !== 0) {
             return match;
         }
 
