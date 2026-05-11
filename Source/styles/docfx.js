@@ -794,6 +794,7 @@ $(function () {
       name: 'data-bi-name',
       type: 'data-bi-type'
     };
+    var tabsStorageKey = 'docfx-selected-tabs';
 
     var Tab = (function () {
       function Tab(li, a, section) {
@@ -855,8 +856,10 @@ $(function () {
 
     function initTabs(container) {
       var queryStringTabs = readTabsQueryStringParam();
+      var savedTabs = readTabsFromLocalStorage();
+      var initialTabs = queryStringTabs.length > 0 ? queryStringTabs : savedTabs;
       var elements = container.querySelectorAll('.tabGroup');
-      var state = { groups: [], selectedTabs: [] };
+      var state = { groups: [], selectedTabs: initialTabs.slice() };
       for (var i = 0; i < elements.length; i++) {
         var group = initTabGroup(elements.item(i));
         if (!group.independent) {
@@ -868,8 +871,9 @@ $(function () {
       if (state.groups.length === 0) {
         return state;
       }
-      selectTabs(queryStringTabs, container);
+      selectTabs(initialTabs, container);
       updateTabsQueryStringParam(state);
+      updateTabsLocalStorage(state);
       notifyContentUpdated();
       return state;
     }
@@ -970,6 +974,7 @@ $(function () {
           updateVisibilityAndSelection(group_1, state);
         }
         updateTabsQueryStringParam(state);
+        updateTabsLocalStorage(state);
       }
       notifyContentUpdated();
       var top = info.anchor.getBoundingClientRect().top;
@@ -1006,6 +1011,34 @@ $(function () {
         return;
       }
       history.replaceState({}, document.title, url);
+    }
+
+    function readTabsFromLocalStorage() {
+      if (!window.localStorage) {
+        return [];
+      }
+      var tabs;
+      try {
+        tabs = window.localStorage.getItem(tabsStorageKey);
+      }
+      catch (_a) {
+        return [];
+      }
+      if (tabs === null || tabs === '') {
+        return [];
+      }
+      return tabs.split(',');
+    }
+
+    function updateTabsLocalStorage(state) {
+      if (!window.localStorage) {
+        return;
+      }
+      try {
+        window.localStorage.setItem(tabsStorageKey, state.selectedTabs.join());
+      }
+      catch (_a) {
+      }
     }
 
     function toQueryString(args) {
