@@ -85,7 +85,7 @@ await Promise.all(markdownFiles.map(async file => {
     const content = await fs.promises.readFile(file, 'utf-8');
     let replaced = false;
 
-    const updatedContent = content.replace(multilangRegex, (match, title, offset) => {
+    const updatedContent = content.replace(multilangRegex, (match, title, offset, _fullContent) => {
         const beforeMatch = content.substring(0, offset);
 
         const backticksBefore = (beforeMatch.match(/`/g) || []).length;
@@ -101,8 +101,7 @@ await Promise.all(markdownFiles.map(async file => {
         const tabs = buildMultilangTabs(file, title);
         if (tabs === '') {
             console.warn(`No multilang snippets found for '${title}' in ${file}`);
-            replaced = true;
-            return '';
+            return match;
         }
 
         replaced = true;
