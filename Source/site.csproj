@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <Target Name="BuildApiDependencies">
+        <Exec Command="dotnet build ../Arc/Source/DotNET/Arc/Arc.csproj -c $(Configuration) -p:TargetFramework=net10.0" />
         <Exec Command="dotnet build ../Arc/Source/DotNET/MongoDB/MongoDB.csproj -c $(Configuration)" />   
     </Target>
 
