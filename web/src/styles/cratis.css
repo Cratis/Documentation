@@ -265,8 +265,8 @@
 
 @media (min-width: 72rem) {
     :root {
-        /* Slim ToC band — scales gently with viewport but never bloats. */
-        --cratis-toc-width: clamp(12rem, 14vw, 15.5rem);
+        /* Roomy-but-not-bloated ToC band — a touch wider, closer to aspire.dev. */
+        --cratis-toc-width: clamp(14rem, 17vw, 18rem);
     }
 
     .right-sidebar-container {
