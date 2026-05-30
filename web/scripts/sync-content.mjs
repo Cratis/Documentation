@@ -301,9 +301,12 @@ async function walk(srcDir, outDir, relRoot) {
                 dir: srcDir,
                 basename: entry.name,
             });
-            let outName = entry.name.replace(/\.mdx$/, '.md');
+            // Keep the source extension: `.md` stays Markdown, `.mdx` stays MDX so
+            // authored getting-started pages can use Starlight components (<Steps>,
+            // <Tabs>, <Aside>, <FileTree>). The converter's transforms are safe on MDX.
+            let outName = entry.name;
             if (demoteIndex && /^index\.mdx?$/i.test(entry.name)) {
-                outName = 'overview.md';
+                outName = ext === '.mdx' ? 'overview.mdx' : 'overview.md';
             }
             await fs.writeFile(path.join(outDir, outName), converted, 'utf8');
         } else if (ASSET_EXT.has(ext)) {
@@ -342,8 +345,8 @@ async function collectSlugs(dirAbs, slugBase, set) {
     for (const e of entries) {
         if (e.isDirectory()) {
             await collectSlugs(path.join(dirAbs, e.name), slugify(path.posix.join(slugBase, e.name)), set);
-        } else if (e.name.endsWith('.md')) {
-            const base = e.name.replace(/\.md$/, '');
+        } else if (e.name.endsWith('.md') || e.name.endsWith('.mdx')) {
+            const base = e.name.replace(/\.mdx?$/, '');
             set.add(base === 'index' ? slugify(slugBase) : slugify(path.posix.join(slugBase, base)));
         }
     }
@@ -375,8 +378,8 @@ async function entryToItem(e, dirAbs, slugBase) {
     // Leaf page
     if (href) {
         const clean = href.split('#')[0].split('?')[0];
-        if (!clean.endsWith('.md')) return null;
-        const rel = clean.replace(/\.md$/, '').replace(/(^|\/)index$/, '');
+        if (!/\.mdx?$/.test(clean)) return null;
+        const rel = clean.replace(/\.mdx?$/, '').replace(/(^|\/)index$/, '');
         const pageSlug = slugify(rel ? path.posix.join(slugBase, rel) : slugBase);
         if (!validSlugs.has(pageSlug)) {
             droppedSidebarEntries++;
@@ -480,7 +483,7 @@ async function countFiles(dir) {
     const entries = await fs.readdir(dir, { withFileTypes: true });
     for (const e of entries) {
         if (e.isDirectory()) n += await countFiles(path.join(dir, e.name));
-        else if (e.name.endsWith('.md')) n++;
+        else if (e.name.endsWith('.md') || e.name.endsWith('.mdx')) n++;
     }
     return n;
 }
