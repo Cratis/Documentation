@@ -1,0 +1,31 @@
+{
+  "name": "web",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "sync": "node scripts/sync-content.mjs",
+    "predev": "node scripts/sync-content.mjs",
+    "dev": "astro dev",
+    "start": "astro dev",
+    "prebuild": "node scripts/sync-content.mjs",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint:docs": "node scripts/lint-docs.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "check": "npm run build && node scripts/lint-docs.mjs && node scripts/check-links.mjs"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.39.2",
+    "@astrojs/starlight-tailwind": "^5.0.0",
+    "astro": "^6.3.1",
+    "astro-mermaid": "^2.0.1",
+    "js-yaml": "^4.1.1",
+    "mermaid": "^11.15.0",
+    "sharp": "^0.34.5",
+    "starlight-llms-txt": "^0.10.0",
+    "starlight-typedoc": "^0.23.0",
+    "typedoc": "^0.28.19",
+    "typedoc-plugin-markdown": "^4.11.0"
+  }
+}

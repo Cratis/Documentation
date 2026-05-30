@@ -1,0 +1,95 @@
+/* Cratis brand theme for Starlight.
+   NOTE: accent hues are a tasteful default — confirm the exact brand hex with the team. */
+
+:root {
+    /* Dark theme (Starlight default) */
+    --sl-color-accent-low: #14224a;
+    --sl-color-accent: #3b6fed;
+    --sl-color-accent-high: #c3d4fb;
+}
+
+:root[data-theme='light'] {
+    --sl-color-accent-low: #dbe5fd;
+    --sl-color-accent: #2150cf;
+    --sl-color-accent-high: #11244f;
+}
+
+/* --- Hero (splash front door) --- */
+.hero > .stack {
+    gap: clamp(1rem, 2vw, 1.75rem);
+}
+
+.hero h1 {
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+}
+
+.hero .tagline {
+    max-width: 48ch;
+}
+
+/* Keep the hero mark from dominating on wide screens */
+.hero img {
+    max-height: 200px;
+}
+
+/* --- Cards: subtle lift on hover for a modern feel --- */
+.card {
+    border-color: var(--sl-color-gray-5);
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+    border-color: var(--sl-color-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px -12px var(--sl-color-accent);
+}
+
+.card .icon {
+    color: var(--sl-color-accent);
+}
+
+/* --- Headings: a little tighter and more confident --- */
+.sl-markdown-content h2 {
+    letter-spacing: -0.01em;
+    margin-top: 2.5rem;
+}
+
+/* --- Comfortable reading measure for prose --- */
+.sl-markdown-content {
+    --sl-content-width: 50rem;
+}
+
+/* --- Code blocks: a hair more breathing room --- */
+.expressive-code {
+    margin-block: 1.25rem;
+}
+
+/* --- Right "On this page" table of contents: compact and unobtrusive --- */
+.right-sidebar a[href^='#'] {
+    font-size: var(--sl-text-xs);
+    line-height: 1.35;
+}
+#starlight__on-this-page {
+    font-size: var(--sl-text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--sl-color-gray-3);
+    margin-bottom: 0.5rem;
+}
+
+/* --- Left sidebar: refined category labels (less heavy-bold, more intentional) --- */
+.sidebar-content .group-label > .large {
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--sl-color-gray-2);
+}
+.sidebar-content summary {
+    padding-block: 0.3rem;
+}
+/* Calmer link rhythm in the nav */
+.sidebar-content a {
+    font-size: var(--sl-text-sm);
+}

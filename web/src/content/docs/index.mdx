@@ -1,0 +1,121 @@
+---
+title: Cratis
+description: Build event-sourced applications with Chronicle, Arc, and Components — the full-stack, type-safe Cratis platform.
+template: splash
+hero:
+  title: Event sourcing you can actually be productive with
+  tagline: Capture what happened as immutable facts, project them into exactly the read models you need, and ship a full-stack, type-safe app — C# backend to React — without the boilerplate.
+  image:
+    dark: ../../assets/cratis-mark-dark.svg
+    light: ../../assets/cratis-mark-light.svg
+  actions:
+    - text: Get started
+      link: /chronicle/get-started/
+      icon: right-arrow
+    - text: Why event sourcing?
+      link: /chronicle/why-event-sourcing/
+      variant: minimal
+      icon: open-book
+---
+
+import { Card, CardGrid, LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
+
+## One feature, one slice, both ends type-safe
+
+You write the behavior once in C#. Arc generates the TypeScript proxies. The React side can't drift — rename a property in C#, rebuild, and the frontend stops compiling until you fix it.
+
+<Tabs>
+<TabItem label="C# — the slice" icon="seti:c-sharp">
+```csharp
+// Command, event, and read model for one feature — in one file.
+[Command]
+public record RegisterAuthor(AuthorId Id, AuthorName Name)
+{
+    public AuthorRegistered Handle() => new(Name);   // returns the fact that happened
+}
+
+[EventType]
+public record AuthorRegistered(AuthorName Name);
+
+[ReadModel, FromEvent<AuthorRegistered>]
+public record Author([property: Key] AuthorId Id, AuthorName Name)
+{
+    // This static method *is* the query — exposed over HTTP automatically.
+    public static ISubject<IEnumerable<Author>> AllAuthors(IMongoCollection<Author> c) => c.Observe();
+}
+```
+</TabItem>
+<TabItem label="React — the screen" icon="seti:react">
+```tsx
+// Proxies are generated from the C# above — fully typed, always in sync.
+const [authors] = AllAuthors.use();           // live, updates as events arrive
+
+<CommandDialog command={RegisterAuthor} title="Add author">
+    <InputTextField value={i => i.name} title="Name" />
+</CommandDialog>
+```
+</TabItem>
+</Tabs>
+
+## Built on four ideas
+
+<CardGrid>
+	<Card title="Events are facts" icon="approve-check">
+		Immutable, past-tense records of what happened. Your audit trail, time-travel, and analytics come for free.
+	</Card>
+	<Card title="Full-stack type safety" icon="seti:typescript">
+		Models flow from C# through proxy generation to TypeScript — no manual sync, no DTO drift.
+	</Card>
+	<Card title="Vertical slices" icon="seti:folder">
+		Everything for one behavior — command, events, projection, UI, specs — lives together. Navigate by feature, not by layer.
+	</Card>
+	<Card title="Lovable APIs" icon="heart">
+		Convention over configuration and discovery by naming. The easy thing to do is the right thing.
+	</Card>
+</CardGrid>
+
+## Pick your starting point
+
+<CardGrid>
+	<Card title="Chronicle" icon="seti:db">
+		The event sourcing platform — events, projections, reducers, and reactors.
+		[Explore Chronicle →](/chronicle/)
+	</Card>
+	<Card title="Arc" icon="puzzle">
+		The full-stack application framework — commands, queries, and generated proxies.
+		[Explore Arc →](/arc/)
+	</Card>
+	<Card title="Components" icon="laptop">
+		The React component library — command forms, data tables, and dialogs for Cratis apps.
+		[Explore Components →](/components/)
+	</Card>
+</CardGrid>
+
+## Two ways in
+
+<CardGrid>
+	<LinkCard
+		title="New to event sourcing?"
+		description="Start with the why, then build a small system step by step. No prior event-sourcing knowledge assumed."
+		href="/chronicle/why-event-sourcing/"
+	/>
+	<LinkCard
+		title="Experienced and want the fast path?"
+		description="Scaffold a full-stack app from a template, run it, and jump into the guides — or read Why Cratis first."
+		href="/chronicle/get-started/"
+	/>
+</CardGrid>
+
+## Coming from another stack?
+
+Marten, Wolverine, and Kurrent are excellent tools. The short version of how Cratis differs: it's the only one that's **full-stack** — typed all the way to React.
+
+| | Cratis | Marten | Wolverine | Kurrent |
+|---|:---:|:---:|:---:|:---:|
+| Event sourcing | ✓ | ✓ | with Marten | ✓ |
+| CQRS commands & queries | ✓ | — | ✓ | — |
+| Built-in read-model projections | ✓ | ✓ | — | server-side JS |
+| **Full-stack typed proxies (C# → React)** | **✓** | — | — | — |
+| Primary store | MongoDB (+extensible) | PostgreSQL | any | own engine |
+
+Honest, per-tool **[comparisons and migration guides](/comparisons/)** (Marten · Wolverine · Kurrent), plus bridges from [CRUD / EF Core](/chronicle/coming-from-crud/) and [MediatR / MVC](/arc/coming-from-mediatr-and-mvc/).

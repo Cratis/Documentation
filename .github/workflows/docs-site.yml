@@ -1,0 +1,110 @@
+# Builds and deploys the new Astro Starlight documentation site (Documentation/web).
+#
+# Content lives in each product repo's `Documentation/` folder. During the docs
+# overhaul that content is on the `docs-overhaul` branch, so this workflow checks
+# each product repo out at that branch as a sibling of this repo — matching the
+# local dev layout the converter expects (scripts/sync-content.mjs).
+#
+# PREREQUISITES (one-time, manual):
+#   1. Enable GitHub Pages for this repo with "GitHub Actions" as the source.
+#   2. Add a repo/org secret `DOCS_CHECKOUT_TOKEN` (a PAT or GitHub App token) with
+#      read access to Cratis/Chronicle, Cratis/Arc, Cratis/Components and Cratis/.github.
+#      The default GITHUB_TOKEN cannot check out other private repos.
+#
+# At cutover, point the production Pages deployment at this workflow (replacing
+# the DocFX pages.yml) and switch the trigger branch to `main`.
+
+name: Documentation site
+
+on:
+  push:
+    branches: [docs-overhaul]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: docs-site
+  cancel-in-progress: true
+
+env:
+  DOCS_REF: docs-overhaul
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Documentation
+        uses: actions/checkout@v4
+        with:
+          path: Documentation
+
+      - name: Checkout Chronicle
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Chronicle
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          path: Chronicle
+
+      - name: Checkout Arc
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Arc
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          path: Arc
+
+      - name: Checkout Components
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Components
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          path: Components
+
+      - name: Checkout .github (Contributing)
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/.github
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          path: .github
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        working-directory: Documentation/web
+        run: npm ci || npm install
+
+      - name: Lint docs
+        working-directory: Documentation/web
+        run: npm run sync && npm run lint:docs
+
+      - name: Build site
+        working-directory: Documentation/web
+        run: npm run build
+
+      - name: Check internal links
+        working-directory: Documentation/web
+        run: npm run check:links
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: Documentation/web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,481 @@
+// Converts DocFX-format product documentation into Starlight-ready content.
+//
+// Source of truth stays in each product repo's `Documentation/` folder. This
+// script reads those folders and emits converted Markdown into
+// `web/src/content/docs/<product>/` (generated — gitignored). Run via the
+// `predev`/`prebuild` npm hooks, or directly:  node scripts/sync-content.mjs [product]
+//
+// First pass = mechanical conversion (frontmatter, DocFX alerts, xref, INCLUDE,
+// link fixups). Sidebar order/Diátaxis re-bucketing is layered on afterwards.
+
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import yaml from 'js-yaml';
+
+import { existsSync } from 'node:fs';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const webRoot = path.resolve(here, '..'); // Documentation/web
+const docRepoRoot = path.resolve(webRoot, '..'); // Documentation/  (submodules live here in CI)
+const reposRoot = path.resolve(webRoot, '..', '..'); // cratis/      (sibling clones live here locally)
+
+// Each product's docs can come from a sibling clone next to this repo (local dev
+// and the docs-site CI workflow, both on the docs-overhaul branch) or a git
+// submodule inside the Documentation repo (legacy layout). Prefer the sibling so
+// the in-progress docs-overhaul content wins; fall back to the submodule.
+function firstExisting(...candidates) {
+    return candidates.find((c) => existsSync(c)) ?? candidates[candidates.length - 1];
+}
+
+const PRODUCTS = [
+    {
+        key: 'chronicle', label: 'Chronicle', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Chronicle', 'Documentation'),
+            path.join(docRepoRoot, 'Chronicle', 'Documentation')),
+        buckets: [
+            { label: 'Get started', sections: ['Getting started', 'Tutorial'] },
+            {
+                label: 'Understand',
+                sections: ['Why Event Sourcing', 'Coming from CRUD and EF Core', 'Concepts', 'Architecture', 'Dynamic Consistency Boundary'],
+            },
+            {
+                label: 'Guides',
+                sections: [
+                    'Scenarios', 'Events', 'Event Seeding', 'Read Models', 'Projections', 'Reactors',
+                    'Reducers', 'Subscriptions', 'Sinks', 'Namespaces', 'Constraints', 'Migrations',
+                    'Compliance', 'Testing', 'Hosting',
+                ],
+            },
+            {
+                label: 'Reference',
+                sections: ['Configuration', 'Connection Strings', 'Code Analysis', 'Statistics', 'Troubleshooting', 'Contributing'],
+            },
+        ],
+    },
+    {
+        key: 'arc', label: 'Arc', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Arc', 'Documentation'),
+            path.join(docRepoRoot, 'Arc', 'Documentation')),
+        // Group the orientation pages; Backend/Frontend/General stay top-level.
+        buckets: [
+            { label: 'Understand', sections: ['Why Arc', 'Coming from MediatR or MVC', 'Vertical slices'] },
+        ],
+    },
+    {
+        key: 'components', label: 'Components', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Components', 'Documentation'),
+            path.join(docRepoRoot, 'Components', 'Documentation')),
+        buckets: [
+            { label: 'Get started', sections: ['Why Components', 'Getting started', 'Styling'] },
+            { label: 'Recipes', sections: ['Building a form', 'Displaying data', 'Multi-step form', 'A list screen with actions'] },
+            {
+                label: 'Components',
+                sections: [
+                    'CommandDialog', 'CommandForm', 'CommandStepper', 'StepperCommandDialog', 'DataPage',
+                    'DataTables', 'Dialogs', 'Dropdown', 'Toolbar', 'ObjectNavigationalBar',
+                    'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common',
+                ],
+            },
+            { label: 'Reference', sections: ['Types', 'Migration'] },
+        ],
+    },
+    {
+        // Shared utilities (concepts, serialization, DI, type discovery) for .NET and TS.
+        key: 'fundamentals', label: 'Fundamentals', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Fundamentals', 'Documentation'),
+            path.join(docRepoRoot, 'Fundamentals', 'Documentation')),
+    },
+    {
+        // The Cratis/.github org repo (submodule "GitHubLanding") holds the Contributing docs.
+        key: 'contributing', label: 'Contributing', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, '.github'),
+            path.join(docRepoRoot, 'GitHubLanding')),
+    },
+];
+
+const ASSET_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif']);
+const SKIP_DIRS = new Set([
+    'node_modules', 'obj', 'bin', '.git', 'storybook-static', '.vitepress',
+    // dotfolders found at the .github repo root that are not documentation
+    '.ai', '.claude', '.github', '.vscode',
+    // the org GitHub landing page (duplicates our front door) — not site content
+    'profile',
+]);
+const ALERT_MAP = { NOTE: 'note', TIP: 'tip', IMPORTANT: 'note', WARNING: 'caution', CAUTION: 'danger' };
+
+const only = process.argv[2];
+
+function humanize(name) {
+    return name
+        .replace(/\.mdx?$/, '')
+        .replace(/[-_]/g, ' ')
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function splitFrontmatter(raw) {
+    if (raw.startsWith('---')) {
+        const end = raw.indexOf('\n---', 3);
+        if (end !== -1) {
+            const fmText = raw.slice(3, end).replace(/^\n/, '');
+            const body = raw.slice(end + 4).replace(/^\r?\n/, '');
+            return { fmText, body, hasFm: true };
+        }
+    }
+    return { fmText: '', body: raw, hasFm: false };
+}
+
+function firstH1(body) {
+    const m = body.match(/^#\s+(.+?)\s*$/m);
+    return m ? m[1].trim() : null;
+}
+
+function stripLeadingH1(body) {
+    // Starlight renders the frontmatter title as the page H1; drop a duplicate leading H1.
+    return body.replace(/^\s*#\s+.+?\r?\n+/, '');
+}
+
+function quoteYaml(s) {
+    return '"' + s.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+}
+
+function convertAlerts(body) {
+    const lines = body.split('\n');
+    const out = [];
+    for (let i = 0; i < lines.length; i++) {
+        const m = lines[i].match(/^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*$/);
+        if (m) {
+            const type = ALERT_MAP[m[1]];
+            const inner = [];
+            i++;
+            while (i < lines.length && /^>/.test(lines[i])) {
+                inner.push(lines[i].replace(/^>\s?/, ''));
+                i++;
+            }
+            i--; // step back; outer loop will advance
+            out.push(`:::${type}`);
+            out.push(...inner);
+            out.push(':::');
+        } else {
+            out.push(lines[i]);
+        }
+    }
+    return out.join('\n');
+}
+
+function convertXref(body) {
+    let out = body;
+    // Link form: [text](xref:UID) -> keep the human text (the API ref isn't a page here).
+    out = out.replace(/\[([^\]]+)\]\(\s*xref:[^)]+\)/g, (_m, text) => text);
+    // Inline form: <xref:Foo.Bar>, <xref:Foo.Bar?text=Baz>, <xref:Foo.Bar?displayProperty=...>
+    out = out.replace(/<xref:([^>]+)>/g, (_m, inner) => {
+        const q = inner.indexOf('?');
+        const uid = q === -1 ? inner : inner.slice(0, q);
+        const query = q === -1 ? '' : inner.slice(q + 1);
+        const tm = query.match(/(?:^|&)text=([^&]*)/);
+        return tm ? decodeURIComponent(tm[1].replace(/\+/g, ' ')) : '`' + uid + '`';
+    });
+    return out;
+}
+
+function extractFmField(fmText, field) {
+    const m = fmText.match(new RegExp('^' + field + '\\s*:\\s*(.+?)\\s*$', 'm'));
+    if (!m) return null;
+    return m[1].trim().replace(/^["']/, '').replace(/["']$/, '');
+}
+
+function fixLinks(body) {
+    // Markdown links/images: ](target)
+    return body.replace(/\]\(([^)]+)\)/g, (whole, target) => {
+        const hashIdx = target.indexOf('#');
+        let pathPart = hashIdx === -1 ? target : target.slice(0, hashIdx);
+        const hash = hashIdx === -1 ? '' : target.slice(hashIdx);
+        // Skip external/anchor links; process both relative and root-relative
+        // internal links so `.md`/`toc.yml` get stripped either way.
+        if (/^(https?:|mailto:|tel:|#|data:)/.test(pathPart) || pathPart === '') return whole;
+        if (ASSET_EXT.has(path.extname(pathPart).toLowerCase())) return whole; // images keep extension
+        if (pathPart.endsWith('toc.yml')) {
+            pathPart = pathPart.replace(/toc\.yml$/, '');
+        } else if (pathPart.endsWith('.md')) {
+            pathPart = pathPart.slice(0, -3);
+            pathPart = pathPart.replace(/\/index$/, '/').replace(/(^|\/)index$/, '$1');
+        }
+        // Normalize each path segment to match Astro's slug rule (lowercase, strip
+        // dots/punctuation) so links to e.g. `react.mvvm/` resolve to `reactmvvm`.
+        // `.` and `..` navigation segments are preserved.
+        pathPart = pathPart
+            .split('/')
+            .map((seg) => (seg === '' || seg === '.' || seg === '..' ? seg : seg.toLowerCase().replace(/[^a-z0-9_-]+/g, '')))
+            .join('/');
+        return '](' + pathPart + hash + ')';
+    });
+}
+
+async function inlineIncludes(body, dir) {
+    const includeRe = /\[!INCLUDE\s*\[[^\]]*\]\(([^)]+)\)\]/g;
+    let result = body;
+    const matches = [...body.matchAll(includeRe)];
+    for (const m of matches) {
+        const incPath = path.resolve(dir, m[1]);
+        try {
+            const raw = await fs.readFile(incPath, 'utf8');
+            const { body: incBody } = splitFrontmatter(raw);
+            result = result.replace(m[0], stripLeadingH1(incBody).trim());
+        } catch {
+            result = result.replace(m[0], '');
+        }
+    }
+    return result;
+}
+
+async function convertFile(raw, ctx) {
+    const { fmText, body, hasFm } = splitFrontmatter(raw);
+    // Parse source front matter and carry over only Starlight-supported keys
+    // (title, description, sidebar). DocFX keys (uid, applyTo, storybook, …) are
+    // dropped — they'd fail Starlight's strict schema.
+    let src = {};
+    if (hasFm) {
+        try {
+            src = yaml.load(fmText) || {};
+        } catch {
+            src = {};
+        }
+    }
+    const title = src.title || firstH1(body) || humanize(ctx.basename);
+
+    let out = stripLeadingH1(body);
+    out = await inlineIncludes(out, ctx.dir);
+    out = convertAlerts(out);
+    out = convertXref(out);
+    out = fixLinks(out);
+
+    const fm = { title };
+    if (src.description) fm.description = src.description;
+    if (src.sidebar) fm.sidebar = src.sidebar; // order/label/badge, when authors set it
+    const fmYaml = yaml.dump(fm, { lineWidth: -1 }).trimEnd();
+    return `---\n${fmYaml}\n---\n\n` + out.replace(/\s*$/, '') + '\n';
+}
+
+// True when `parentDir` contains a `<dirName>.md` file (case-insensitive). DocFX
+// often has both `foo.md` (section landing) and `foo/index.md`, which collide on
+// the slug `.../foo`; when that happens we demote `foo/index.md` to `overview`.
+async function hasSiblingLanding(parentDir, dirName) {
+    try {
+        const entries = await fs.readdir(parentDir);
+        const target = (dirName + '.md').toLowerCase();
+        return entries.some((n) => n.toLowerCase() === target);
+    } catch {
+        return false;
+    }
+}
+
+async function walk(srcDir, outDir, relRoot) {
+    const entries = await fs.readdir(srcDir, { withFileTypes: true });
+    await fs.mkdir(outDir, { recursive: true });
+    const demoteIndex = await hasSiblingLanding(path.dirname(srcDir), path.basename(srcDir));
+    for (const entry of entries) {
+        if (entry.isDirectory()) {
+            if (SKIP_DIRS.has(entry.name)) continue;
+            await walk(path.join(srcDir, entry.name), path.join(outDir, entry.name), relRoot);
+            continue;
+        }
+        // Skip repo READMEs (e.g. the .github org landing) — not site content.
+        if (entry.name.toLowerCase() === 'readme.md') continue;
+        const ext = path.extname(entry.name).toLowerCase();
+        const srcPath = path.join(srcDir, entry.name);
+        if (ext === '.md' || ext === '.mdx') {
+            const raw = await fs.readFile(srcPath, 'utf8');
+            const converted = await convertFile(raw, {
+                dir: srcDir,
+                basename: entry.name,
+            });
+            let outName = entry.name.replace(/\.mdx$/, '.md');
+            if (demoteIndex && /^index\.mdx?$/i.test(entry.name)) {
+                outName = 'overview.md';
+            }
+            await fs.writeFile(path.join(outDir, outName), converted, 'utf8');
+        } else if (ASSET_EXT.has(ext)) {
+            await fs.copyFile(srcPath, path.join(outDir, entry.name));
+        }
+        // toc.yml and other files are intentionally skipped (sidebar handled separately).
+    }
+}
+
+// ---- Sidebar generation from DocFX toc.yml ----
+
+// Replicates Astro's content-collection slug rule (github-slugger semantics):
+// lowercase per segment, keep a-z 0-9 '_' '-', strip other punctuation
+// (so `react.mvvm` -> `reactmvvm`, `CODE_OF_CONDUCT` -> `code_of_conduct`).
+function slugify(p) {
+    return p
+        .replace(/\\/g, '/')
+        .split('/')
+        .map((seg) => seg.toLowerCase().replace(/[^a-z0-9_-]+/g, ''))
+        .filter(Boolean)
+        .join('/');
+}
+
+let validSlugs = new Set();
+let droppedSidebarEntries = 0;
+
+// Collect the slugs of every page actually written for a product, so the
+// sidebar can drop entries that point to missing pages (broken toc links).
+async function collectSlugs(dirAbs, slugBase, set) {
+    let entries;
+    try {
+        entries = await fs.readdir(dirAbs, { withFileTypes: true });
+    } catch {
+        return;
+    }
+    for (const e of entries) {
+        if (e.isDirectory()) {
+            await collectSlugs(path.join(dirAbs, e.name), slugify(path.posix.join(slugBase, e.name)), set);
+        } else if (e.name.endsWith('.md')) {
+            const base = e.name.replace(/\.md$/, '');
+            set.add(base === 'index' ? slugify(slugBase) : slugify(path.posix.join(slugBase, base)));
+        }
+    }
+}
+
+async function entryToItem(e, dirAbs, slugBase) {
+    const label = e.name ?? 'Untitled';
+    const href = e.href;
+    // External links and the auto-generated API section are wired separately — skip.
+    if (href && (/^https?:/.test(href) || href.includes('/api/') || href.startsWith('../'))) {
+        return null;
+    }
+    // Group via a sub-folder's toc.yml
+    if (href && /toc\.yml$/.test(href)) {
+        const subRel = href.replace(/\/?toc\.yml$/, '');
+        const subDirAbs = path.resolve(dirAbs, subRel);
+        const children = await tocToSidebar(subDirAbs, slugify(path.posix.join(slugBase, subRel)));
+        return children.length ? { label, collapsed: true, items: children } : null;
+    }
+    // Inline nested items (e.g. storybook trees)
+    if (Array.isArray(e.items)) {
+        const children = [];
+        for (const c of e.items) {
+            const ci = await entryToItem(c, dirAbs, slugBase);
+            if (ci) children.push(ci);
+        }
+        return children.length ? { label, collapsed: true, items: children } : null;
+    }
+    // Leaf page
+    if (href) {
+        const clean = href.split('#')[0].split('?')[0];
+        if (!clean.endsWith('.md')) return null;
+        const rel = clean.replace(/\.md$/, '').replace(/(^|\/)index$/, '');
+        const pageSlug = slugify(rel ? path.posix.join(slugBase, rel) : slugBase);
+        if (!validSlugs.has(pageSlug)) {
+            droppedSidebarEntries++;
+            return null;
+        }
+        return { label, slug: pageSlug };
+    }
+    return null;
+}
+
+async function tocToSidebar(dirAbs, slugBase) {
+    let entries;
+    try {
+        entries = yaml.load(await fs.readFile(path.join(dirAbs, 'toc.yml'), 'utf8'));
+    } catch {
+        return [];
+    }
+    if (!Array.isArray(entries)) return [];
+    const items = [];
+    for (const e of entries) {
+        const item = await entryToItem(e, dirAbs, slugBase);
+        if (item) items.push(item);
+    }
+    return items;
+}
+
+// Re-group a product's flat top-level toc sections into Diátaxis buckets
+// (Get started / Understand / Guides / Reference) for navigation, without moving
+// any files. `buckets` maps section labels to a bucket; "Overview" stays loose at
+// the top and anything unmapped falls into a "More" group.
+function applyBuckets(items, buckets) {
+    const used = new Set();
+    const result = [];
+    const overview = items.find((i) => i.label === 'Overview');
+    if (overview) {
+        result.push(overview);
+        used.add(overview);
+    }
+    for (const bucket of buckets) {
+        const children = items.filter((i) => !used.has(i) && bucket.sections.includes(i.label));
+        children.forEach((c) => used.add(c));
+        if (children.length) result.push({ label: bucket.label, collapsed: true, items: children });
+    }
+    // Anything not assigned to a bucket stays as its own top-level group/link.
+    for (const i of items) if (!used.has(i)) result.push(i);
+    return result;
+}
+
+async function generateSidebar() {
+    const sidebar = [];
+    for (const product of PRODUCTS) {
+        try {
+            await fs.access(product.src);
+        } catch {
+            continue;
+        }
+        let items;
+        if (product.sidebarMode === 'toc') {
+            validSlugs = new Set();
+            await collectSlugs(path.join(webRoot, 'src', 'content', 'docs', product.key), product.key, validSlugs);
+            items = await tocToSidebar(product.src, product.key);
+            if (items.length === 0) items = [{ autogenerate: { directory: product.key } }];
+            else if (product.buckets) items = applyBuckets(items, product.buckets);
+        } else {
+            items = [{ autogenerate: { directory: product.key } }];
+        }
+        sidebar.push({ label: product.label, collapsed: true, items });
+    }
+    const genDir = path.join(webRoot, 'src', 'generated');
+    await fs.mkdir(genDir, { recursive: true });
+    await fs.writeFile(path.join(genDir, 'sidebar.json'), JSON.stringify(sidebar, null, 2) + '\n');
+    console.log(
+        `[sync] sidebar -> src/generated/sidebar.json (${sidebar.length} products, ${droppedSidebarEntries} broken toc entries dropped)`
+    );
+}
+
+async function main() {
+    const targets = only ? PRODUCTS.filter((p) => p.key === only) : PRODUCTS;
+    if (only && targets.length === 0) {
+        console.error(`Unknown product "${only}". Known: ${PRODUCTS.map((p) => p.key).join(', ')}`);
+        process.exit(1);
+    }
+    for (const product of targets) {
+        const outDir = path.join(webRoot, 'src', 'content', 'docs', product.key);
+        try {
+            await fs.access(product.src);
+        } catch {
+            console.warn(`[sync] SKIP ${product.key}: source not found at ${product.src}`);
+            continue;
+        }
+        await fs.rm(outDir, { recursive: true, force: true });
+        await walk(product.src, outDir, product.key);
+        const count = await countFiles(outDir);
+        console.log(`[sync] ${product.key}: ${count} pages -> ${path.relative(webRoot, outDir)}`);
+    }
+    await generateSidebar();
+}
+
+async function countFiles(dir) {
+    let n = 0;
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    for (const e of entries) {
+        if (e.isDirectory()) n += await countFiles(path.join(dir, e.name));
+        else if (e.name.endsWith('.md')) n++;
+    }
+    return n;
+}
+
+await main();
