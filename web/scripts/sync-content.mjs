@@ -84,6 +84,13 @@ const PRODUCTS = [
         ],
     },
     {
+        // The Cratis CLI — a terminal window into a running Chronicle event store.
+        key: 'cli', label: 'CLI', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'cli', 'Documentation'),
+            path.join(docRepoRoot, 'cli', 'Documentation')),
+    },
+    {
         // Shared utilities (concepts, serialization, DI, type discovery) for .NET and TS.
         key: 'fundamentals', label: 'Fundamentals', sidebarMode: 'toc',
         src: firstExisting(

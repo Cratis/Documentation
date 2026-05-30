@@ -6,6 +6,7 @@ dist/
 src/content/docs/chronicle/
 src/content/docs/arc/
 src/content/docs/components/
+src/content/docs/cli/
 src/content/docs/fundamentals/
 src/content/docs/contributing/
 # generated sidebar
