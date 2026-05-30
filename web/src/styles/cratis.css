@@ -166,6 +166,79 @@
     border-inline-start-color: color-mix(in srgb, var(--sl-color-gray-5) 80%, transparent);
 }
 
+/* ---------------------------------------------------------------------
+   Product topic rail (starlight-sidebar-topics) — the aspire.dev look:
+   a card of icon+label rows that switches the active product, with
+   boxed icons that fill with the accent on hover/active.
+   --------------------------------------------------------------------- */
+.starlight-sidebar-topics {
+    list-style: none;
+    margin: 0 0 1.25rem 0;
+    padding: 0.3rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.6rem;
+    background: var(--sl-color-bg);
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+.starlight-sidebar-topics li {
+    margin: 0;
+    padding: 0;
+    overflow-wrap: anywhere;
+    border-inline-start: none; /* override the nested-list guide line */
+}
+.starlight-sidebar-topics a {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.35rem 0.45rem;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--sl-color-white);
+    text-decoration: none;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 0.45rem;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.starlight-sidebar-topics a:hover,
+.starlight-sidebar-topics a:focus-visible {
+    background: color-mix(in srgb, var(--sl-color-accent) 11%, transparent);
+    color: var(--sl-color-accent-high);
+}
+.starlight-sidebar-topics a.starlight-sidebar-topics-current,
+.starlight-sidebar-topics a.starlight-sidebar-topics-current:hover {
+    background: color-mix(in srgb, var(--sl-color-accent) 16%, transparent);
+    border-color: color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
+    color: var(--sl-color-accent-high);
+}
+/* Boxed icon — fills with the accent when the topic is active */
+.starlight-sidebar-topics-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0.3rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.4rem;
+    background: var(--sl-color-gray-6, transparent);
+    color: var(--sl-color-accent-high);
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.starlight-sidebar-topics-icon svg {
+    --sl-icon-size: 1.1em;
+}
+.starlight-sidebar-topics a:hover .starlight-sidebar-topics-icon {
+    border-color: color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
+}
+.starlight-sidebar-topics a.starlight-sidebar-topics-current .starlight-sidebar-topics-icon {
+    background-color: var(--sl-color-accent);
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-text-invert);
+}
+
 /* =====================================================================
    Right "On this page" — slim, fixed-width, unobtrusive
    ---------------------------------------------------------------------

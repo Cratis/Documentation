@@ -30,7 +30,7 @@ function firstExisting(...candidates) {
 
 const PRODUCTS = [
     {
-        key: 'chronicle', label: 'Chronicle', sidebarMode: 'toc',
+        key: 'chronicle', label: 'Chronicle', icon: 'seti:db', sidebarMode: 'toc',
         src: firstExisting(
             path.join(reposRoot, 'Chronicle', 'Documentation'),
             path.join(docRepoRoot, 'Chronicle', 'Documentation')),
@@ -55,7 +55,7 @@ const PRODUCTS = [
         ],
     },
     {
-        key: 'arc', label: 'Arc', sidebarMode: 'toc',
+        key: 'arc', label: 'Arc', icon: 'puzzle', sidebarMode: 'toc',
         src: firstExisting(
             path.join(reposRoot, 'Arc', 'Documentation'),
             path.join(docRepoRoot, 'Arc', 'Documentation')),
@@ -65,7 +65,7 @@ const PRODUCTS = [
         ],
     },
     {
-        key: 'components', label: 'Components', sidebarMode: 'toc',
+        key: 'components', label: 'Components', icon: 'laptop', sidebarMode: 'toc',
         src: firstExisting(
             path.join(reposRoot, 'Components', 'Documentation'),
             path.join(docRepoRoot, 'Components', 'Documentation')),
@@ -85,21 +85,21 @@ const PRODUCTS = [
     },
     {
         // The Cratis CLI — a terminal window into a running Chronicle event store.
-        key: 'cli', label: 'CLI', sidebarMode: 'toc',
+        key: 'cli', label: 'CLI', icon: 'rocket', sidebarMode: 'toc',
         src: firstExisting(
             path.join(reposRoot, 'cli', 'Documentation'),
             path.join(docRepoRoot, 'cli', 'Documentation')),
     },
     {
         // Shared utilities (concepts, serialization, DI, type discovery) for .NET and TS.
-        key: 'fundamentals', label: 'Fundamentals', sidebarMode: 'toc',
+        key: 'fundamentals', label: 'Fundamentals', icon: 'seti:folder', sidebarMode: 'toc',
         src: firstExisting(
             path.join(reposRoot, 'Fundamentals', 'Documentation'),
             path.join(docRepoRoot, 'Fundamentals', 'Documentation')),
     },
     {
         // The Cratis/.github org repo (submodule "GitHubLanding") holds the Contributing docs.
-        key: 'contributing', label: 'Contributing', sidebarMode: 'toc',
+        key: 'contributing', label: 'Contributing', icon: 'heart', sidebarMode: 'toc',
         src: firstExisting(
             path.join(reposRoot, '.github'),
             path.join(docRepoRoot, 'GitHubLanding')),
@@ -428,8 +428,12 @@ function applyBuckets(items, buckets) {
     return result;
 }
 
+// Emit one Diataxis-bucketed sidebar per product as a `starlight-sidebar-topics`
+// topic ({ label, link, icon, items }). The plugin renders the product icons as a
+// switchable rail at the top of the sidebar and shows the matching product's nav
+// for the current page — the aspire.dev "topics" pattern, one topic per product.
 async function generateSidebar() {
-    const sidebar = [];
+    const topics = [];
     for (const product of PRODUCTS) {
         try {
             await fs.access(product.src);
@@ -446,13 +450,13 @@ async function generateSidebar() {
         } else {
             items = [{ autogenerate: { directory: product.key } }];
         }
-        sidebar.push({ label: product.label, collapsed: true, items });
+        topics.push({ id: product.key, label: product.label, link: product.key, icon: product.icon, items });
     }
     const genDir = path.join(webRoot, 'src', 'generated');
     await fs.mkdir(genDir, { recursive: true });
-    await fs.writeFile(path.join(genDir, 'sidebar.json'), JSON.stringify(sidebar, null, 2) + '\n');
+    await fs.writeFile(path.join(genDir, 'topics.json'), JSON.stringify(topics, null, 2) + '\n');
     console.log(
-        `[sync] sidebar -> src/generated/sidebar.json (${sidebar.length} products, ${droppedSidebarEntries} broken toc entries dropped)`
+        `[sync] topics -> src/generated/topics.json (${topics.length} product topics, ${droppedSidebarEntries} broken toc entries dropped)`
     );
 }
 
