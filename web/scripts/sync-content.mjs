@@ -428,6 +428,22 @@ function applyBuckets(items, buckets) {
     return result;
 }
 
+// Decorative sidebar badges — the aspire.dev "Quickstart" / "Tutorial" pills.
+// Matched by entry label so they land on the right sections regardless of depth.
+const SIDEBAR_BADGES = [
+    { match: (label) => /^Getting started/i.test(label), text: 'Quickstart', variant: 'tip' },
+    { match: (label) => label === 'Tutorial', text: 'Tutorial', variant: 'success' },
+];
+
+function applyBadges(items) {
+    for (const item of items) {
+        const rule = SIDEBAR_BADGES.find((b) => b.match(item.label || ''));
+        if (rule && !item.badge) item.badge = { text: rule.text, variant: rule.variant };
+        if (Array.isArray(item.items)) applyBadges(item.items);
+    }
+    return items;
+}
+
 // Emit one Diataxis-bucketed sidebar per product as a `starlight-sidebar-topics`
 // topic ({ label, link, icon, items }). The plugin renders the product icons as a
 // switchable rail at the top of the sidebar and shows the matching product's nav
@@ -450,6 +466,7 @@ async function generateSidebar() {
         } else {
             items = [{ autogenerate: { directory: product.key } }];
         }
+        applyBadges(items);
         topics.push({ id: product.key, label: product.label, link: product.key, icon: product.icon, items });
     }
     const genDir = path.join(webRoot, 'src', 'generated');

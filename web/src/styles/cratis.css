@@ -137,9 +137,9 @@
 
 /* Tier 3 — page links: calm, rounded, with room to breathe */
 .sidebar-content a {
-    font-size: var(--sl-text-sm);
+    font-size: var(--sl-text-base);
     border-radius: 0.4rem;
-    padding-block: 0.35em;
+    padding-block: 0.4em;
     color: var(--sl-color-gray-2);
     transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -192,8 +192,8 @@
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    padding: 0.35rem 0.45rem;
-    font-size: var(--sl-text-sm);
+    padding: 0.45rem 0.5rem;
+    font-size: var(--sl-text-base);
     font-weight: 600;
     line-height: 1.4;
     color: var(--sl-color-white);
