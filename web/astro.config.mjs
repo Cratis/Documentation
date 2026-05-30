@@ -57,7 +57,13 @@ export default defineConfig({
                 alt: 'Cratis',
             },
             favicon: '/favicon.ico',
-            customCss: ['./src/styles/cratis.css'],
+            customCss: [
+                // Self-hosted brand fonts (variable) — load before the theme so
+                // cratis.css can point --sl-font / --sl-font-mono at them.
+                '@fontsource-variable/inter/index.css',
+                '@fontsource-variable/jetbrains-mono/index.css',
+                './src/styles/cratis.css',
+            ],
             // Keep the right "On this page" list short — top-level sections only.
             tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 2 },
             // Map DocFX-era custom code-fence languages to plain text so they don't warn.

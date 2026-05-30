@@ -5,6 +5,11 @@
    defaults without needing `!important`. */
 
 :root {
+    /* Brand fonts — Inter for UI/prose, JetBrains Mono for code. Starlight
+       appends its own system stack as a fallback via --__sl-font. */
+    --sl-font: 'Inter Variable';
+    --sl-font-mono: 'JetBrains Mono Variable';
+
     /* Dark theme (Starlight default) */
     --sl-color-accent-low: #14224a;
     --sl-color-accent: #3b6fed;
@@ -12,6 +17,16 @@
 
     /* A slightly more generous reading measure now that the ToC band is slim. */
     --sl-content-width: 48rem;
+
+    /* Inter has a tall x-height; a hair more letter-spacing on headings keeps
+       them from feeling cramped. */
+    --cratis-heading-tracking: -0.015em;
+}
+
+/* Headings: Inter looks best slightly tightened and confident. */
+.sl-markdown-content :is(h1, h2, h3, h4),
+.hero h1 {
+    font-feature-settings: 'cv05' 1, 'ss01' 1; /* friendlier l, single-story a */
 }
 
 :root[data-theme='light'] {
