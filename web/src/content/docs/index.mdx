@@ -19,8 +19,32 @@ hero:
 ---
 
 import { Card, CardGrid, LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
+import SimpleCard from '../../components/SimpleCard.astro';
 
-## One feature, one slice, both ends type-safe
+## Why developers choose Cratis
+
+<CardGrid>
+  <SimpleCard title="Events are facts" icon="approve-check" link="/chronicle/why-event-sourcing/">
+    Immutable, past-tense records of what happened. Your audit trail, time-travel, and analytics come for free.
+  </SimpleCard>
+  <SimpleCard title="Full-stack type safety" icon="seti:typescript" link="/arc/why-arc/">
+    Models flow from C# through generated proxies to React — no manual sync, no DTO drift, no hand-written API client.
+  </SimpleCard>
+  <SimpleCard title="Vertical slices" icon="seti:folder" link="/arc/vertical-slices/">
+    Everything for one behavior — command, events, projection, UI, specs — lives in one folder. Navigate by feature, not by layer.
+  </SimpleCard>
+  <SimpleCard title="No update code" icon="seti:db" link="/chronicle/projections/">
+    Declare the read model you want and which events feed it. A projection keeps it in sync — you never write an `UPDATE`.
+  </SimpleCard>
+  <SimpleCard title="Lovable, convention-first APIs" icon="heart" link="/chronicle/get-started/">
+    Discovery by naming, sane defaults, minimal boilerplate. The easy thing to do is the right thing.
+  </SimpleCard>
+  <SimpleCard title="Inspect it live" icon="rocket" link="/cli/">
+    The CLI is your window into a running store — browse events, watch observers, replay, and diagnose.
+  </SimpleCard>
+</CardGrid>
+
+## One feature, one slice — typed end to end
 
 You write the behavior once in C#. Arc generates the TypeScript proxies. The React side can't drift — rename a property in C#, rebuild, and the frontend stops compiling until you fix it.
 
@@ -57,57 +81,34 @@ const [authors] = AllAuthors.use();           // live, updates as events arrive
 </TabItem>
 </Tabs>
 
-## Built on four ideas
+## The whole loop, in one place
+
+Every Cratis application is the same loop: a command appends a **fact**, a **projection** folds facts into a read model you can query, and a **reactor** acts when something happens. You model *what happened* once — the read side and the react side both derive from it.
+
+```mermaid
+flowchart LR
+    UI["React UI<br/>(Components)"] -->|generated command proxy| Cmd["Command.Handle()<br/>(Arc)"]
+    Cmd -->|appends| Ev["Event — a fact<br/>(Chronicle)"]
+    Ev -->|projection| RM["Read model"]
+    Ev -.->|reactor| FX["Side effects<br/>(notify · integrate)"]
+    RM -->|generated query proxy| UI
+```
+
+## The three products, one platform
 
 <CardGrid>
-	<Card title="Events are facts" icon="approve-check">
-		Immutable, past-tense records of what happened. Your audit trail, time-travel, and analytics come for free.
-	</Card>
-	<Card title="Full-stack type safety" icon="seti:typescript">
-		Models flow from C# through proxy generation to TypeScript — no manual sync, no DTO drift.
-	</Card>
-	<Card title="Vertical slices" icon="seti:folder">
-		Everything for one behavior — command, events, projection, UI, specs — lives together. Navigate by feature, not by layer.
-	</Card>
-	<Card title="Lovable APIs" icon="heart">
-		Convention over configuration and discovery by naming. The easy thing to do is the right thing.
-	</Card>
-</CardGrid>
-
-## Pick your starting point
-
-<CardGrid>
-	<Card title="Chronicle" icon="seti:db">
-		The event sourcing platform — events, projections, reducers, and reactors.
-		[Explore Chronicle →](/chronicle/)
-	</Card>
-	<Card title="Arc" icon="puzzle">
-		The full-stack application framework — commands, queries, and generated proxies.
-		[Explore Arc →](/arc/)
-	</Card>
-	<Card title="Components" icon="laptop">
-		The React component library — command forms, data tables, and dialogs for Cratis apps.
-		[Explore Components →](/components/)
-	</Card>
-	<Card title="CLI" icon="rocket">
-		Your terminal window into a running Chronicle store — inspect events, watch observers, diagnose issues.
-		[Explore the CLI →](/cli/)
-	</Card>
-</CardGrid>
-
-## Two ways in
-
-<CardGrid>
-	<LinkCard
-		title="New to event sourcing?"
-		description="Start with the why, then build a small system step by step. No prior event-sourcing knowledge assumed."
-		href="/chronicle/why-event-sourcing/"
-	/>
-	<LinkCard
-		title="Experienced and want the fast path?"
-		description="Scaffold a full-stack app from a template, run it, and jump into the guides — or read Why Cratis first."
-		href="/chronicle/get-started/"
-	/>
+  <SimpleCard title="Chronicle" icon="seti:db" link="/chronicle/">
+    The event sourcing engine — events, projections, reducers, and reactors over a durable event log.
+  </SimpleCard>
+  <SimpleCard title="Arc" icon="puzzle" link="/arc/">
+    The full-stack CQRS framework — commands, queries, and the generated proxies that keep React in sync.
+  </SimpleCard>
+  <SimpleCard title="Components" icon="laptop" link="/components/">
+    The React component library — command dialogs, forms, and data tables wired to your proxies.
+  </SimpleCard>
+  <SimpleCard title="CLI" icon="rocket" link="/cli/">
+    A terminal window into a running store — inspect events, watch observers, and diagnose issues.
+  </SimpleCard>
 </CardGrid>
 
 ## Coming from another stack?
@@ -123,3 +124,12 @@ Marten, Wolverine, and Kurrent are excellent tools. The short version of how Cra
 | Primary store | MongoDB (+extensible) | PostgreSQL | any | own engine |
 
 Honest, per-tool **[comparisons and migration guides](/comparisons/)** (Marten · Wolverine · Kurrent), plus bridges from [CRUD / EF Core](/chronicle/coming-from-crud/) and [MediatR / MVC](/arc/coming-from-mediatr-and-mvc/).
+
+## Ready to build?
+
+<CardGrid>
+  <LinkCard title="Get started" description="Scaffold a project, run it, and watch one event flow through a projection and a reactor — in minutes." href="/chronicle/get-started/" />
+  <LinkCard title="Build the library, step by step" description="Learn the model by building a small event-sourced system one concept at a time." href="/chronicle/tutorial/" />
+  <LinkCard title="Build a full-stack feature" description="Put Chronicle, Arc, and Components together — backend to React, type-safe throughout." href="/build-a-full-app/" />
+  <LinkCard title="New to event sourcing?" description="Start with the why: what facts buy you, and when not to reach for them." href="/chronicle/why-event-sourcing/" />
+</CardGrid>
