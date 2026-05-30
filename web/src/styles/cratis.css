@@ -1,17 +1,30 @@
 /* Cratis brand theme for Starlight.
-   NOTE: accent hues are a tasteful default — confirm the exact brand hex with the team. */
+   NOTE: accent hues are a tasteful default — confirm the exact brand hex with the team.
+
+   Custom CSS is unlayered, so these rules win over Starlight's `@layer starlight.core`
+   defaults without needing `!important`. */
 
 :root {
     /* Dark theme (Starlight default) */
     --sl-color-accent-low: #14224a;
     --sl-color-accent: #3b6fed;
     --sl-color-accent-high: #c3d4fb;
+
+    /* A slightly more generous reading measure now that the ToC band is slim. */
+    --sl-content-width: 48rem;
 }
 
 :root[data-theme='light'] {
     --sl-color-accent-low: #dbe5fd;
     --sl-color-accent: #2150cf;
     --sl-color-accent-high: #11244f;
+}
+
+/* Thin, unobtrusive scrollbars everywhere — a small touch that makes the
+   whole site feel more crafted. */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sl-color-gray-5) transparent;
 }
 
 /* --- Hero (splash front door) --- */
@@ -55,41 +68,127 @@
     margin-top: 2.5rem;
 }
 
-/* --- Comfortable reading measure for prose --- */
-.sl-markdown-content {
-    --sl-content-width: 50rem;
-}
-
-/* --- Code blocks: a hair more breathing room --- */
+/* --- Code blocks & asides: a hair more breathing room and softer corners --- */
 .expressive-code {
     margin-block: 1.25rem;
 }
+.expressive-code .frame .header,
+.expressive-code .frame pre,
+.expressive-code figure {
+    border-radius: 0.5rem;
+}
+.starlight-aside {
+    border-radius: 0.5rem;
+}
 
-/* --- Right "On this page" table of contents: compact and unobtrusive --- */
+/* =====================================================================
+   Left sidebar — a crafted, hierarchical navigation
+   ---------------------------------------------------------------------
+   Three visual tiers so the nav reads as "designed", not a flat list:
+     1. Product / top-level groups  → strong, readable section anchors
+     2. Diátaxis bucket groups      → small, uppercase, tracked, muted
+     3. Page links                  → calm by default, accent pill when active
+   ===================================================================== */
+
+/* Tier 1 — product / top-level group headers (Chronicle, Arc, …) */
+.sidebar-content ul.top-level > li > details > summary .group-label > .large {
+    font-size: var(--sl-text-base);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--sl-color-white);
+}
+
+/* Tier 1 — top-level standalone links (Why Cratis, Samples, API reference …) */
+.sidebar-content ul.top-level > li > a.large {
+    font-weight: 600;
+}
+
+/* Tier 2 — nested group headers (the Diátaxis buckets): section-divider look */
+.sidebar-content ul ul summary .group-label > .large {
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sl-color-gray-3);
+}
+
+/* A touch more vertical rhythm between the top-level products */
+.sidebar-content ul.top-level > li + li {
+    margin-top: 0.6rem;
+}
+.sidebar-content summary {
+    padding-block: 0.35rem;
+}
+
+/* Tier 3 — page links: calm, rounded, with room to breathe */
+.sidebar-content a {
+    font-size: var(--sl-text-sm);
+    border-radius: 0.4rem;
+    padding-block: 0.35em;
+    color: var(--sl-color-gray-2);
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sidebar-content a:hover,
+.sidebar-content a:focus-visible {
+    background-color: color-mix(in srgb, var(--sl-color-accent) 11%, transparent);
+    color: var(--sl-color-white);
+}
+
+/* Active page — a soft accent pill with a left indicator bar, instead of the
+   heavy fully-filled default. Reads like Linear / VS Code, not a highlighter. */
+.sidebar-content a[aria-current='page'],
+.sidebar-content a[aria-current='page']:hover,
+.sidebar-content a[aria-current='page']:focus {
+    font-weight: 600;
+    color: var(--sl-color-accent-high);
+    background-color: color-mix(in srgb, var(--sl-color-accent) 16%, transparent);
+    box-shadow: inset 0.15rem 0 0 var(--sl-color-accent);
+}
+
+/* Soften the nested-list guide line into a faint accent rail */
+.sidebar-content ul ul li {
+    border-inline-start-color: color-mix(in srgb, var(--sl-color-gray-5) 80%, transparent);
+}
+
+/* =====================================================================
+   Right "On this page" — slim, fixed-width, unobtrusive
+   ---------------------------------------------------------------------
+   Vanilla Starlight sizes the ToC band as (sidebar-width + half the page
+   gutter), so it grows with the viewport and swallows huge empty space on
+   wide screens. Replace it with a slim, clamped column and hand the
+   reclaimed width back to a comfortably centered content column.
+   ===================================================================== */
+
 .right-sidebar a[href^='#'] {
     font-size: var(--sl-text-xs);
-    line-height: 1.35;
+    line-height: 1.4;
+}
+.right-sidebar a[href^='#']:hover {
+    color: var(--sl-color-white);
 }
 #starlight__on-this-page {
     font-size: var(--sl-text-xs);
     text-transform: uppercase;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.08em;
     color: var(--sl-color-gray-3);
     margin-bottom: 0.5rem;
 }
 
-/* --- Left sidebar: refined category labels (less heavy-bold, more intentional) --- */
-.sidebar-content .group-label > .large {
-    font-size: var(--sl-text-sm);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--sl-color-gray-2);
-}
-.sidebar-content summary {
-    padding-block: 0.3rem;
-}
-/* Calmer link rhythm in the nav */
-.sidebar-content a {
-    font-size: var(--sl-text-sm);
+@media (min-width: 72rem) {
+    :root {
+        /* Slim ToC band — scales gently with viewport but never bloats. */
+        --cratis-toc-width: clamp(12rem, 14vw, 15.5rem);
+    }
+
+    .right-sidebar-container {
+        width: var(--cratis-toc-width);
+    }
+
+    /* Main pane takes the rest; center the (content-width-capped) column
+       within it so prose sits balanced between the two rails. */
+    [data-has-sidebar][data-has-toc] .main-pane {
+        width: calc(100% - var(--cratis-toc-width));
+        --sl-content-margin-inline: auto;
+    }
 }
