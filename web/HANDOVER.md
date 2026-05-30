@@ -74,15 +74,40 @@ The user's strongest qualitative feedback: **the docs must take the reader on a 
 
 The **Chronicle tutorial** (`Chronicle/Documentation/tutorial/*`) is the reference example of this voice — match it.
 
-**Inspiration is cloned locally — study it, don't guess:**
-- `~/src/repos/aspire.dev/src/frontend/src/content/docs/` — the gold standard. `.mdx` with `<Steps>`, `<Aside>`, `<Code title=... />`, `OsAwareTabs`, `LearnMore`, expected-output blocks (`data-disable-copy`), architecture-diagram-first. See `get-started/install-cli.mdx` and `get-started/what-is-aspire.mdx`.
-- `~/src/repos/marten/docs` and `~/src/repos/wolverine/docs` — the "walking you through" tutorials.
+**Inspiration is cloned locally — study these for CONTENT, structure, and voice; don't guess or invent:**
+- `~/src/repos/aspire.dev/src/frontend/src/content/docs/` — the gold standard for *visual/structural* polish. `.mdx` with `<Steps>`, `<Aside>`, `<Code title=... />`, `OsAwareTabs`, `LearnMore`, expected-output blocks (`data-disable-copy`), architecture-diagram-first. Read `get-started/install-cli.mdx` and `get-started/what-is-aspire.mdx`.
+- `~/src/repos/marten/docs` and `~/src/repos/wolverine/docs` — the gold standard for *content & teaching*. The user specifically wants our docs to feel like these: they **take you on a tour / walk you through**. Mine their patterns and reuse them as a template (don't copy text):
+  - **Threaded narrative tutorials** that build one system across chapters (Marten's `docs/tutorials/` "Freight & Delivery"), each chapter opening with learning goals and ending with a recap + handoff.
+  - **Scenario / recipe catalogs** (Marten `docs/scenarios/`) — task-oriented "how do I do X".
+  - **"Coming from X" bridge guides** (Wolverine "For MediatR Users", Marten "Postgres for SQL Server users").
+  - **"Understanding …" explanation pages** separate from reference (Marten `docs/events/learning.md`).
+  - Prose that names the friction, narrates what the code does, and explains the *why* inline.
 
-## 8. In-flight / next steps (do these next)
+## 8. What the user asked us to fix / work on — ledger
 
-1. **Tour-voice pass on the getting-started pages** (Chronicle, Arc backend+frontend, Components, CLI) and the Why pages — bring them to the tutorial's tour standard, modeled on aspire.dev's `install-cli.mdx` / `what-is-aspire.mdx`.
-2. **Enable MDX in product pages so they can use `<Steps>`/`<FileTree>`/`<Tabs>`/`<Aside>` like Aspire.** Currently `sync-content.mjs`'s `walk()` renames `.mdx`→`.md`, so product pages can't use components. Change it to **keep `.mdx` as `.mdx`** (the converter's transforms are safe on authored MDX), then author the getting-started pages as `.mdx` with Steps + titled code blocks + expected-output. (Site-level pages are already `.mdx` and use components.) Verify the build + gates after.
-3. Optionally adopt an Aspire-style `OsAwareTabs`/`LearnMore` component or use Starlight's built-in `<Tabs>`/`<LinkCard>`.
+This is the running record of the user's **explicit** feedback and priorities across the project. Treat the OPEN items as the active backlog; honor the DONE items (don't regress them).
+
+### Already addressed (✓ — keep honoring, don't redo)
+- **Tour-style threaded Chronicle tutorial** written as the voice exemplar for the whole site.
+- **"On this page" ToC was *way* too big** → capped to H2 (`maxHeadingLevel: 2`) and compacted (`cratis.css`).
+- **Left sidebar category labels looked "cheap"** → refined to small/uppercase/tracked/muted (`cratis.css`).
+- **CLI front and center** — added to the front door, plus a tour-style CLI landing + getting-started covering *why / how / install*. (Deepen the tour voice further — see OPEN #1.)
+- **Comparisons + migration guides** for **Marten / Wolverine / Kurrent** (+ CRUD/EF and MediatR/MVC bridges), including honest "why not them / where we differ".
+- **Why co-locate backend + frontend** — the `vertical-slices` explanation page answers this directly.
+- **Real Cratis logo / icons** (theme-adaptive marks) — replaced the placeholder/wrong imagery.
+- **`.github` / Contributing wired in** as a first-class product in the nav.
+- **Work committed across all `docs-overhaul` branches** to save progress; ready to push via **ship-changes** once approved.
+- **Quality gates green** — 0 broken links, 0 lint errors, descriptive link text enforced.
+
+### Open — work on next (▶ — active backlog, priority order)
+1. **Tour-voice pass across ALL teaching pages**, not just the tutorial — getting-started (Chronicle, Arc backend + frontend, Components, CLI), the Why pages, and the concept landings. This is the user's **#1 qualitative bar**: walk the reader through like Marten / Wolverine / Aspire (study the local clones — §7), match the Chronicle tutorial's voice. Modeled on aspire.dev's `install-cli.mdx` / `what-is-aspire.mdx`.
+2. **Mirror Marten/Wolverine content FORM, not just style** (the user flagged this *twice*). Each product should have: a **threaded tutorial**, a **scenario/recipe catalog**, **"coming from X" bridges**, and **"Understanding …" explanation pages separate from reference**. Find pages that still read like a flat reference and reshape them into a guided walk-through.
+3. **Enable `.mdx` in product pages** so getting-started can use `<Steps>`/`<FileTree>`/`<Tabs>`/`<Aside>` like Aspire. `sync-content.mjs`'s `walk()` currently renames `.mdx`→`.md`; change it to **keep `.mdx`** (the converter's transforms are safe on authored MDX), then author the getting-started pages as `.mdx` with Steps + titled code blocks + expected-output. (Site-level pages are already `.mdx`.) Re-run the gates after.
+4. **Go deeper — cover all aspects & features, for novices AND experts.** The Diátaxis structure and the dual on-ramps (a "new to event sourcing" track and an expert "fast path / coming-from-X" bridge) are in place; **depth is continuous work** — fill out reference and guides for every major feature of each hero product (see the plan's depth target).
+5. **Keep the run-it-locally feedback loop tight.** The user runs `npm run dev` and gives concrete visual/UX feedback (ToC size, sidebar feel, imagery) — that's the highest-value signal. After visual changes, re-check that ToC/sidebar/spacing/diagrams/logo render cleanly in light + dark.
+6. Optionally adopt an Aspire-style `OsAwareTabs`/`LearnMore`, or use Starlight's built-in `<Tabs>`/`<LinkCard>`/`<Steps>`.
+
+Build-env-only items (API gen, Storybook embed, runnable capstone, deploy) are in §9.
 
 ## 9. Remaining work that needs YOUR environment (can't be done headless)
 
