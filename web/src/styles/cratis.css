@@ -43,6 +43,30 @@
 }
 
 /* --- Hero (splash front door) --- */
+.hero {
+    position: relative;
+    isolation: isolate;
+}
+
+/* A soft brand glow behind the hero gives the front door depth instead of a
+   flat slab (the aspire.dev move): a strong accent bloom behind the headline
+   and a cooler one behind the logo. */
+.hero::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: -6rem -4rem -2rem -6rem;
+    background:
+        radial-gradient(48% 60% at 26% 28%, color-mix(in srgb, var(--sl-color-accent) 26%, transparent), transparent 72%),
+        radial-gradient(42% 55% at 82% 18%, color-mix(in srgb, var(--sl-color-accent-high) 16%, transparent), transparent 70%);
+    pointer-events: none;
+}
+:root[data-theme='light'] .hero::before {
+    background:
+        radial-gradient(48% 60% at 26% 28%, color-mix(in srgb, var(--sl-color-accent) 14%, transparent), transparent 72%),
+        radial-gradient(42% 55% at 82% 18%, color-mix(in srgb, var(--sl-color-accent-high) 10%, transparent), transparent 70%);
+}
+
 .hero > .stack {
     gap: clamp(1rem, 2vw, 1.75rem);
 }
@@ -52,6 +76,19 @@
     line-height: 1.05;
 }
 
+/* Subtle vertical gradient on the headline — a hair of life without hurting
+   legibility (fades from full-contrast text into a tinted accent). */
+.hero h1#_top {
+    background: linear-gradient(
+        180deg,
+        var(--sl-color-white),
+        color-mix(in srgb, var(--sl-color-accent-high) 65%, var(--sl-color-white))
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
 .hero .tagline {
     max-width: 48ch;
 }
@@ -59,6 +96,7 @@
 /* Keep the hero mark from dominating on wide screens */
 .hero img {
     max-height: 200px;
+    filter: drop-shadow(0 8px 32px color-mix(in srgb, var(--sl-color-accent) 30%, transparent));
 }
 
 /* --- Cards: subtle lift on hover for a modern feel --- */
@@ -91,6 +129,13 @@
 .expressive-code .frame pre,
 .expressive-code figure {
     border-radius: 0.5rem;
+}
+/* Lift code blocks off the page so they read as discrete artifacts, the way
+   aspire.dev frames them — a soft, theme-aware drop shadow. */
+.expressive-code figure.frame {
+    box-shadow:
+        0 1px 2px rgb(0 0 0 / 0.16),
+        0 10px 28px -16px rgb(0 0 0 / 0.45);
 }
 .starlight-aside {
     border-radius: 0.5rem;
@@ -295,25 +340,53 @@
    page → frame (lifted) → cluster (recessed inset) → node (brightest).
    ===================================================================== */
 :root {
-    --cratis-dgm-frame: var(--sl-color-gray-6);
-    --cratis-dgm-frame-border: var(--sl-color-gray-5);
-    --cratis-dgm-node: color-mix(in srgb, var(--sl-color-accent) 16%, var(--sl-color-gray-6));
-    --cratis-dgm-node-border: color-mix(in srgb, var(--sl-color-accent) 80%, var(--sl-color-gray-3));
+    /* Frame: a soft gradient panel with two faint accent glows in opposite
+       corners (the aspire.dev look) instead of a flat fill. */
+    --cratis-dgm-surface: color-mix(in srgb, var(--sl-color-bg) 96%, var(--sl-color-accent-low));
+    --cratis-dgm-surface-strong: color-mix(in srgb, var(--sl-color-bg) 92%, var(--sl-color-accent-low) 8%);
+    --cratis-dgm-border: color-mix(in srgb, var(--sl-color-accent) 16%, var(--sl-color-gray-5));
+    --cratis-dgm-glow: color-mix(in srgb, var(--sl-color-accent) 8%, transparent);
+    --cratis-dgm-glow-2: color-mix(in srgb, var(--sl-color-accent-high) 7%, transparent);
+    --cratis-dgm-bg:
+        radial-gradient(ellipse at 18% 16%, var(--cratis-dgm-glow), transparent 46%),
+        radial-gradient(ellipse at 82% 74%, var(--cratis-dgm-glow-2), transparent 48%),
+        linear-gradient(135deg, var(--cratis-dgm-surface), var(--cratis-dgm-surface-strong));
+
+    --cratis-dgm-node: color-mix(in srgb, var(--sl-color-accent) 14%, var(--sl-color-gray-6));
+    --cratis-dgm-node-border: color-mix(in srgb, var(--sl-color-accent) 72%, var(--sl-color-gray-3));
     --cratis-dgm-node-text: var(--sl-color-white);
-    --cratis-dgm-cluster: color-mix(in srgb, var(--sl-color-accent) 7%, var(--sl-color-black));
-    --cratis-dgm-cluster-border: color-mix(in srgb, var(--sl-color-accent) 32%, var(--sl-color-gray-5));
+    --cratis-dgm-cluster: color-mix(in srgb, var(--sl-color-accent) 6%, var(--sl-color-black));
+    --cratis-dgm-cluster-border: color-mix(in srgb, var(--sl-color-accent) 30%, var(--sl-color-gray-5));
     --cratis-dgm-cluster-text: var(--sl-color-white);
-    --cratis-dgm-edge: color-mix(in srgb, var(--sl-color-accent) 45%, var(--sl-color-gray-4));
+    --cratis-dgm-edge: color-mix(in srgb, var(--sl-color-accent) 48%, var(--sl-color-gray-4));
     --cratis-dgm-edge-text: var(--sl-color-gray-2);
 }
 
-/* The diagram sits in a calm, intentional card rather than raw on the page. */
+:root[data-theme='light'] {
+    --cratis-dgm-surface: color-mix(in srgb, var(--sl-color-bg) 97%, var(--sl-color-accent-low));
+    --cratis-dgm-surface-strong: color-mix(in srgb, var(--sl-color-bg) 94%, var(--sl-color-accent-low) 6%);
+    --cratis-dgm-border: color-mix(in srgb, var(--sl-color-accent) 14%, var(--sl-color-gray-5));
+    --cratis-dgm-glow: color-mix(in srgb, var(--sl-color-accent) 7%, transparent);
+    --cratis-dgm-glow-2: color-mix(in srgb, var(--sl-color-accent-high) 5%, transparent);
+}
+
+/* The diagram sits in a soft, glowing card rather than raw on the page. */
 .sl-markdown-content pre.mermaid[data-processed] {
-    background: var(--cratis-dgm-frame) !important;
-    border: 1px solid var(--cratis-dgm-frame-border) !important;
-    border-radius: 0.75rem !important;
+    background: var(--cratis-dgm-bg) !important;
+    border: 1px solid var(--cratis-dgm-border) !important;
+    border-radius: 0.875rem !important;
     padding: 1.75rem 1.25rem !important;
     margin-block: 1.75rem !important;
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--sl-color-white) 5%, transparent) !important;
+}
+
+/* Show the frame immediately while the client-side render runs — replaces
+   the integration's jarring light-gray shimmer with the calm panel. */
+.sl-markdown-content pre.mermaid:not([data-processed]) {
+    background: var(--cratis-dgm-bg) !important;
+    border: 1px solid var(--cratis-dgm-border);
+    border-radius: 0.875rem;
+    animation: none !important;
 }
 
 /* Font is set via the mermaid integration config (fontFamily) so Mermaid
@@ -382,12 +455,12 @@
 .mermaid svg .edgeLabel span {
     color: var(--cratis-dgm-edge-text) !important;
     fill: var(--cratis-dgm-edge-text) !important;
-    background: var(--cratis-dgm-frame) !important;
+    background: var(--cratis-dgm-surface) !important;
 }
 .mermaid svg .edgeLabel rect,
 .mermaid svg .labelBkg {
-    fill: var(--cratis-dgm-frame) !important;
-    background: var(--cratis-dgm-frame) !important;
+    fill: var(--cratis-dgm-surface) !important;
+    background: var(--cratis-dgm-surface) !important;
     opacity: 1 !important;
 }
 
