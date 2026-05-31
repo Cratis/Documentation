@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import mermaid from 'astro-mermaid';
+import remarkGfm from 'remark-gfm';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightPageActions from 'starlight-page-actions';
 import starlightScrollToTop from 'starlight-scroll-to-top';
@@ -59,6 +60,14 @@ const topics = [overviewTopic, ...productTopics];
 export default defineConfig({
     site: 'https://cratis.io',
     // NOTE: if the site is served under cratis.io/docs at cutover, set `base: '/docs'`.
+    // GFM tables render in plain `.md`, but astro-mermaid injects plugins via the
+    // (now-deprecated) `markdown.remarkPlugins` path, which leaves MDX's own `gfm`
+    // flag falsy — so tables silently vanished from every `.mdx` page (front door,
+    // why-cratis, …). Adding remark-gfm here makes it part of the inherited plugin
+    // set that `@astrojs/mdx` re-applies (extendMarkdownConfig), restoring tables.
+    markdown: {
+        remarkPlugins: [remarkGfm],
+    },
     integrations: [
         // astro-mermaid transforms ```mermaid code fences into rendered diagrams.
         // Must run before Starlight so Expressive Code does not claim the fences.
