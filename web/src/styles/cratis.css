@@ -280,3 +280,162 @@
         --sl-content-margin-inline: auto;
     }
 }
+
+/* =====================================================================
+   Mermaid diagrams — brand-themed, theme-adaptive
+   ---------------------------------------------------------------------
+   astro-mermaid renders client-side with the stock `default`/`dark`
+   Mermaid themes — drab near-black boxes with thin gray borders. We
+   restyle the rendered SVG instead, with a small palette that flips with
+   light/dark (all derived from the brand accent + Starlight grays).
+
+   Mermaid scopes its own rules as `#mermaid-<id> .node rect { … }`
+   (ID specificity, but NO `!important` on the visual props), so a class
+   selector carrying `!important` reliably wins. Depth reads as:
+   page → frame (lifted) → cluster (recessed inset) → node (brightest).
+   ===================================================================== */
+:root {
+    --cratis-dgm-frame: var(--sl-color-gray-6);
+    --cratis-dgm-frame-border: var(--sl-color-gray-5);
+    --cratis-dgm-node: color-mix(in srgb, var(--sl-color-accent) 16%, var(--sl-color-gray-6));
+    --cratis-dgm-node-border: color-mix(in srgb, var(--sl-color-accent) 80%, var(--sl-color-gray-3));
+    --cratis-dgm-node-text: var(--sl-color-white);
+    --cratis-dgm-cluster: color-mix(in srgb, var(--sl-color-accent) 7%, var(--sl-color-black));
+    --cratis-dgm-cluster-border: color-mix(in srgb, var(--sl-color-accent) 32%, var(--sl-color-gray-5));
+    --cratis-dgm-cluster-text: var(--sl-color-white);
+    --cratis-dgm-edge: color-mix(in srgb, var(--sl-color-accent) 45%, var(--sl-color-gray-4));
+    --cratis-dgm-edge-text: var(--sl-color-gray-2);
+}
+
+/* The diagram sits in a calm, intentional card rather than raw on the page. */
+.sl-markdown-content pre.mermaid[data-processed] {
+    background: var(--cratis-dgm-frame) !important;
+    border: 1px solid var(--cratis-dgm-frame-border) !important;
+    border-radius: 0.75rem !important;
+    padding: 1.75rem 1.25rem !important;
+    margin-block: 1.75rem !important;
+}
+
+/* Font is set via the mermaid integration config (fontFamily) so Mermaid
+   measures node boxes with the same font it renders — see astro.config.mjs. */
+
+/* --- Flowchart / generic nodes --- */
+.mermaid svg .node rect,
+.mermaid svg .node circle,
+.mermaid svg .node ellipse,
+.mermaid svg .node polygon,
+.mermaid svg .node path {
+    fill: var(--cratis-dgm-node) !important;
+    stroke: var(--cratis-dgm-node-border) !important;
+    stroke-width: 1.25px !important;
+}
+.mermaid svg .node rect { rx: 8px; ry: 8px; }
+
+/* Node label text (HTML foreignObject labels use `color`, SVG text uses `fill`). */
+.mermaid svg .node .nodeLabel,
+.mermaid svg .node .nodeLabel p,
+.mermaid svg .node .label,
+.mermaid svg .node text,
+.mermaid svg .nodeLabel {
+    color: var(--cratis-dgm-node-text) !important;
+    fill: var(--cratis-dgm-node-text) !important;
+}
+
+/* --- Subgraph clusters: a recessed inset panel --- */
+.mermaid svg .cluster rect {
+    fill: var(--cratis-dgm-cluster) !important;
+    stroke: var(--cratis-dgm-cluster-border) !important;
+    stroke-width: 1px !important;
+    rx: 12px;
+    ry: 12px;
+}
+.mermaid svg .cluster span,
+.mermaid svg .cluster-label,
+.mermaid svg .cluster-label text,
+.mermaid svg .cluster text,
+.mermaid svg .cluster .nodeLabel,
+.mermaid svg .cluster .nodeLabel p {
+    color: var(--cratis-dgm-cluster-text) !important;
+    fill: var(--cratis-dgm-cluster-text) !important;
+}
+
+/* --- Edges + arrowheads --- */
+.mermaid svg .edgePath .path,
+.mermaid svg .flowchart-link,
+.mermaid svg path.flowchart-link,
+.mermaid svg .edgePath path,
+.mermaid svg .transition {
+    stroke: var(--cratis-dgm-edge) !important;
+    stroke-width: 1.5px !important;
+}
+.mermaid svg .marker,
+.mermaid svg marker path,
+.mermaid svg .arrowMarkerPath,
+.mermaid svg defs marker path {
+    fill: var(--cratis-dgm-edge) !important;
+    stroke: var(--cratis-dgm-edge) !important;
+}
+
+/* --- Edge labels: sit on the frame color so the line reads behind them --- */
+.mermaid svg .edgeLabel,
+.mermaid svg .edgeLabel p,
+.mermaid svg .edgeLabel span {
+    color: var(--cratis-dgm-edge-text) !important;
+    fill: var(--cratis-dgm-edge-text) !important;
+    background: var(--cratis-dgm-frame) !important;
+}
+.mermaid svg .edgeLabel rect,
+.mermaid svg .labelBkg {
+    fill: var(--cratis-dgm-frame) !important;
+    background: var(--cratis-dgm-frame) !important;
+    opacity: 1 !important;
+}
+
+/* --- Sequence diagrams --- */
+.mermaid svg .actor {
+    fill: var(--cratis-dgm-node) !important;
+    stroke: var(--cratis-dgm-node-border) !important;
+}
+.mermaid svg text.actor,
+.mermaid svg .actor > tspan {
+    fill: var(--cratis-dgm-node-text) !important;
+}
+.mermaid svg .actor-line {
+    stroke: var(--cratis-dgm-cluster-border) !important;
+}
+.mermaid svg .messageLine0,
+.mermaid svg .messageLine1 {
+    stroke: var(--cratis-dgm-edge) !important;
+}
+.mermaid svg .messageText,
+.mermaid svg .labelText,
+.mermaid svg .labelText > tspan,
+.mermaid svg .loopText,
+.mermaid svg .loopText > tspan,
+.mermaid svg .noteText {
+    fill: var(--cratis-dgm-node-text) !important;
+}
+.mermaid svg .labelBox,
+.mermaid svg .note {
+    fill: var(--cratis-dgm-cluster) !important;
+    stroke: var(--cratis-dgm-cluster-border) !important;
+}
+.mermaid svg .loopLine {
+    stroke: var(--cratis-dgm-cluster-border) !important;
+}
+
+/* --- State diagrams --- */
+.mermaid svg .statediagram-state rect,
+.mermaid svg .statediagram-cluster rect {
+    fill: var(--cratis-dgm-node) !important;
+    stroke: var(--cratis-dgm-node-border) !important;
+}
+.mermaid svg .statediagram-cluster.statediagram-cluster rect {
+    fill: var(--cratis-dgm-cluster) !important;
+}
+.mermaid svg circle.state-start,
+.mermaid svg .statediagram-state .start-state,
+.mermaid svg [class*='state-end'] circle {
+    fill: var(--cratis-dgm-edge) !important;
+    stroke: var(--cratis-dgm-edge) !important;
+}

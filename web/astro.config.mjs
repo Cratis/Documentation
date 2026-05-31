@@ -65,6 +65,13 @@ export default defineConfig({
         mermaid({
             theme: 'default',
             autoTheme: true, // follow Starlight light/dark
+            // Render with the brand font so Mermaid measures node boxes with the
+            // same font we display — otherwise labels get clipped. Colors are
+            // themed via CSS on the rendered SVG (see cratis.css "Mermaid").
+            mermaidConfig: {
+                fontFamily: "'Inter Variable', Inter, system-ui, -apple-system, sans-serif",
+                flowchart: { padding: 14, nodeSpacing: 55, rankSpacing: 60, useMaxWidth: true },
+            },
         }),
         starlight({
             title: 'Cratis',
