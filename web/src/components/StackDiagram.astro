@@ -1,0 +1,98 @@
+---
+// The Cratis Stack, as a layered visual (mirrors the cratis.io landing). Each layer
+// links to its product overview; Studio carries a "coming soon" badge. Pass
+// `current="chronicle"` to highlight the active layer when embedding on a product page.
+//
+// Usage (in .mdx):
+//   import StackDiagram from '@components/StackDiagram.astro';
+//   <StackDiagram />
+//   <StackDiagram current="arc" />
+const { current = '' } = Astro.props;
+
+// Top → bottom: what a developer touches first sits highest; the foundation sits last.
+const layers = [
+    { key: 'studio', name: 'Studio', role: 'Visual control room for your event-sourced system', href: '/studio/', icon: '🎛️', soon: true },
+    { key: 'components', name: 'Components', role: 'React UI toolkit wired to your typed backend', href: '/components/', icon: '🧩' },
+    { key: 'arc', name: 'Arc', role: 'Full-stack CQRS framework — C# to React, typed', href: '/arc/', icon: '🏛️' },
+    { key: 'chronicle', name: 'Chronicle', role: 'The event sourcing engine at the core', href: '/chronicle/', icon: '📜' },
+    { key: 'fundamentals', name: 'Fundamentals', role: 'Shared building blocks for .NET and TypeScript', href: '/fundamentals/', icon: '🧱' },
+];
+---
+
+<div class="cr-stack not-content" role="list" aria-label="The Cratis stack">
+    {layers.map((layer) => (
+        <a
+            class:list={['cr-stack__layer', { 'cr-stack__layer--current': current === layer.key }]}
+            href={layer.href}
+            role="listitem"
+        >
+            <span class="cr-stack__icon" aria-hidden="true">{layer.icon}</span>
+            <span class="cr-stack__text">
+                <span class="cr-stack__name">
+                    {layer.name}
+                    {layer.soon && <span class="cr-stack__badge">Coming soon</span>}
+                </span>
+                <span class="cr-stack__role">{layer.role}</span>
+            </span>
+            <span class="cr-stack__arrow" aria-hidden="true">→</span>
+        </a>
+    ))}
+</div>
+
+<style>
+    .cr-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        margin: 1.5rem 0;
+    }
+    .cr-stack__layer {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        border: 1px solid var(--sl-color-hairline);
+        border-radius: 0.75rem;
+        background: var(--sl-color-bg-sidebar);
+        text-decoration: none;
+        color: var(--sl-color-text);
+        transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .cr-stack__layer:hover {
+        transform: translateY(-2px);
+        border-color: color-mix(in srgb, var(--sl-color-accent) 55%, var(--sl-color-hairline));
+        box-shadow: 0 10px 26px -14px color-mix(in srgb, var(--sl-color-accent) 65%, transparent);
+    }
+    .cr-stack__layer--current {
+        border-color: var(--sl-color-accent);
+        background: color-mix(in srgb, var(--sl-color-accent) 8%, var(--sl-color-bg-sidebar));
+    }
+    .cr-stack__icon { font-size: 1.6rem; line-height: 1; }
+    .cr-stack__text { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; }
+    .cr-stack__name {
+        font-weight: 700;
+        color: var(--sl-color-white);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+    .cr-stack__role { font-size: var(--sl-text-sm); color: var(--sl-color-text); }
+    .cr-stack__badge {
+        font-size: 0.65rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 0.12rem 0.5rem;
+        border-radius: 999px;
+        color: var(--sl-color-accent-high);
+        background: var(--sl-color-accent-low);
+        border: 1px solid color-mix(in srgb, var(--sl-color-accent) 40%, transparent);
+    }
+    .cr-stack__arrow {
+        color: var(--sl-color-accent);
+        font-size: 1.1rem;
+        opacity: 0.6;
+        transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    .cr-stack__layer:hover .cr-stack__arrow { transform: translateX(3px); opacity: 1; }
+</style>

@@ -1,0 +1,49 @@
+---
+// "Recap / what you did" box for the end of a tutorial chapter. Close the loop the
+// YouWillLearn box opened, then hand off to the next chapter with a forward link.
+//
+// Usage (in .mdx) — leave blank lines so the content is parsed as markdown:
+//   import Recap from '@components/Recap.astro';
+//
+//   <Recap>
+//
+//   You appended an event and saw it land in the log. Next, you'll **project it
+//   into a read model** → [Building a read model](./building-a-read-model/).
+//
+//   </Recap>
+const { title = 'Recap' } = Astro.props;
+---
+
+<aside class="cr-recap not-content" aria-label={title}>
+    <p class="cr-recap__title">
+        <span class="cr-recap__icon" aria-hidden="true">✓</span>{title}
+    </p>
+    <div class="cr-recap__body">
+        <slot />
+    </div>
+</aside>
+
+<style>
+    .cr-recap {
+        margin: 2rem 0 0.5rem;
+        padding: 1.1rem 1.3rem;
+        border: 1px solid color-mix(in srgb, var(--cr-success, #2e7d32) 40%, var(--sl-color-hairline));
+        border-left: 3px solid var(--cr-success, #2e7d32);
+        border-radius: 0.6rem;
+        background: color-mix(in srgb, var(--cr-success, #2e7d32) 7%, var(--sl-color-bg));
+    }
+    :root[data-theme='dark'] .cr-recap { --cr-success: #4caf72; }
+    .cr-recap__title {
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+        font-size: var(--sl-text-sm);
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--cr-success, #2e7d32);
+    }
+    .cr-recap__icon {
+        margin-right: 0.5rem;
+        font-weight: 900;
+    }
+    .cr-recap__body :global(:last-child) { margin-bottom: 0; }
+</style>
