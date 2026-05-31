@@ -1,35 +1,5 @@
 # Cratis documentation overhaul — handover
 
-## 0. Fresh-start brief (2026-05-31 — read first; supersedes any stale numbers below)
-
-**Verified state now:** site is **green — 653 pages · 0 lint errors · 0 broken links** (`cd Documentation/web && npm run check`). All work committed on `docs-overhaul`; **nothing pushed**. Working trees clean (only untracked `Screenshot*.png` and `.claude/scheduled_tasks.lock` — leave them).
-
-**Per-repo HEADs at handover** (start from these):
-- **Documentation** `940deec` "Stop the linter flagging code-span and entity headings"
-- **Chronicle** `ed75da27a` "Add diagrams to core concept pages"
-- **Arc** `312f0b01` "Revert Rewrite the Arc-Chronicle integration landing…" (the revert is intentional — see lesson #1)
-- **Fundamentals** `c59c939` · **cli** `5b766ce` · **Components** `a644746`
-
-**Landed across this overhaul (don't redo):** front door rebuilt around the cratis.io "Cratis stack" model; **Studio** "coming soon" page (`web/src/content/docs/studio.mdx`) in the Overview topic; 5 reusable components in `web/src/components/` via `@components` (`FullStackTabs` = synced C#/TS tabs, `OsAwareTabs`, `YouWillLearn`, `Recap`, `StackDiagram`); cross-product **glossary** (`web/src/content/docs/glossary.md`); strengthened **lint-docs.mjs** (Google/MS style nudges — weasel words + heading-punct — as non-failing warnings, ~159, advisory only); optional **Vale** layer (`web/.vale.ini` + `web/.vale/styles/Vocab/Cratis/` + `web/scripts/lint-prose.mjs`, wired into `npm run check`, **skips gracefully when `vale` is absent**); tour-voice reshapes (Chronicle projections + read-models; Arc commands, queries, frontend, backend, react/core/mvvm landings; Fundamentals C#); a **cli Scenarios** section; a Components **"choosing a component"** guide; Mermaid **diagrams on concept pages** (event-source, event-sequence, observers).
-
-**Corrected facts (earlier notes had these WRONG):**
-- The Chronicle **tutorial DOES have chapters** — `Chronicle/Documentation/tutorial/{index,first-event,read-model,reacting}.md`. It is the voice exemplar, NOT empty (3 chapters + index).
-- **`check-links.mjs` already validates relative links** (`./foo`/`../foo` resolved against the page). Don't "fix" it; there is no dead-relative-link backlog.
-- **Platform is settled: Astro Starlight stays** (free/OSS), hosted on **GitHub Pages** via `Documentation/.github/workflows/docs-site.yml` (needs Pages enabled + `DOCS_CHECKOUT_TOKEN` — see §9). **No Mintlify** anywhere; ignore any mention of it.
-
-**⚠ CRITICAL — the tool channel is intermittently unreliable (stale/fabricated reads):**
-1. **Reads sometimes return STALE or FABRICATED file content.** This caused real damage earlier: an invented "missing tutorial chapters" + "dead relative links" problem, and two correct pages overwritten with broken links — committed, then undone with **`git revert`**. **Mitigation: fresh-`Read` immediately before every `Edit`; verify with independent `grep`/`git show`/`wc -l`; run `npm run check` after every change; never trust a remembered read.**
-2. `git reset --hard` is **blocked by the harness** — use **`git revert`**.
-3. `Edit` **fails safe**: a "string not found" error usually means your read was stale — re-Read and retry, don't force it.
-
-**Best next work (high-confidence):**
-- **More concept-page diagrams** — still missing on `Chronicle/Documentation/concepts/{event-store,namespaces,event-type,event,constraints,projection,subject}.md`. Purely additive; build-verify each.
-- **Expressive Code power features** (collapsible regions, line numbers, expected-output `data-disable-copy`) — needs `package.json` dev-deps, so flag it.
-- The OPEN backlog in §8.
-- **Do NOT** mass-remove the ~159 weasel-word warnings — the conversational "just/simply" is the deliberate tour voice; the linter is a signal, not a mandate.
-
----
-
 > Read this first if you're continuing the Cratis docs overhaul in a fresh session.
 > It captures the goal, the current state, how the site is built, how to run and verify it,
 > the writing bar, what's done, what's next, and the gotchas that will bite you if you don't know them.
