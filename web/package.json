@@ -13,8 +13,10 @@
     "astro": "astro",
     "lint:docs": "node scripts/lint-docs.mjs",
     "lint:prose": "node scripts/lint-prose.mjs",
+    "lint:markdown": "node scripts/lint-markdown.mjs",
     "check:links": "node scripts/check-links.mjs",
-    "check": "npm run build && node scripts/lint-docs.mjs && node scripts/check-links.mjs && node scripts/lint-prose.mjs"
+    "check:external": "node scripts/check-external-links.mjs",
+    "check": "npm run build && node scripts/lint-docs.mjs && node scripts/check-links.mjs && node scripts/lint-prose.mjs && node scripts/lint-markdown.mjs && node scripts/check-external-links.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.39.2",

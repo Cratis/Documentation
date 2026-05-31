@@ -1,0 +1,14 @@
+# lychee external-link checker config — used by scripts/check-external-links.mjs when lychee
+# (https://lychee.cli.rs) is installed. check-links.mjs already hard-gates INTERNAL links;
+# this focuses on EXTERNAL URLs, which is why localhost and the build output are excluded.
+exclude = [
+  "^https?://localhost",
+  "^https?://127\\.0\\.0\\.1",
+  "^https?://\\+",
+]
+exclude_path = ["dist", "src/generated"]
+max_retries = 2
+retry_wait_time = 2
+timeout = 20
+# Treat rate-limited / partial responses as reachable.
+accept = ["200..=206", "429"]

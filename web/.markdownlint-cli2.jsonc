@@ -1,0 +1,17 @@
+{
+  // markdownlint-cli2 configuration. Activated by scripts/lint-markdown.mjs when the tool is
+  // installed (run `npm i -D markdownlint-cli2`, or install globally); skipped gracefully otherwise.
+  // Lints the synced Markdown under src/content/docs. .mdx is ignored — its JSX trips the parser.
+  "globs": ["src/content/docs/**/*.md"],
+  "ignores": ["**/*.mdx", "src/generated/**"],
+  "config": {
+    "default": true,
+    "MD013": false,                      // line length — our prose intentionally uses long lines
+    "MD033": false,                      // inline HTML — common across the content
+    "MD041": false,                      // first-line heading — pages start with frontmatter
+    "MD025": false,                      // single H1 — the title lives in frontmatter
+    "MD024": { "siblings_only": true },  // duplicate headings are fine across different sections
+    "MD036": false,                      // emphasis used as a heading — a deliberate stylistic choice
+    "MD012": false                       // multiple consecutive blank lines
+  }
+}
