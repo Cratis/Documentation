@@ -27,10 +27,11 @@ try {
 // web/, not owned by any product): the "why", the capstone, samples, comparisons.
 const overviewTopic = {
     id: 'overview',
-    label: 'Overview',
-    link: 'why-cratis',
+    label: 'Cratis Stack',
+    link: 'cratis-stack',
     icon: 'open-book',
     items: [
+        { label: 'The Cratis Stack', slug: 'cratis-stack' },
         { label: 'Why Cratis', slug: 'why-cratis' },
         { label: 'Adopting Cratis', slug: 'adopting-cratis' },
         { label: 'Studio', slug: 'studio', badge: { text: 'Soon', variant: 'tip' } },
@@ -112,7 +113,7 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/why-cratis', '/adopting-cratis', '/studio', '/build-a-full-app', '/samples', '/glossary', '/comparisons', '/comparisons/**', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/studio', '/build-a-full-app', '/samples', '/glossary', '/comparisons', '/comparisons/**', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],
