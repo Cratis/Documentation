@@ -1,0 +1,76 @@
+---
+title: Studio
+description: Cratis Studio is the visual control room for your event-sourced system — see every event live, inspect and manage projections, replay the log, and explore read models. Coming soon.
+tableOfContents: false
+---
+
+import TopicHero from '@components/TopicHero.astro';
+import SimpleCard from '@components/SimpleCard.astro';
+import StackDiagram from '@components/StackDiagram.astro';
+import { Aside } from '@astrojs/starlight/components';
+
+<TopicHero
+    eyebrow="Studio · Coming soon"
+    title="The visual control room for your event-sourced system"
+    tagline="When your source of truth is a stream of events, you want to see it. Studio is the window into a running Cratis system — every event, every projection, every read model, live."
+    primaryHref="https://github.com/cratis/Studio"
+    primaryText="Follow on GitHub"
+    secondaryHref="/why-cratis/"
+    secondaryText="Why event sourcing?"
+/>
+
+<Aside type="note" title="Coming soon">
+    Studio is in active development. This page is a preview of where it's headed — follow the
+    [Studio repository](https://github.com/cratis/Studio) to track progress. In the meantime, the
+    [CLI](/cli/) already gives you an event-sourcing-aware window into a running store.
+</Aside>
+
+## Why a control room
+
+An event-sourced system is honest by design — nothing is overwritten, everything that happened is
+still there. But that truth lives in a stream of events, not a table you can eyeball. When something
+looks off in a read model, you want to answer "*which events produced this, and when?*" without writing
+a query.
+
+That's what Studio is for: a visual, real-time view of your system that speaks events, projections, and
+read models — not rows and columns.
+
+## What Studio will do
+
+<div class="sl-card-grid">
+    <SimpleCard icon="📡" title="See every event live">
+        Watch events land in the log in real time, filtered by event source, type, or namespace —
+        the heartbeat of your system, as it happens.
+    </SimpleCard>
+    <SimpleCard icon="🧮" title="Inspect & manage projections">
+        See which projections are running, where they are in the stream, and replay or rewind one when
+        you change how a read model is built.
+    </SimpleCard>
+    <SimpleCard icon="⏪" title="Replay & rewind the log">
+        Roll an observer back to a sequence number and let it rebuild — the superpower event sourcing
+        gives you, with a button instead of a script.
+    </SimpleCard>
+    <SimpleCard icon="🔎" title="Explore read models">
+        Browse the read models your projections produce and trace any value back to the events that
+        shaped it.
+    </SimpleCard>
+    <SimpleCard icon="🩺" title="Diagnose what's stuck">
+        Find a paused partition or a failing reactor, see why it stopped, and get it moving again.
+    </SimpleCard>
+    <SimpleCard icon="🧭" title="Model collaboratively">
+        Shape your events and slices as a team — event modeling as a first-class, shared activity.
+    </SimpleCard>
+</div>
+
+## Where it fits in the stack
+
+Studio sits at the top of the stack — the layer you reach for to *observe and operate* everything the
+other layers produce.
+
+<StackDiagram current="studio" />
+
+## Until then
+
+- Use the [CLI](/cli/) to inspect events, observers, and read models in a running store today.
+- New to event sourcing? Start with [Why Cratis](/why-cratis/) and the [Chronicle tutorial](/chronicle/tutorial/).
+- Watch the [Studio repository](https://github.com/cratis/Studio) for releases.
