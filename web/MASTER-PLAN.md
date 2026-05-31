@@ -44,7 +44,10 @@
 
 ### 🌟 Big bets (proposed — high launch value)
 
-- ⬜ **"Cratis Stack" — an umbrella hero topic / tour.** A first-class top topic (its own icon-rail entry,
+- 🟡 **"Cratis Stack" — an umbrella hero topic / tour.** *(SHIPPED: the `cratis-stack` hero landing + the
+  first nav topic rebranded "Cratis Stack" + the `ai-native-development` page. Optional remaining: deeper
+  per-chapter tour pages — design/build/operate — though the landing already tours at altitude and links out
+  to the tutorials, so beware duplication.)* A first-class top topic (its own icon-rail entry,
   peer to the products) that *tours the whole stack end-to-end* in guidance/tour voice, showing how every layer
   fits together and why the sum is far more than the parts. Not a product reference — a **showcase + guided
   journey**. The layers, with their *correct* roles (confirmed with the user — don't mis-state these):
@@ -61,8 +64,11 @@
   Subsumes and links to: the boundary narrative, the capstone, and the proxy-boundary explanation (a *chapter*).
   *Implementation:* a new site-level topic in `astro.config.mjs` (like the Overview topic) with a hero landing +
   chaptered tour pages; reuse `TopicHero`/`StackDiagram`/`FullStackTabs`.
-- ⬜ **AI-native development — "Build Cratis apps with AI agents."** A genuine differentiator, and currently
-  undocumented in the site. Grounded in real, shipped tooling (verified locally):
+- 🟡 **AI-native development — "Build Cratis apps with AI agents."** *(SHIPPED: `ai-native-development.mdx` —
+  build side (`.ai` skills/agents) + operate side (`cratis init` writes CHRONICLE.md + instruction files for
+  Claude Code/Copilot/Cursor/Windsurf + a `chronicle-diagnose` slash command; Chronicle MCP server). Could grow
+  into a how-to cluster: a dedicated "set up Cratis AI tooling" + "connect the MCP server" walkthrough.)* A
+  genuine differentiator. Grounded in real, shipped tooling (verified locally):
   - **`AI/` repo (Cratis AI)** — canonical `.ai/` config (agents, **skills** like `new-vertical-slice`,
     `cratis-command`, `add-projection`, `cratis-readmodel`; prompts; hooks; coding rules) that drops into any
     Cratis repo via `.github/` + `.claude/` symlinks. Installed with **`cratis init`**. The agents/skills know the
@@ -137,8 +143,8 @@ Reference largely migrated; the work is expert-depth explanations + scenarios.
 ## Prioritized next picks (launch-facing first)
 
 1. **Full-stack type-safety / proxy boundary** (the differentiator; first chapter of the Cratis Stack tour) ← *in progress*.
-2. 🌟 **"Cratis Stack" umbrella hero topic** (the platform showcase — proposed by the user; likely the single highest-impact launch piece).
-3. 🌟 **AI-native development** (build Cratis apps with AI agents — `cratis init`, the `.ai/` skills, Chronicle MCP server).
+2. 🟡 **"Cratis Stack" umbrella hero topic** — SHIPPED (landing + topic rebrand). Optional: deeper per-chapter tour pages.
+3. 🟡 **AI-native development** — SHIPPED (`ai-native-development.mdx`). Optional: grow into a how-to cluster (setup + MCP walkthrough).
 4. **Arc identity + tenancy** (enterprise/multi-tenant evaluators probe these early).
 5. **Chronicle constraints + migrations** (expert credibility — where event sourcing gets hard).
 6. **Components DataPage / DataTables deep-dive** (most-used surface).
