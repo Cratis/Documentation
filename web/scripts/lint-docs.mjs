@@ -1,9 +1,17 @@
-// Lints the converted documentation for the defects called out in
-// .ai/rules/documentation.md: non-descriptive link text and leftover
-// DocFX-isms that should have been converted.
+// Lints converted docs for quality issues the Markdown build itself won't catch.
 //
-// Run after a sync:  node scripts/lint-docs.mjs   (or `npm run lint:docs`)
-// Exits non-zero if any ERROR-level issue is found.
+// Two severities:
+//   ERRORS (fail the build) — defects we never want shipped:
+//     1. Non-descriptive link text ("here", "click here", "see documentation").
+//     2. Leftover DocFX-isms the converter should have handled (xref:, [!INCLUDE], raw alerts).
+//     3. Leftover authoring markers (TODO/FIXME/TBD, "lorem ipsum").
+//   WARNINGS (reported, don't fail) — style-guide nudges from the Google and Microsoft
+//     developer writing style guides, applied to prose only (code fences are skipped):
+//     4. Weasel / filler words that add no information ("simply", "just", "obviously", "easily").
+//     5. End punctuation on a heading.
+//
+// Runs over the generated content in src/content/docs (after `npm run sync`).
+// Exits non-zero only on ERRORS so it can gate CI without style nits blocking a build.
 
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
@@ -12,61 +20,83 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const docsRoot = path.resolve(here, '..', 'src', 'content', 'docs');
 
-// Non-descriptive link text (the whole link label is one of these) — a defect.
-const BAD_LINK_TEXT = /\[\s*(see documentation|click here|here|read more|this|this page|link|see here|learn more|docs|documentation)\s*\]\(/i;
+// --- Error-level patterns ---
+const NONDESCRIPTIVE = [/\[\s*here\s*\]/i, /\[\s*click here\s*\]/i, /\[\s*see documentation\s*\]/i, /\[\s*link\s*\]/i];
+const DOCFX_LEFTOVERS = [/xref:/, /\[!INCLUDE/, /^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/m];
+const AUTHORING_MARKERS = [/\bTODO\b/, /\bFIXME\b/, /\bTBD\b/, /lorem ipsum/i];
 
-// Leftover DocFX-isms that the converter should have handled.
-const LEFTOVERS = [
-    { re: /<xref:/, msg: 'unconverted <xref:>' },
-    { re: /\[!INCLUDE/, msg: 'unconverted [!INCLUDE]' },
-    { re: /\{\{\s*snippet\s*:/i, msg: 'unresolved {{snippet:}} placeholder' },
-    { re: /^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/, msg: 'unconverted DocFX alert' },
-];
+// --- Warning-level patterns (style guide; prose only) ---
+// Filler/weasel words: they promise ease but tell the reader nothing, and they sting
+// when the reader finds the step hard. (Google & Microsoft style guides both flag these.)
+const WEASEL_WORDS = /\b(simply|just|obviously|easily|of course|clearly|trivially)\b/i;
+// Headings should not end in a period or other terminal punctuation.
+const HEADING_END_PUNCT = /^#{1,6}\s+.*[.!,;:]\s*$/;
 
 let errors = 0;
 let warnings = 0;
+let filesChecked = 0;
 
 async function walk(dir) {
-    let entries;
-    try {
-        entries = await fs.readdir(dir, { withFileTypes: true });
-    } catch {
-        return;
-    }
-    for (const e of entries) {
-        const full = path.join(dir, e.name);
-        if (e.isDirectory()) {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
             await walk(full);
-        } else if (e.name.endsWith('.md') || e.name.endsWith('.mdx')) {
-            await lintFile(full);
+            continue;
         }
+        if (!/\.mdx?$/.test(entry.name)) continue;
+        filesChecked++;
+        const raw = await fs.readFile(full, 'utf8');
+        checkFile(full, raw);
     }
 }
 
-async function lintFile(file) {
+function checkFile(file, raw) {
     const rel = path.relative(docsRoot, file);
-    const lines = (await fs.readFile(file, 'utf8')).split('\n');
-    let inFence = false;
-    lines.forEach((line, i) => {
-        if (/^```/.test(line.trim())) inFence = !inFence;
-        if (inFence) return;
-        for (const { re, msg } of LEFTOVERS) {
-            if (re.test(line)) {
-                console.log(`  ERROR ${rel}:${i + 1}  ${msg}`);
-                errors++;
-            }
+    const lines = raw.split('\n');
+    let inCodeFence = false;
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (/^\s*```/.test(line)) {
+            inCodeFence = !inCodeFence;
+            continue;
         }
-        if (BAD_LINK_TEXT.test(line)) {
-            console.log(`  WARN  ${rel}:${i + 1}  non-descriptive link text`);
+        if (inCodeFence) continue;
+        const at = `${rel}:${i + 1}`;
+
+        // Errors
+        for (const re of NONDESCRIPTIVE) {
+            if (re.test(line)) { console.error(`  [link-text] ${at}  ${line.trim()}`); errors++; }
+        }
+        for (const re of DOCFX_LEFTOVERS) {
+            if (re.test(line)) { console.error(`  [docfx] ${at}  ${line.trim()}`); errors++; }
+        }
+        for (const re of AUTHORING_MARKERS) {
+            if (re.test(line)) { console.error(`  [marker] ${at}  ${line.trim()}`); errors++; }
+        }
+
+        // Warnings (style guide) — skip inline-code spans so `simply` in `code` is ignored.
+        const prose = line.replace(/`[^`]*`/g, '');
+        if (HEADING_END_PUNCT.test(line)) {
+            console.warn(`  [heading-punct] ${at}  ${line.trim()}`);
             warnings++;
         }
-    });
+        const weasel = prose.match(WEASEL_WORDS);
+        if (weasel) {
+            console.warn(`  [weasel: ${weasel[1]}] ${at}  ${line.trim()}`);
+            warnings++;
+        }
+    }
 }
 
-console.log('Linting converted docs in src/content/docs ...');
-await walk(docsRoot);
-console.log(`\n${errors} error(s), ${warnings} warning(s).`);
-if (errors > 0) {
-    console.error('Documentation lint failed (errors must be fixed).');
-    process.exit(1);
+async function main() {
+    console.log(`Linting converted docs in ${path.relative(process.cwd(), docsRoot)} ...`);
+    await walk(docsRoot);
+    if (errors > 0) {
+        console.error(`\n${errors} error(s), ${warnings} warning(s).`);
+        process.exit(1); // errors gate the build; warnings do not
+    }
+    console.log(`\n0 error(s), ${warnings} warning(s).`);
 }
+
+await main();
