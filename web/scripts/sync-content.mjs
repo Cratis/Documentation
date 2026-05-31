@@ -70,7 +70,7 @@ const PRODUCTS = [
             path.join(reposRoot, 'Components', 'Documentation'),
             path.join(docRepoRoot, 'Components', 'Documentation')),
         buckets: [
-            { label: 'Get started', sections: ['Why Components', 'Getting started', 'Styling'] },
+            { label: 'Get started', sections: ['Why Components', 'Getting started', 'Choosing a component', 'Styling'] },
             { label: 'Recipes', sections: ['Building a form', 'Displaying data', 'Multi-step form', 'A list screen with actions'] },
             {
                 label: 'Components',
