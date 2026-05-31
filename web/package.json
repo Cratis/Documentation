@@ -12,8 +12,9 @@
     "preview": "astro preview",
     "astro": "astro",
     "lint:docs": "node scripts/lint-docs.mjs",
+    "lint:prose": "node scripts/lint-prose.mjs",
     "check:links": "node scripts/check-links.mjs",
-    "check": "npm run build && node scripts/lint-docs.mjs && node scripts/check-links.mjs"
+    "check": "npm run build && node scripts/lint-docs.mjs && node scripts/check-links.mjs && node scripts/lint-prose.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.39.2",

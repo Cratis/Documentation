@@ -1,0 +1,35 @@
+Cratis
+Chronicle
+Arc
+[Aa]rc\.[Rr]eact
+PrimeReact
+Diátaxis
+DocFX
+Starlight
+Astro
+Pagefind
+Mermaid
+TypeDoc
+[Ee]vent[- ]sourc(e|ed|ing)
+[Ee]vent[- ]store
+[Ee]vent[- ]log
+[Rr]ead[- ]model
+[Pp]rojection
+[Rr]eactor
+[Rr]educer
+[Oo]bserver
+[Nn]amespace
+[Mm]ultitenan(t|cy)
+CQRS
+MongoDB
+[Tt]oolchain
+walkthrough
+[Ss]caffold(s|ed|ing)?
+proxied
+TSyringe
+Storybook
+[Ss]erializ(e|ed|er|ation)
+[Cc]ustomiz(e|ed|ation)
+[Bb]ackend
+[Ff]rontend
+runnable
