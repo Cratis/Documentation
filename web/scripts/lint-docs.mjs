@@ -77,7 +77,15 @@ function checkFile(file, raw) {
 
         // Warnings (style guide) — skip inline-code spans so `simply` in `code` is ignored.
         const prose = line.replace(/`[^`]*`/g, '');
-        if (HEADING_END_PUNCT.test(line)) {
+        // Heading end-punctuation: check the original line (entities decoded), NOT the
+        // code-stripped `prose`. A heading like `## Convenience: `[EventLog]`` ends in a
+        // code span, not punctuation — stripping the code first would leave a phantom
+        // trailing colon. Decoding entities also exempts `### IEnumerable<T>` (authored
+        // `&lt;T&gt;`), whose ';' is only from the entity, not real punctuation.
+        const headingText = line
+            .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
+            .replace(/&quot;/g, '"').replace(/&#3[49];/g, "'");
+        if (HEADING_END_PUNCT.test(headingText)) {
             console.warn(`  [heading-punct] ${at}  ${line.trim()}`);
             warnings++;
         }
