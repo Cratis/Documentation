@@ -4,11 +4,35 @@
    Custom CSS is unlayered, so these rules win over Starlight's `@layer starlight.core`
    defaults without needing `!important`. */
 
+/* Metric-compatible fallback fonts (the next/font technique). Inter and
+   JetBrains Mono load with `font-display: swap`, so pages first paint in a
+   system font and then *reflow* when the brand font arrives — that reflow is
+   the "renders then jumps" layout shift on navigation. These fallbacks are a
+   local system font re-scaled (size-adjust + ascent/descent overrides) to
+   occupy the SAME space the brand font will, so the swap causes no shift. */
+@font-face {
+    font-family: 'Inter Fallback';
+    src: local('Arial');
+    ascent-override: 90.44%;
+    descent-override: 22.52%;
+    line-gap-override: 0%;
+    size-adjust: 107.12%;
+}
+@font-face {
+    font-family: 'JetBrains Mono Fallback';
+    src: local('Menlo'), local('Consolas'), local('monospace');
+    ascent-override: 75%;
+    descent-override: 20%;
+    line-gap-override: 0%;
+    size-adjust: 105%;
+}
+
 :root {
-    /* Brand fonts — Inter for UI/prose, JetBrains Mono for code. Starlight
-       appends its own system stack as a fallback via --__sl-font. */
-    --sl-font: 'Inter Variable';
-    --sl-font-mono: 'JetBrains Mono Variable';
+    /* Brand fonts — Inter for UI/prose, JetBrains Mono for code. The
+       metric-matched fallback sits between the brand font and Starlight's
+       appended system stack so first paint and the swap occupy one footprint. */
+    --sl-font: 'Inter Variable', 'Inter Fallback';
+    --sl-font-mono: 'JetBrains Mono Variable', 'JetBrains Mono Fallback';
 
     /* Dark theme (Starlight default) */
     --sl-color-accent-low: #14224a;
