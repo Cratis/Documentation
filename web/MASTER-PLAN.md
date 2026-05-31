@@ -45,12 +45,20 @@
 ### 🌟 Big bets (proposed — high launch value)
 
 - ⬜ **"Cratis Stack" — an umbrella hero topic / tour.** A first-class top topic (its own icon-rail entry,
-  peer to the products) that *tours the whole stack end-to-end* in guidance/tour voice: **Chronicle + Arc +
-  Components + CLI + Studio + Workbench**, how every layer fits together, and why the sum is far more than the
-  parts. Not a product reference — a **showcase + guided journey** ("watch one user action flow from a React
-  click through a typed command, an immutable event, a projection, a live query, back to the screen — and then
-  inspect it live in Studio and from the CLI"). This is the page that sells the platform. Subsumes and links to:
-  the boundary narrative, the capstone, and the proxy-boundary explanation (which becomes a *chapter* of the tour).
+  peer to the products) that *tours the whole stack end-to-end* in guidance/tour voice, showing how every layer
+  fits together and why the sum is far more than the parts. Not a product reference — a **showcase + guided
+  journey**. The layers, with their *correct* roles (confirmed with the user — don't mis-state these):
+  - **Studio** (independent top layer, "coming soon") — a collaborative **Event Modeling / Event Storming (DDD)
+    canvas**: design the domain (commands, events, read models on a timeline), align the team, and **generate
+    type-safe C#** from the model. It's the *front* of the funnel (design → generate → build) and is usable on
+    its own, independent of the rest of the stack. See `cratis.studio` + `Studio/Source` (`Applications/EventModels`,
+    `Components/Canvas`). **NOT a runtime inspector.**
+  - **Arc + Chronicle + Components** — build the slices (the loop the boundary narrative + tutorials cover).
+  - **CLI + Workbench** — *inspect & interact with* a running Chronicle store (events, observers, read models,
+    replay/diagnose). This is the runtime/operate layer (what Studio is **not**).
+  - Story arc: *model it in Studio → generate the slices → build with Arc/Chronicle/Components, typed to React →
+    inspect & operate with CLI/Workbench* — optionally AI-accelerated at every step (see the AI-native bet).
+  Subsumes and links to: the boundary narrative, the capstone, and the proxy-boundary explanation (a *chapter*).
   *Implementation:* a new site-level topic in `astro.config.mjs` (like the Overview topic) with a hero landing +
   chaptered tour pages; reuse `TopicHero`/`StackDiagram`/`FullStackTabs`.
 - ⬜ **AI-native development — "Build Cratis apps with AI agents."** A genuine differentiator, and currently
