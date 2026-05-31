@@ -102,8 +102,8 @@
 ### Chronicle — event-sourcing engine (standalone)
 Reference largely migrated; the work is expert-depth explanations + scenarios.
 - ✅ Tutorial (3 ch), get-started + host variants, why-event-sourcing, concepts (+diagrams), coming-from-crud, scenarios (6).
-- ⬜ **Constraints / uniqueness** — "Understanding constraints" explanation + recipes + reference audit. *(Expert credibility.)*
-- ⬜ **Migrations / event schema evolution** — the hardest part of event sourcing; "Understanding" + recipes.
+- 🟡 **Constraints / uniqueness** — *(SHIPPED: `understanding-constraints-and-evolution.md` explanation; reference `constraints/*` + scenario `enforce-a-unique-value` already existed.)*
+- 🟡 **Migrations / event schema evolution** — *(covered by the same explanation + the already-strong `migrations/index.md` + scenario `evolve-an-event`.)*
 - 🟡 **Projections deep-dive** — joins, `[ChildrenFrom]`, keys, AutoMap edges; reducers-vs-projections decision page.
 - 🟡 **Reactors / automation** — idempotency, failure & replay, triggering commands; patterns page.
 - ⬜ **Dynamic Consistency Boundary (DCB)** — explanation depth (powerful, under-explained).
@@ -113,7 +113,7 @@ Reference largely migrated; the work is expert-depth explanations + scenarios.
 ### Arc — full-stack CQRS (standalone + on Chronicle)
 - ✅ Tutorial (5 ch), scenarios (6), getting-started (backend+frontend), why-arc, vertical-slices, coming-from-mediatr, **arc-without-event-sourcing**.
 - 🟡 **Proxy / type-safety boundary** — "Understanding" page (← *doing next*) + audit `backend/proxy-generation/*` for completeness.
-- 🟡 **Identity + auth depth** — *(SHIPPED: `understanding-identity-and-access.mdx` — `IProvideIdentityDetails` enrichment, `[Authorize]`/`[Roles]`/`[AllowAnonymous]` on model-bound commands/queries, and a tenancy section.)* Optional next: how-to recipes (protect a command, enrich identity from a DB, block a user) + **modernize `backend/core/authorization.md`** — its examples still use the old `ICommand`/`ICommandHandler` style instead of `[Command]`+`Handle()`. (`auth-and-identity` skill exists.)
+- 🟡 **Identity + auth depth** — *(SHIPPED: `understanding-identity-and-access.mdx` — `IProvideIdentityDetails` enrichment, `[Authorize]`/`[Roles]`/`[AllowAnonymous]` on model-bound commands/queries, and a tenancy section.)* Optional next: how-to recipes (protect a command, enrich identity from a DB, block a user). **`backend/core/authorization.md` now modernized** to the `[Command]`/`Handle()` style ✓ (a fuller pass over the remaining illustrative `: ICommand` snippets is a follow-up). (`auth-and-identity` skill exists.)
 - 🟡 **Tenancy depth** — covered conceptually in the identity-and-access page; the reference (`backend/tenancy/*`) exists. Optional: a worked "isolate a tenant end to end" how-to.
 - 🟡 **Validation depth** — `ConceptValidator`, severity filtering, business rules via injected read model returning `Result<…>`.
 - 🟡 **Observable queries deep-dive** — change streams, demultiplexer/hub, curl debugging (`observable-query-curl` skill exists).
@@ -122,7 +122,7 @@ Reference largely migrated; the work is expert-depth explanations + scenarios.
 
 ### Components — React library (on Arc)
 - ✅ Tutorial (3 ch), getting-started, why-components, coming-from-primereact, choosing-a-component, recipes.
-- ⬜ **DataPage / DataTables deep-dive** — the most-used surface; details panels, menu items, columns, selection.
+- 🟡 **DataPage / DataTables deep-dive** — *(SHIPPED: enriched `DataPage/index.md` with the compound `DataPage.Columns`/`DataPage.MenuItems` API + a details-panel example; fixed a tutorial bug — `detailsComponent` is lowercase, and `detailsTitle`/`initialSizes` are not real props. Verified vs `Components/Source/DataPage/DataPage.tsx`.)*
 - 🟡 **CommandDialog / CommandForm** — field-type reference polish; validation timing; `initialValues` vs `onBeforeExecute` (a known footgun).
 - 🟡 **Specialized components** — StepperCommandDialog, Toolbar, Dialogs, Dropdown, PivotViewer, SchemaEditor, TimeMachine — reference + one recipe each where evaluator-facing.
 - 🔧 **Storybook embed** — needs a deployed Storybook URL to iframe.
@@ -146,8 +146,8 @@ Reference largely migrated; the work is expert-depth explanations + scenarios.
 2. 🟡 **"Cratis Stack" umbrella hero topic** — SHIPPED (landing + topic rebrand). Optional: deeper per-chapter tour pages.
 3. 🟡 **AI-native development** — SHIPPED (`ai-native-development.mdx`). Optional: grow into a how-to cluster (setup + MCP walkthrough).
 4. 🟡 **Arc identity + tenancy** — explanation shipped (`understanding-identity-and-access`); optional how-to recipes + modernizing the `core/authorization` reference.
-5. **Chronicle constraints + migrations** (expert credibility — where event sourcing gets hard).
-6. **Components DataPage / DataTables deep-dive** (most-used surface).
+5. 🟡 **Chronicle constraints + migrations** — explanation shipped; reference/scenarios already existed.
+6. 🟡 **Components DataPage / DataTables** — reference enriched + a tutorial API bug fixed.
 7. **Capstone runnable sample + API generation + foundation tooling** (🔧 — need build env / deps; batch when environment allows).
 
 ## Done this overhaul (don't redo — see HANDOVER §6/§8 for the full list)

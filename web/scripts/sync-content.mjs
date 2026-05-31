@@ -38,7 +38,7 @@ const PRODUCTS = [
             { label: 'Get started', sections: ['Getting started', 'Tutorial'] },
             {
                 label: 'Understand',
-                sections: ['Why Event Sourcing', 'Coming from CRUD and EF Core', 'Concepts', 'Architecture', 'Dynamic Consistency Boundary'],
+                sections: ['Why Event Sourcing', 'Coming from CRUD and EF Core', 'Understanding constraints and event evolution', 'Concepts', 'Architecture', 'Dynamic Consistency Boundary'],
             },
             {
                 label: 'Guides',
