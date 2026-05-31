@@ -61,7 +61,9 @@ const PRODUCTS = [
             path.join(docRepoRoot, 'Arc', 'Documentation')),
         // Group the orientation pages; Backend/Frontend/General stay top-level.
         buckets: [
+            { label: 'Get started', sections: ['Tutorial'] },
             { label: 'Understand', sections: ['Why Arc', 'Coming from MediatR or MVC', 'Vertical slices'] },
+            { label: 'Guides', sections: ['Scenarios'] },
         ],
     },
     {
