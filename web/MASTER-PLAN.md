@@ -113,8 +113,8 @@ Reference largely migrated; the work is expert-depth explanations + scenarios.
 ### Arc — full-stack CQRS (standalone + on Chronicle)
 - ✅ Tutorial (5 ch), scenarios (6), getting-started (backend+frontend), why-arc, vertical-slices, coming-from-mediatr, **arc-without-event-sourcing**.
 - 🟡 **Proxy / type-safety boundary** — "Understanding" page (← *doing next*) + audit `backend/proxy-generation/*` for completeness.
-- ⬜ **Identity + auth depth** — `IProvideIdentityDetails`, `[Roles]`, protecting commands/queries, Microsoft Identity, dev principals. *(Enterprise evaluators; `auth-and-identity` skill exists.)*
-- ⬜ **Tenancy depth** — isolation, resolvers, tenant context, per-tenant DB.
+- 🟡 **Identity + auth depth** — *(SHIPPED: `understanding-identity-and-access.mdx` — `IProvideIdentityDetails` enrichment, `[Authorize]`/`[Roles]`/`[AllowAnonymous]` on model-bound commands/queries, and a tenancy section.)* Optional next: how-to recipes (protect a command, enrich identity from a DB, block a user) + **modernize `backend/core/authorization.md`** — its examples still use the old `ICommand`/`ICommandHandler` style instead of `[Command]`+`Handle()`. (`auth-and-identity` skill exists.)
+- 🟡 **Tenancy depth** — covered conceptually in the identity-and-access page; the reference (`backend/tenancy/*`) exists. Optional: a worked "isolate a tenant end to end" how-to.
 - 🟡 **Validation depth** — `ConceptValidator`, severity filtering, business rules via injected read model returning `Result<…>`.
 - 🟡 **Observable queries deep-dive** — change streams, demultiplexer/hub, curl debugging (`observable-query-curl` skill exists).
 - ⬜ **Persistence guides** — full "Arc over MongoDB" and "Arc over EF Core" how-to guides (brownfield-friendly), beyond the standalone overview page.
@@ -145,7 +145,7 @@ Reference largely migrated; the work is expert-depth explanations + scenarios.
 1. **Full-stack type-safety / proxy boundary** (the differentiator; first chapter of the Cratis Stack tour) ← *in progress*.
 2. 🟡 **"Cratis Stack" umbrella hero topic** — SHIPPED (landing + topic rebrand). Optional: deeper per-chapter tour pages.
 3. 🟡 **AI-native development** — SHIPPED (`ai-native-development.mdx`). Optional: grow into a how-to cluster (setup + MCP walkthrough).
-4. **Arc identity + tenancy** (enterprise/multi-tenant evaluators probe these early).
+4. 🟡 **Arc identity + tenancy** — explanation shipped (`understanding-identity-and-access`); optional how-to recipes + modernizing the `core/authorization` reference.
 5. **Chronicle constraints + migrations** (expert credibility — where event sourcing gets hard).
 6. **Components DataPage / DataTables deep-dive** (most-used surface).
 7. **Capstone runnable sample + API generation + foundation tooling** (🔧 — need build env / deps; batch when environment allows).
