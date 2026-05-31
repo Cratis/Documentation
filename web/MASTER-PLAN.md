@@ -149,6 +149,8 @@ Reference largely migrated; the work is expert-depth explanations + scenarios.
 
 ## Prioritized next picks (launch-facing first)
 
+> **⏭️ ACTIVE PRIORITIES are in HANDOVER §0 "NEXT SESSION — START HERE"** (a visual + accuracy QA pass set by the user 2026-05-31): (1) screenshot every page with `shot-scraper` + a real visual-polish pass toward **aspire.dev** (the bar — user says we're far off); (2) fix the **nav flicker/jump** (layout shift); (3) fix the **front-door Mermaid** that doesn't render on the splash template; (4) **rewrite the comparison pages** (Marten/Wolverine/Kurrent) against how they work *today* (local `~/src/repos/marten`+`wolverine`); (5) **remove Chronicle from the Arc product** — make the Arc tutorial Chronicle-free (supersedes the earlier "additive" call); (6) apply **awesome-docs** tools (Doc Detective for automated example testing; Alex/case-police; shot-scraper). The list below is the standing backlog underneath those.
+
 1. **Full-stack type-safety / proxy boundary** (the differentiator; first chapter of the Cratis Stack tour) ← *in progress*.
 2. 🟡 **"Cratis Stack" umbrella hero topic** — SHIPPED (landing + topic rebrand). Optional: deeper per-chapter tour pages.
 3. 🟡 **AI-native development** — SHIPPED (`ai-native-development.mdx`). Optional: grow into a how-to cluster (setup + MCP walkthrough).
