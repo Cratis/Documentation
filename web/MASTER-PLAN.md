@@ -93,6 +93,7 @@
 - 🟡 **Capstone** — `build-a-full-app.mdx` is written; needs a verified, runnable Studio/Ada-grade sample (🔧).
 - ⬜ **A standalone-Chronicle "Understanding"** — a short page naming Chronicle-from-any-host (worker/console) as a first-class story (the index now states it; a dedicated explanation could go deeper).
 - 🔧 **API reference generation** — .NET DocFX over ~7 assemblies + TS TypeDoc over `@cratis/*`. Orientation page exists.
+- 🔁 **Snippet-correctness audit (recurring).** Verify framework-API usages in code examples against real source (Studio `.cs`/`.tsx`, `Components/Source/**/*.d.ts`). Done for the Arc + Components flagship tutorials + getting-started (clean) and fixed two Components recipes; **caught a real fabricated-API bug** in the DataPage tutorial. Worth re-running across reference pages / other recipes — delegate to a subagent and verify each finding vs source before fixing.
 - 🔧 **Foundation tooling** — Expressive-Code power features (collapsible regions, line numbers, expected-output `data-disable-copy`) + QA stack (Vale/markdownlint/lychee). Needs `package.json` deps; degrade gracefully where binaries absent.
 
 ---
