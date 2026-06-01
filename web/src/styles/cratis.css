@@ -165,6 +165,48 @@
     border-radius: 0.5rem;
 }
 
+/* --- Inline code: a brand-tinted chip instead of the flat gray box ---
+   Following aspire.dev: the surface mixes the surrounding text color (so the
+   chip adapts to its context, including inside asides) with black/white, the
+   text takes the accent, and a hairline accent border frames it. Scoped to
+   :not(pre) so fenced code blocks (expressive-code) are untouched. */
+:root {
+    --cratis-code-bg: color-mix(in srgb, currentColor 20%, #000);
+    --cratis-code-text: var(--sl-color-accent-high);
+    --cratis-code-border: color-mix(in srgb, currentColor 30%, transparent);
+}
+:root[data-theme='light'] {
+    --cratis-code-bg: color-mix(in srgb, currentColor 9%, #fff);
+    --cratis-code-text: var(--sl-color-accent-high);
+    --cratis-code-border: color-mix(in srgb, currentColor 24%, transparent);
+}
+.sl-markdown-content :not(pre) > code:not(:where(.not-content *)) {
+    background-color: var(--cratis-code-bg);
+    color: var(--cratis-code-text);
+    border: 1px solid var(--cratis-code-border);
+    border-radius: 0.3rem;
+}
+/* Inside a link the chip keeps the link color so the affordance stays obvious. */
+.sl-markdown-content a:not(:where(.not-content *)) > code {
+    color: inherit;
+}
+/* Headings already size their own code; don't shrink it. */
+.sl-markdown-content :is(h1, h2, h3, h4) code:not(:where(.not-content *)) {
+    font-size: inherit;
+}
+
+/* --- Tables: a tinted header so they read as designed, not raw markdown --- */
+.sl-markdown-content table thead th {
+    background: color-mix(in srgb, var(--sl-color-accent) 7%, var(--sl-color-gray-6));
+    color: var(--sl-color-white);
+}
+
+/* --- Brand-tinted text selection — a small, crafted detail --- */
+::selection {
+    background: color-mix(in srgb, var(--sl-color-accent) 32%, transparent);
+    color: var(--sl-color-white);
+}
+
 /* =====================================================================
    Left sidebar — a crafted, hierarchical navigation
    ---------------------------------------------------------------------
