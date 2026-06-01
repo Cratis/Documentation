@@ -91,6 +91,11 @@ export default defineConfig({
                 dark: './src/assets/cratis-mark-dark.svg',
                 alt: 'Cratis',
             },
+            // Preload the brand fonts (see the component) so a cold load doesn't
+            // paint in a fallback and then reflow when the web font swaps in.
+            components: {
+                Head: './src/components/Head.astro',
+            },
             favicon: '/favicon.ico',
             customCss: [
                 // Self-hosted brand fonts (variable) — load before the theme so

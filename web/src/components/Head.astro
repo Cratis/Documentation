@@ -1,0 +1,19 @@
+---
+// Override of Starlight's <Head> that preloads the brand fonts.
+//
+// Without this, a cold page load first paints in a system fallback font and
+// then *reflows* when Inter / JetBrains Mono swap in — the fallback wraps text
+// slightly differently, so the page (and the hero headline) visibly "pops"
+// larger, then settles. Preloading the woff2 makes the brand font available at
+// first paint, so the swap is invisible. `?url` resolves to the hashed build
+// asset; `crossorigin` is required for font preloads even when same-origin.
+import Default from '@astrojs/starlight/components/Head.astro';
+import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import interLatinExt from '@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2?url';
+import jetBrainsMonoLatin from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
+---
+
+<Default />
+<link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin="anonymous" />
+<link rel="preload" href={interLatinExt} as="font" type="font/woff2" crossorigin="anonymous" />
+<link rel="preload" href={jetBrainsMonoLatin} as="font" type="font/woff2" crossorigin="anonymous" />
