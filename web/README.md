@@ -108,6 +108,7 @@ Because the content is split across repos and the site has a few non-obvious bui
 
 **Rules** (`.ai/rules/`):
 
+- **`writing-cratis-docs.md`** — the content craft: the tour voice (Marten/Wolverine/Aspire style), Diátaxis page types, and how to use Starlight's authoring tools (`<Steps>`, `<Tabs>`, `<FullStackTabs>`, diagrams) to achieve it.
 - **`editing-cratis-docs.md`** — where each page actually lives (which product repo), the edit → sync → verify loop, and the "never edit the generated folders" rule.
 - **`astro-starlight-site.md`** — how the site is built (content conversion, navigation, the QA gate) and the hard-won gotchas.
 - **`documentation-rendering-and-qa.md`** — the rendering pipeline (build-time Mermaid pre-rendering, `font-display: optional` fonts, GFM tables) and how to do headless visual/layout-shift QA.

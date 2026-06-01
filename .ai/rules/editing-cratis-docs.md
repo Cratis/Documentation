@@ -49,6 +49,6 @@ Cratis documentation is **not** one folder. The content lives in **each product'
 - **A long-running `npm run dev` degrades** (every page 500s / tables stop rendering) — and **running `npm run check`/`build` while dev is live** corrupts it (the build re-syncs content the dev server is watching). Fix: **restart `npm run dev`** (kill `lsof -ti tcp:4321`). Re-verify a fresh dev server before trusting any "X doesn't render".
 - **The Astro content cache (`.astro/`, `node_modules/.astro`) silently serves a PARTIAL prior render** between iterations. If a change "didn't take" or a build looks half-done, `rm -rf .astro node_modules/.astro` and rebuild.
 - **Code examples are copied verbatim by readers** — verify every framework API against real source before writing it. See [Writing Correct Code Examples](./writing-correct-examples.md).
-- Match the **tour voice** (teach, don't dump) and the **Diátaxis** type of the page — see the `documentation` rule and the `write-documentation` skill.
+- Match the **tour voice** (teach, don't dump) and the right **Diátaxis** type — see [Writing Cratis Documentation](./writing-cratis-docs.md).
 
 → Site build internals: [The Astro Starlight Docs Site](./astro-starlight-site.md). Rendering pipeline (Mermaid, fonts, tables) + visual QA: [Documentation Rendering & QA](./documentation-rendering-and-qa.md).

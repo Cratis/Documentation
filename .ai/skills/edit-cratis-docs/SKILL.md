@@ -25,7 +25,7 @@ Example: `/chronicle/concepts/event-source/` → `Chronicle/Documentation/concep
 
 ## 2. Edit the source
 
-- Match the page's **Diátaxis type** (tutorial / how-to / explanation / reference) and the **tour voice** (teach, don't dump). Don't mix types.
+- Match the page's **Diátaxis type** (tutorial / how-to / explanation / reference) and the **tour voice** (teach, don't dump) — see the **`writing-cratis-docs`** rule (the tour-voice checklist + Starlight authoring tools). Don't mix types.
 - **Verify every framework API in a code example against real source** before writing it — readers paste them verbatim. (See the `writing-correct-examples` rule; grep Studio `*.cs`/`*.tsx` and the product `Source/` trees.)
 - Link rules: product `.md` may use `./foo.md`; links to a `.mdx` page must be **extension-less** (`./foo`); site-level `.mdx` uses clean root-relative URLs (`/arc/...`).
 
