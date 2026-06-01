@@ -98,10 +98,10 @@ export default defineConfig({
             },
             favicon: '/favicon.ico',
             customCss: [
-                // Self-hosted brand fonts (variable) — load before the theme so
-                // cratis.css can point --sl-font / --sl-font-mono at them.
-                '@fontsource-variable/inter/index.css',
-                '@fontsource-variable/jetbrains-mono/index.css',
+                // Brand fonts are declared in src/components/Head.astro with
+                // `font-display: optional` (not @fontsource's `swap`) to avoid
+                // the cold-load font-swap reflow. cratis.css points
+                // --sl-font / --sl-font-mono at them.
                 './src/styles/cratis.css',
             ],
             // Keep the right "On this page" list short — top-level sections only.
