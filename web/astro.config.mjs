@@ -4,6 +4,7 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import mermaid from 'astro-mermaid';
 import remarkGfm from 'remark-gfm';
+import { remarkMermaidPrerender, closeBrowser } from './scripts/mermaid-prerender.mjs';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightPageActions from 'starlight-page-actions';
 import starlightScrollToTop from 'starlight-scroll-to-top';
@@ -66,17 +67,30 @@ export default defineConfig({
     // why-cratis, …). Adding remark-gfm here makes it part of the inherited plugin
     // set that `@astrojs/mdx` re-applies (extendMarkdownConfig), restoring tables.
     markdown: {
-        remarkPlugins: [remarkGfm],
+        // remarkMermaidPrerender renders ```mermaid to SVG at build time (before
+        // astro-mermaid's plugin sees it); anything it can't render falls through
+        // to astro-mermaid's client-side rendering.
+        remarkPlugins: [remarkGfm, remarkMermaidPrerender],
     },
     integrations: [
+        // Shut down the build-time Mermaid Chrome instance when the build ends.
+        {
+            name: 'mermaid-prerender-cleanup',
+            hooks: { 'astro:build:done': async () => { await closeBrowser(); } },
+        },
         // astro-mermaid transforms ```mermaid code fences into rendered diagrams.
         // Must run before Starlight so Expressive Code does not claim the fences.
         mermaid({
             theme: 'default',
-            autoTheme: true, // follow Starlight light/dark
-            // Render with the brand font so Mermaid measures node boxes with the
-            // same font we display — otherwise labels get clipped. Colors are
-            // themed via CSS on the rendered SVG (see cratis.css "Mermaid").
+            // autoTheme MUST stay off: its theme-change observer strips
+            // data-processed from every pre.mermaid and re-renders client-side,
+            // which would clobber the build-time pre-rendered SVGs. Light/dark is
+            // handled entirely by cratis.css (the SVG colors come from CSS vars
+            // that flip with the theme), so the JS re-render isn't needed.
+            autoTheme: false,
+            // Only used for the rare diagram the build-time renderer can't handle
+            // (it falls through to client-side). Match the build-time config so a
+            // fallback looks the same; colors are themed via CSS on the SVG.
             mermaidConfig: {
                 fontFamily: "'Inter Variable', Inter, system-ui, -apple-system, sans-serif",
                 flowchart: { padding: 14, nodeSpacing: 55, rankSpacing: 60, useMaxWidth: true },

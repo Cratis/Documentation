@@ -468,6 +468,13 @@
     box-shadow: inset 0 1px 0 color-mix(in srgb, var(--sl-color-white) 5%, transparent) !important;
 }
 
+/* The build-time SVG carries inline width:100% + max-width + aspect-ratio, so
+   the browser reserves its space at first paint (no settle/reflow). Just center it. */
+.sl-markdown-content pre.mermaid[data-prerendered] svg {
+    display: block;
+    margin-inline: auto;
+}
+
 /* Show the frame immediately while the client-side render runs — replaces
    the integration's jarring light-gray shimmer with the calm panel. */
 .sl-markdown-content pre.mermaid:not([data-processed]) {
