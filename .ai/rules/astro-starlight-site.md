@@ -31,11 +31,17 @@ The converter **keeps `.mdx`** (sync-content.mjs ~line 304). Author rich pages a
 
 `npm run check` = `build` + `lint-docs` (fails on non-descriptive link text + leftover DocFX-isms; advisory Google/MS style warnings) + `check-links` (HARD gate: every internal link resolves) + `lint-prose` (Vale, graceful) + `lint-markdown` (markdownlint, graceful) + `check-external` (lychee, graceful). The three optional linters **skip when the tool isn't installed** (install in CI / locally to activate). Must end **0 error(s)** and **0 broken**. Run it after every change.
 
+## Related rules
+
+- **Where content lives + the edit→sync→verify loop across repos:** [Editing Cratis Documentation](./editing-cratis-docs.md).
+- **Mermaid build-time pre-rendering, fonts, GFM tables, and headless visual QA:** [Documentation Rendering & QA](./documentation-rendering-and-qa.md).
+
 ## Gotchas (hard-won)
 
+- **A running `npm run dev` degrades** (every page 500s / GFM tables stop rendering / `RenderError: slug "…" does not exist`) after a long session, or when **`npm run check`/`build` runs against the same tree while dev is live** (the build re-syncs content dev is watching). Fix: **restart `npm run dev`**. Re-verify a fresh dev server before trusting any "X doesn't render".
+- **Stale Astro content cache** (`.astro/`, `node_modules/.astro`) silently serves a PARTIAL prior render. If a change won't take, `rm -rf .astro node_modules/.astro` and rebuild.
 - Sections whose landing is `overview.md` (no `index.md`) **404 on the bare URL** (e.g. `/arc/backend/tenancy/`) — link to a specific page (`/arc/backend/tenancy/overview/`).
 - **`SimpleCard`/`TopicHero` link props are JSX attributes — `check-links` does NOT validate them.** Verify card `link="…"` targets by hand.
-- The splash front door (`template: splash`) may not render Mermaid the way normal pages do — verify diagrams there explicitly.
-- `git reset --hard` is blocked by the harness — use `git revert` to undo a commit.
+- Mermaid diagrams are **pre-rendered to SVG at build time** (see the rendering rule); the front door splash diagram renders fine. `git reset --hard` is blocked by the harness — use `git revert` to undo a commit.
 - Commit completed, green, logical units locally; **don't push or open PRs without explicit approval**.
 - Verify a file with a fresh `Read` immediately before an `Edit`; a failed Edit means your read was stale — re-Read, don't force it.
