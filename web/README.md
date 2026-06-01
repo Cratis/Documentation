@@ -102,6 +102,25 @@ Two QA scripts back this up:
 
 Follow the documentation conventions in `.ai/rules/documentation.md` (Diátaxis page types, why-first voice, descriptive link text, diagrams for concepts).
 
+## Working on the docs (AI assistants & contributors)
+
+Because the content is split across repos and the site has a few non-obvious build mechanisms, the operating knowledge is captured as **AI rules and skills** in the `Documentation` repo's `.ai/` folder. These are written once in `.ai/` and surfaced to GitHub Copilot (`.github/instructions/`, `.github/skills/`) and Claude Code (`.claude/rules/`, `.claude/skills/`) via symlinks — and synced to the other Cratis repos. They're plain Markdown, so they double as human docs.
+
+**Rules** (`.ai/rules/`):
+
+- **`editing-cratis-docs.md`** — where each page actually lives (which product repo), the edit → sync → verify loop, and the "never edit the generated folders" rule.
+- **`astro-starlight-site.md`** — how the site is built (content conversion, navigation, the QA gate) and the hard-won gotchas.
+- **`documentation-rendering-and-qa.md`** — the rendering pipeline (build-time Mermaid pre-rendering, `font-display: optional` fonts, GFM tables) and how to do headless visual/layout-shift QA.
+- **`writing-correct-examples.md`** — verify every framework API against real source; the list of APIs the docs kept getting wrong.
+
+**Skills** (`.ai/skills/`):
+
+- **`edit-cratis-docs`** — change/fix an existing page across the repos.
+- **`add-cratis-docs-page`** — create a new page and wire it into the nav.
+- **`qa-cratis-docs`** — screenshot pages in light/dark and diagnose layout-shift, using `scripts/screenshot.mjs`.
+
+For visual QA, `scripts/screenshot.mjs` drives the system Chrome to capture any page full-page in light **or** dark (no extra dependency): `node scripts/screenshot.mjs http://localhost:4321/chronicle/ /tmp/c.png dark`.
+
 ## Branding
 
 The Cratis mark lives in `src/assets/cratis-mark-light.svg` and `src/assets/cratis-mark-dark.svg` (theme-adaptive). The accent color is set in `src/styles/cratis.css`.
