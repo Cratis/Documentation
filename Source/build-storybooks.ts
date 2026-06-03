@@ -176,6 +176,36 @@ function findYarnWorkspaceRoot(startDir: string): string | null {
     return null;
 }
 
+function findWorkspacePackage(workspaceRoot: string, packageName: string): string | null {
+    // Try to find the package by searching for package.json files with matching name
+    const searchPatterns = [
+        'Source/**/*',
+        'Samples/**/*',
+        'packages/**/*'
+    ];
+    
+    for (const pattern of searchPatterns) {
+        const packageJsonFiles = glob.sync(`${pattern}/package.json`, {
+            cwd: workspaceRoot,
+            absolute: true,
+            ignore: ['**/node_modules/**', '**/dist/**']
+        });
+        
+        for (const pkgJsonPath of packageJsonFiles) {
+            try {
+                const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
+                if (pkgJson.name === packageName) {
+                    return path.dirname(pkgJsonPath);
+                }
+            } catch (error) {
+                // Skip invalid package.json files
+            }
+        }
+    }
+    
+    return null;
+}
+
 async function buildStorybook(storybookPath: string, markdownFile: string) {
     console.log(`Building Storybook at ${storybookPath}`);
 
@@ -218,16 +248,52 @@ async function buildStorybook(storybookPath: string, markdownFile: string) {
             }
         }
 
+        // Build workspace dependencies if needed (e.g., Arc needs to be built before Arc.React)
+        if (workspaceRoot && packageJson.dependencies) {
+            for (const [depName, depVersion] of Object.entries(packageJson.dependencies)) {
+                // Check if this is a workspace dependency (version "1.0.0" or similar indicates local workspace)
+                if (typeof depVersion === 'string' && (depVersion === '1.0.0' || depVersion === '0.0.0')) {
+                    // Find the dependency package in the workspace
+                    const depPkgName = depName.split('/').pop(); // e.g., "@cratis/arc" -> "arc"
+                    const depPath = findWorkspacePackage(workspaceRoot, depName);
+                    if (depPath) {
+                        const depDistPath = path.join(depPath, 'dist');
+                        if (!fs.existsSync(depDistPath)) {
+                            console.log(`Building workspace dependency ${depName} at ${depPath}...`);
+                            try {
+                                execSync('yarn build', {
+                                    cwd: depPath,
+                                    stdio: 'inherit',
+                                    env: { ...process.env, NODE_OPTIONS: '' }
+                                });
+                            } catch (buildError) {
+                                console.warn(`Warning: Failed to build dependency ${depName}:`, buildError);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Build storybook
         console.log(`Running storybook build in ${storybookPath}...`);
-        execSync(workspaceRoot ? 'yarn build-storybook' : 'npm run build-storybook', {
-            cwd: storybookPath,
-            stdio: 'inherit',
-            // Clear NODE_OPTIONS to avoid ts-node loader conflicts from parent process
-            // The parent process uses --loader ts-node/esm which would cause errors
-            // when yarn/npm runs in subdirectories without ts-node installed
-            env: { ...process.env, NODE_OPTIONS: '' }
-        });
+        
+        if (workspaceRoot) {
+            // For yarn workspaces, run storybook from workspace root to ensure the binary is available
+            const configDir = path.relative(workspaceRoot, path.join(storybookPath, '.storybook'));
+            const outputDir = path.relative(workspaceRoot, path.join(storybookPath, 'storybook-static'));
+            execSync(`yarn storybook build --config-dir ${configDir} --output-dir ${outputDir}`, {
+                cwd: workspaceRoot,
+                stdio: 'inherit',
+                env: { ...process.env, NODE_OPTIONS: '' }
+            });
+        } else {
+            execSync('npm run build-storybook', {
+                cwd: storybookPath,
+                stdio: 'inherit',
+                env: { ...process.env, NODE_OPTIONS: '' }
+            });
+        }
 
         console.log(`Successfully built Storybook at ${storybookPath}`);
 
