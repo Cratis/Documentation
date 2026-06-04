@@ -11,6 +11,7 @@ const __dirname = dirname(__filename);
 
 interface StorybookConfig {
     path: string;
+    story?: string;
 }
 
 interface FrontMatter {
@@ -60,7 +61,7 @@ function parseStorybookIndex(storybookPath: string): StorybookIndex | null {
 }
 
 function findFirstStoryInHierarchy(item: TocItem): string | null {
-    if (item.href && item.href.includes('?story=')) {
+    if (item.href && item.href.startsWith('stories/')) {
         return item.href;
     }
     if (item.items) {
@@ -105,11 +106,11 @@ function buildTocFromStorybook(storybookIndex: StorybookIndex, storybookPageHref
                 if (i === parts.length - 1) {
                     // Set href BEFORE items to ensure correct YAML property order
                     if (titleStories.length > 0) {
-                        item.href = `${storybookPageHref}?story=${encodeURIComponent(titleStories[0].id)}`;
+                        item.href = `stories/${titleStories[0].id}.md`;
                     }
                     item.items = titleStories.map(story => ({
                         name: story.name,
-                        href: `${storybookPageHref}?story=${encodeURIComponent(story.id)}`
+                        href: `stories/${story.id}.md`
                     }));
                 }
                 
@@ -183,8 +184,8 @@ function buildTocFromStorybook(storybookIndex: StorybookIndex, storybookPageHref
 
 function findFirstStoryHref(items: TocItem[]): string | null {
     for (const item of items) {
-        // If this item has an href (it's a leaf/story), return it
-        if (item.href && item.href.includes('?story=')) {
+        // If this item has an href to a story page, return it
+        if (item.href && item.href.startsWith('stories/')) {
             return item.href;
         }
         // Otherwise, recursively search children
@@ -379,8 +380,9 @@ async function processMarkdownFile(mdFilePath: string) {
     
     const storybookRelativePath = path.relative(htmlDir, storybookSitePath).replace(/\\/g, '/');
 
-    // Inject the iframe into the HTML
-    injectStorybookIframe(htmlPath, storybookRelativePath);
+    // Inject the iframe into the HTML, passing the specific story ID if set
+    const storyId = frontMatter.storybook.story;
+    injectStorybookIframe(htmlPath, storybookRelativePath, storyId);
 }
 
 function getSubmoduleName(markdownFile: string): string | null {
@@ -420,83 +422,41 @@ function resolveStorybookPath(storybookPath: string, markdownFile: string): stri
     }
 }
 
-function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) {
+function injectStorybookIframe(htmlPath: string, storybookRelativePath: string, storyId?: string) {
     let html = fs.readFileSync(htmlPath, 'utf-8');
 
-    // Use index.html with nav=false to get full Storybook UI (toolbar + addon panels)
-    // but without the sidebar navigation (which is handled by DocFX TOC instead)
-    const iframeSrc = `${storybookRelativePath}/index.html?nav=false&panel=right&addonPanel=storybook/docs`;
+    // For story-specific pages, navigate directly to the story.
+    // For the main storybook page, show the default view (navigation handled by URL params).
+    const iframeSrc = storyId
+        ? `${storybookRelativePath}/index.html?nav=false&panel=right&addonPanel=storybook/docs&path=/story/${encodeURIComponent(storyId)}`
+        : `${storybookRelativePath}/index.html?nav=false&panel=right&addonPanel=storybook/docs`;
 
-    // Create the iframe HTML with theme synchronization and story navigation script
-    const iframeHtml = `
-<div class="storybook-container">
-    <iframe id="storybook-iframe" src="${iframeSrc}" title="Storybook"></iframe>
-</div>
-<script>
+    // Theme-sync script shared by all storybook pages
+    const themeSyncScript = `
 (function() {
     const iframe = document.getElementById('storybook-iframe');
-    
-    // Function to sync theme to Storybook
+
     function syncTheme() {
         const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
         const theme = isDark ? 'dark' : 'light';
-        
         if (iframe && iframe.contentWindow) {
-            iframe.contentWindow.postMessage({
-                type: 'STORYBOOK_THEME_CHANGE',
-                theme: theme
-            }, '*');
+            iframe.contentWindow.postMessage({ type: 'STORYBOOK_THEME_CHANGE', theme: theme }, '*');
         }
     }
-    
-    // Handle story navigation from URL parameters
-    function navigateToStory() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const storyId = urlParams.get('story');
-        
-        if (storyId && iframe) {
-            // Use index.html with story path for full UI (toolbar + code panel)
-            const baseUrl = '${storybookRelativePath}/index.html';
-            iframe.src = baseUrl + '?nav=false&panel=right&addonPanel=storybook/docs&path=/story/' + encodeURIComponent(storyId);
-        } else {
-            // No story specified - redirect to first story from TOC nav
-            // Get the first child item with a story parameter from the navigation
-            const firstStoryLink = document.querySelector('nav.toc a[href*="?story="]');
-            if (firstStoryLink) {
-                const linkHref = firstStoryLink.getAttribute('href');
-                const storyMatch = linkHref.match(/[?&]story=([^&]+)/);
-                if (storyMatch) {
-                    const firstStoryId = decodeURIComponent(storyMatch[1]);
-                    const baseUrl = '${storybookRelativePath}/index.html';
-                    iframe.src = baseUrl + '?nav=false&panel=right&addonPanel=storybook/docs&path=/story/' + encodeURIComponent(firstStoryId);
-                }
-            }
-        }
-    }
-    
-    // Sync theme when iframe loads and auto-select Code panel
+
     iframe.addEventListener('load', function() {
         setTimeout(syncTheme, 100);
-        
-        // Auto-select the Code tab in the Storybook addon panel
-        // The selectedPanel config and URL param don't always work reliably
-        // so we click the Code tab directly after load
         setTimeout(function() {
             try {
                 const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                 if (iframeDoc) {
                     const codeTab = iframeDoc.getElementById('tabbutton-storybook-docs');
-                    if (codeTab) {
-                        codeTab.click();
-                    }
+                    if (codeTab) { codeTab.click(); }
                 }
-            } catch (e) {
-                // Cross-origin access may fail in some configurations
-            }
+            } catch (e) {}
         }, 500);
     });
-    
-    // Watch for theme changes on the document
+
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.type === 'attributes' && mutation.attributeName === 'data-bs-theme') {
@@ -504,169 +464,77 @@ function injectStorybookIframe(htmlPath: string, storybookRelativePath: string) 
             }
         });
     });
-    
-    observer.observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ['data-bs-theme']
-    });
-    
-    // Initial sync
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
     syncTheme();
-    
-    // Navigate to story if specified in URL, or redirect to first story
-    navigateToStory();
-    
-    // Fix breadcrumb: DocFX treats all TOC items pointing to storybook.html as matching
-    // the current page, causing ALL stories to appear in the breadcrumb.
-    // We fix this by rebuilding the breadcrumb from the TOC hierarchy.
-    function fixBreadcrumb() {
-        const breadcrumbNav = document.getElementById('breadcrumb');
-        if (!breadcrumbNav) return;
-        
+})();`;
+
+    let iframeHtml: string;
+
+    if (storyId) {
+        // Story-specific page: iframe src is hardcoded to this story.
+        // DocFX generates correct TOC active state and breadcrumb because each story
+        // has its own unique URL — no JavaScript workarounds needed.
+        iframeHtml = `
+<div class="storybook-container">
+    <iframe id="storybook-iframe" src="${iframeSrc}" title="Storybook"></iframe>
+</div>
+<script>
+${themeSyncScript}
+</script>`;
+    } else {
+        // Main storybook page: navigate based on ?story= URL parameter for
+        // backward-compatibility with old links.
+        iframeHtml = `
+<div class="storybook-container">
+    <iframe id="storybook-iframe" src="${iframeSrc}" title="Storybook"></iframe>
+</div>
+<script>
+(function() {
+    const iframe = document.getElementById('storybook-iframe');
+
+    function syncTheme() {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const theme = isDark ? 'dark' : 'light';
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({ type: 'STORYBOOK_THEME_CHANGE', theme: theme }, '*');
+        }
+    }
+
+    function navigateToStory() {
         const urlParams = new URLSearchParams(window.location.search);
         const storyId = urlParams.get('story');
-        
-        // Find the deepest matching TOC link for the current story
-        // (Don't break on first match - last match = deepest/most specific)
-        let activeLink = null;
-        if (storyId) {
-            const tocLinks = document.querySelectorAll('#toc a[href*="?story="]');
-            for (const link of tocLinks) {
-                const href = link.getAttribute('href') || '';
-                const match = href.match(/[?&]story=([^&]+)/);
-                if (match && decodeURIComponent(match[1]) === storyId) {
-                    activeLink = link; // Keep updating - last match is the leaf node
-                }
-            }
+        if (storyId && iframe) {
+            const baseUrl = '${storybookRelativePath}/index.html';
+            iframe.src = baseUrl + '?nav=false&panel=right&addonPanel=storybook/docs&path=/story/' + encodeURIComponent(storyId);
         }
-        
-        if (!activeLink) return;
-        
-        // Walk up the TOC DOM to collect the hierarchy path
-        // Stop at the storybook root item (href to storybook.html without ?story=)
-        const pathItems = [];
-        let current = activeLink.closest('li');
-        while (current) {
-            const linkEl = current.querySelector(':scope > a');
-            if (linkEl) {
-                const text = linkEl.textContent.trim();
-                const href = linkEl.getAttribute('href') || '';
-                if (text) {
-                    pathItems.unshift({ text, href });
-                }
-                // Stop at the storybook root node (has href to .html without ?story=)
-                if (href && href.includes('.html') && !href.includes('?story=')) {
-                    break;
-                }
-            }
-            // Move to parent list item (li > ul > li structure)
-            const parentUl = current.parentElement;
-            if (parentUl && parentUl.tagName === 'UL') {
-                current = parentUl.parentElement;
-                if (!current || current.tagName !== 'LI') {
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
-        
-        // Rebuild breadcrumb: keep ancestor items that don't relate to storybook,
-        // then add the path from TOC walk (Storybook > Component > Story)
-        const breadcrumbList = breadcrumbNav.querySelector('ol, ul');
-        if (!breadcrumbList) return;
-        
-        const existingItems = breadcrumbList.querySelectorAll('li');
-        let newHtml = '';
-        
-        for (const li of existingItems) {
-            const link = li.querySelector('a');
-            if (link) {
-                const href = link.getAttribute('href') || '';
-                // Stop at items that point to the storybook page
-                if (href.includes('storybook.html') || href.includes('?story=')) break;
-                // Keep ancestor items (Arc, Frontend, React with empty hrefs)
-                newHtml += li.outerHTML;
-            }
-        }
-        
-        // Add storybook path from TOC hierarchy walk
-        for (const item of pathItems) {
-            if (item.href) {
-                newHtml += '<li class="breadcrumb-item"><a href="' + item.href + '">' + item.text + '</a></li>';
-            } else {
-                newHtml += '<li class="breadcrumb-item">' + item.text + '</li>';
-            }
-        }
-        
-        breadcrumbList.innerHTML = newHtml;
     }
-    
-    // DocFX renders breadcrumb asynchronously, so wait for it
-    const breadcrumbObserver = new MutationObserver(function() {
-        const breadcrumbNav = document.getElementById('breadcrumb');
-        if (breadcrumbNav && breadcrumbNav.children.length > 0) {
-            breadcrumbObserver.disconnect();
-            setTimeout(fixBreadcrumb, 50);
-        }
+
+    iframe.addEventListener('load', function() {
+        setTimeout(syncTheme, 100);
+        setTimeout(function() {
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                if (iframeDoc) {
+                    const codeTab = iframeDoc.getElementById('tabbutton-storybook-docs');
+                    if (codeTab) { codeTab.click(); }
+                }
+            } catch (e) {}
+        }, 500);
     });
-    
-    const breadcrumbEl = document.getElementById('breadcrumb');
-    if (breadcrumbEl) {
-        if (breadcrumbEl.children.length > 0) {
-            fixBreadcrumb();
-        } else {
-            breadcrumbObserver.observe(breadcrumbEl, { childList: true, subtree: true });
-        }
-    }
-    
-    // Fix TOC active state: DocFX marks ALL story links as active because they all
-    // share the same storybook.html page URL, differing only by the ?story= query param.
-    // We remove the active class from all story items and re-apply it only to the item
-    // matching the current ?story= parameter.
-    function fixTocActiveState() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const storyId = urlParams.get('story');
-        
-        const allStoryLinks = document.querySelectorAll('#toc a[href*="?story="]');
-        
-        // Remove active from all story-related list items
-        allStoryLinks.forEach(function(link) {
-            const li = link.closest('li');
-            if (li) li.classList.remove('active');
-        });
-        
-        if (!storyId) return;
-        
-        // Find the deepest matching link (last match = leaf/story node)
-        let matchingLink = null;
-        for (const link of allStoryLinks) {
-            const href = link.getAttribute('href') || '';
-            const match = href.match(/[?&]story=([^&]+)/);
-            if (match && decodeURIComponent(match[1]) === storyId) {
-                matchingLink = link;
+
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-bs-theme') {
+                syncTheme();
             }
-        }
-        
-        if (!matchingLink) return;
-        
-        // Mark the matching item and all its ancestors active
-        let el = matchingLink.closest('li');
-        while (el) {
-            el.classList.add('active');
-            const parentUl = el.parentElement;
-            if (!parentUl) break;
-            const parentLi = parentUl.closest('li');
-            // Stop at the TOC root — don't bubble past the storybook section
-            if (!parentLi) break;
-            el = parentLi;
-        }
-    }
-    
-    // Run after all page scripts have executed (DocFX TOC JS included)
-    window.addEventListener('load', fixTocActiveState);
+        });
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    syncTheme();
+    navigateToStory();
 })();
 </script>`;
+    }
 
     // Replace the article content with the iframe
     // Find the article tag and replace its content

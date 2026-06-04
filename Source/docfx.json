@@ -91,7 +91,7 @@
       "src": [
         {
           "files": [
-            "Arc/Arc.csproj"
+            "bin/Release/net10.0/Cratis.Arc.dll"
           ],
           "exclude": [
             "**/obj/**",
@@ -175,6 +175,11 @@
       }
     ],
     "resource": [
+      {
+        "files": [
+          "index.html"
+        ]
+      },
       {
         "files": [
           "**/images/**"

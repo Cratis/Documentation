@@ -4,8 +4,12 @@
   href: docs/Arc/
 - name: Fundamentals
   href: docs/Fundamentals/
+- name: CLI
+  href: docs/CLI/
 - name: Components
   href: docs/Components/
+- name: Guides
+  href: docs/Guides/
 - name: Contributing
   href: docs/Contributing/
 - name: Samples
