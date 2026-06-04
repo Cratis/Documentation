@@ -110,6 +110,13 @@ jobs:
           yarn install --immutable
           (cd Source && ../node_modules/.bin/storybook build -o ../../Documentation/web/public/storybook)
 
+      - name: Build Arc React Storybook
+        working-directory: Arc/Source/JavaScript
+        run: |
+          corepack enable
+          yarn install --immutable
+          yarn workspace @cratis/arc.react exec storybook build -o ../../../../Documentation/web/public/storybook-arc
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:

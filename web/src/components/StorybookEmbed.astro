@@ -3,21 +3,25 @@
 // Build it with `npm run build:storybook` (writes to web/public/storybook, git-ignored),
 // or rely on the docs-site CI workflow which builds it before the Astro build.
 interface Props {
+  /** Which static Storybook to embed, as a site-root path. Defaults to the Components storybook. */
+  storybook?: string;
   /** Deep-link into a specific story, e.g. "/story/commanddialog--default". Optional. */
   path?: string;
   /** iframe height (CSS length). */
   height?: string;
+  /** Accessible iframe title. */
+  title?: string;
 }
-const { path = '', height = '820px' } = Astro.props;
+const { storybook = '/storybook', path = '', height = '820px', title = 'Cratis Storybook' } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const src = `${base}/storybook/${path ? `?path=${encodeURIComponent(path)}` : ''}`;
+const src = `${base}${storybook}/${path ? `?path=${encodeURIComponent(path)}` : ''}`;
 ---
 
 <div class="storybook-embed" style={`--sb-height:${height}`}>
   <div class="storybook-embed__bar">
     <a href={src} target="_blank" rel="noopener">Open full screen ↗</a>
   </div>
-  <iframe src={src} title="Cratis Components Storybook" loading="lazy"></iframe>
+  <iframe src={src} title={title} loading="lazy"></iframe>
 </div>
 
 <style>

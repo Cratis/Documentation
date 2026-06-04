@@ -17,6 +17,8 @@
     "check:links": "node scripts/check-links.mjs",
     "check:external": "node scripts/check-external-links.mjs",
     "build:storybook": "cd ../../Components/Source && ../node_modules/.bin/storybook build -o ../../Documentation/web/public/storybook",
+    "build:storybook:arc": "cd ../../Arc/Source/JavaScript && yarn workspace @cratis/arc.react exec storybook build -o ../../../../Documentation/web/public/storybook-arc",
+    "build:storybooks": "npm run build:storybook && npm run build:storybook:arc",
     "build:api": "node scripts/build-api.mjs",
     "check": "npm run build && node scripts/lint-docs.mjs && node scripts/check-links.mjs && node scripts/lint-prose.mjs && node scripts/lint-markdown.mjs && node scripts/check-external-links.mjs"
   },
