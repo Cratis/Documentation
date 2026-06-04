@@ -178,3 +178,33 @@ Reference largely migrated; the work is expert-depth explanations + scenarios.
 Platform (Starlight, topics rail, brand), all 6 products migrated to bucketed Diátaxis, front door,
 glossary, comparisons (Marten/Wolverine/Kurrent) + CRUD/MediatR bridges, threaded tutorials (Chronicle/Arc/Components),
 scenario/recipe catalogs, getting-started tour pass, concept-page diagrams, and the product-isolation/combination/brownfield narrative.
+
+---
+
+## Documentation backlog — user notes 2026-06-05 (size: S)
+
+Captured so we don't forget. The source repos for the AI/Tools/AuthProxy items all exist locally at
+`/Volumes/sourcecode/repos/cratis/{AI,Chronicle.Mcp,AuthProxy,Lens,Studio}` — so every item is groundable against real source.
+
+- ⬜ **QA — information is accurate.** Beyond the snippet audit (~95 fixes landed 2026-06-05 across Chronicle/Arc/Components),
+  do a broader prose/claims accuracy pass.
+- ⬜ **Don't lose any docs.** Per-page diff of each product's `docs-overhaul` vs `origin/main` `Documentation/` to confirm no
+  page was *dropped* in the overhaul (counts show net growth — Arc 251 vs 227, Components 91 vs 79, Fundamentals 33=33 — but
+  counts ≠ coverage). Chronicle has no `-main` worktree here → diff against `origin/main`.
+- 🟡 **Storybooks (Arc + Components).** Components ✅ (`npm run build:storybook` → `public/storybook`, embedded on
+  `/components/storybook`). **Arc ✅ wired 2026-06-05** — Arc.React's 4 stories build via `npm run build:storybook:arc` →
+  `public/storybook-arc`, embedded on `/arc/frontend/react/storybook`; `StorybookEmbed` now takes a `storybook` path prop;
+  CI (`docs-site.yml`) builds both. *(Verify the Arc build runs clean in CI — Node 23 + yarn.)*
+- ⬜ **Onboarding / learning paths.** Split the quickstarts into explicit **Prerequisites** + **single focused steps** per
+  product (the front door now has a 3-step quickstart; products have get-started pages but no prereqs split). Existing top-level Guides.
+- ⬜ **Cratis Stack — make AI TOP-LEVEL.** Today `ai-native-development.mdx` sits *under* the Cratis Stack overview topic.
+  Promote it and cover: **Plugins** (scope TBD with user), the **AI repo** (`cratis/AI` — shared `.ai` config: agents/skills/
+  prompts/hooks + `cratis init`), **highlight the CodeAnalysis packages** (already documented — Chronicle `CHR0001–0021`,
+  Arc `ARC0001–0004` + `ARCCHR0001` — just surface them prominently), and **Chronicle MCP** (`cratis/Chronicle.Mcp`).
+  *Decision needed:* new sibling topic in the rail vs a section inside the existing Cratis Stack topic (touches `astro.config.mjs`).
+- ⬜ **Cratis Stack — Tools.** **VSCode extension** (link to VS Marketplace — *URL needed*) and **Lens** (`cratis/Lens` —
+  browser extension; link to Chrome / Edge / Firefox stores — *URLs needed*).
+- ⬜ **Cratis Stack — AuthProxy** (`cratis/AuthProxy` — a lightweight .NET gateway service). New Cratis Stack section.
+
+**Open questions for the user:** marketplace URLs for VSCode + Lens (or stub "coming soon")? what does "Plugins" cover?
+AI top-level shape — new topic vs section?
