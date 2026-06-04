@@ -10,16 +10,52 @@ hero:
     light: ../../assets/cratis-mark-light.svg
   actions:
     - text: Get started
-      link: /chronicle/get-started/
+      link: '#get-started-in-3-steps'
       icon: right-arrow
     - text: Why event sourcing?
       link: /chronicle/why-event-sourcing/
       variant: minimal
       icon: open-book
+    - text: GitHub
+      link: https://github.com/cratis
+      variant: minimal
+    - text: Discord
+      link: https://discord.gg/kt4AMpV8WV
+      variant: minimal
 ---
 
-import { Card, CardGrid, LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
+import { Card, CardGrid, LinkCard, Tabs, TabItem, Steps } from '@astrojs/starlight/components';
 import SimpleCard from '../../components/SimpleCard.astro';
+
+## Get started in 3 steps
+
+Install the .NET templates and spin up your first full-stack Cratis app — Chronicle, Arc, and a React frontend, all wired up — in minutes.
+
+<Steps>
+
+1. **Install the Cratis templates.** Add the official project templates to your .NET CLI. You only need to do this once.
+
+   ```bash
+   dotnet new install Cratis.Templates
+   ```
+
+2. **Create your application.** Scaffold a new app complete with Chronicle, Arc, and a React frontend.
+
+   ```bash
+   dotnet new cratis -n MyApp --allow-scripts Yes
+   ```
+
+3. **Run it.** Start the supporting services, then the backend and the frontend from your new app folder.
+
+   ```bash
+   cd MyApp && docker compose up -d
+   dotnet run
+   yarn dev
+   ```
+
+</Steps>
+
+Prefer a guided path? The [Chronicle getting-started walkthrough](/chronicle/get-started/) takes one event through a projection and a reactor, step by step.
 
 ## Why developers choose Cratis
 
