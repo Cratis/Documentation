@@ -4,7 +4,22 @@
 > state, how to run/verify, gotchas) and `KNOWN-ISSUES.md` (build-env-only items). When you
 > finish something here, tick it and add a one-line note to the handover's §8 ledger.
 >
-> **Last updated:** 2026-05-31, after the product-isolation / combination / brownfield narrative pass.
+> **Last updated:** 2026-06-04 — infra session (Storybook + API reference wired; release/cutover prepared).
+>
+> **2026-06-04 infra session (committed/uncommitted on `docs-overhaul`, NOT pushed):**
+> - **🔧 Storybook embed — DONE.** Fixed the static build (Vite `lightningcss` → `esbuild` `cssMinify` in
+>   `Components/Source/.storybook/main.ts`), hosted at `/storybook/`, embedded via `StorybookEmbed.astro` on a
+>   new **Components → Storybook** page. `npm run build:storybook`; CI builds it (Node 23 — Components requires `>=23`).
+> - **🔧 API reference generation — DONE.** `npm run build:api` (`web/scripts/build-api.mjs` + `web/api-build/docfx.json`):
+>   DocFX over Chronicle clients (dotnet/aspnetcore/testing) + Arc + Arc.MongoDB + Fundamentals → `/api/`,
+>   TypeDoc over the `@cratis/*` packages → `/api/<product>/javascript/`. Linked from `api-reference.md`; CI-wired.
+>   Arc needs a pre-built Release DLL (docfx can't run its source generators); `DotNET.InProcess` was dropped (gone from Chronicle).
+> - **Release/cutover prepared:** `docs-site.yml` fixed (added cli + Fundamentals checkouts; deploy main-only),
+>   old DocFX `pages.yml` auto-deploy disabled. **`cratis-docs/RELEASE-RUNBOOK.md`** + **`RELEASE-READINESS.md`**
+>   capture the merge order, deploy enablement, and the one known `Components/toc.yml` merge conflict.
+>   AI workspace at `cratis-docs/` (`CLAUDE.md` + `docs-workspace` skill).
+> - **⚠️ `main` diverged far** from `docs-overhaul` (Documentation +600, Chronicle +400+ commits) — re-audit code
+>   snippets against *current* `main` before release (the top "don't lie" risk). See `RELEASE-READINESS.md`.
 
 ## How to use this
 
@@ -92,7 +107,7 @@
   and `arc/frontend/react/proxy-generation`. Closes the last sliver of handover OPEN #2.
 - 🟡 **Capstone** — `build-a-full-app.mdx` is written; needs a verified, runnable Studio/Ada-grade sample (🔧).
 - ⬜ **A standalone-Chronicle "Understanding"** — a short page naming Chronicle-from-any-host (worker/console) as a first-class story (the index now states it; a dedicated explanation could go deeper).
-- 🔧 **API reference generation** — .NET DocFX over ~7 assemblies + TS TypeDoc over `@cratis/*`. Orientation page exists.
+- ✅ **API reference generation — DONE (2026-06-04).** DocFX (.NET) + TypeDoc (TS) wired via `npm run build:api`; rendered at `/api/`, linked from the orientation page. CI-wired. (Pages render in DocFX/TypeDoc themes, not Starlight — theming is optional follow-up.)
 - ✅ **Arc reference API-correctness cleanup (audit round 3) — DONE.**
   - ✅ **`backend/core/getting-started.md` FIXED** — `ArcApplication.CreateBuilder` (not `ArcApplicationBuilder.CreateBuilder`), `app.UseCratisArc()` no-args (URL via `ArcOptions.Hosting.ApplicationUrl`), model-bound `[Command]`+`Handle()` and `[ReadModel]` static queries (the `ICommand`/`ICommandHandler<T>`/`IQuery`/`IQueryHandler` interfaces don't exist), `CommandResult.Success` removed.
   - ✅ **`backend/asp-net-core/configuration.md` FIXED** — `builder.UseCratisArc(...)` → `AddCratisArc(...)` on `IHostBuilder` (string form is `AddCratisArc(configSectionPath: "…")`, the 4th named param); `app.UseCratisArc()` calls left correct.
@@ -132,7 +147,7 @@ Reference largely migrated; the work is expert-depth explanations + scenarios.
 - 🟡 **DataPage / DataTables deep-dive** — *(SHIPPED: enriched `DataPage/index.md` with the compound `DataPage.Columns`/`DataPage.MenuItems` API + a details-panel example; fixed a tutorial bug — `detailsComponent` is lowercase, and `detailsTitle`/`initialSizes` are not real props. Verified vs `Components/Source/DataPage/DataPage.tsx`.)*
 - 🟡 **CommandDialog / CommandForm** — field-type reference polish; validation timing; `initialValues` vs `onBeforeExecute` (a known footgun).
 - 🟡 **Specialized components** — StepperCommandDialog, Toolbar, Dialogs, Dropdown, PivotViewer, SchemaEditor, TimeMachine — reference + one recipe each where evaluator-facing.
-- 🔧 **Storybook embed** — needs a deployed Storybook URL to iframe.
+- ✅ **Storybook embed — DONE (2026-06-04).** Static build hosted at `/storybook/`, embedded on the Components → Storybook page (`npm run build:storybook`). No deployed URL needed — it's a site-local static build.
 
 ### CLI — operate/explore a running store
 - ✅ Getting-started tour, scenarios (fix-a-stuck-observer, replay, verify-events).
@@ -157,7 +172,7 @@ Reference largely migrated; the work is expert-depth explanations + scenarios.
 4. 🟡 **Arc identity + tenancy** — explanation shipped (`understanding-identity-and-access`); optional how-to recipes + modernizing the `core/authorization` reference.
 5. 🟡 **Chronicle constraints + migrations** — explanation shipped; reference/scenarios already existed.
 6. 🟡 **Components DataPage / DataTables** — reference enriched + a tutorial API bug fixed.
-7. **Capstone runnable sample + API generation + foundation tooling** (🔧 — need build env / deps; batch when environment allows).
+7. **Capstone runnable sample + foundation tooling** (🔧 — need build env / deps; batch when environment allows). *(API generation + Storybook embed: ✅ DONE 2026-06-04.)*
 
 ## Done this overhaul (don't redo — see HANDOVER §6/§8 for the full list)
 Platform (Starlight, topics rail, brand), all 6 products migrated to bucketed Diátaxis, front door,

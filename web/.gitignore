@@ -9,6 +9,15 @@ src/content/docs/components/
 src/content/docs/cli/
 src/content/docs/fundamentals/
 src/content/docs/contributing/
+# generated API reference + Storybook (built into public/ by CI or `npm run build:storybook` / `build:api`)
+public/storybook/
+public/api/
+# DocFX API build dir: ignore ALL generated output (_site, _meta, per-product yml, etc.),
+# keep only the committed config. This is robust to new/renamed generated subfolders.
+api-build/*
+!api-build/docfx.json
+!api-build/toc.yml
+!api-build/index.md
 # generated sidebar
 src/generated/
 

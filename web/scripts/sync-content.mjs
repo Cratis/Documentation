@@ -72,7 +72,7 @@ const PRODUCTS = [
             path.join(reposRoot, 'Components', 'Documentation'),
             path.join(docRepoRoot, 'Components', 'Documentation')),
         buckets: [
-            { label: 'Get started', sections: ['Getting started', 'Tutorial', 'Choosing a component', 'Styling'] },
+            { label: 'Get started', sections: ['Getting started', 'Tutorial', 'Choosing a component', 'Styling', 'Storybook'] },
             { label: 'Understand', sections: ['Why Components', 'Coming from PrimeReact'] },
             { label: 'Recipes', sections: ['Building a form', 'Displaying data', 'Multi-step form', 'A list screen with actions'] },
             {

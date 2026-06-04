@@ -7,19 +7,24 @@ The narrative documentation — guides, concepts, tutorials — is what you're r
 
 ## .NET / C#
 
-The .NET API reference is generated with **DocFX** from the XML documentation comments across the Chronicle client SDK, Arc, and Fundamentals assemblies. In the published site it lives under `/api`, organized per package.
+The .NET API reference is generated with **DocFX** from the XML documentation comments across the Chronicle client SDK, Arc, and Fundamentals assemblies.
 
-While you're coding, the same XML docs power **IntelliSense** in your IDE — so the reference is right there as you type. The packages:
+**[Browse the .NET API reference →](/api/)** — every public type and member, organized per library (Chronicle clients, Arc + MongoDB, Fundamentals).
+
+While you're coding, the same XML docs power **IntelliSense** in your IDE — so the reference is right there as you type. On NuGet:
 
 - [`Cratis.Chronicle`](https://www.nuget.org/packages/Cratis.Chronicle) — the Chronicle client SDK
 - [`Cratis.Arc`](https://www.nuget.org/packages/Cratis.Arc) — the Arc application framework
 
 ## TypeScript
 
-The TypeScript API reference is generated with **TypeDoc** from the `@cratis/*` packages (Arc and its React bindings, Fundamentals) and surfaced alongside the rest of the site. The packages:
+The TypeScript API reference is generated with **TypeDoc** from the `@cratis/*` packages and surfaced alongside the rest of the site:
 
-- [`@cratis/arc`](https://www.npmjs.com/package/@cratis/arc)
-- [`@cratis/components`](https://www.npmjs.com/package/@cratis/components)
+- [`@cratis/arc`](/api/arc/javascript/arc/) — the Arc client core
+- [`@cratis/arc` React bindings](/api/arc/javascript/arc.react/) — hooks and components
+- [`@cratis/arc` MVVM](/api/arc/javascript/arc.react.mvvm/) — the MVVM layer
+- [`@cratis/arc` Vite plugin](/api/arc/javascript/arc.vite/) — build-time proxy generation
+- [`@cratis/fundamentals`](/api/fundamentals/javascript/) — shared utilities and concepts
 
 ## How it's produced (for contributors)
 

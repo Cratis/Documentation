@@ -1,24 +1,27 @@
 # Builds and deploys the new Astro Starlight documentation site (Documentation/web).
 #
-# Content lives in each product repo's `Documentation/` folder. During the docs
-# overhaul that content is on the `docs-overhaul` branch, so this workflow checks
-# each product repo out at that branch as a sibling of this repo — matching the
-# local dev layout the converter expects (scripts/sync-content.mjs).
+# Content lives in each product repo's `Documentation/` folder. This workflow checks
+# each product repo out as a sibling of this repo — matching the local dev layout the
+# converter expects (scripts/sync-content.mjs) — at the SAME branch this repo builds
+# from: `main` in production, otherwise `docs-overhaul` (preview/CI). So no manual edit
+# is needed at cutover — merging to `main` makes it build + deploy `main` content.
 #
-# PREREQUISITES (one-time, manual):
+# The build runs on both `docs-overhaul` (validation) and `main`; the deploy job runs
+# ONLY on `main`, so a docs-overhaul push validates the build without publishing.
+#
+# PREREQUISITES (one-time, manual — see ../../../RELEASE-RUNBOOK.md):
 #   1. Enable GitHub Pages for this repo with "GitHub Actions" as the source.
-#   2. Add a repo/org secret `DOCS_CHECKOUT_TOKEN` (a PAT or GitHub App token) with
-#      read access to Cratis/Chronicle, Cratis/Arc, Cratis/Components and Cratis/.github.
-#      The default GITHUB_TOKEN cannot check out other private repos.
-#
-# At cutover, point the production Pages deployment at this workflow (replacing
-# the DocFX pages.yml) and switch the trigger branch to `main`.
+#   2. Add a repo/org secret `DOCS_CHECKOUT_TOKEN` (a PAT or GitHub App token) with read
+#      access to Cratis/Chronicle, Cratis/Arc, Cratis/Components, Cratis/Fundamentals,
+#      Cratis/cli and Cratis/.github. The default GITHUB_TOKEN cannot check out other repos.
+#   3. Retire the old DocFX deploy (pages.yml) so the two don't both target Pages on main.
+#   4. If serving under a sub-path (e.g. cratis.io/docs), set `base: '/docs'` in astro.config.mjs.
 
 name: Documentation site
 
 on:
   push:
-    branches: [docs-overhaul]
+    branches: [docs-overhaul, main]
   workflow_dispatch:
 
 permissions:
@@ -30,8 +33,10 @@ concurrency:
   group: docs-site
   cancel-in-progress: true
 
+# Product repos are checked out at the same branch this repo builds from:
+# `main` in production, `docs-overhaul` everywhere else.
 env:
-  DOCS_REF: docs-overhaul
+  DOCS_REF: ${{ github.ref_name == 'main' && 'main' || 'docs-overhaul' }}
 
 jobs:
   build:
@@ -66,6 +71,22 @@ jobs:
           token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
           path: Components
 
+      - name: Checkout Fundamentals
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Fundamentals
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          path: Fundamentals
+
+      - name: Checkout cli
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/cli
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          path: cli
+
       - name: Checkout .github (Contributing)
         uses: actions/checkout@v4
         with:
@@ -76,11 +97,29 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 23   # Components (Storybook build) requires node >=23
 
       - name: Install dependencies
         working-directory: Documentation/web
         run: npm ci || npm install
+
+      - name: Build Components Storybook
+        working-directory: Components
+        run: |
+          corepack enable
+          yarn install --immutable
+          (cd Source && ../node_modules/.bin/storybook build -o ../../Documentation/web/public/storybook)
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Generate API reference (DocFX + TypeDoc)
+        working-directory: Documentation/web
+        run: |
+          dotnet tool install -g docfx || dotnet tool update -g docfx
+          npm run build:api
 
       - name: Lint docs
         working-directory: Documentation/web
@@ -101,6 +140,8 @@ jobs:
 
   deploy:
     needs: build
+    # Publish to Pages only from main — docs-overhaul runs are build-only validation.
+    if: ${{ github.ref_name == 'main' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
