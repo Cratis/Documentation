@@ -44,8 +44,8 @@ const PRODUCTS = [
                 label: 'Guides',
                 sections: [
                     'Scenarios', 'Events', 'Event Seeding', 'Read Models', 'Projections', 'Reactors',
-                    'Reducers', 'Subscriptions', 'Sinks', 'Namespaces', 'Constraints', 'Migrations',
-                    'Compliance', 'Testing', 'Hosting',
+                    'Reducers', 'Subscriptions', 'Sinks', 'Namespaces', 'Constraints', 'Closing Streams',
+                    'Migrations', 'Compliance', 'Testing', 'Hosting',
                 ],
             },
             {
@@ -79,7 +79,7 @@ const PRODUCTS = [
                 label: 'Components',
                 sections: [
                     'CommandDialog', 'CommandForm', 'CommandStepper', 'StepperCommandDialog', 'DataPage',
-                    'DataTables', 'Dialogs', 'Dropdown', 'Toolbar', 'ObjectNavigationalBar',
+                    'DataTables', 'Dialogs', 'Filter', 'Dropdown', 'Toolbar', 'ObjectNavigationalBar',
                     'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common',
                 ],
             },
