@@ -38,6 +38,7 @@ const overviewTopic = {
         { label: 'Adopting Cratis', slug: 'adopting-cratis' },
         { label: 'AI-native development', slug: 'ai-native-development' },
         { label: 'Studio', slug: 'studio', badge: { text: 'Soon', variant: 'tip' } },
+        { label: 'Event Modeling', slug: 'event-modeling' },
         { label: 'Build a full-stack feature', slug: 'build-a-full-app' },
         { label: 'Samples', slug: 'samples' },
         { label: 'Glossary', slug: 'glossary' },
@@ -149,7 +150,7 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/ai-native-development', '/studio', '/build-a-full-app', '/samples', '/glossary', '/comparisons', '/comparisons/**', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/ai-native-development', '/studio', '/event-modeling', '/build-a-full-app', '/samples', '/glossary', '/comparisons', '/comparisons/**', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],
