@@ -186,17 +186,22 @@ scenario/recipe catalogs, getting-started tour pass, concept-page diagrams, and 
 Captured so we don't forget. The source repos for the AI/Tools/AuthProxy items all exist locally at
 `/Volumes/sourcecode/repos/cratis/{AI,Chronicle.Mcp,AuthProxy,Lens,Studio}` — so every item is groundable against real source.
 
-- ⬜ **QA — information is accurate.** Beyond the snippet audit (~95 fixes landed 2026-06-05 across Chronicle/Arc/Components),
-  do a broader prose/claims accuracy pass.
-- ⬜ **Don't lose any docs.** Per-page diff of each product's `docs-overhaul` vs `origin/main` `Documentation/` to confirm no
-  page was *dropped* in the overhaul (counts show net growth — Arc 251 vs 227, Components 91 vs 79, Fundamentals 33=33 — but
-  counts ≠ coverage). Chronicle has no `-main` worktree here → diff against `origin/main`.
+- 🟡 **QA — information is accurate.** Snippet audit (~95 fixes) + a **prose/claims accuracy pass (2026-06-05)** over the 11
+  site-level narrative pages (cratis-stack, why-cratis, adopting-cratis, ai-native, plugins, code-analysis, studio,
+  event-modeling, authproxy, tools/*): **8 clean, 3 fixed** — AuthProxy GitHub→`OAuthProviders`, event-modeling vertical-slice
+  links → `/arc/vertical-slices/`, cratis-stack Studio tense. A broader recurring pass over reference pages remains.
+- ✅ **Don't lose any docs (2026-06-05).** Per-product `origin/main` vs `docs-overhaul` page diff done: **no genuinely-dropped
+  topics**. Counts grew/held (Chronicle 231→251, Arc 227→251, Components 79→91, cli 27→31, Fundamentals 33=33); the ~12 path
+  differences are all verified renames/merges (e.g. Chronicle `docker.md`/`prereq.md` → `running-chronicle.md` + get-started).
+  Caveat: page/topic-level coverage verified, not every paragraph inside rewritten same-path files.
 - 🟡 **Storybooks (Arc + Components).** Components ✅ (`npm run build:storybook` → `public/storybook`, embedded on
   `/components/storybook`). **Arc ✅ wired 2026-06-05** — Arc.React's 4 stories build via `npm run build:storybook:arc` →
   `public/storybook-arc`, embedded on `/arc/frontend/react/storybook`; `StorybookEmbed` now takes a `storybook` path prop;
   CI (`docs-site.yml`) builds both. *(Verify the Arc build runs clean in CI — Node 23 + yarn.)*
-- ⬜ **Onboarding / learning paths.** Split the quickstarts into explicit **Prerequisites** + **single focused steps** per
-  product (the front door now has a 3-step quickstart; products have get-started pages but no prereqs split). Existing top-level Guides.
+- 🟡 **Onboarding / learning paths (2026-06-05).** Single-focused steps already used `<Steps>` everywhere; added explicit
+  **## Prerequisites** sections to Arc (backend + frontend), Components, and CLI getting-started (committed). **Chronicle
+  get-started left uncommitted** — its `index.mdx` is entangled with a pre-existing in-progress get-started restructure
+  (`running-chronicle.md` + toc changes) that isn't ours; the heading rename sits in the working tree pending that.
 - ✅ **Cratis Stack — AI surfaced as a cluster (2026-06-05).** Per the user, kept it *inside* the existing Cratis Stack topic
   (not a new rail entry): added an **AI** group → `ai-native-development` + new **`plugins.mdx`** + new **`code-analysis.mdx`**.
   - **Plugins** = the `cratis/AI` config (agents/skills/prompts/hooks/rules) surfaced to **GitHub Copilot + Claude Code** via the
