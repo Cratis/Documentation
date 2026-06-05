@@ -197,14 +197,23 @@ Captured so we don't forget. The source repos for the AI/Tools/AuthProxy items a
   CI (`docs-site.yml`) builds both. *(Verify the Arc build runs clean in CI — Node 23 + yarn.)*
 - ⬜ **Onboarding / learning paths.** Split the quickstarts into explicit **Prerequisites** + **single focused steps** per
   product (the front door now has a 3-step quickstart; products have get-started pages but no prereqs split). Existing top-level Guides.
-- ⬜ **Cratis Stack — make AI TOP-LEVEL.** Today `ai-native-development.mdx` sits *under* the Cratis Stack overview topic.
-  Promote it and cover: **Plugins** (scope TBD with user), the **AI repo** (`cratis/AI` — shared `.ai` config: agents/skills/
-  prompts/hooks + `cratis init`), **highlight the CodeAnalysis packages** (already documented — Chronicle `CHR0001–0021`,
-  Arc `ARC0001–0004` + `ARCCHR0001` — just surface them prominently), and **Chronicle MCP** (`cratis/Chronicle.Mcp`).
-  *Decision needed:* new sibling topic in the rail vs a section inside the existing Cratis Stack topic (touches `astro.config.mjs`).
-- ⬜ **Cratis Stack — Tools.** **VSCode extension** (link to VS Marketplace — *URL needed*) and **Lens** (`cratis/Lens` —
-  browser extension; link to Chrome / Edge / Firefox stores — *URLs needed*).
-- ⬜ **Cratis Stack — AuthProxy** (`cratis/AuthProxy` — a lightweight .NET gateway service). New Cratis Stack section.
+- ✅ **Cratis Stack — AI surfaced as a cluster (2026-06-05).** Per the user, kept it *inside* the existing Cratis Stack topic
+  (not a new rail entry): added an **AI** group → `ai-native-development` + new **`plugins.mdx`** + new **`code-analysis.mdx`**.
+  - **Plugins** = the `cratis/AI` config (agents/skills/prompts/hooks/rules) surfaced to **GitHub Copilot + Claude Code** via the
+    `.github/`/`.claude/` symlink shells, installed via `cratis init` (Claude Code/Copilot/Cursor/Windsurf). ⚠️ **No literal plugin
+    marketplace and no Codex packaging exists in `cratis/AI`** — the page documents the real delivery, not an invented one. (User
+    said "plugins for claude, copilot, codex" — Codex isn't supported anywhere yet; flagged.)
+  - **Code analysis** surfaces the analyzers (Chronicle `CHR0001–0021`, Arc `ARC0001–04`, `ARCCHR0001`) and links down to the
+    per-product reference pages. **Chronicle MCP** already lives in `ai-native-development`.
+- ✅ **Cratis Stack — Tools (2026-06-05).** New **Tools** group → `tools/vscode-extension.mdx` + `tools/lens.mdx`.
+  - **VSCode extension is "Narrator"** (`cratis.narrator`) — LIVE on the VS Marketplace (verified, v1.0.8); page links it +
+    `github.com/Cratis/Narrator`. Cloned the repo to `/Volumes/sourcecode/repos/cratis/Narrator` to author from real source.
+  - **Lens** (`cratis/Lens`, v0.1.0) — **not on any public store yet**; page documents side-loading and says store links are
+    "coming soon" (Chrome/Edge/Firefox/Safari). No fabricated store URLs.
+- ✅ **Cratis Stack — AuthProxy (2026-06-05).** New `authproxy.mdx` ported from `cratis/AuthProxy/Documentation` (.NET YARP
+  gateway: OIDC single/multi + JWT, tenancy strategies, identity enrichment, invites/lobby, custom pages; config under
+  `Cratis:AuthProxy`; container `cratis/authproxy`). Wired into the topic + glob in `astro.config.mjs`. **Gate green: 0/0.**
 
-**Open questions for the user:** marketplace URLs for VSCode + Lens (or stub "coming soon")? what does "Plugins" cover?
-AI top-level shape — new topic vs section?
+**Open questions for the user (still):** (1) "Plugins" page documents the *real* per-assistant delivery — confirm OK, or do you want
+a forward-looking "coming as installable plugins / Codex" note? (2) Narrator marketplace link is live; Lens store links are stubbed
+"coming soon" until published — provide URLs when ready. (3) Onboarding Prerequisites split + the two QA passes (accuracy, don't-lose-docs) still open.

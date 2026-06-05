@@ -29,6 +29,8 @@ Among the skills it hands your assistant:
 
 Because the skills encode the conventions, an agent that uses them produces slices that look like the rest of your codebase — not a layered approximation of it. (The configuration is the canonical `.ai/` source in the Cratis AI repository, dropped into a project as its `.claude/` and `.github/` folders.)
 
+→ See [Plugins](/plugins/) for the full catalog of agents, skills, and coding rules — and how Claude Code and GitHub Copilot load them. The same conventions are enforced at compile time by the [code-analysis analyzers](/code-analysis/).
+
 <Aside type="tip" title="Model first, then generate">
 Pair this with [Studio](/studio/): model the feature on the canvas, generate the C# shapes, then let an agent flesh out the slices around them. Design → generate → build, with AI at each step.
 </Aside>
@@ -103,6 +105,12 @@ flowchart LR
   </SimpleCard>
   <SimpleCard title="CLI getting started" icon="rocket" link="/cli/getting-started/">
     Install the CLI, connect to your store, and run `cratis init` to set up AI tooling.
+  </SimpleCard>
+  <SimpleCard title="Plugins" icon="puzzle" link="/plugins/">
+    The agents, skills, and coding rules in detail — and how each AI assistant loads them.
+  </SimpleCard>
+  <SimpleCard title="Code analysis" icon="approve-check" link="/code-analysis/">
+    The Roslyn analyzers that enforce the same conventions at compile time.
   </SimpleCard>
   <SimpleCard title="Vertical slices" icon="seti:folder" link="/arc/vertical-slices/">
     The convention the build-side skills follow — everything for a feature in one folder.

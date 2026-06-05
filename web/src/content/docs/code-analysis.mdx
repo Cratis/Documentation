@@ -1,0 +1,76 @@
+---
+title: Code analysis
+description: Cratis ships Roslyn analyzers that catch the framework's convention mistakes at compile time — a wrong projection shape, a missing [EventType], a Handle() in the wrong place — so the pit of success is enforced by the compiler, for humans and AI agents alike.
+---
+
+import { CardGrid, Aside } from '@astrojs/starlight/components';
+import SimpleCard from '@components/SimpleCard.astro';
+import TopicHero from '@components/TopicHero.astro';
+
+<TopicHero icon="approve-check" eyebrow="The Cratis Stack" title="The compiler enforces the conventions">
+Cratis is convention-heavy by design — model-bound commands, `[EventType]` events, declarative projections. Conventions make the easy path the right one, but only if something *catches* you when you stray. That's what the **Roslyn analyzers** do: they run inside `dotnet build` and flag a forgotten `[EventType]`, a projection with side effects, or a `Handle()` on the wrong type — at compile time, with the squiggle right on the line.
+</TopicHero>
+
+## Why analyzers, not just docs
+
+A convention you can break silently isn't a convention — it's a suggestion. If you append a type that isn't marked `[EventType]`, or write a reactor method with the wrong signature, the framework can't discover it, and the failure shows up at *runtime* as "nothing happened." The analyzers move that failure left: the build fails, the message tells you exactly which rule and how to fix it, and several rules ship a one-click code fix.
+
+This matters doubly in the [AI-native](/ai-native-development/) workflow. When an agent scaffolds a slice, the analyzers are the same guardrail for the agent that they are for you — a wrong shape fails the build, the agent reads the diagnostic, and it corrects itself. The [coding rules in the plugins](/plugins/) teach the conventions; the analyzers enforce them.
+
+## Three analyzer packages
+
+Each analyzer ships *inside* the package it validates — there's nothing extra to install. Reference the package and the rules are active on your next build.
+
+<CardGrid>
+  <SimpleCard title="Chronicle — CHR####" icon="seti:db" link="/chronicle/code-analysis/">
+    21 rules for event-sourcing constructs. Ships with the <code>Cratis.Chronicle</code> package.
+  </SimpleCard>
+  <SimpleCard title="Arc core — ARC####" icon="puzzle" link="/arc/backend/code-analysis/">
+    Rules for commands and read models. Ships with <code>Arc.Core</code>.
+  </SimpleCard>
+  <SimpleCard title="Arc + Chronicle — ARCCHR####" icon="seti:db" link="/arc/backend/chronicle/code-analysis/">
+    Aggregate-root event-handler rules for Arc-on-Chronicle. Ships with the Chronicle integration.
+  </SimpleCard>
+</CardGrid>
+
+### Chronicle event-sourcing rules (`CHR####`)
+
+The [Chronicle analyzer](/chronicle/code-analysis/) enforces the event-sourcing shapes — events, projections, reducers, reactors, and constraints. A representative slice:
+
+| Rule | Catches |
+|---|---|
+| `CHR0001` | A type appended to an event sequence that's missing `[EventType]` *(quick fix adds it)* |
+| `CHR0004` / `CHR0006` | A reactor / reducer method whose signature doesn't match an allowed shape |
+| `CHR0015` / `CHR0017` | A projection or constraint with side effects (injecting `ICommandPipeline` / `IEventLog`) |
+| `CHR0016` / `CHR0018` | Imperative code inside a `Define()` that should only contain builder calls |
+| `CHR0021` | An event type that isn't a `record` (immutability) |
+
+The error-level `[EventType]` rules (`CHR0001`, `CHR0002`, `CHR0003`, `CHR0005`, `CHR0007`) come with an automatic code fix. See the [full CHR catalog](/chronicle/code-analysis/) for all 21 rules.
+
+### Arc command & read-model rules (`ARC####`)
+
+The [Arc.Core analyzer](/arc/backend/code-analysis/) validates the model-bound CQRS shapes — the ones the [writing-correct-examples](/plugins/) discipline keeps reiterating, now checked by the compiler:
+
+| Rule | Catches |
+|---|---|
+| `ARC0001` | A `[ReadModel]` query method that doesn't return the read model (or an allowed wrapper) |
+| `ARC0002` | A command-like type missing its `[Command]` attribute |
+| `ARC0003` | A `Handle()` method declared somewhere other than the command type itself |
+| `ARC0004` | A `[Command]` type with no public `Handle()` method |
+
+And for Arc on Chronicle, [`ARCCHR0001`](/arc/backend/chronicle/code-analysis/) checks aggregate-root event-handler `On` signatures.
+
+<Aside type="tip" title="Treat warnings as errors">
+These rules are most valuable when the build can't go green around them. Cratis projects build with warnings-as-errors — adopt the same in your project so a convention slip stops the build instead of scrolling past in the output.
+</Aside>
+
+## Where to go next
+
+<CardGrid>
+  <SimpleCard title="Plugins" icon="puzzle" link="/plugins/">
+    The agents, skills, and coding rules that teach the same conventions the analyzers enforce.
+  </SimpleCard>
+  <SimpleCard title="Vertical slices" icon="seti:folder" link="/arc/vertical-slices/">
+    The convention the analyzers are guarding — everything for a feature in one folder.
+  </SimpleCard>
+</CardGrid>

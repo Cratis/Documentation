@@ -1,0 +1,74 @@
+---
+title: Plugins
+description: The Cratis AI configuration — agents, skills, prompts, hooks, and coding rules — packaged so your AI assistant builds applications the Cratis way. One source of truth, surfaced to GitHub Copilot and Claude Code.
+---
+
+import { CardGrid, Aside } from '@astrojs/starlight/components';
+import SimpleCard from '@components/SimpleCard.astro';
+import TopicHero from '@components/TopicHero.astro';
+
+<TopicHero icon="puzzle" eyebrow="The Cratis Stack" title="Teach your AI assistant the Cratis way">
+A general-purpose coding assistant doesn't know your framework. Drop it into a Cratis codebase and it will *guess* — inventing handler classes, missing the vertical-slice conventions, hand-writing the API client you don't need. The **Cratis AI configuration** fixes that: a curated set of agents, skills, prompts, hooks, and coding rules that teach an assistant to build the way Cratis is meant to be built — packaged so your editor's AI picks it up automatically.
+</TopicHero>
+
+## One configuration, surfaced to each assistant
+
+Everything lives once in the [`cratis/AI`](https://github.com/Cratis/AI) repository, under a canonical `.ai/` folder. From there it's surfaced to each AI tool through thin shells of symlinks — so there's a single source of truth, and both tools see the same conventions:
+
+- **GitHub Copilot** reads it from a `.github/` folder (`copilot-instructions.md` + `.github/instructions/*.instructions.md`, plus `agents/`, `prompts/`, `skills/`, `hooks/`).
+- **Claude Code** reads it from a `.claude/` folder (`CLAUDE.md` + `.claude/rules/`, plus the same `agents/`, `prompts/`, `skills/`, `hooks/`).
+
+Every Cratis repository already ships these folders, so an assistant working in Chronicle, Arc, or Components is configured the moment you open it.
+
+<Aside type="tip" title="Coming soon: install from your assistant's marketplace">
+Today the configuration is delivered as the project-level files Copilot and Claude Code already look for — instructions, agents, skills, prompts, and hooks. We're also packaging it as **installable plugins** you'll be able to add directly from your assistant's marketplace (Claude Code, GitHub Copilot, Codex, and more). Until then, bring it in through the folders described below.
+</Aside>
+
+## What's in the box
+
+### Skills — multi-step workflows
+
+Skills are the high-value pieces: an assistant invokes one when it recognizes a matching request and follows a vetted, end-to-end workflow instead of improvising.
+
+- **`new-vertical-slice`** — scaffold a whole feature end to end: command, events, projection, query, React, and specs.
+- **`scaffold-feature`** — set up a new feature folder, composition page, and routing before any slices are added.
+- **`add-concept`**, **`add-projection`**, **`add-reactor`**, **`add-business-rule`**, **`add-ef-migration`** — build one artifact correctly, by convention.
+- **`write-specs`**, **`write-documentation`** — cover a slice with BDD specs, or write Diátaxis docs.
+- **`review-code`**, **`review-security`**, **`review-performance`** — structured review against the project's standards.
+
+### Agents — specialist personas
+
+A team of agents you can pick from the chat agent picker — an **Orchestrator** and **Coordinator** that decompose cross-cutting work and delegate to specialists: **Backend Developer**, **Frontend Developer**, **Spec Writer**, **Vertical Slice Planner**, and **Code / Security / Performance Reviewer** gates.
+
+### Rules, prompts, and hooks
+
+- **Rules** attach automatically by file glob — open a `.cs` file and the C# conventions load; edit inside `Features/` and the vertical-slice rules load.
+- **Prompts** are quick-invoke templates (e.g. `/add-concept`) for single-turn tasks.
+- **Hooks** are lifecycle callbacks — run the specs before a commit, do a release build when the session ends.
+
+Because the skills and rules encode the conventions, an agent that uses them produces slices that look like the rest of your codebase — model-bound `[Command]` records with `Handle()`, model-bound projections, `ConceptAs<T>` instead of raw primitives — not a layered approximation of it.
+
+## Getting it into your own project
+
+If you're building an app *on* Cratis, you have two complementary ways to pick up the configuration:
+
+1. **The shared config** — bring in the `.github/` and `.claude/` folders from the [`cratis/AI`](https://github.com/Cratis/AI) repository so Copilot and Claude Code load the agents, skills, and rules. This is the same set every Cratis repo ships.
+2. **`cratis init`** — run it inside your project and the [CLI](/cli/getting-started/) wires up the *operate* side: a `CHRONICLE.md` command catalog and instruction files for **Claude Code, GitHub Copilot, Cursor, and Windsurf**, plus a `chronicle-diagnose` slash command. Refresh after a CLI upgrade with `cratis init --refresh`.
+
+<Aside type="tip" title="Build and operate">
+The configuration here is the *build* side — it teaches your assistant to write correct Cratis code. The *operate* side — letting an assistant inspect and diagnose a running store — is covered in [AI-native development](/ai-native-development/) (the CLI command catalog and the Chronicle MCP server).
+</Aside>
+
+## Where to go next
+
+<CardGrid>
+  <SimpleCard title="AI-native development" icon="rocket" link="/ai-native-development/">
+    The full picture — building with agents and operating a running store with the CLI and the Chronicle MCP server.
+  </SimpleCard>
+  <SimpleCard title="Vertical slices" icon="seti:folder" link="/arc/vertical-slices/">
+    The convention every build-side skill follows — everything for a feature in one folder.
+  </SimpleCard>
+  <SimpleCard title="Code analysis" icon="seti:json" link="/code-analysis/">
+    The Roslyn analyzers that enforce the same conventions at compile time — for humans and agents alike.
+  </SimpleCard>
+</CardGrid>

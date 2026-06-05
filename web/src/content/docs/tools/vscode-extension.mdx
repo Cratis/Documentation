@@ -1,0 +1,80 @@
+---
+title: VS Code extension (Narrator)
+description: Narrator is the Cratis VS Code extension — a Chronicle Explorer in your editor's activity bar. Browse event stores, namespaces, and observers, page through an event sequence, and open event and read-model schemas without leaving your code.
+---
+
+import { CardGrid, Aside, Steps } from '@astrojs/starlight/components';
+import SimpleCard from '@components/SimpleCard.astro';
+import TopicHero from '@components/TopicHero.astro';
+
+<TopicHero icon="laptop" eyebrow="Tools" title="Explore Chronicle from your editor">
+When you're deep in a slice and something looks wrong, the question is usually "what's actually *in* the event log?" **Narrator** answers it without a context switch: it adds a Chronicle Explorer to the VS Code activity bar, so you can browse your event store, page through a sequence, and inspect event and read-model schemas right next to the code you're writing.
+</TopicHero>
+
+## Install it
+
+Narrator is published on the Visual Studio Marketplace as **[Narrator – Chronicle Explorer](https://marketplace.visualstudio.com/items?itemName=cratis.narrator)** (publisher `cratis`).
+
+<Steps>
+
+1. Open the **Extensions** view in VS Code (`⇧⌘X` / `Ctrl+Shift+X`).
+
+2. Search for **Narrator** and install **Narrator – Chronicle Explorer** by Cratis — or install it from the [Marketplace listing](https://marketplace.visualstudio.com/items?itemName=cratis.narrator).
+
+3. Open the **Narrator** icon in the activity bar. It connects to your active Chronicle context on startup.
+
+</Steps>
+
+The source lives at [github.com/Cratis/Narrator](https://github.com/Cratis/Narrator).
+
+## How it connects
+
+Narrator reads the **same configuration the [CLI](/cli/getting-started/) uses** — `~/.cratis/config.json` — so if you've already pointed the CLI at a store, the extension just works. A config looks like:
+
+```json
+{
+  "activeContext": "default",
+  "contexts": {
+    "default": {
+      "server": "chronicle://localhost:35000",
+      "managementPort": 8080
+    }
+  }
+}
+```
+
+It auto-connects to the active context on startup and watches the file, reloading when it changes. To use a config in a non-standard location, set the `narrator.configPath` setting; leave it empty to auto-detect from `~/.cratis/config.json`.
+
+## What you can do
+
+<CardGrid>
+  <SimpleCard title="Browse the store" icon="seti:db">
+    Navigate event stores, namespaces, and observers in the Chronicle Explorer tree.
+  </SimpleCard>
+  <SimpleCard title="Page through events" icon="list-format">
+    Open a sequence (Event Log, Outbox, System) into a paged event viewer with keyboard navigation.
+  </SimpleCard>
+  <SimpleCard title="Inspect schemas" icon="seti:json">
+    Open an event type's or read model's JSON schema, and open a projection's declaration.
+  </SimpleCard>
+  <SimpleCard title="Switch contexts" icon="right-arrow">
+    Add, edit, and switch between multiple Chronicle server contexts without editing JSON by hand.
+  </SimpleCard>
+</CardGrid>
+
+A **Details** pane sits below the explorer and shows the selected node's context and content as key/value tables — so selecting an event or read model shows its data inline.
+
+<Aside type="note" title="Inspect, not mutate">
+Like the CLI and the [Chronicle MCP server](/ai-native-development/), Narrator is an *explore-and-inspect* tool. It reads the log and schemas; it doesn't change application state. To change state you still go through commands and events.
+</Aside>
+
+## Where to go next
+
+<CardGrid>
+  <SimpleCard title="CLI getting started" icon="rocket" link="/cli/getting-started/">
+    Set up the `~/.cratis/config.json` contexts Narrator reads, and operate the store from the terminal.
+  </SimpleCard>
+  <SimpleCard title="Lens browser extension" icon="seti:html" link="/tools/lens/">
+    The in-browser companion — browse and run an Arc app's commands and queries from your browser.
+  </SimpleCard>
+</CardGrid>
