@@ -607,3 +607,43 @@
     fill: var(--cratis-dgm-edge) !important;
     stroke: var(--cratis-dgm-edge) !important;
 }
+
+/* --- Event Modeling diagrams (Mermaid `eventmodeling`) ---------------------
+   The eventmodeling renderer emits its OWN classes (.em-swimlane, .em-box,
+   .em-relation) and bakes MEANINGFUL colors into each sticky's fill:
+   white = UI/wireframe, blue = command, orange = event, green = read model,
+   purple = processor. Those fills are SEMANTIC — keep them in both themes;
+   do NOT route them through the brand palette like flowchart nodes do.
+
+   Only the surrounding chrome needs theming so the diagram reads on a dark page:
+   - swimlane bands ship a near-white fill from the renderer  → recessed panel
+   - swimlane labels inherit the SVG's dark `fill:#333`        → cluster text
+   - box labels are HTML in <foreignObject>, so they inherit the PAGE color and
+     turn near-white in dark mode — unreadable on the light stickies — so pin
+     them dark, theme-independent (the sticky fills stay light in both themes)
+   - relations + arrowheads ship a baked `#333`               → brand edge color
+   ------------------------------------------------------------------------- */
+.mermaid svg .em-swimlane rect {
+    fill: var(--cratis-dgm-cluster) !important;
+    stroke: var(--cratis-dgm-cluster-border) !important;
+}
+.mermaid svg .em-swimlane text {
+    fill: var(--cratis-dgm-cluster-text) !important;
+}
+
+/* Sticky-note labels: dark in BOTH themes — the box fills are light in both. */
+.mermaid svg .em-box foreignObject,
+.mermaid svg .em-box foreignObject div,
+.mermaid svg .em-box foreignObject span,
+.mermaid svg .em-box foreignObject b,
+.mermaid svg .em-box foreignObject p {
+    color: #1f2937 !important;
+}
+
+/* Relations + their arrowheads ride the brand edge color so they read on dark. */
+.mermaid svg .em-relation {
+    stroke: var(--cratis-dgm-edge) !important;
+}
+.mermaid svg marker[id^='em-arrowhead'] polygon {
+    fill: var(--cratis-dgm-edge) !important;
+}
