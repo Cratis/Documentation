@@ -198,10 +198,12 @@ Captured so we don't forget. The source repos for the AI/Tools/AuthProxy items a
   `/components/storybook`). **Arc ✅ wired 2026-06-05** — Arc.React's 4 stories build via `npm run build:storybook:arc` →
   `public/storybook-arc`, embedded on `/arc/frontend/react/storybook`; `StorybookEmbed` now takes a `storybook` path prop;
   CI (`docs-site.yml`) builds both. *(Verify the Arc build runs clean in CI — Node 23 + yarn.)*
-- 🟡 **Onboarding / learning paths (2026-06-05).** Single-focused steps already used `<Steps>` everywhere; added explicit
-  **## Prerequisites** sections to Arc (backend + frontend), Components, and CLI getting-started (committed). **Chronicle
-  get-started left uncommitted** — its `index.mdx` is entangled with a pre-existing in-progress get-started restructure
-  (`running-chronicle.md` + toc changes) that isn't ours; the heading rename sits in the working tree pending that.
+- ✅ **Onboarding / learning paths (2026-06-05).** Single-focused steps already used `<Steps>` everywhere; added explicit
+  **## Prerequisites** sections to Chronicle, Arc (backend + frontend), Components, and CLI getting-started. Also **finished and
+  landed the in-progress Chronicle get-started restructure**: kernel setup consolidated into `running-chronicle.md` (dev image +
+  BYO-database Compose for Mongo/Postgres/MSSQL/SQLite + Aspire + workbench), all three host guides (console/worker/aspnetcore)
+  reshaped to point there and share one library walkthrough (`worker.md` brought up to match its siblings), and `eventmodeling`
+  diagrams added to the quickstart + tutorial chapters. Chronicle commits `3133f05e4`, `d3379a635`.
 - ✅ **Cratis Stack — AI surfaced as a cluster (2026-06-05).** Per the user, kept it *inside* the existing Cratis Stack topic
   (not a new rail entry): added an **AI** group → `ai-native-development` + new **`plugins.mdx`** + new **`code-analysis.mdx`**.
   - **Plugins** = the `cratis/AI` config (agents/skills/prompts/hooks/rules) surfaced to **GitHub Copilot + Claude Code** via the
