@@ -68,7 +68,7 @@ tf 04 evt Orders.OrderConfirmed
 
 ## Why it fits Cratis almost one-to-one
 
-Here's the part that makes event modeling more than a whiteboard exercise for Cratis: **every block is a real Cratis primitive,** and the four patterns are *literally* the four kinds of [vertical slice](/fundamentals/) Cratis already organizes code around. The model isn't a sketch you translate — it's the slice, drawn.
+Here's the part that makes event modeling more than a whiteboard exercise for Cratis: **every block is a real Cratis primitive,** and the four patterns are *literally* the four kinds of [vertical slice](/arc/vertical-slices/) Cratis already organizes code around. The model isn't a sketch you translate — it's the slice, drawn.
 
 | Event-model block | What it means | In Cratis |
 |---|---|---|
@@ -91,7 +91,7 @@ And the patterns line up exactly with how a Cratis slice is classified:
 This is not a coincidence — both come from the same idea, that **events are the source of truth and everything else is derived from them.** A `[Command]`'s `Handle()` returns the event it records; a `[ReadModel]` declares the events it's built from; an `IReactor` reacts to a fact and issues the next command. Draw the timeline and you've named your commands, your events, your read models, and your reactors — in the order they happen.
 
 <Aside type="note" title="The model is the column, the slice is the code">
-Read a single vertical column of an event model — one screen, its command, the event, the read model behind the next screen — and you're looking at one [vertical slice](/fundamentals/): one feature folder with the command, event, projection, and React component that implement it. The [full-stack walkthrough](/build-a-full-app/) builds exactly that column, block by block.
+Read a single vertical column of an event model — one screen, its command, the event, the read model behind the next screen — and you're looking at one [vertical slice](/arc/vertical-slices/): one feature folder with the command, event, projection, and React component that implement it. The [full-stack walkthrough](/build-a-full-app/) builds exactly that column, block by block.
 </Aside>
 
 ## When it's the wrong fit
