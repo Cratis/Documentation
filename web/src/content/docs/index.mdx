@@ -4,7 +4,7 @@ description: Build event-sourced applications with Chronicle, Arc, and Component
 template: splash
 hero:
   title: Event sourcing you can actually be productive with
-  tagline: Capture what happened as immutable facts, project them into exactly the read models you need, and ship a full-stack, type-safe app — C# backend to React — without the boilerplate.
+  tagline: Capture what happened as immutable facts, project them into exactly the read models you need, and ship a full-stack, type-safe app — identity, tenancy, backend, React, storage choice, and operations — without the boilerplate.
   image:
     dark: ../../assets/cratis-mark-dark.svg
     light: ../../assets/cratis-mark-light.svg
@@ -26,6 +26,7 @@ hero:
 
 import { Card, CardGrid, LinkCard, Tabs, TabItem, Steps } from '@astrojs/starlight/components';
 import SimpleCard from '../../components/SimpleCard.astro';
+import StackJourney from '../../components/StackJourney.astro';
 
 ## Get started in 3 steps
 
@@ -57,26 +58,46 @@ Install the .NET templates and spin up your first full-stack Cratis app — Chro
 
 Prefer a guided path? The [Chronicle getting-started walkthrough](/chronicle/get-started/) takes one event through a projection and a reactor, step by step.
 
+<StackJourney
+  eyebrow="One feature, every layer"
+  title="See the full-stack loop before you choose a product"
+  intro="Cratis is most different when you follow one behavior all the way through: model the domain, resolve identity and tenant at the edge, build the slice, record the event, render the React screen, then inspect the running system with tools and AI."
+/>
+
 ## Why developers choose Cratis
 
+Cratis is for teams that want the domain model to be the running system, not a diagram beside it. The big win is fit: Chronicle, Arc, Components, AuthProxy, Studio, the CLI, and the AI tooling are opinionated in the same direction, so codebases stay consistent, predictable, and easier for both developers and agents to work in.
+
 <CardGrid>
-  <SimpleCard title="Events are facts" icon="approve-check" link="/chronicle/why-event-sourcing/">
-    Immutable, past-tense records of what happened. Your audit trail, time-travel, and analytics come for free.
+  <SimpleCard title="Everything fits together" icon="puzzle" link="/cratis-stack/">
+    Domain model, identity, tenant context, backend behavior, React screens, event history, and tools share one set of conventions.
   </SimpleCard>
-  <SimpleCard title="Full-stack type safety" icon="seti:typescript" link="/arc/understanding-the-proxy-boundary/">
-    Models flow from C# through generated proxies to React — no manual sync, no DTO drift, no hand-written API client.
+  <SimpleCard title="Build behavior, not glue" icon="approve-check" link="/why-cratis/">
+    Commands, queries, read models, UI, and tooling share one model. You spend time on the slice, not the handoffs between products.
   </SimpleCard>
-  <SimpleCard title="Vertical slices" icon="seti:folder" link="/arc/vertical-slices/">
-    Everything for one behavior — command, events, projection, UI, specs — lives in one folder. Navigate by feature, not by layer.
+  <SimpleCard title="One contract to React" icon="seti:typescript" link="/arc/understanding-the-proxy-boundary/">
+    C# commands and queries generate the TypeScript your frontend calls. Rename a property and the compiler finds every mismatch.
   </SimpleCard>
-  <SimpleCard title="No update code" icon="seti:db" link="/chronicle/projections/">
-    Declare the read model you want and which events feed it. A projection keeps it in sync — you never write an `UPDATE`.
+  <SimpleCard title="End-to-end foundations" icon="seti:lock" link="/authproxy/">
+    Authentication, tenant resolution, identity enrichment, authorization, and tenant isolation are part of the stack instead of every app's custom plumbing.
   </SimpleCard>
-  <SimpleCard title="Lovable, convention-first APIs" icon="heart" link="/chronicle/get-started/">
-    Discovery by naming, sane defaults, minimal boilerplate. The easy thing to do is the right thing.
+  <SimpleCard title="History when it matters" icon="seti:db" link="/chronicle/why-event-sourcing/">
+    Chronicle records facts, projects read models, and lets you replay or react later instead of hoping today's row is enough.
+  </SimpleCard>
+  <SimpleCard title="Open event backbone" icon="puzzle" link="/chronicle/architecture/">
+    Chronicle exposes a gRPC/protobuf boundary, has a first-class .NET client, and also ships TypeScript and Elixir clients/contracts.
+  </SimpleCard>
+  <SimpleCard title="Storage choice" icon="seti:db" link="/chronicle/hosting/configuration/storage/">
+    Run Chronicle over MongoDB, PostgreSQL, Microsoft SQL Server, or SQLite without changing the event model.
+  </SimpleCard>
+  <SimpleCard title="Predictable for AI" icon="rocket" link="/ai-native-development/">
+    Strong conventions, analyzers, and `.ai` guidance give assistants the same rails developers use to build and operate the system.
+  </SimpleCard>
+  <SimpleCard title="Live screens by default" icon="laptop" link="/components/">
+    Observable queries and typed components keep forms, tables, and dialogs current without reload code or duplicate client models.
   </SimpleCard>
   <SimpleCard title="Inspect it live" icon="rocket" link="/cli/">
-    The CLI is your window into a running store — browse events, watch observers, replay, and diagnose.
+    Workbench, CLI, OpenTelemetry, recommendations, jobs, replay, and failed partitions show what Chronicle is doing.
   </SimpleCard>
 </CardGrid>
 
@@ -117,24 +138,11 @@ const [authors] = AllAuthors.use();           // live, updates as events arrive
 </TabItem>
 </Tabs>
 
-## The whole loop, in one place
-
-Every Cratis application is the same loop: a command appends a **fact**, a **projection** folds facts into a read model you can query, and a **reactor** acts when something happens. You model *what happened* once — the read side and the react side both derive from it.
-
-```mermaid
-flowchart LR
-    UI["React UI<br/>(Components)"] -->|generated command proxy| Cmd["Command.Handle()<br/>(Arc)"]
-    Cmd -->|appends| Ev["Event — a fact<br/>(Chronicle)"]
-    Ev -->|projection| RM["Read model"]
-    Ev -.->|reactor| FX["Side effects<br/>(notify · integrate)"]
-    RM -->|generated query proxy| UI
-```
-
-## The three products, one platform
+## The platform pieces
 
 <CardGrid>
   <SimpleCard title="Chronicle" icon="seti:db" link="/chronicle/">
-    The event sourcing engine — events, projections, reducers, and reactors over a durable event log.
+    The event sourcing engine — gRPC/protobuf boundary, .NET-first client, storage choice, Orleans runtime, and rich tooling over a durable event log.
   </SimpleCard>
   <SimpleCard title="Arc" icon="puzzle" link="/arc/">
     The full-stack CQRS framework — commands, queries, and the generated proxies that keep React in sync.
@@ -142,30 +150,40 @@ flowchart LR
   <SimpleCard title="Components" icon="laptop" link="/components/">
     The React component library — command dialogs, forms, and data tables wired to your proxies.
   </SimpleCard>
+  <SimpleCard title="AuthProxy" icon="seti:lock" link="/authproxy/">
+    The edge gateway — authentication, tenant resolution, identity enrichment, routing, and invites.
+  </SimpleCard>
   <SimpleCard title="CLI" icon="rocket" link="/cli/">
     A terminal window into a running store — inspect events, watch observers, and diagnose issues.
   </SimpleCard>
+  <SimpleCard title="AI tooling" icon="approve-check" link="/ai-native-development/">
+    Skills, rules, analyzers, CLI catalogs, and MCP support that let agents build and operate with the platform's conventions.
+  </SimpleCard>
 </CardGrid>
 
-## Coming from another stack?
+## Choose your starting point
 
-Marten, Wolverine, and Kurrent are excellent tools. The short version of how Cratis differs: it's the only one that's **full-stack** — typed all the way to React.
+Cratis is modular. You can start with the piece that matches the problem in front of you, then add the rest when the system asks for it.
 
-| | Cratis | Marten | Wolverine | Kurrent |
-|---|:---:|:---:|:---:|:---:|
-| Event sourcing | ✓ | ✓ | with Marten | ✓ |
-| CQRS commands & queries | ✓ | — | ✓ | — |
-| Built-in read-model projections | ✓ | ✓ | — | server-side JS |
-| **Full-stack typed proxies (C# → React)** | **✓** | — | — | — |
-| Primary store | MongoDB (+extensible) | PostgreSQL | any | own engine |
+| If you need... | Start here |
+|---|---|
+| A durable history of what happened | [Chronicle](/chronicle/) |
+| A language-neutral event-store boundary | [Chronicle architecture](/chronicle/architecture/) |
+| MongoDB, PostgreSQL, SQL Server, or SQLite storage | [Chronicle storage](/chronicle/hosting/configuration/storage/) |
+| Typed commands, queries, and generated React proxies | [Arc](/arc/) |
+| Forms, dialogs, and data tables wired to Arc | [Components](/components/) |
+| Authentication, tenant resolution, identity enrichment, and routing | [AuthProxy](/authproxy/) |
+| A way to inspect a running store | [CLI](/cli/) |
+| AI guidance for building and operating the stack | [AI-native development](/ai-native-development/) |
+| A guided adoption path from an existing app | [Adopting Cratis](/adopting-cratis/) |
 
-Honest, per-tool **[comparisons and migration guides](/comparisons/)** (Marten · Wolverine · Kurrent), plus bridges from [CRUD / EF Core](/chronicle/coming-from-crud/) and [MediatR / MVC](/arc/coming-from-mediatr-and-mvc/).
+Coming from a familiar architecture? Start with the bridge that matches the shape of your code: [CRUD / EF Core](/chronicle/coming-from-crud/), [MediatR, MVC, and Arc](/arc/coming-from-mediatr-and-mvc/), or [PrimeReact and Components](/components/coming-from-primereact/).
 
 ## Ready to build?
 
 <CardGrid>
   <LinkCard title="Get started" description="Scaffold a project, run it, and watch one event flow through a projection and a reactor — in minutes." href="/chronicle/get-started/" />
+  <LinkCard title="Why developers choose Cratis" description="The platform fit: strong conventions, open Chronicle boundaries, typed contracts, storage choice, and a system you can inspect." href="/why-cratis/" />
   <LinkCard title="Build the library, step by step" description="Learn the model by building a small event-sourced system one concept at a time." href="/chronicle/tutorial/" />
   <LinkCard title="Build a full-stack feature" description="Put Chronicle, Arc, and Components together — backend to React, type-safe throughout." href="/build-a-full-app/" />
-  <LinkCard title="New to event sourcing?" description="Start with the why: what facts buy you, and when not to reach for them." href="/chronicle/why-event-sourcing/" />
 </CardGrid>

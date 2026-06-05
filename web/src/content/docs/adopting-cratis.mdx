@@ -32,13 +32,13 @@ flowchart TD
 | New app, current state is enough (CRUD-ish) | **Arc + Components** over a database | Typed commands, queries, and a generated React client with no event sourcing — [Arc without event sourcing](/arc/arc-without-event-sourcing/). |
 | Existing .NET API, frontend glue is the pain | **Arc**, added to your app | A typed TS client for new endpoints, without rewriting what you have. |
 | Existing system, you need history or audit | **Chronicle**, incrementally | Event-source one bounded context; leave the rest as it is. |
-| Not sure event sourcing fits at all | Read first | [When to use event sourcing](/chronicle/concepts/when-to-use-event-sourcing/), then [Why Cratis](/why-cratis/). |
+| Not sure event sourcing fits at all | Read first | [When to use event sourcing](/chronicle/concepts/when-to-use-event-sourcing/), then [Why developers choose Cratis](/why-cratis/). |
 
 ## Starting from scratch (greenfield)
 
 A new project is the easy case — nothing to migrate, no constraints. The only real decision is how far up the stack to start:
 
-- **Want the full experience?** Scaffold the stack and follow [getting started](/chronicle/get-started/), then the [tutorial](/arc/tutorial/). You'll have the command → event → projection → query → React loop running, with history for free.
+- **Want the full experience?** Scaffold the stack and follow [getting started](/chronicle/get-started/), then the [tutorial](/arc/tutorial/). You'll have the command → event → projection → query → React loop running, with history available from the event log.
 - **Not sure you need events yet?** Start with [Arc over a database](/arc/arc-without-event-sourcing/). You get the typed full-stack app immediately — and because adopting Chronicle is a write-side change, you can turn on event sourcing later without touching your queries or your frontend. There's no penalty for waiting.
 
 <Aside type="tip" title="You can defer the biggest decision">
@@ -53,7 +53,7 @@ You rarely get to start clean. Cratis is built to be adopted a slice at a time, 
 
 If your pain is the **frontend-to-backend boundary** — hand-written controllers, DTOs duplicated in TypeScript, fetch wrappers that drift out of sync — Arc slots into an app you already have. Register it on your existing host and start expressing *new* endpoints as commands and queries; Arc generates their typed proxies while your existing controllers keep running untouched.
 
-Arc's persistence meets your data where it already lives: its [MongoDB](/arc/backend/mongodb/) and [Entity Framework](/arc/backend/entity-framework/) integrations read and write the database you already use — EF Core even has a [direct-registration path](/arc/backend/entity-framework/getting-started/) designed for slotting into an existing application without taking over the whole framework. Coming from controllers and MediatR handlers, the [Coming from MediatR or MVC](/arc/coming-from-mediatr-and-mvc/) bridge maps what you know onto Arc's model.
+Arc's persistence meets your data where it already lives: its [MongoDB](/arc/backend/mongodb/) and [Entity Framework](/arc/backend/entity-framework/) integrations read and write the database you already use — EF Core even has a [direct-registration path](/arc/backend/entity-framework/getting-started/) designed for slotting into an existing application without taking over the whole framework. For controllers and MediatR handlers, the [MediatR, MVC, and Arc](/arc/coming-from-mediatr-and-mvc/) bridge maps familiar concepts onto Arc's model.
 
 ### Introduce Chronicle into an existing domain
 
@@ -63,7 +63,7 @@ If your pain is **history** — you need an audit trail, a "how did this order g
 2. Build [projections](/chronicle/projections/) that fold those events into exactly the read models that context needs. They can sit right next to your existing tables.
 3. Let the rest of the system keep working as it is. Event sourcing earns its place one context at a time, not as a big-bang rewrite.
 
-The [Coming from CRUD / EF Core](/chronicle/coming-from-crud/) guide maps tables and `SaveChanges` onto events — that's the mental shift that makes this click.
+The [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/) guide maps tables and `SaveChanges` onto events — that's the mental shift that makes this click.
 
 <Aside type="caution" title="Adopt where history pays for itself">
 Don't event-source a context just because you can. Reach for Chronicle where someone will genuinely ask "what changed, and when" — and leave the genuinely-CRUD corners on Arc-over-a-database. [When to use event sourcing](/chronicle/concepts/when-to-use-event-sourcing/) is the honest filter.
@@ -80,7 +80,7 @@ However you start, the pieces are designed to be *added*, not swapped out. The c
 ## Next steps
 
 <CardGrid>
-  <SimpleCard title="Why Cratis" icon="open-book" link="/why-cratis/">
+  <SimpleCard title="Why developers choose Cratis" icon="open-book" link="/why-cratis/">
     How the three products stand alone and compose — the map this page navigates.
   </SimpleCard>
   <SimpleCard title="Arc without event sourcing" icon="puzzle" link="/arc/arc-without-event-sourcing/">

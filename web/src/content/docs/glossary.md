@@ -58,4 +58,4 @@ The terms [Arc](/arc/) and [Components](/components/) add on top of Chronicle.
 | [Concept](/fundamentals/csharp/concepts/) | A strongly-typed wrapper around a primitive (`AccountId` over `Guid`) so the compiler catches mix-ups. |
 | [Vertical slice](/arc/vertical-slices/) | Everything for one behavior — command, events, projection, UI, specs — kept together in one folder. |
 
-New to all this? Start with [Why Cratis](/why-cratis/), then the [Chronicle tutorial](/chronicle/tutorial/).
+New to all this? Start with [Why developers choose Cratis](/why-cratis/), then the [Chronicle tutorial](/chronicle/tutorial/).

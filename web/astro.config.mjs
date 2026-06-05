@@ -26,7 +26,7 @@ try {
 }
 
 // The first topic gathers the site-level, cross-product pages (hand-authored in
-// web/, not owned by any product): the "why", the capstone, samples, comparisons.
+// web/, not owned by any product): the "why", the capstone, samples, tools.
 const overviewTopic = {
     id: 'overview',
     label: 'Cratis Stack',
@@ -34,7 +34,7 @@ const overviewTopic = {
     icon: 'open-book',
     items: [
         { label: 'The Cratis Stack', slug: 'cratis-stack' },
-        { label: 'Why Cratis', slug: 'why-cratis' },
+        { label: 'Why developers choose Cratis', slug: 'why-cratis' },
         { label: 'Adopting Cratis', slug: 'adopting-cratis' },
         {
             label: 'AI',
@@ -57,16 +57,6 @@ const overviewTopic = {
         { label: 'Build a full-stack feature', slug: 'build-a-full-app' },
         { label: 'Samples', slug: 'samples' },
         { label: 'Glossary', slug: 'glossary' },
-        {
-            label: 'Compare & migrate',
-            collapsed: true,
-            items: [
-                { label: 'How Cratis compares', slug: 'comparisons' },
-                { label: 'From Marten', slug: 'comparisons/marten' },
-                { label: 'From Wolverine', slug: 'comparisons/wolverine' },
-                { label: 'From Kurrent / EventStoreDB', slug: 'comparisons/kurrent' },
-            ],
-        },
         { label: 'API reference', slug: 'api-reference' },
     ],
 };
@@ -83,9 +73,9 @@ export default defineConfig({
     // why-cratis, …). Adding remark-gfm here makes it part of the inherited plugin
     // set that `@astrojs/mdx` re-applies (extendMarkdownConfig), restoring tables.
     markdown: {
-        // remarkMermaidPrerender renders ```mermaid to SVG at build time (before
-        // astro-mermaid's plugin sees it); anything it can't render falls through
-        // to astro-mermaid's client-side rendering.
+        // remarkMermaidPrerender renders ```mermaid and ```eventmodeling to SVG
+        // at build time (before astro-mermaid's plugin sees it); Mermaid blocks it
+        // can't render fall through to astro-mermaid's client-side rendering.
         remarkPlugins: [remarkGfm, remarkMermaidPrerender],
     },
     integrations: [
@@ -165,7 +155,7 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/ai-native-development', '/plugins', '/code-analysis', '/studio', '/event-modeling', '/tools', '/tools/**', '/authproxy', '/build-a-full-app', '/samples', '/glossary', '/comparisons', '/comparisons/**', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/ai-native-development', '/plugins', '/code-analysis', '/studio', '/event-modeling', '/tools', '/tools/**', '/authproxy', '/build-a-full-app', '/samples', '/glossary', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],

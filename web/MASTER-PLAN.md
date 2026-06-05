@@ -4,7 +4,16 @@
 > state, how to run/verify, gotchas) and `KNOWN-ISSUES.md` (build-env-only items). When you
 > finish something here, tick it and add a one-line note to the handover's §8 ledger.
 >
-> **Last updated:** 2026-06-05 — Cratis Stack expansion (AI cluster + Tools + AuthProxy), onboarding, Chronicle get-started restructure, QA passes.
+> **Last updated:** 2026-06-05 — Arc default path de-Chronicle, Cratis Stack expansion, onboarding, Chronicle get-started restructure, QA passes.
+>
+> **2026-06-05 follow-up (UNCOMMITTED, NOT pushed; gate green: 0 · 0 · 695 pages):**
+> - **Arc product isolation — DONE.** The canonical Arc tutorial and backend getting-started path are now database-first
+>   (MongoDB/EF Core). The optional event-sourcing chapter, `Cratis Package` setup, and event-reactor scenario moved under
+>   `Arc/Documentation/backend/chronicle/`; Arc landing, Why Arc, backend overview, vertical-slices, MediatR/MVC bridge,
+>   scenarios, troubleshooting, and authorization recipe now present commands/read models/live queries as the default Arc model.
+>   Chronicle remains documented as an optional integration, not the default learning path.
+> - **Reference accuracy pass — DONE.** Fixed the Arc command scenario auth test setup, Arc+Chronicle read-model
+>   test override, TS command/query contract snippets, command/validation import paths, and frontend authorization-result wording.
 >
 > **2026-06-05 session (COMMITTED on `docs-overhaul`, NOT pushed; gate green: 0 · 0 · 699 pages):**
 > - **Cratis Stack — AI / Tools / AuthProxy.** New site pages wired into the Cratis Stack topic (`astro.config.mjs`): an **AI** group
@@ -19,7 +28,7 @@
 > - **QA accuracy pass** over the 11 narrative pages: 8 clean, 3 fixed (AuthProxy GitHub→`OAuthProviders`, event-modeling vertical-slice
 >   links → `/arc/vertical-slices/`, cratis-stack Studio tense). Doc `9219edc`. **Don't-lose-docs audit:** per-product `origin/main` vs
 >   `docs-overhaul` page diff — **no dropped topics** (counts all grew/held). Ledger/meta `a0fc3c5`, `7101293`.
-> - **Still open:** broader recurring accuracy pass over *reference* pages; comparison-page rewrite + canonical Arc-tutorial de-Chronicle remain user-gated.
+> - **Still open:** broader recurring accuracy pass over remaining *reference* pages.
 >
 > **2026-06-04 infra session (committed/uncommitted on `docs-overhaul`, NOT pushed):**
 > - **🔧 Storybook embed — DONE.** Fixed the static build (Vite `lightningcss` → `esbuild` `cssMinify` in
@@ -128,8 +137,8 @@
   - ✅ **`backend/asp-net-core/configuration.md` FIXED** — `builder.UseCratisArc(...)` → `AddCratisArc(...)` on `IHostBuilder` (string form is `AddCratisArc(configSectionPath: "…")`, the 4th named param); `app.UseCratisArc()` calls left correct.
   - ✅ **`backend/core/authorization.md` FIXED (blocker resolved).** The current-user accessor was the unblock: inject **`IHttpContextAccessor`** and read **`HttpContext?.User`** (`ClaimsPrincipal`) — verified in Studio `OrganizationSetup.Handle` (`OrganizationSetup.cs:102-114`). Deep sections rewritten to that pattern + `Result<ValidationResult,T>`/`ValidationResult.Error` for in-`Handle` guards + `CommandScenario<T>` for testing.
   - *(Already fixed: `reducers/getting-started.md` retrieval; the `mongodb/getting-started.md` + `arc-without-event-sourcing` bootstrap.)*
-  - ⬜ **New (found during the rewrite): `backend/testing/command-scenario.md` references a non-existent `StubIdentityProvider`** (appears only in that doc, not in `Arc/Source`; `IIdentityProvider` has no `roles` ctor). Verify how `CommandScenario<T>` actually sets the current principal/claims and fix the example — likely the next snippet-audit follow-up.
-- 🔁 **Snippet-correctness audit (recurring).** Verify framework-API usages in code examples against real source (Studio `.cs`/`.tsx`, `Components/Source/**/*.d.ts`). Done for the Arc + Components flagship tutorials + getting-started (clean) and fixed two Components recipes; **caught a real fabricated-API bug** in the DataPage tutorial. Worth re-running across reference pages / other recipes — delegate to a subagent and verify each finding vs source before fixing.
+  - ✅ **`backend/testing/command-scenario.md` FIXED** — the stale identity setup now uses Arc's real `IHttpRequestContextAccessor` / `IHttpRequestContext` path consumed by `AuthorizationEvaluator`, not ASP.NET `IHttpContextAccessor` or the previously noted fake `StubIdentityProvider`.
+- 🔁 **Snippet-correctness audit (recurring).** Verify framework-API usages in code examples against real source (Studio `.cs`/`.tsx`, Components `Source/**/*.d.ts`, Arc/Chronicle source). Recent follow-up fixed Arc command scenario auth setup, Arc+Chronicle `IReadModels` test replacement, TS command/query contract snippets, invalid `@cratis/arc` root imports for command/validation symbols, and over-broad frontend authorization-result wording. Worth re-running across remaining reference pages / recipes — delegate to a subagent and verify each finding vs source before fixing.
 - 🟡 **Foundation tooling** — **QA stack WIRED** (graceful, advisory, all in `npm run check`): **Vale** (`.vale.ini` + `lint-prose.mjs`), **markdownlint** (`.markdownlint-cli2.jsonc` + `lint-markdown.mjs`), **lychee** external-link check (`.lychee.toml` + `check-external-links.mjs`). All skip when the tool is absent (the Vale pattern), so no deps/lockfile were touched. **To activate:** install the tools — locally `npm i -D markdownlint-cli2` + `brew install vale lychee`; in **CI**, install them in `docs-site.yml` so they actually run (right now they skip everywhere). **Still pending:** Expressive-Code power features (collapsible regions, line numbers via `@expressive-code/plugin-*`) — these are build-imported in `astro.config.mjs`, so adding the plugin deps without installing them **breaks the build**; do this in a focused pass that installs + verifies render in light/dark.
 
 ---
@@ -179,7 +188,7 @@ Reference largely migrated; the work is expert-depth explanations + scenarios.
 
 ## Prioritized next picks (launch-facing first)
 
-> **⏭️ ACTIVE PRIORITIES are in HANDOVER §0 "NEXT SESSION — START HERE"** (a visual + accuracy QA pass set by the user 2026-05-31): (1) screenshot every page with `shot-scraper` + a real visual-polish pass toward **aspire.dev** (the bar — user says we're far off); (2) fix the **nav flicker/jump** (layout shift); (3) fix the **front-door Mermaid** that doesn't render on the splash template; (4) **rewrite the comparison pages** (Marten/Wolverine/Kurrent) against how they work *today* (local `~/src/repos/marten`+`wolverine`); (5) **remove Chronicle from the Arc product** — make the Arc tutorial Chronicle-free (supersedes the earlier "additive" call); (6) apply **awesome-docs** tools (Doc Detective for automated example testing; Alex/case-police; shot-scraper). The list below is the standing backlog underneath those.
+> **⏭️ ACTIVE PRIORITIES are in HANDOVER §0 "NEXT SESSION — START HERE"** (a visual + accuracy QA pass set by the user 2026-05-31): (1) screenshot every page with `shot-scraper` + a real visual-polish pass toward **aspire.dev** (the bar — user says we're far off); (2) fix the **nav flicker/jump** (layout shift); (3) fix the **front-door Mermaid** that doesn't render on the splash template; (4) ✅ **drop the Marten/Wolverine/Kurrent comparison surface** — no Compare nav, no `/comparisons` pages, no front-door comparison table; (5) ✅ **remove Chronicle from the Arc default path** — canonical tutorial/getting-started are now Chronicle-free, with Chronicle moved to optional integration; (6) apply **awesome-docs** tools (Doc Detective for automated example testing; Alex/case-police; shot-scraper). The list below is the standing backlog underneath those.
 
 1. **Full-stack type-safety / proxy boundary** (the differentiator; first chapter of the Cratis Stack tour) ← *in progress*.
 2. 🟡 **"Cratis Stack" umbrella hero topic** — SHIPPED (landing + topic rebrand). Optional: deeper per-chapter tour pages.
@@ -191,7 +200,7 @@ Reference largely migrated; the work is expert-depth explanations + scenarios.
 
 ## Done this overhaul (don't redo — see HANDOVER §6/§8 for the full list)
 Platform (Starlight, topics rail, brand), all 6 products migrated to bucketed Diátaxis, front door,
-glossary, comparisons (Marten/Wolverine/Kurrent) + CRUD/MediatR bridges, threaded tutorials (Chronicle/Arc/Components),
+glossary, product bridge guides, threaded tutorials (Chronicle/Arc/Components),
 scenario/recipe catalogs, getting-started tour pass, concept-page diagrams, and the product-isolation/combination/brownfield narrative.
 
 ---
@@ -213,6 +222,10 @@ Captured so we don't forget. The source repos for the AI/Tools/AuthProxy items a
   `/components/storybook`). **Arc ✅ wired 2026-06-05** — Arc.React's 4 stories build via `npm run build:storybook:arc` →
   `public/storybook-arc`, embedded on `/arc/frontend/react/storybook`; `StorybookEmbed` now takes a `storybook` path prop;
   CI (`docs-site.yml`) builds both. *(Verify the Arc build runs clean in CI — Node 23 + yarn.)*
+- ✅ **Arc default path isolated from Chronicle (2026-06-05 follow-up).** Canonical Arc tutorial/getting-started now teach
+  Arc over MongoDB/EF Core. Optional event-sourcing content moved to `backend/chronicle/`: add event sourcing to a slice,
+  Cratis Package, and React to an event. Default-facing pages now describe commands/read models/live queries without making
+  Chronicle feel required.
 - ✅ **Onboarding / learning paths (2026-06-05).** Single-focused steps already used `<Steps>` everywhere; added explicit
   **## Prerequisites** sections to Chronicle, Arc (backend + frontend), Components, and CLI getting-started. Also **finished and
   landed the in-progress Chronicle get-started restructure**: kernel setup consolidated into `running-chronicle.md` (dev image +

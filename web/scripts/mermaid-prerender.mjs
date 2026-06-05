@@ -13,12 +13,15 @@
 // (the previous behaviour), so the build can never break.
 
 import { spawn } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { visit } from 'unist-util-visit';
 
 const webRoot = new URL('..', import.meta.url);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const chooseDebugPort = () => 9300 + Math.floor(Math.random() * 20000);
 
 /** Stable, dependency-free hash for a deterministic per-diagram element id. */
 function hash(str) {
@@ -72,18 +75,19 @@ async function ensureBrowser() {
     }
 
     try {
-        const port = 9333;
+        const port = chooseDebugPort();
+        const userDataDir = join(tmpdir(), `cratis-mermaid-prerender-${process.pid}-${port}`);
         const proc = spawn(chromePath, [
             '--headless=new', `--remote-debugging-port=${port}`, '--no-first-run',
             '--no-default-browser-check', '--disable-gpu', '--no-sandbox',
-            `--user-data-dir=/tmp/cratis-mermaid-prerender`, 'about:blank',
+            `--user-data-dir=${userDataDir}`, 'about:blank',
         ], { stdio: 'ignore' });
         proc.unref();
 
         let target;
         for (let i = 0; i < 80; i++) {
             try {
-                const r = await fetch(`http://localhost:${port}/json/new?about:blank`, { method: 'PUT' });
+                const r = await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' });
                 target = await r.json();
                 break;
             } catch { await sleep(250); }
@@ -118,7 +122,7 @@ async function ensureBrowser() {
         await send('Runtime.evaluate', { expression: mermaidJs });
         await send('Runtime.evaluate', { expression: `mermaid.initialize(${JSON.stringify(MERMAID_CONFIG)})` });
 
-        state = { proc, ws, send };
+        state = { proc, ws, send, userDataDir };
         return state;
     } catch (err) {
         console.warn(`[mermaid-prerender] Chrome setup failed (${err.message}) — diagrams will render client-side.`);
@@ -176,15 +180,19 @@ export async function closeBrowser() {
     if (state && state !== 'unavailable') {
         try { state.ws.close(); } catch { /* ignore */ }
         try { state.proc.kill('SIGKILL'); } catch { /* ignore */ }
+        try { rmSync(state.userDataDir, { recursive: true, force: true }); } catch { /* ignore */ }
     }
     state = null;
 }
 
 // Make sure Chrome doesn't outlive the build/dev process.
-process.once('exit', () => { try { state && state !== 'unavailable' && state.proc.kill('SIGKILL'); } catch { /* ignore */ } });
+process.once('exit', () => {
+    try { state && state !== 'unavailable' && state.proc.kill('SIGKILL'); } catch { /* ignore */ }
+    try { state && state !== 'unavailable' && rmSync(state.userDataDir, { recursive: true, force: true }); } catch { /* ignore */ }
+});
 
 /**
- * Remark plugin: replace ```mermaid code blocks with a pre-rendered SVG.
+ * Remark plugin: replace ```mermaid and ```eventmodeling code blocks with a pre-rendered SVG.
  * Runs before astro-mermaid's plugin; anything it can't render is left as a
  * code block for astro-mermaid to handle client-side.
  */
@@ -192,14 +200,17 @@ export function remarkMermaidPrerender() {
     return async function transformer(tree) {
         const targets = [];
         visit(tree, 'code', (node, index, parent) => {
-            if (node.lang === 'mermaid' && parent && typeof index === 'number') {
-                targets.push({ node, index, parent });
+            if ((node.lang === 'mermaid' || node.lang === 'eventmodeling') && parent && typeof index === 'number') {
+                const source = node.lang === 'eventmodeling'
+                    ? `eventmodeling\n\n${node.value}`
+                    : node.value;
+                targets.push({ node, index, parent, source });
             }
         });
         if (!targets.length) return;
 
-        for (const { node, index, parent } of targets) {
-            const svg = await renderDiagram(node.value);
+        for (const { node, index, parent, source } of targets) {
+            const svg = await renderDiagram(source);
             if (svg) {
                 parent.children[index] = {
                     type: 'html',
@@ -207,6 +218,11 @@ export function remarkMermaidPrerender() {
                     // pre.mermaid keeps cratis.css's diagram theming applying.
                     value: `<pre class="mermaid" data-processed="true" data-prerendered="true">${svg}</pre>`,
                 };
+            } else if (node.lang === 'eventmodeling') {
+                // If Chrome is unavailable, let astro-mermaid render the diagram
+                // client-side instead of handing Expressive Code an unknown language.
+                node.lang = 'mermaid';
+                node.value = source;
             }
             // else: leave the code node — astro-mermaid renders it client-side.
         }

@@ -42,9 +42,7 @@
     /* A slightly more generous reading measure now that the ToC band is slim. */
     --sl-content-width: 48rem;
 
-    /* Inter has a tall x-height; a hair more letter-spacing on headings keeps
-       them from feeling cramped. */
-    --cratis-heading-tracking: -0.015em;
+    --cratis-stage-grid: color-mix(in srgb, var(--sl-color-accent) 8%, transparent);
 }
 
 /* Headings: Inter looks best slightly tightened and confident. */
@@ -66,38 +64,108 @@
     scrollbar-color: var(--sl-color-gray-5) transparent;
 }
 
-/* --- Hero (splash front door) --- */
+/* --- Hero (splash front door) ---
+   Starlight's default hero is a split text/logo layout. For the Cratis front
+   door, make the first viewport read as a custom product stage: the mark
+   becomes background art, the copy owns the foreground, and the next section
+   remains visible without the hero swallowing the page. */
 .hero {
     position: relative;
     isolation: isolate;
+    overflow: hidden;
+    min-height: min(34rem, calc(100svh - var(--sl-nav-height) - 5rem));
+    align-content: center;
+    padding: clamp(3rem, 8vw, 6.5rem) clamp(1rem, 3vw, 2rem) clamp(2.5rem, 6vw, 4.5rem);
+    border: 1px solid color-mix(in srgb, var(--sl-color-accent) 16%, transparent);
+    border-radius: 0.85rem;
+    background:
+        radial-gradient(50rem 32rem at 78% 35%, color-mix(in srgb, var(--sl-color-accent) 16%, transparent), transparent 72%),
+        radial-gradient(42rem 28rem at 18% 12%, color-mix(in srgb, var(--sl-color-accent-high) 8%, transparent), transparent 70%),
+        linear-gradient(135deg, color-mix(in srgb, var(--sl-color-bg) 92%, var(--sl-color-accent-low)), var(--sl-color-bg));
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, var(--sl-color-white) 5%, transparent),
+        0 32px 72px -56px color-mix(in srgb, var(--sl-color-accent) 70%, transparent);
 }
 
-/* A soft brand glow behind the hero gives the front door depth instead of a
-   flat slab (the aspire.dev move): a strong accent bloom behind the headline
-   and a cooler one behind the logo. */
+:root[data-theme='light'] .hero {
+    border-color: color-mix(in srgb, var(--sl-color-accent) 20%, var(--sl-color-gray-5));
+    background:
+        radial-gradient(50rem 32rem at 78% 35%, color-mix(in srgb, var(--sl-color-accent) 12%, transparent), transparent 72%),
+        radial-gradient(42rem 28rem at 18% 12%, color-mix(in srgb, var(--sl-color-accent-high) 8%, transparent), transparent 70%),
+        linear-gradient(135deg, color-mix(in srgb, var(--sl-color-bg) 95%, var(--sl-color-accent-low)), var(--sl-color-bg));
+}
+
+/* Full-bleed ambient field behind the hero panel. */
 .hero::before {
     content: '';
     position: absolute;
     z-index: -1;
-    inset: -6rem -4rem -2rem -6rem;
+    inset-block: -7rem -5rem;
+    inset-inline: calc(50% - 50vw);
     background:
-        radial-gradient(48% 60% at 26% 28%, color-mix(in srgb, var(--sl-color-accent) 26%, transparent), transparent 72%),
-        radial-gradient(42% 55% at 82% 18%, color-mix(in srgb, var(--sl-color-accent-high) 16%, transparent), transparent 70%);
+        radial-gradient(34rem 22rem at 22% 28%, color-mix(in srgb, var(--sl-color-accent) 16%, transparent), transparent 72%),
+        radial-gradient(30rem 20rem at 82% 22%, color-mix(in srgb, #38bdf8 10%, transparent), transparent 72%),
+        linear-gradient(180deg, color-mix(in srgb, var(--sl-color-accent-low) 12%, transparent), transparent 76%);
     pointer-events: none;
 }
 :root[data-theme='light'] .hero::before {
     background:
-        radial-gradient(48% 60% at 26% 28%, color-mix(in srgb, var(--sl-color-accent) 14%, transparent), transparent 72%),
-        radial-gradient(42% 55% at 82% 18%, color-mix(in srgb, var(--sl-color-accent-high) 10%, transparent), transparent 70%);
+        radial-gradient(34rem 22rem at 22% 28%, color-mix(in srgb, var(--sl-color-accent) 10%, transparent), transparent 72%),
+        radial-gradient(30rem 20rem at 82% 22%, color-mix(in srgb, #38bdf8 7%, transparent), transparent 72%),
+        linear-gradient(180deg, color-mix(in srgb, var(--sl-color-accent-low) 24%, transparent), transparent 76%);
+}
+
+/* A subtle grid makes the hero feel like a designed surface without adding
+   decorative blobs. */
+.hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+        linear-gradient(var(--cratis-stage-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--cratis-stage-grid) 1px, transparent 1px);
+    background-size: 3rem 3rem;
+    mask-image: radial-gradient(ellipse 76% 68% at 54% 42%, black 22%, transparent 100%);
+    opacity: 0.75;
+    pointer-events: none;
+}
+
+.hero > img,
+.hero > .hero-html {
+    position: absolute;
+    z-index: -1;
+    inset-block-start: 50%;
+    inset-inline-end: clamp(0.5rem, 8vw, 5rem);
+    width: clamp(13rem, 32vw, 27rem);
+    max-height: none;
+    margin: 0;
+    opacity: 0.16;
+    transform: translateY(-50%) rotate(-4deg);
+    filter:
+        drop-shadow(0 0 48px color-mix(in srgb, var(--sl-color-accent) 32%, transparent))
+        drop-shadow(0 18px 48px color-mix(in srgb, var(--sl-color-black) 42%, transparent));
 }
 
 .hero > .stack {
-    gap: clamp(1rem, 2vw, 1.75rem);
+    position: relative;
+    z-index: 1;
+    max-width: 52rem;
+    align-items: flex-start;
+    gap: clamp(1.1rem, 2vw, 1.5rem);
+    text-align: start;
+}
+
+.hero .copy {
+    align-items: flex-start;
+    gap: 1rem;
 }
 
 .hero h1 {
-    letter-spacing: -0.02em;
-    line-height: 1.05;
+    max-width: 13ch;
+    font-size: clamp(3rem, 8vw, 5.8rem);
+    line-height: 0.96;
+    letter-spacing: 0;
 }
 
 /* Subtle vertical gradient on the headline — a hair of life without hurting
@@ -114,13 +182,96 @@
 }
 
 .hero .tagline {
-    max-width: 48ch;
+    max-width: 56ch;
+    color: var(--sl-color-gray-2);
+    font-size: clamp(1rem, 1.2vw, 1.25rem);
+    line-height: 1.6;
 }
 
-/* Keep the hero mark from dominating on wide screens */
-.hero img {
-    max-height: 200px;
-    filter: drop-shadow(0 8px 32px color-mix(in srgb, var(--sl-color-accent) 30%, transparent));
+.hero .actions {
+    justify-content: flex-start;
+    gap: 0.75rem 1rem;
+}
+
+.hero .sl-link-button {
+    min-height: 2.65rem;
+    border-radius: 0.55rem;
+    font-weight: 700;
+    transition: transform 0.16s ease, border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.hero .sl-link-button.primary {
+    background: var(--sl-color-accent);
+    border-color: color-mix(in srgb, var(--sl-color-accent) 92%, var(--sl-color-white));
+    color: var(--sl-color-text-invert);
+    box-shadow: 0 14px 32px -18px var(--sl-color-accent);
+}
+
+.hero .sl-link-button.minimal {
+    padding-inline: 0.85rem;
+    border: 1px solid transparent;
+    color: var(--sl-color-gray-2);
+}
+
+.hero .sl-link-button:hover,
+.hero .sl-link-button:focus-visible {
+    transform: translateY(-2px);
+}
+
+.hero .sl-link-button.minimal:hover,
+.hero .sl-link-button.minimal:focus-visible {
+    border-color: color-mix(in srgb, var(--sl-color-accent) 24%, transparent);
+    background: color-mix(in srgb, var(--sl-color-accent) 9%, transparent);
+    color: var(--sl-color-white);
+}
+
+@media (max-width: 49.99rem) {
+    .hero {
+        min-height: min(30rem, calc(100svh - var(--sl-nav-height) - 4rem));
+        margin-inline: -0.35rem;
+        padding: 5rem 1rem 2.25rem;
+    }
+
+    .hero > img,
+    .hero > .hero-html {
+        inset-block-start: 1.2rem;
+        inset-inline: auto 0.75rem;
+        width: clamp(9rem, 46vw, 12rem);
+        opacity: 0.2;
+        transform: rotate(-5deg);
+    }
+
+    .hero h1 {
+        max-width: 12ch;
+        font-size: clamp(2.15rem, 11vw, 3rem);
+        line-height: 1.02;
+    }
+
+    .hero .tagline {
+        max-width: 31rem;
+        font-size: var(--sl-text-sm);
+    }
+
+    .hero .actions {
+        gap: 0.6rem;
+    }
+
+    .hero .sl-link-button {
+        min-height: 2.35rem;
+        padding: 0.55rem 0.8rem;
+        font-size: var(--sl-text-xs);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero .sl-link-button {
+        transition: none;
+    }
+
+    .hero .sl-link-button:hover,
+    .hero .sl-link-button:focus-visible {
+        transform: none;
+    }
 }
 
 /* --- Cards (Starlight CardGrid + LinkCard): subtle depth + lift on hover,
@@ -146,9 +297,9 @@
     color: var(--sl-color-accent);
 }
 
-/* --- Headings: a little tighter and more confident --- */
+/* --- Headings: confident rhythm without viewport/font-width tricks --- */
 .sl-markdown-content h2 {
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     margin-top: 2.5rem;
 }
 
@@ -242,7 +393,7 @@
 .sidebar-content ul.top-level > li > details > summary .group-label > .large {
     font-size: var(--sl-text-base);
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     color: var(--sl-color-white);
 }
 

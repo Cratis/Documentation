@@ -14,15 +14,99 @@ interface Props {
 }
 const { storybook = '/storybook', path = '', height = '820px', title = 'Cratis Storybook' } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const src = `${base}${storybook}/${path ? `?path=${encodeURIComponent(path)}` : ''}`;
+const storybookRoot = `${base}${storybook.replace(/\/$/, '')}`;
+
+function normalizeStoryPath(value: string) {
+  const clean = value.trim();
+  if (!clean) return '';
+  if (clean.startsWith('/story/') || clean.startsWith('/docs/')) return clean;
+  if (clean.startsWith('story/') || clean.startsWith('docs/')) return `/${clean}`;
+  return `/story/${clean}`;
+}
+
+function buildStorybookSrc(root: string, storyPath: string) {
+  const params = new URLSearchParams();
+  if (storyPath) {
+    // Match the old DocFX embed: focused story, docs/controls panel open, Storybook nav hidden.
+    params.set('nav', 'false');
+    params.set('panel', 'right');
+    params.set('addonPanel', 'storybook/docs');
+    params.set('path', storyPath);
+  }
+  const query = params.toString();
+  return `${root}/index.html${query ? `?${query}` : ''}`;
+}
+
+const initialStoryPath = normalizeStoryPath(path);
+const src = buildStorybookSrc(storybookRoot, initialStoryPath);
 ---
 
-<div class="storybook-embed" style={`--sb-height:${height}`}>
+<div
+  class="storybook-embed"
+  data-storybook-embed
+  data-storybook-root={storybookRoot}
+  data-storybook-path={initialStoryPath}
+  style={`--sb-height:${height}`}
+>
   <div class="storybook-embed__bar">
     <a href={src} target="_blank" rel="noopener">Open full screen ↗</a>
   </div>
   <iframe src={src} title={title} loading="lazy"></iframe>
 </div>
+
+<script>
+  const normalizeStoryPath = (value) => {
+    const clean = (value || '').trim();
+    if (!clean) return '';
+    if (clean.startsWith('/story/') || clean.startsWith('/docs/')) return clean;
+    if (clean.startsWith('story/') || clean.startsWith('docs/')) return `/${clean}`;
+    return `/story/${clean}`;
+  };
+
+  const buildStorybookSrc = (root, storyPath) => {
+    const url = new URL(`${root}/index.html`, window.location.origin);
+    if (storyPath) {
+      url.searchParams.set('nav', 'false');
+      url.searchParams.set('panel', 'right');
+      url.searchParams.set('addonPanel', 'storybook/docs');
+      url.searchParams.set('path', storyPath);
+    }
+    return `${url.pathname}${url.search}`;
+  };
+
+  const getTheme = () => document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+
+  for (const embed of document.querySelectorAll('[data-storybook-embed]')) {
+    const iframe = embed.querySelector('iframe');
+    const link = embed.querySelector('a');
+    const root = embed.dataset.storybookRoot;
+    if (!iframe || !link || !root) continue;
+
+    const params = new URLSearchParams(window.location.search);
+    const story = params.get('story');
+    const requestedPath = story
+      ? `/story/${story.replace(/^\/?story\//, '')}`
+      : params.get('path') || embed.dataset.storybookPath || '';
+    const storyPath = normalizeStoryPath(requestedPath);
+    const src = buildStorybookSrc(root, storyPath);
+
+    iframe.src = src;
+    link.href = src;
+
+    const syncTheme = () => {
+      iframe.contentWindow?.postMessage({ type: 'STORYBOOK_THEME_CHANGE', theme: getTheme() }, '*');
+    };
+
+    iframe.addEventListener('load', () => {
+      setTimeout(syncTheme, 100);
+    });
+
+    new MutationObserver(syncTheme).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+  }
+</script>
 
 <style>
   .storybook-embed {

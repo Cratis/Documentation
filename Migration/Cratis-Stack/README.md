@@ -4,14 +4,14 @@
 
 ## What's here
 
-- `index.mdx` — the **splash front door** (hero, quickstart, the full-stack slice, CQRS loop, comparison table, CTAs).
+- `index.mdx` — the **splash front door** (hero, quickstart, the full-stack slice, CQRS loop, starting-point table, CTAs).
 - `cratis-stack.mdx` — the **"Cratis Stack" hero topic** (tours design → build → operate, AI woven in).
 - `why-cratis.mdx` — the boundary narrative ("use them standalone or together", decision table, pluggable persistence).
 - `adopting-cratis.mdx` — greenfield + brownfield adoption flowchart.
 - `ai-native-development.mdx` — build-side `.ai` skills/agents + operate-side `cratis init` + the Chronicle MCP server.
 - `studio.mdx` — Studio vision page (an **independent Event Modeling / Event Storming canvas that generates type-safe C#** — NOT a runtime inspector; "coming soon").
 - `glossary.md` — one-term-one-definition across products.
-- `comparisons/{marten,wolverine,kurrent}.md` + the CRUD/MediatR bridges.
+- Product bridge guides, including CRUD/EF and MediatR/MVC.
 - `build-a-full-app.mdx` — the cross-product **capstone** walkthrough.
 - `samples.mdx`, `api-reference.md`, `404.md`.
 
@@ -19,12 +19,12 @@
 
 - ✅ Front door, cratis-stack hero, why-cratis, adopting-cratis, ai-native-development, studio (corrected), glossary — all built and on-brand.
 - ✅ Visual polish done this overhaul (diagrams, hero depth, cards, inline code, fonts/CLS, build-time Mermaid).
-- 🟡 Comparisons — exist but **flagged inaccurate**.
+- ✅ Comparison pages removed — the site now strengthens the direct "Why developers choose Cratis" narrative instead of comparing against named products.
 - 🟡 Capstone — written; needs a verified runnable sample.
 
 ## Remaining tasks (prioritized)
 
-- [ ] ⬜ **Rewrite the comparison pages** (`comparisons/{marten,wolverine,kurrent}`) against how those tools work **today** — verify every claim against the local `~/src/repos/marten` + `~/src/repos/wolverine` (their *current* docs/source) and current Kurrent/EventStoreDB. They're "not very accurate" — fix the factual drift. (Also re-check the CRUD/EF and MediatR/MVC bridges.)
+- [ ] 🟡 **Strengthen the "Why developers choose Cratis" path** — keep emphasizing the platform fit: Chronicle, Arc, Components, AuthProxy, Studio, CLI, conventions, AI guidance, and end-to-end foundations like identity, tenancy, authorization, and operations. Chronicle-specific wins to keep visible: gRPC/protobuf boundary, .NET-first client with TypeScript/Elixir clients/contracts, MongoDB/PostgreSQL/SQL Server/SQLite storage, Orleans runtime, Workbench/CLI/OpenTelemetry observability.
 - [ ] 🟡 **Cratis Stack tour depth** — the landing tours at altitude; consider deeper per-chapter pages (model in Studio → generate → build with Arc/Chronicle/Components → operate with CLI/Workbench), reusing `TopicHero`/`StackDiagram`/`FullStackTabs`. **Beware duplicating the tutorials** — link out to them.
 - [ ] 🟡 **The Arc+Chronicle combination** — when the Arc tutorial goes Chronicle-free (see `../Arc/`), the *combination* story lands here / in the capstone. Coordinate with whoever owns Arc.
 - [ ] 🔧 **Capstone runnable sample** — a verified, building Studio/Ada-grade sample app behind `build-a-full-app.mdx` (use Studio / Ada as the quality bar, **not** Samples/Library).
@@ -38,7 +38,7 @@ This folder also owns the cross-cutting site bits: `web/src/components/` (TopicH
 
 ## Definition of done
 
-- [ ] Comparison pages are accurate against today's tools.
+- [ ] The "Why developers choose Cratis" path clearly explains the platform fit without relying on named-product comparisons.
 - [ ] Capstone has a runnable sample (or it's explicitly post-launch).
 - [ ] Deploy works end-to-end (Pages + secret + workflow green).
 - [ ] Front door + every site-level page reviewed in light + dark; `npm run check` green.

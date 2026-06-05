@@ -23,6 +23,7 @@ if (!url || !out) {
     process.exit(1);
 }
 const W = parseInt(width, 10);
+const H = 1200;
 const PORT = 9222;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -48,7 +49,7 @@ const chrome = spawn(chromePath, [
     '--headless=new', `--remote-debugging-port=${PORT}`, '--no-first-run',
     '--no-default-browser-check', '--disable-gpu', '--hide-scrollbars',
     '--force-color-profile=srgb', `--user-data-dir=/tmp/cratis-screenshot-${PORT}`,
-    `--window-size=${W},1200`, 'about:blank',
+    `--window-size=${Math.max(W, 500)},${H}`, 'about:blank',
 ], { stdio: 'ignore' });
 
 let ws;
@@ -69,6 +70,14 @@ try {
     const send = (method, params = {}) => new Promise((res) => { const i = ++id; pending.set(i, res); ws.send(JSON.stringify({ id: i, method, params })); });
 
     await send('Page.enable');
+    await send('Emulation.setDeviceMetricsOverride', {
+        width: W,
+        height: H,
+        deviceScaleFactor: 1,
+        mobile: W < 700,
+        screenWidth: W,
+        screenHeight: H,
+    });
     await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: scheme }] });
     const events = [];
     ws.onmessage = ((orig) => (m) => { const msg = JSON.parse(m.data); if (msg.method) events.push(msg.method); orig(m); })(ws.onmessage);
