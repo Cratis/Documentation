@@ -4,7 +4,22 @@
 > state, how to run/verify, gotchas) and `KNOWN-ISSUES.md` (build-env-only items). When you
 > finish something here, tick it and add a one-line note to the handover's §8 ledger.
 >
-> **Last updated:** 2026-06-04 — infra session (Storybook + API reference wired; release/cutover prepared).
+> **Last updated:** 2026-06-05 — Cratis Stack expansion (AI cluster + Tools + AuthProxy), onboarding, Chronicle get-started restructure, QA passes.
+>
+> **2026-06-05 session (COMMITTED on `docs-overhaul`, NOT pushed; gate green: 0 · 0 · 699 pages):**
+> - **Cratis Stack — AI / Tools / AuthProxy.** New site pages wired into the Cratis Stack topic (`astro.config.mjs`): an **AI** group
+>   (`ai-native-development` + new `plugins.mdx` + `code-analysis.mdx`), a **Tools** group (`tools/vscode-extension.mdx` = Narrator,
+>   `tools/lens.mdx`), and **`authproxy.mdx`**. All authored from real source (`cratis/{AI,Narrator,Lens,AuthProxy}`). Plugins documents
+>   the real per-assistant delivery (Copilot + Claude Code via `.github`/`.claude`; `cratis init` for Cursor/Windsurf) with a
+>   forward-looking "installable plugins coming" note — **no Codex packaging / marketplace exists yet**. Doc commit `ebb0d03`.
+> - **Onboarding.** Explicit `## Prerequisites` sections on Chronicle/Arc/Components/CLI getting-started. Arc `b8d0fc3d`, Components `0002821`, cli `6c07dcc`.
+> - **Chronicle get-started restructure — FINISHED + landed.** Kernel setup consolidated into `running-chronicle.md`; all three host
+>   guides reshaped to share one library walkthrough (finished `worker.md`, the half-done piece); `eventmodeling` diagrams on the
+>   quickstart + Chronicle/Arc/Components tutorials (pre-render to SVG). Chronicle `3133f05e4`+`d3379a635`, Arc `ebf0ab2b`, Components `dc25f33`.
+> - **QA accuracy pass** over the 11 narrative pages: 8 clean, 3 fixed (AuthProxy GitHub→`OAuthProviders`, event-modeling vertical-slice
+>   links → `/arc/vertical-slices/`, cratis-stack Studio tense). Doc `9219edc`. **Don't-lose-docs audit:** per-product `origin/main` vs
+>   `docs-overhaul` page diff — **no dropped topics** (counts all grew/held). Ledger/meta `a0fc3c5`, `7101293`.
+> - **Still open:** broader recurring accuracy pass over *reference* pages; comparison-page rewrite + canonical Arc-tutorial de-Chronicle remain user-gated.
 >
 > **2026-06-04 infra session (committed/uncommitted on `docs-overhaul`, NOT pushed):**
 > - **🔧 Storybook embed — DONE.** Fixed the static build (Vite `lightningcss` → `esbuild` `cssMinify` in
