@@ -9,13 +9,19 @@ This is where the three products meet. You'll build one **vertical slice** of a 
 
 Everything for the feature lives in **one folder** — that's the vertical-slice idea: you navigate by feature, not by technical layer.
 
+Here's the slice as an **[event model](/event-modeling/)** — read left to right, the user acts on a screen, a command records a fact, that fact is projected into a read model, and the next screen reads it:
+
 ```mermaid
-flowchart LR
-    Form["RegisterAuthor dialog<br/>(Components)"] -->|generated proxy| Cmd["RegisterAuthor.Handle()<br/>(Arc)"]
-    Cmd -->|appends| Ev["AuthorRegistered<br/>(Chronicle)"]
-    Ev -->|projection| RM["Author read model"]
-    RM -->|AllAuthors query| Table["Authors table<br/>(Components)"]
+eventmodeling
+
+tf 01 ui  Authors.AddAuthor
+tf 02 cmd Authors.RegisterAuthor { id: uuid, name: string }
+tf 03 evt Authors.AuthorRegistered { name: string }
+tf 04 rmo Authors.Author ->> 03
+tf 05 ui  Authors.Authors ->> 04
 ```
+
+The blocks are the slice, one per product: the `ui` screens are [Components](/components/), the `cmd` and the `rmo`'s query are [Arc](/arc/), the `evt` is [Chronicle](/chronicle/), and the build generates the typed proxies that connect them. Frames 01–03 are the **command pattern** (intent → fact); 03–05 are the **view pattern** (fact → read model → screen).
 
 ## Before you start
 
