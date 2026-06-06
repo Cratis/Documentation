@@ -99,6 +99,7 @@ const PRODUCTS = [
         key: 'cli', label: 'CLI', icon: 'rocket', sidebarMode: 'toc',
         src: firstExisting(
             path.join(reposRoot, 'cli', 'Documentation'),
+            path.join(docRepoRoot, 'CLI', 'Documentation'),
             path.join(docRepoRoot, 'cli', 'Documentation')),
         buckets: [
             { label: 'Start here', sections: ['Getting Started', 'Context'] },
