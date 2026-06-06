@@ -4,7 +4,7 @@ description: Build event-sourced applications with Chronicle, Arc, and Component
 template: splash
 hero:
   title: Event sourcing you can actually be productive with
-  tagline: Capture what happened as immutable facts, project them into exactly the read models you need, and ship a full-stack, type-safe app — identity, tenancy, backend, React, storage choice, and operations — without the boilerplate.
+  tagline: "We treat event sourcing as the default architecture for information systems: capture what happened as immutable facts, project exactly the read models you need, and ship a full-stack, type-safe app — identity, tenancy, backend, React, storage choice, and operations — without the boilerplate."
   image:
     dark: ../../assets/cratis-mark-dark.svg
     light: ../../assets/cratis-mark-light.svg
@@ -19,8 +19,8 @@ hero:
     - text: GitHub
       link: https://github.com/cratis
       variant: minimal
-    - text: Discord
-      link: https://discord.gg/kt4AMpV8WV
+    - text: Community
+      link: /community/
       variant: minimal
 ---
 
@@ -81,8 +81,8 @@ Cratis is for teams that want the domain model to be the running system, not a d
   <SimpleCard title="End-to-end foundations" icon="seti:lock" link="/authproxy/">
     Authentication, tenant resolution, identity enrichment, authorization, and tenant isolation are part of the stack instead of every app's custom plumbing.
   </SimpleCard>
-  <SimpleCard title="History when it matters" icon="seti:db" link="/chronicle/why-event-sourcing/">
-    Chronicle records facts, projects read models, and lets you replay or react later instead of hoping today's row is enough.
+  <SimpleCard title="Event sourcing by default" icon="seti:db" link="/chronicle/why-event-sourcing/">
+    Chronicle records facts, projects read models, and keeps the history most information systems eventually need.
   </SimpleCard>
   <SimpleCard title="Open event backbone" icon="puzzle" link="/chronicle/architecture/">
     Chronicle exposes a gRPC/protobuf boundary, has a first-class .NET client, and also ships TypeScript and Elixir clients/contracts.
@@ -163,7 +163,7 @@ const [authors] = AllAuthors.use();           // live, updates as events arrive
 
 ## Choose your starting point
 
-Cratis is modular. You can start with the piece that matches the problem in front of you, then add the rest when the system asks for it.
+Cratis is modular. For a new information system, the default path is Chronicle + Arc + Components. For an existing system, a bounded CRUD slice, or a frontend/backend contract problem, you can adopt the pieces separately and still keep the same conventions.
 
 | If you need... | Start here |
 |---|---|
@@ -176,6 +176,12 @@ Cratis is modular. You can start with the piece that matches the problem in fron
 | A way to inspect a running store | [CLI](/cli/) |
 | AI guidance for building and operating the stack | [AI-native development](/ai-native-development/) |
 | A guided adoption path from an existing app | [Adopting Cratis](/adopting-cratis/) |
+| A role-based route through the docs | [Learning paths](/learning-paths/) |
+| Runtime, package, and storage compatibility | [Version compatibility](/compatibility/) |
+| A production deployment checklist | [Production readiness](/production-readiness/) |
+| Help choosing a path, debugging setup, or talking through a design | [Community and help](/community/) |
+| Dedicated training, architecture review, or implementation help | [Professional help](/professional-help/) |
+| A place to suggest improvements or report confusing docs | [Feedback and suggestions](/feedback/) |
 
 Coming from a familiar architecture? Start with the bridge that matches the shape of your code: [CRUD / EF Core](/chronicle/coming-from-crud/), [MediatR, MVC, and Arc](/arc/coming-from-mediatr-and-mvc/), or [PrimeReact and Components](/components/coming-from-primereact/).
 
@@ -186,4 +192,8 @@ Coming from a familiar architecture? Start with the bridge that matches the shap
   <LinkCard title="Why developers choose Cratis" description="The platform fit: strong conventions, open Chronicle boundaries, typed contracts, storage choice, and a system you can inspect." href="/why-cratis/" />
   <LinkCard title="Build the library, step by step" description="Learn the model by building a small event-sourced system one concept at a time." href="/chronicle/tutorial/" />
   <LinkCard title="Build a full-stack feature" description="Put Chronicle, Arc, and Components together — backend to React, type-safe throughout." href="/build-a-full-app/" />
+  <LinkCard title="Follow a learning path" description="Choose a route for event sourcing, full-stack building, evaluation, operations, frontend work, or contribution." href="/learning-paths/" />
+  <LinkCard title="Read the FAQ" description="Quick answers for adoption, production readiness, product boundaries, and support channels." href="/faq/" />
+  <LinkCard title="Ask the community" description="Join Discord for questions, design discussion, setup help, and guidance on which GitHub repository owns an issue." href="/community/" />
+  <LinkCard title="Share feedback" description="Tell us what is confusing, missing, rough, or worth improving in Cratis and the docs." href="/feedback/" />
 </CardGrid>

@@ -39,7 +39,9 @@ The next session is a **visual + accuracy QA pass**. The user gave these explici
 
 ---
 
-**Verified state right now:** the site is **green — 695 pages · 0 lint errors · 0 broken links** (`cd Documentation/web && npm run check`). Current working trees include uncommitted docs edits from the visual/tone/Storybook/Arc follow-up work; **nothing pushed**.
+**Verified state right now:** the site is **green — 710 pages · 0 lint errors · 0 broken internal links** (`cd Documentation/web && npm run check`). Current working trees include uncommitted docs edits from the visual/tone/Storybook/Arc follow-up work; **nothing pushed**.
+
+**Session 2026-06-06 (adopt/trust/community layer + Specifications page + code-analysis polish, UNCOMMITTED; → 710 pages, 0/0):** Added the launch-facing support and trust surface the user asked for: `community.mdx`, `feedback.mdx`, `professional-help.mdx`, `security.mdx`, `roadmap.mdx`, `governance.mdx`, `faq.mdx`, `compatibility.mdx`, `production-readiness.mdx`, `learning-paths.mdx`, `showcase.mdx`, and `whats-new.mdx`. Wired the pages into the Cratis Stack topic, homepage, community/feedback routes, and `.github` contributing front. Professional help is positioned as separate from open community support, with explicit availability and consultancy/conflict-of-interest language. Added `specifications.mdx` as a focused BDD specs page for `Cratis.Specifications`, `Cratis.Specifications.XUnit`, and `Cratis.Specifications.NUnit`; it covers the lifecycle, xUnit/NUnit differences, assertions, `Catch.Exception`, reusable `given/` contexts, naming/folder conventions, and how it relates to Arc/Chronicle testing. Expanded `code-analysis.mdx` from Roslyn-only framing to Roslyn analyzers plus ESLint build gates, and aligned the Plugins / AI-native cross-links. `npm run check` passed with 710 built pages, 0 lint errors, and 0 broken internal links across 2,185 checked links. `lychee` still skips because it is not installed; new external links were checked manually with `curl`.
 
 **Session 2026-06-05 follow-up (reference accuracy pass, UNCOMMITTED; → 695 pages, 0/0):** Continued the snippet/API correctness audit from `MASTER-PLAN.md`. Fixed Arc `backend/testing/command-scenario.md` to use the real `IHttpRequestContextAccessor` / `IHttpRequestContext` authorization path; aligned Arc+Chronicle testing `IReadModels` override with source-tested `ServiceCollection.Replace`; corrected TS command/query contract reference snippets; fixed invalid command/validation imports from `@cratis/arc`; tightened frontend authorization-result wording so 401 auth challenges are not promised as `CommandResult.isAuthorized=false`.
 
@@ -216,13 +218,13 @@ Committed on `docs-overhaul` (NOT pushed). Platform decision: **Astro Starlight 
 5. **Keep the run-it-locally feedback loop tight.** The user runs `npm run dev` and gives concrete visual/UX feedback (ToC size, sidebar feel, imagery) — that's the highest-value signal. After visual changes, re-check that ToC/sidebar/spacing/diagrams/logo render cleanly in light + dark.
 6. Optionally adopt an Aspire-style `OsAwareTabs`/`LearnMore`, or use Starlight's built-in `<Tabs>`/`<LinkCard>`/`<Steps>`.
 
-Build-env-only items (API gen, Storybook embed, runnable capstone, deploy) are in §9.
+Build-env-only items (runnable capstone, QA tool activation, deploy) are in §9.
 
 ## 9. Remaining work that needs YOUR environment (can't be done headless)
 
 Tracked in `web/KNOWN-ISSUES.md`:
-- **API reference generation** — .NET (DocFX over ~7 assemblies) + TS (TypeDoc over the `@cratis/*` packages). Needs the assemblies/packages built; verified twice it can't run without deps. An `api-reference.md` orientation page exists and links the packages.
-- **Storybook embed** for Components — needs a deployed Storybook URL to iframe.
+- **External/prose/Markdown checker activation** — Vale, markdownlint, and lychee are wired into `npm run check`
+  but skip locally when the binaries are absent. Install them locally and in CI when you want those to become real gates.
 - **Runnable capstone sample app** — the `build-a-full-app` walkthrough is written; a verified building sample (Ada/Studio-grade) is a follow-up. Use **Studio** (`/Volumes/sourcecode/repos/cratis/Studio`) and **Ada** (`/Volumes/sourcecode/repos/hive/Ada`) as the quality reference — NOT `Samples/Library` (the user said it isn't good).
 - **Deploy / cutover** — `docs-site.yml` workflow is ready; needs GitHub Pages enabled + a `DOCS_CHECKOUT_TOKEN` secret. The old DocFX site (`Documentation/Source/`) stays live until cutover. If serving under `cratis.io/docs`, set `base: '/docs'` in `astro.config.mjs`.
 

@@ -1,0 +1,59 @@
+---
+title: Production readiness
+description: Cross-stack checklist for deploying and operating Cratis with versioned artifacts, TLS, storage, secrets, identity, observability, replay, and support paths.
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+Production readiness is not one switch. Cratis gives you the event log, generated contracts, operational tools, and hosting configuration, but you still need explicit choices for storage, secrets, identity, deployment, monitoring, replay, and incident handling.
+
+Use this checklist before deploying Chronicle or a full Cratis application.
+
+<CardGrid>
+  <LinkCard title="Chronicle production hosting" description="Container deployment, storage, scaling, TLS, and operational concerns for Chronicle." href="/chronicle/hosting/production/" />
+  <LinkCard title="Version compatibility" description="Runtime, package, React, Node, storage, and tooling compatibility." href="/compatibility/" />
+  <LinkCard title="Security" description="Report vulnerabilities privately and review operational hardening expectations." href="/security/" />
+</CardGrid>
+
+## Release and deployment
+
+- Pin package versions and Docker image tags.
+- Keep environment-specific configuration outside images.
+- Run the full build and docs/test gates before release.
+- Keep a rollback plan for application code, projections, configuration, and infrastructure.
+- Record which Chronicle, Arc, Components, CLI, and app versions are deployed together.
+
+## Storage and data
+
+- Choose the Chronicle storage engine deliberately: MongoDB, PostgreSQL, Microsoft SQL Server, or SQLite.
+- Configure backups and restore drills for the chosen store.
+- Decide retention for replay-generated read model versions.
+- Plan how projection rebuilds and event replays are executed and monitored.
+- Keep event type migrations tested before old event generations reach production.
+
+## Security and identity
+
+- Use TLS for service-to-service and client connections, or document where TLS is terminated.
+- Store secrets in a real secret manager or platform secret store.
+- Configure authentication, admin bootstrap, clients, and identity-provider certificates intentionally.
+- Avoid development-only passwords, certificates, and generated secrets in staging or production.
+- Follow the private reporting path on [Security](/security/) for vulnerabilities.
+
+## Operations
+
+- Enable OpenTelemetry where your environment can collect traces and metrics.
+- Decide who watches failed partitions, jobs, observers, projections, and subscriptions.
+- Install and configure the [CLI](/cli/) for production diagnostics.
+- Keep runbooks for replaying projections, retrying failed partitions, and verifying appended events.
+- Define escalation paths: community, GitHub issue, or [Professional help](/professional-help/).
+
+## User-facing application
+
+- Decide where AuthProxy, tenant resolution, authentication, and authorization live.
+- Keep generated TypeScript proxies in the frontend build so drift fails at compile time.
+- Verify command validation, optimistic concurrency, and error handling from the UI.
+- Use Components only after the provider, theme, and peer dependencies are configured.
+
+<Aside type="tip" title="Production readiness is a review loop">
+Revisit this page whenever you add a storage engine, identity provider, deployment region, replay strategy, or critical event type migration.
+</Aside>

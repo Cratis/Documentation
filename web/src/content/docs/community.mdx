@@ -1,0 +1,69 @@
+---
+title: Community and help
+description: Join the Cratis Discord community, ask questions, report issues, and find the right source for help.
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+You do not need to be a customer, a contributor, or an event-sourcing expert to ask for help. Cratis is an open community, and we are glad to help people who are evaluating the stack, building their first slice, debugging a running store, or trying to understand the model.
+
+The fastest place to start a conversation is the [Cratis Discord community](https://discord.gg/kt4AMpV8WV). Bring the question you have, even if it is not polished yet.
+
+<CardGrid>
+  <LinkCard title="Join the Cratis Discord" description="Ask questions, talk through designs, get help choosing a path, and meet the people building and using Cratis." href="https://discord.gg/kt4AMpV8WV" />
+  <LinkCard title="Share feedback" description="Tell us what is confusing, missing, rough, or worth improving in the products and docs." href="/feedback/" />
+  <LinkCard title="Get professional help" description="Use dedicated help for private context, workshops, architecture review, implementation, or training." href="/professional-help/" />
+  <LinkCard title="Report security privately" description="Use the security page for vulnerability reports and responsible disclosure." href="/security/" />
+  <LinkCard title="Browse the Cratis source" description="Find Chronicle, Arc, Components, CLI, Fundamentals, samples, and the documentation repositories on GitHub." href="https://github.com/cratis" />
+  <LinkCard title="Run the samples" description="Clone runnable examples that match the tutorials and full-stack guides." href="https://github.com/Cratis/Samples" />
+</CardGrid>
+
+## Where to ask
+
+| When you need... | Start with... |
+|---|---|
+| Help deciding whether Cratis fits your system | [Cratis Discord](https://discord.gg/kt4AMpV8WV) |
+| A second pair of eyes on an event model, projection, command, or slice | [Cratis Discord](https://discord.gg/kt4AMpV8WV) |
+| Help with a tutorial, sample, local setup, or first application | [Cratis Discord](https://discord.gg/kt4AMpV8WV) |
+| A reproducible bug in a product | The matching GitHub issue tracker |
+| A feature request or design proposal | GitHub issues, with Discord for early discussion |
+| Suggestions, rough edges, or documentation gaps | [Feedback and suggestions](/feedback/) |
+| Private, dedicated, or commercial help | [Professional help](/professional-help/) |
+| A suspected vulnerability | [Security](/security/) |
+| Contribution workflow, coding standards, or build setup | [Contributing](/contributing/) |
+
+If you are not sure which product owns the problem, ask in Discord first. We can help route it to Chronicle, Arc, Components, CLI, Fundamentals, or the documentation.
+
+## GitHub issue trackers
+
+Use issues when the work needs a durable record: reproducible bugs, feature requests, regression reports, or documentation fixes. For open-ended questions, Discord is usually better.
+
+| Area | Issue tracker |
+|---|---|
+| Chronicle event store, clients, Workbench, and hosting | [Chronicle issues](https://github.com/Cratis/Chronicle/issues) |
+| Arc commands, queries, proxy generation, validation, and backend/frontend integration | [Arc issues](https://github.com/Cratis/Arc/issues) |
+| React components, forms, dialogs, tables, styling, and Storybook | [Components issues](https://github.com/Cratis/Components/issues) |
+| CLI commands, diagnostics, and AI command catalogs | [CLI issues](https://github.com/Cratis/cli/issues) |
+| Fundamentals libraries and shared .NET/TypeScript helpers | [Fundamentals issues](https://github.com/Cratis/Fundamentals/issues) |
+| Documentation site, guides, examples, and broken links | [Documentation issues](https://github.com/Cratis/Documentation/issues) |
+
+## How to get a useful answer
+
+You can ask early. When you have the details, include the parts that make the problem reproducible:
+
+- What you are trying to build or decide.
+- Which product you are using: Chronicle, Arc, Components, CLI, Fundamentals, or the full stack.
+- The package or Docker image versions, if you know them.
+- The command, event, projection, query, component, or configuration involved.
+- The expected behavior and what happened instead.
+- Logs, error messages, screenshots, or a small repository when the problem depends on runtime behavior.
+
+<Aside type="tip" title="Design questions are welcome">
+If the question is more about modeling than a specific exception, describe the business decision you need to make and the facts you already have. That is often enough for a useful event-sourcing conversation.
+</Aside>
+
+## Community expectations
+
+We want Cratis to be useful to people who are learning, evaluating, operating, and contributing. Be clear about what you need, assume good intent, and keep discussions respectful. The [Code of Conduct](/contributing/code_of_conduct/) applies to the community spaces and the repositories.
+
+Start with the [Cratis Discord community](https://discord.gg/kt4AMpV8WV), then move durable bugs, proposals, and documentation changes into the relevant GitHub repository when the thread becomes actionable.

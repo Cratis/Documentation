@@ -1,0 +1,263 @@
+---
+title: Specifications
+description: Write BDD-style executable specifications with Cratis.Specifications, xUnit or NUnit, Establish/Because/Destroy lifecycle methods, readable folder structure, exception capture, and Should assertions.
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+A good spec should read like the behavior it protects. When a new developer opens the test project, they should not have to reverse-engineer a large `FooTests` file. They should be able to follow the folders: for this class, when this behavior happens, under this condition, these facts should be true.
+
+`Cratis.Specifications` is the small BDD-style layer we use for that shape. It keeps the familiar xUnit or NUnit runner, but adds the Specification by Example structure: `Establish()` for given, `Because()` for when, `[Fact]` or `[Test]` methods for then, and `Destroy()` for cleanup.
+
+<CardGrid>
+  <LinkCard title="Testing with Cratis" description="See how Specifications fit together with Arc command scenarios and Chronicle in-process testing." href="/testing-with-cratis/" />
+  <LinkCard title="Specifications source" description="Read the package source and samples in the Cratis Specifications repository." href="https://github.com/Cratis/Specifications" />
+  <LinkCard title="xUnit package" description="Use Cratis.Specifications.XUnit for xUnit-based spec projects." href="https://www.nuget.org/packages/Cratis.Specifications.XUnit" />
+  <LinkCard title="NUnit package" description="Use Cratis.Specifications.NUnit for NUnit-based spec projects." href="https://www.nuget.org/packages/Cratis.Specifications.NUnit" />
+</CardGrid>
+
+## Packages
+
+| Package | Use it for |
+|---|---|
+| `Cratis.Specifications` | Shared lifecycle discovery and helpers such as `Catch.Exception`. |
+| `Cratis.Specifications.XUnit` | xUnit `Specification` base class plus `Should*` assertion extensions over xUnit assertions. |
+| `Cratis.Specifications.NUnit` | NUnit `Specification` base class plus `Should*` assertion extensions over NUnit assertions. |
+
+Most Cratis repositories use central package versions. In that setup, a spec project only needs the package reference:
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Cratis.Specifications.XUnit" />
+</ItemGroup>
+```
+
+Use the NUnit package when the project runs on NUnit:
+
+```xml
+<ItemGroup>
+  <PackageReference Include="Cratis.Specifications.NUnit" />
+</ItemGroup>
+```
+
+Both packages use the `Cratis.Specifications` namespace.
+
+## The shape
+
+The lifecycle methods are discovered by convention. They are optional, take no arguments, and can be `void` or `Task`.
+
+| Method | BDD word | Purpose |
+|---|---|---|
+| `Establish()` | Given | Build the context: inputs, services, mocks, existing state. |
+| `Because()` | When | Perform the single behavior under specification. |
+| `[Fact]` or `[Test]` | Then | Assert one fact about the result. |
+| `Destroy()` | Cleanup | Release resources created by the spec. |
+
+The base class runs lifecycle methods across the inheritance chain, so reusable contexts can live in `given/` classes and still participate in the same `Establish()` / `Because()` flow.
+
+<Aside type="tip" title="One action per spec">
+Put the behavior under test in `Because()`, store the result in a field, and let each fact assert one thing. If you need a different action, create another `when_...` spec.
+</Aside>
+
+## xUnit example
+
+Start with the behavior. A security service authenticates a user and returns a token with the user's role and session id.
+
+```csharp
+using Cratis.Specifications;
+using Xunit;
+
+namespace MyApp.Security.for_SecurityService;
+
+public class when_authenticating_an_admin_user : Specification
+{
+    SecurityService _subject = default!;
+    UserToken _result = default!;
+
+    void Establish() =>
+        _subject = new SecurityService();
+
+    void Because() =>
+        _result = _subject.Authenticate("admin", "correct-password");
+
+    [Fact] void should_indicate_the_users_role() =>
+        _result.Role.ShouldEqual(Roles.Admin);
+
+    [Fact] void should_have_a_session_id() =>
+        _result.SessionId.ShouldNotBeNull();
+}
+```
+
+The class name, folder path, lifecycle methods, and facts form the sentence:
+
+`for_SecurityService / when_authenticating_an_admin_user / should_indicate_the_users_role`.
+
+## Exception specs
+
+Use `Catch.Exception` when the behavior is expected to fail. That keeps the exception as the observable result of `Because()`.
+
+```csharp
+using Cratis.Specifications;
+using Xunit;
+
+namespace MyApp.Security.for_SecurityService;
+
+public class when_authenticating_without_a_user : Specification
+{
+    SecurityService _subject = default!;
+    Exception _result = default!;
+
+    void Establish() =>
+        _subject = new SecurityService();
+
+    void Because() =>
+        _result = Catch.Exception(() => _subject.Authenticate(null!, null!));
+
+    [Fact] void should_require_a_user() =>
+        _result.ShouldBeOfExactType<UserMustBeSpecified>();
+}
+```
+
+For async behavior, `Catch.Exception(Func<Task>)` returns the exception from the awaited callback.
+
+## Reusable contexts
+
+When several specs share setup, move the setup into a `given/` context and inherit from it.
+
+```text
+for_SecurityService/
+  given/
+    no_user_authenticated.cs
+  when_authenticating_an_admin_user.cs
+  when_authenticating_without_a_user.cs
+```
+
+```csharp
+using Cratis.Specifications;
+
+namespace MyApp.Security.for_SecurityService.given;
+
+public class no_user_authenticated : Specification
+{
+    protected SecurityService _subject = default!;
+
+    void Establish() =>
+        _subject = new SecurityService();
+}
+```
+
+```csharp
+using Cratis.Specifications;
+using Xunit;
+
+namespace MyApp.Security.for_SecurityService;
+
+public class when_authenticating_without_a_user : given.no_user_authenticated
+{
+    Exception _result = default!;
+
+    void Because() =>
+        _result = Catch.Exception(() => _subject.Authenticate(null!, null!));
+
+    [Fact] void should_require_a_user() =>
+        _result.ShouldBeOfExactType<UserMustBeSpecified>();
+}
+```
+
+Use reusable contexts for meaningful givens, not just to avoid a few repeated lines. The folder should still read like documentation.
+
+## NUnit differences
+
+The BDD shape is the same with NUnit. The visible difference is the assertion method attribute.
+
+```csharp
+using Cratis.Specifications;
+using NUnit.Framework;
+
+namespace MyApp.Security.for_SecurityService;
+
+public class when_authenticating_an_admin_user : Specification
+{
+    SecurityService _subject = default!;
+    UserToken _result = default!;
+
+    void Establish() =>
+        _subject = new SecurityService();
+
+    void Because() =>
+        _result = _subject.Authenticate("admin", "correct-password");
+
+    [Test] public void should_indicate_the_users_role() =>
+        _result.Role.ShouldEqual(Roles.Admin);
+}
+```
+
+| xUnit | NUnit |
+|---|---|
+| Reference `Cratis.Specifications.XUnit`. | Reference `Cratis.Specifications.NUnit`. |
+| Facts use `[Fact]`. | Facts use `[Test]`. |
+| The package integrates with xUnit through `IAsyncLifetime`. | The package integrates with NUnit through `[TestFixture]`, `[OneTimeSetUp]`, and `[OneTimeTearDown]`. |
+| Fact methods can be non-public in the Cratis style. | NUnit test methods should be `public`. |
+
+## Assertions
+
+The framework-specific packages expose assertion extension methods with the same names, so the spec reads the same whether it runs on xUnit or NUnit.
+
+| Assertion | Use it for |
+|---|---|
+| `ShouldEqual(expected)` / `ShouldNotEqual(expected)` | Value equality. |
+| `ShouldBeTrue()` / `ShouldBeFalse()` | Boolean facts. |
+| `ShouldBeNull()` / `ShouldNotBeNull()` | Null checks. |
+| `ShouldBeSame(expected)` / `ShouldNotBeSame(expected)` | Reference identity. |
+| `ShouldBeOfExactType<T>()` | Exact runtime type. |
+| `ShouldBeAssignableFrom<T>()` | Assignable runtime type. |
+| `ShouldContain(...)` / `ShouldNotContain(...)` | Strings, collections, and dictionaries. |
+| `ShouldBeEmpty()` / `ShouldNotBeEmpty()` | Collections. |
+| `ShouldContainSingleItem()` | Collections that should have exactly one item. |
+| `ShouldBeGreaterThan(...)`, `ShouldBeLessThan(...)`, and range helpers | Comparable values. |
+
+Use raw framework assertions only when there is no `Should*` helper for the fact you need.
+
+## Naming and folders
+
+Specs favor readable names over normal production-code naming conventions.
+
+| Level | Pattern | Example |
+|---|---|---|
+| Unit folder | `for_<TypeOrConcept>` | `for_SecurityService` |
+| Shared context | `given/<context>.cs` | `given/no_user_authenticated.cs` |
+| Behavior folder | `when_<action>` | `when_authenticating` |
+| Condition file | `and_<condition>.cs` or `with_<state>.cs` | `and_the_user_is_an_admin.cs` |
+| Simple behavior file | `when_<action>.cs` | `when_authenticating_without_a_user.cs` |
+| Fact method | `should_<outcome>` | `should_require_a_user` |
+
+This naming deliberately triggers some analyzer and style warnings. Spec projects commonly suppress warnings such as underscore naming and missing XML documentation for spec classes.
+
+## When to use Specifications
+
+Use Specifications when the behavior benefits from an executable sentence:
+
+- Business rules.
+- Domain services.
+- Command handlers and validation.
+- Event-sourced slices.
+- Projection, reducer, and reactor behavior.
+- Edge cases that future readers need to understand.
+
+Use plain xUnit or NUnit tests when the test is pure infrastructure smoke, generated-code verification, or a very small assertion where the BDD structure would add noise.
+
+For Cratis application tests, Specifications are usually the outer shape, while Arc and Chronicle provide the scenario objects inside it:
+
+- `CommandScenario<TCommand>` for Arc command behavior.
+- `EventScenario` for event append and constraint behavior.
+- `ReadModelScenario<TReadModel>` for projections and reducers.
+- `ReactorScenario<TReactor>` for event-driven side effects.
+
+## Where to go next
+
+<CardGrid>
+  <LinkCard title="Testing with Cratis" description="Use Specifications with Arc command scenarios, Chronicle in-process scenarios, and full-stack slice specs." href="/testing-with-cratis/" />
+  <LinkCard title="Arc testing" description="Drive commands through the real Arc command pipeline without HTTP." href="/arc/backend/testing/" />
+  <LinkCard title="Chronicle testing" description="Test events, read models, and reactors in-process." href="/chronicle/testing/" />
+  <LinkCard title="Event modeling" description="Turn event-model columns into given/when/then examples." href="/event-modeling/" />
+</CardGrid>

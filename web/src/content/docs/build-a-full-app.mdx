@@ -27,6 +27,26 @@ The blocks are the slice, one per product: the `ui` screens are [Components](/co
 
 Scaffold a full-stack app and have it running — `dotnet new cratis -o Library` from the [Chronicle getting started](/chronicle/get-started/). You'll add the slice below into a `Features/Authors/` folder.
 
+## The host
+
+`dotnet new cratis` generates the host for you — the whole stack in two calls. `AddCratis` brings up Arc and Chronicle together; `UseCratis` activates both:
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.AddCratis(
+    configureArcBuilder: arc => arc.WithMongoDB(),
+    configureChronicleOptions: chronicle => chronicle.EventStore = "Library",
+    configureChronicleBuilder: chronicle => chronicle.WithCamelCaseNamingPolicy());
+
+var app = builder.Build();
+
+app.UseCratis();
+app.Run();
+```
+
+You won't touch this again for the slice below — it's here so you can see where the command, event, read model, and query you're about to write get wired in. The [Cratis package](/arc/backend/chronicle/cratis-package/) reference covers what `AddCratis` configures and how to adjust it.
+
 ## 1. Model the slice (backend)
 
 <Steps>

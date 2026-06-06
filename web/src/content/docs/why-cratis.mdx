@@ -33,13 +33,16 @@ Developers choose Cratis when they want the domain model, backend, frontend, ide
     Authentication, tenant resolution, identity enrichment, authorization, and tenant-isolated data are first-class parts of the platform, not scattered application boilerplate.
   </SimpleCard>
   <SimpleCard title="History you can trust" icon="seti:db" link="/chronicle/why-event-sourcing/">
-    When history matters, Chronicle records immutable facts and derives read models from them, so audit and replay are part of the design.
+    We treat event sourcing as the default for information systems. Chronicle records immutable facts and derives read models from them, so audit and replay are part of the design.
   </SimpleCard>
   <SimpleCard title="Screens that follow the model" icon="laptop" link="/components/">
     Components renders generated commands and observable queries as forms, dialogs, and tables, so UI code stays close to the model.
   </SimpleCard>
   <SimpleCard title="AI can work with it" icon="rocket" link="/ai-native-development/">
     The same conventions that help developers navigate the codebase are packaged as AI skills, rules, and diagnostics, so agents build with the grain of the framework.
+  </SimpleCard>
+  <SimpleCard title="Specs read like the model" icon="approve-check" link="/testing-with-cratis/">
+    Given/when/then specifications line up with event modeling: existing facts, a command, and the facts or read models that should result.
   </SimpleCard>
   <SimpleCard title="Operations without guesswork" icon="rocket" link="/cli/">
     Inspect events, observers, read models, replay, and diagnostics from the CLI and Workbench instead of guessing what the runtime is doing.
@@ -52,7 +55,7 @@ The point is not that Cratis has many packages. The point is that the packages a
 
 | Concern | Where Cratis carries it |
 |---|---|
-| Domain behavior | Studio models it, Arc turns it into commands and queries, Chronicle records the facts when history matters |
+| Domain behavior | Studio models it, Arc turns it into commands and queries, Chronicle records the facts as the default source of truth for information systems |
 | Frontend contract | Arc generates TypeScript proxies from C#, and Components renders those proxies as forms, dialogs, and live tables |
 | Chronicle client boundary | Chronicle exposes gRPC/protobuf contracts, with .NET as the first-class client and TypeScript and Elixir clients/contracts for other runtimes |
 | Chronicle storage | MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite implementations let the event store fit the deployment |
@@ -61,6 +64,7 @@ The point is not that Cratis has many packages. The point is that the packages a
 | Authorization | Arc gates commands and queries at the boundary, with identity details available in backend and React |
 | Tenant isolation | Arc tenancy and Chronicle namespaces keep one tenant's state away from another's by construction |
 | Operations and observability | Workbench, CLI, OpenTelemetry, recommendations, replay, jobs, failed partitions, and diagnostics expose what the runtime is doing |
+| Testing | Cratis Specifications, Arc command scenarios, and Chronicle in-process scenarios turn an event-model column into executable given/when/then specs |
 | AI assistance | `.ai` skills, editor rules, analyzers, the CLI catalog, and the Chronicle MCP server give agents the same rails developers use |
 
 That is why the opinions matter. They make codebases consistent. Consistency makes onboarding faster, reviews sharper, and AI assistance far less speculative.
@@ -97,7 +101,7 @@ Cratis is not just a set of libraries. It changes the shape of the work:
 | Teaching every developer and AI assistant a project-specific architecture from scratch | Strong conventions, analyzers, and `.ai` guidance that make each feature look like the rest |
 | Locking event history to one application language or database engine | Chronicle's gRPC boundary, .NET/TypeScript/Elixir clients/contracts, and MongoDB/PostgreSQL/SQL Server/SQLite storage implementations |
 | Debugging from logs alone | Events, observers, read models, and replay visible through the tools |
-| Choosing event sourcing before every feature | Arc over MongoDB/EF Core by default, Chronicle when history is worth it |
+| Treating CQRS and event sourcing as the same decision | Arc for the command/query boundary, Chronicle for the event-sourced backbone — independent, but strongest together |
 
 The result is a workflow that stays close to the language developers already use: "what happened?", "what state does this screen need?", "what command changes it?", and "what did the runtime do with it?"
 
@@ -129,9 +133,11 @@ The result is a workflow that stays close to the language developers already use
 The core pieces are built to stand alone. Each solves a complete problem by itself, so you can adopt exactly the part you need and nothing more:
 
 - **Chronicle on its own** is an event-sourcing engine you can run from *any* .NET host — a worker, a console app, a different web framework. The .NET client is the most mature path, but the kernel boundary is gRPC/protobuf and the repo also ships TypeScript and Elixir clients/contracts. Append events, build projections, react to them. No Arc, no React required.
-- **Arc on its own** is a full-stack CQRS framework with **generated, typed C# → TypeScript proxies**. Its commands and queries can persist however you like — straight to **MongoDB** or **EF Core / SQL**, with *no event sourcing at all* ([here's the standalone shape](/arc/arc-without-event-sourcing/)). You still get the typed frontend, the command forms, and live queries.
+- **Arc on its own** is a full-stack CQRS framework with **generated, typed C# → TypeScript proxies**. Its commands and queries can persist straight to **MongoDB** or **EF Core / SQL** when you deliberately want CQRS without an event log ([here's the standalone shape](/arc/arc-without-event-sourcing/)). You still get the typed frontend, the command forms, and live queries.
 - **Components on its own** is a React library that renders Arc's generated proxies as forms, tables, and dialogs.
 - **AuthProxy on its own** is a gateway for authentication, tenancy, identity enrichment, routing, and invites in front of any backend and frontend you point it at.
+
+We think event sourcing is the default architecture for information systems. We also think CQRS is the right way to shape information going into and out of a system. Those ideas fit extremely well together and are often associated, but they are not co-dependent: you can use Chronicle without Arc, and Arc can run without Chronicle.
 
 The dependency only runs one way. Arc is a layer that can sit **on top of** Chronicle — but Chronicle never knows Arc exists, which is why each works without the other. AuthProxy sits at the edge and can front the app whether Arc is backed by MongoDB, EF Core, or Chronicle. What the full combination changes is how much of the application is handled by one coherent set of conventions.
 
@@ -148,12 +154,12 @@ flowchart LR
 | --- | --- | --- |
 | History as the source of truth, from any backend or client runtime | **Chronicle** on its own | Yes |
 | An event store over MongoDB, PostgreSQL, Microsoft SQL Server, or SQLite | **Chronicle** with the matching storage backend | Yes |
-| A typed full-stack app over a traditional database | **Arc + Components** over MongoDB / EF Core | No |
+| A typed full-stack app over a traditional database | **Arc + Components** over MongoDB / EF Core | Not required |
 | Authentication, tenancy, identity enrichment, and routing at the edge | **AuthProxy** in front of your services | Optional |
 | A typed full-stack app *and* a full event history | **Arc + Chronicle + Components** — the domain loop | Yes |
-| A product-grade SaaS shape with edge, identity, tenant isolation, typed UI, history, and operations | **AuthProxy + Arc + Components + Chronicle + CLI** | When history is worth it |
+| A product-grade SaaS shape with edge, identity, tenant isolation, typed UI, history, and operations | **AuthProxy + Arc + Components + Chronicle + CLI** | Default |
 
-The last row is where Cratis is at its best — but you never have to start there. New to the stack? [Choosing where to start](/adopting-cratis/) walks through which products to reach for first, in a new codebase or an existing one.
+The last row is where Cratis is at its best, and it is the default recommendation for a new information system. New to the stack? [Choosing where to start](/adopting-cratis/) walks through how to start there, or how to adopt one piece at a time in an existing system.
 
 ## Together: the whole loop
 
@@ -177,23 +183,24 @@ You write the command, the event, and the projection once in C#. AuthProxy resol
 
 Cratis is opinionated on purpose. The opinions are what make it productive:
 
-- **Events are facts.** Immutable, past-tense, single-purpose. If you reach for a nullable field on an event, you need a second event.
+- **Events are facts.** Immutable, past-tense, single-purpose. We use them as the default source of truth for information systems; if you reach for a nullable field on an event, you need a second event.
 - **Open boundaries keep options open.** Chronicle is a kernel with gRPC/protobuf contracts. .NET is first-class, but the protocol lets other client runtimes participate.
 - **Storage is a deployment choice.** Chronicle supports MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite without changing the domain model.
 - **High cohesion through [vertical slices](/arc/vertical-slices/).** Everything for one behavior — command, events, projection, UI, specs — lives in one folder, backend and frontend together.
 - **Full-stack type safety.** Models flow from C# through proxy generation to TypeScript, with no manual synchronization — [the proxy boundary](/arc/understanding-the-proxy-boundary/) is what keeps the two languages honest.
 - **Cross-cutting concerns are first-class.** [Identity and access](/arc/understanding-identity-and-access/), [authorization](/arc/backend/core/authorization/), [tenancy](/arc/backend/tenancy/overview/), [AuthProxy](/authproxy/), and [Chronicle namespaces](/chronicle/concepts/namespaces/) are part of the platform story.
 - **Operability is architecture.** Workbench, CLI, OpenTelemetry, recommendations, replay, jobs, and failed-partition recovery are part of how you run the event store.
+- **Specifications are executable models.** [Testing with Cratis](/testing-with-cratis/) maps event modeling's given/when/then flow to Arc command specs and Chronicle event/read-model/reactor scenarios.
 - **Easy to do the right thing.** Convention over configuration and artifact discovery by naming mean less boilerplate and fewer ways to get it wrong.
 - **Predictable code helps humans and AI.** The conventions are documented, packaged as [AI tooling](/ai-native-development/), and enforced by [code analysis](/code-analysis/), so a new feature looks like the rest of the system.
 
 ## When Cratis is a good fit — and when it isn't
 
-Because the products are separable, "is Cratis a good fit?" is really two questions.
+Because the products are separable, "is Cratis a good fit?" is really a set of connected questions.
 
-**Is Arc a good fit?** Reach for it whenever you're building a .NET backend with a TypeScript/React frontend and you're tired of hand-writing the layer between them — controllers, DTOs, fetch wrappers, validation duplicated on both sides. That's true *even for plain CRUD*: Arc gives you typed commands, queries, and a generated client over MongoDB or SQL, with no event sourcing required.
+**Is Arc a good fit?** Reach for it whenever you're building a .NET backend with a TypeScript/React frontend and you're tired of hand-writing the layer between them — controllers, DTOs, fetch wrappers, validation duplicated on both sides. Arc is the CQRS boundary: commands for things entering the system, queries for information leaving it, with generated contracts between C# and TypeScript.
 
-**Is event sourcing a good fit?** Reach for Chronicle when history and change *matter*: audit and compliance, process-heavy domains, systems where "how did we get here?" is a real question. It isn't free, though — if your domain is genuinely CRUD, where current state is the whole story and nobody will ever ask what changed, the extra concepts cost more than they return. Use Arc over a database instead, and add Chronicle the day history starts to matter. [Why Event Sourcing](/chronicle/why-event-sourcing/) is the honest look at that trade-off.
+**Is event sourcing a good fit?** For information systems, our default answer is yes. Reach for Chronicle when the system records decisions, process, responsibility, tenant state, compliance, integrations, or any place where "how did we get here?" will become a real question. The exception is a genuinely current-state-only slice — reference data, settings, small admin surfaces — where Arc over a database can be the simpler boundary. [Why Event Sourcing](/chronicle/why-event-sourcing/) explains why we think the default pays off.
 
 When *neither* fits — a couple of static pages, a non-.NET backend, or a throwaway prototype — Cratis is more than you need, and that's fine.
 
@@ -204,7 +211,7 @@ When *neither* fits — a couple of static pages, a non-.NET backend, or a throw
     Begin with the why — what facts buy you and when to reach for them — then the Chronicle getting started.
   </SimpleCard>
   <SimpleCard title="Just want a typed full-stack app?" icon="puzzle" link="/arc/">
-    Start with Arc over a database — commands, queries, and a generated React client, no event sourcing needed.
+    Use Arc over a database when a bounded slice or adoption step needs CQRS and generated React contracts without an event log.
   </SimpleCard>
   <SimpleCard title="Adding to an existing system?" icon="right-arrow" link="/adopting-cratis/">
     Greenfield or brownfield — how to choose an entry point and adopt one piece at a time.

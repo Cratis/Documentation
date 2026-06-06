@@ -4,7 +4,28 @@
 > state, how to run/verify, gotchas) and `KNOWN-ISSUES.md` (build-env-only items). When you
 > finish something here, tick it and add a one-line note to the handover's §8 ledger.
 >
-> **Last updated:** 2026-06-05 — Arc default path de-Chronicle, Cratis Stack expansion, onboarding, Chronicle get-started restructure, QA passes.
+> **Last updated:** 2026-06-06 — community/help, feedback, professional help, security, roadmap, compatibility, FAQ, learning paths, trust/adoption pages, and Specifications testing.
+>
+> **2026-06-06 session (UNCOMMITTED, NOT pushed; gate green: 0 · 0 · 710 pages):**
+> - **Adopt and trust layer — DONE.** New site-level pages now cover [Community and help](/community/),
+>   [Feedback and suggestions](/feedback/), [Professional help](/professional-help/), [Security](/security/),
+>   [Roadmap](/roadmap/), [Governance](/governance/), [FAQ](/faq/), [Version compatibility](/compatibility/),
+>   [Production readiness](/production-readiness/), [Learning paths](/learning-paths/),
+>   [Showcase and architectures](/showcase/), and [What's new](/whats-new/).
+>   The pages are wired into the Cratis Stack topic, homepage, community/feedback routes, and contributing front.
+>   Professional help is explicitly separate from the open community and notes availability, consultancy, employer,
+>   and conflict-of-interest constraints.
+> - **Specifications testing page — DONE.** New [Specifications](/specifications/) page documents
+>   `Cratis.Specifications`, `Cratis.Specifications.XUnit`, and `Cratis.Specifications.NUnit`; the
+>   `Establish()` / `Because()` / `[Fact]` or `[Test]` / `Destroy()` lifecycle; `Catch.Exception`; shared
+>   `Should*` assertions; reusable `given/` contexts; xUnit/NUnit differences; naming/folder conventions; and
+>   when to use specs versus plain tests. It is wired under a new **Testing** nav group beside
+>   [Testing with Cratis](/testing-with-cratis/).
+> - **Code analysis build gates — POLISHED.** The site-level [Code analysis](/code-analysis/) page now covers both
+>   Roslyn analyzers and the Cratis ESLint packages, with the AI teaching layer versus build enforcement layer made explicit.
+> - **Verification.** `npm run check` passes: 710 built pages, 0 lint errors, 0 broken internal links across 2,185
+>   internal links. `lychee` is still not installed, so the external-link step skipped; new Discord, GitHub release,
+>   issue, and sample URLs were checked manually with `curl` and returned HTTP 200.
 >
 > **2026-06-05 follow-up (UNCOMMITTED, NOT pushed; gate green: 0 · 0 · 695 pages):**
 > - **Arc product isolation — DONE.** The canonical Arc tutorial and backend getting-started path are now database-first
@@ -125,10 +146,14 @@
 - ✅ **Boundary narrative** — `why-cratis.mdx` ("Use them on their own — or together" + decision table + pluggable-persistence diagram).
 - ✅ **Arc standalone** — `arc/arc-without-event-sourcing.md` (command over Mongo/EF, live query, identical React).
 - ✅ **Adopting Cratis** — `adopting-cratis.mdx` (greenfield + brownfield, decision flowchart).
-- 🟡 **Full-stack type-safety / proxy boundary** — *the differentiator.* Shown in tutorials but never
-  *explained* as its own concept. → **Next: an "Understanding the proxy boundary" explanation** (C# → generated
-  TS → React; what regenerates, when, what breaks the build) linking down to `arc/backend/proxy-generation/*`
-  and `arc/frontend/react/proxy-generation`. Closes the last sliver of handover OPEN #2.
+- ✅ **Adoption, support, trust, and community layer** — `community.mdx`, `feedback.mdx`, `professional-help.mdx`,
+  `security.mdx`, `roadmap.mdx`, `governance.mdx`, `faq.mdx`, `compatibility.mdx`, `production-readiness.mdx`,
+  `learning-paths.mdx`, `showcase.mdx`, and `whats-new.mdx`.
+- ✅ **Specifications / BDD testing** — `specifications.mdx` explains the standalone Specifications packages and
+  is linked from `testing-with-cratis.mdx`.
+- ✅ **Full-stack type-safety / proxy boundary** — `arc/understanding-the-proxy-boundary.mdx` explains the
+  C# → generated TypeScript → React contract loop, links down to the proxy-generation references, and is linked
+  from the front door, Cratis Stack page, Why Cratis, and Learning paths.
 - 🟡 **Capstone** — `build-a-full-app.mdx` is written; needs a verified, runnable Studio/Ada-grade sample (🔧).
 - ⬜ **A standalone-Chronicle "Understanding"** — a short page naming Chronicle-from-any-host (worker/console) as a first-class story (the index now states it; a dedicated explanation could go deeper).
 - ✅ **API reference generation — DONE (2026-06-04).** DocFX (.NET) + TypeDoc (TS) wired via `npm run build:api`; rendered at `/api/`, linked from the orientation page. CI-wired. (Pages render in DocFX/TypeDoc themes, not Starlight — theming is optional follow-up.)
@@ -188,9 +213,14 @@ Reference largely migrated; the work is expert-depth explanations + scenarios.
 
 ## Prioritized next picks (launch-facing first)
 
-> **⏭️ ACTIVE PRIORITIES are in HANDOVER §0 "NEXT SESSION — START HERE"** (a visual + accuracy QA pass set by the user 2026-05-31): (1) screenshot every page with `shot-scraper` + a real visual-polish pass toward **aspire.dev** (the bar — user says we're far off); (2) fix the **nav flicker/jump** (layout shift); (3) fix the **front-door Mermaid** that doesn't render on the splash template; (4) ✅ **drop the Marten/Wolverine/Kurrent comparison surface** — no Compare nav, no `/comparisons` pages, no front-door comparison table; (5) ✅ **remove Chronicle from the Arc default path** — canonical tutorial/getting-started are now Chronicle-free, with Chronicle moved to optional integration; (6) apply **awesome-docs** tools (Doc Detective for automated example testing; Alex/case-police; shot-scraper). The list below is the standing backlog underneath those.
+> **⏭️ ACTIVE PRIORITIES are in HANDOVER §0 "NEXT SESSION — START HERE"** (a visual + accuracy QA pass set by the user 2026-05-31).
+> Current reading after the 2026-06-06 check: the nav/font/Mermaid layout-shift work, comparison removal, Arc de-Chronicle split,
+> proxy-boundary explanation, and adopt/trust/community layer are done. The open launch-facing work is now: (1) a systematic
+> screenshot/visual QA pass across the whole built site; (2) broader reference/snippet accuracy audits against current source;
+> (3) activating the external/prose/Markdown/example-testing toolchain in local/CI; (4) the runnable capstone sample; and
+> (5) deeper product feature coverage listed below.
 
-1. **Full-stack type-safety / proxy boundary** (the differentiator; first chapter of the Cratis Stack tour) ← *in progress*.
+1. ✅ **Full-stack type-safety / proxy boundary** — shipped as `arc/understanding-the-proxy-boundary.mdx`.
 2. 🟡 **"Cratis Stack" umbrella hero topic** — SHIPPED (landing + topic rebrand). Optional: deeper per-chapter tour pages.
 3. 🟡 **AI-native development** — SHIPPED (`ai-native-development.mdx`). Optional: grow into a how-to cluster (setup + MCP walkthrough).
 4. 🟡 **Arc identity + tenancy** — explanation shipped (`understanding-identity-and-access`); optional how-to recipes + modernizing the `core/authorization` reference.
@@ -248,6 +278,19 @@ Captured so we don't forget. The source repos for the AI/Tools/AuthProxy items a
 - ✅ **Cratis Stack — AuthProxy (2026-06-05).** New `authproxy.mdx` ported from `cratis/AuthProxy/Documentation` (.NET YARP
   gateway: OIDC single/multi + JWT, tenancy strategies, identity enrichment, invites/lobby, custom pages; config under
   `Cratis:AuthProxy`; container `cratis/authproxy`). Wired into the topic + glob in `astro.config.mjs`. **Gate green: 0/0.**
+- ✅ **Adopt and trust layer (2026-06-06).** Added the community/help, feedback, professional help, security,
+  roadmap, governance, FAQ, compatibility, production-readiness, learning-paths, showcase, and what's-new pages.
+  Wired them into the Cratis Stack topic, homepage, community/feedback pages, and contributing front. The professional
+  help page keeps commercial/dedicated engagements separate from open community help and names availability plus
+  consultancy/conflict-of-interest constraints. **Gate green: 710 pages, 0 errors, 0 broken internal links.**
+- ✅ **Specifications / BDD testing (2026-06-06).** Added `specifications.mdx` as the focused page for the
+  standalone `Cratis.Specifications` packages, xUnit/NUnit variants, lifecycle, assertions, exception capture,
+  reusable contexts, folder naming, and relationship to Arc/Chronicle testing. Wired under the Cratis Stack
+  **Testing** nav group beside `testing-with-cratis`. **Gate green: 710 pages, 0 errors, 0 broken internal links.**
+- ✅ **Code analysis build gates (2026-06-06).** Expanded `code-analysis.mdx` from Roslyn-only framing to the full
+  enforcement story: Chronicle/Arc Roslyn analyzers plus `@cratis/eslint-config`,
+  `@cratis/eslint-plugin-arc`, and `@cratis/eslint-plugin-components`; aligned the Plugins and AI-native pages.
+  **Gate green: 710 pages, 0 errors, 0 broken internal links.**
 
 **Open questions for the user (still):** (1) "Plugins" page documents the *real* per-assistant delivery — confirm OK, or do you want
 a forward-looking "coming as installable plugins / Codex" note? (2) Narrator marketplace link is live; Lens store links are stubbed

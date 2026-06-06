@@ -1,23 +1,25 @@
 ---
 title: Code analysis
-description: Cratis ships Roslyn analyzers that catch the framework's convention mistakes at compile time — a wrong projection shape, a missing [EventType], a Handle() in the wrong place — so the pit of success is enforced by the compiler, for humans and AI agents alike.
+description: Cratis ships Roslyn analyzers and ESLint rules that turn framework conventions into build gates — a wrong projection shape, a missing [EventType], a Handle() in the wrong place, generated proxy noise, or a heavy Components import fails before it ships.
 ---
 
 import { CardGrid, Aside } from '@astrojs/starlight/components';
 import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
-<TopicHero icon="approve-check" eyebrow="The Cratis Stack" title="The compiler enforces the conventions">
-Cratis is convention-heavy by design — model-bound commands, `[EventType]` events, declarative projections. Conventions make the easy path the right one, but only if something *catches* you when you stray. That's what the **Roslyn analyzers** do: they run inside `dotnet build` and flag a forgotten `[EventType]`, a projection with side effects, or a `Handle()` on the wrong type — at compile time, with the squiggle right on the line.
+<TopicHero icon="approve-check" eyebrow="The Cratis Stack" title="The build enforces the conventions">
+Cratis is convention-heavy by design — model-bound commands, `[EventType]` events, declarative projections, generated proxies, vertical slices, and React views that stay thin. Conventions make the easy path the right one, but only if something *catches* you when you stray. Cratis does that with **Roslyn analyzers** in `dotnet build` and **ESLint rules** in the JavaScript build, so the feedback lands where a developer or AI agent can act on it.
 </TopicHero>
 
-## Why analyzers, not just docs
+## Why build gates, not docs alone
 
 A convention you can break silently isn't a convention — it's a suggestion. If you append a type that isn't marked `[EventType]`, or write a reactor method with the wrong signature, the framework can't discover it, and the failure shows up at *runtime* as "nothing happened." The analyzers move that failure left: the build fails, the message tells you exactly which rule and how to fix it, and several rules ship a one-click code fix.
 
-This matters doubly in the [AI-native](/ai-native-development/) workflow. When an agent scaffolds a slice, the analyzers are the same guardrail for the agent that they are for you — a wrong shape fails the build, the agent reads the diagnostic, and it corrects itself. The [coding rules in the plugins](/plugins/) teach the conventions; the analyzers enforce them.
+The same pattern matters on the frontend. Generated proxy files should not produce lint noise, view models should not call React hooks, and Components consumers should not import the root barrel or bypass the Cratis dialog wrappers. Those are architectural choices, so Cratis packages them as ESLint rules instead of leaving them as tribal knowledge.
 
-## Three analyzer packages
+This matters doubly in the [AI-native](/ai-native-development/) workflow. When an agent scaffolds a slice, these gates are the same guardrail for the agent that they are for you — a wrong shape fails, the agent reads the diagnostic, and it corrects itself. The [coding rules in the AI configuration](/plugins/) teach the conventions; the build gates enforce them.
+
+## Roslyn analyzer packages
 
 Each analyzer ships *inside* the package it validates — there's nothing extra to install. Reference the package and the rules are active on your next build.
 
@@ -60,15 +62,47 @@ The [Arc.Core analyzer](/arc/backend/code-analysis/) validates the model-bound C
 
 And for Arc on Chronicle, [`ARCCHR0001`](/arc/backend/chronicle/code-analysis/) checks aggregate-root event-handler `On` signatures.
 
+## ESLint packages
+
+TypeScript and React projects get the same kind of feedback through shared flat-config presets and product-specific ESLint plugins. These are the packages in the current source tree:
+
+| Package | Source | Build gate |
+|---|---|---|
+| `@cratis/eslint-config` | Fundamentals | Shared `consumer` and `internal` presets: TypeScript/React hygiene, BDD spec relaxations for `for_*` files, and the Cratis license-header rule for product repos. |
+| `@cratis/eslint-plugin-arc` | Arc | Skips generated Arc proxies and forbids React hook calls inside MVVM view-model classes. |
+| `@cratis/eslint-plugin-components` | Components | Forbids root-barrel imports from `@cratis/components` and raw `primereact/dialog` imports when the Cratis wrappers should be used. |
+
+Compose them in `eslint.config.mjs`:
+
+```javascript
+import cratis from '@cratis/eslint-config';
+import arc from '@cratis/eslint-plugin-arc';
+import components from '@cratis/eslint-plugin-components';
+
+export default [
+    ...cratis.configs.consumer,
+    ...arc.configs.recommended,
+    ...components.configs.recommended,
+];
+```
+
+Inside the Cratis product repos, CI runs these as lint gates. The common workspace script is `yarn g:lint:ci`, while package apps like the Chronicle Workbench use `yarn lint:ci`.
+
 <Aside type="tip" title="Treat warnings as errors">
-These rules are most valuable when the build can't go green around them. Cratis projects build with warnings-as-errors — adopt the same in your project so a convention slip stops the build instead of scrolling past in the output.
+These rules are most valuable when the build can't go green around them. Cratis projects build with warnings-as-errors and quiet lint output — adopt the same in your project so a convention slip stops the build instead of scrolling past in the output.
 </Aside>
+
+## The AI layer and the enforcement layer
+
+The architecture and coding instructions live in the [Cratis AI configuration](/plugins/): C#, TypeScript, vertical slices, React components, BDD specs, Chronicle reactors, Orleans, review agents, and task-specific skills. That layer tells an assistant what good Cratis code looks like.
+
+Code analysis is the enforcement layer. Roslyn analyzers and ESLint rules run after the assistant writes code, catch the parts that drift, and produce concrete diagnostics that can be fixed in the same loop. For AI-assisted development, the combination matters more than either half alone: instructions reduce bad output, build gates make the remaining mistakes visible.
 
 ## Where to go next
 
 <CardGrid>
   <SimpleCard title="Plugins" icon="puzzle" link="/plugins/">
-    The agents, skills, and coding rules that teach the same conventions the analyzers enforce.
+    The agents, skills, and coding rules that teach the same conventions these gates enforce.
   </SimpleCard>
   <SimpleCard title="Vertical slices" icon="seti:folder" link="/arc/vertical-slices/">
     The convention the analyzers are guarding — everything for a feature in one folder.

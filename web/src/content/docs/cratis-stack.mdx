@@ -9,12 +9,12 @@ import TopicHero from '@components/TopicHero.astro';
 import StackJourney from '@components/StackJourney.astro';
 
 <TopicHero icon="rocket" eyebrow="The Cratis Stack" title="From a sticky note to a running, typed, full-stack app">
-Most stacks are a bag of libraries you bolt together and then spend the whole project keeping in sync. Developers choose Cratis because the layers are designed as **one thing** — a domain you model on Monday can become typed C#, authenticated tenant-aware requests, a live React screen, and an inspectable event log by Friday, with the handoffs handled by conventions, generation, and open runtime boundaries. [Start building →](/chronicle/get-started/) · [Why developers choose Cratis →](/why-cratis/)
+Most stacks are a bag of libraries you bolt together and then spend the whole project keeping in sync. Developers choose Cratis because the layers are designed as **one thing** — a domain you model on Monday can become typed C#, authenticated tenant-aware requests, a live React screen, and an inspectable event log by Friday, with event sourcing as the default backbone for information systems and the handoffs handled by conventions, generation, and open runtime boundaries. [Start building →](/chronicle/get-started/) · [Why developers choose Cratis →](/why-cratis/)
 </TopicHero>
 
 ## One idea, all the way down
 
-Each product is strong on its own — you can [use them separately](/why-cratis/). The reason to reach for the *whole* stack is that the seams disappear: everywhere you'd normally hand-write glue, Cratis generates it.
+Each product is strong on its own — you can [use them separately](/why-cratis/). The reason to reach for the *whole* stack is that the seams disappear: CQRS shapes information going in and out, event sourcing keeps the facts underneath, and everywhere you'd normally hand-write glue, Cratis generates it.
 
 - You **model** the domain, and [Studio](/studio/) will generate the C# for it.
 - You **secure the edge**, and [AuthProxy](/authproxy/) authenticates, resolves the tenant, enriches identity, and routes requests.
@@ -25,11 +25,39 @@ Each product is strong on its own — you can [use them separately](/why-cratis/
 
 Nothing in that list is a thing *you* keep in sync. The build does.
 
+Wiring the stack into one host is itself a single call: the [`Cratis` package](/arc/backend/chronicle/cratis-package/) brings Arc and Chronicle up together with `AddCratis`/`UseCratis`, sharing storage, identity, and hosting.
+
 <StackJourney
   eyebrow="Design, build, operate"
   title="The journey, end to end"
   intro="Read it left to right: a domain idea becomes a secured tenant-aware request, a generated slice, a durable event, a live typed React screen, and an inspectable running system. AI can accelerate the same path because the conventions are explicit."
 />
+
+## Test the same flow
+
+The same column you draw in an event model is also the shape of the test:
+
+```mermaid
+eventmodeling
+
+tf 01 ui  Authors.RegisterAuthorScreen
+tf 02 cmd Authors.RegisterAuthor { authorId: uuid, name: string }
+tf 03 evt Authors.AuthorRegistered { name: string }
+tf 04 rmo Authors.Author ->> 03
+tf 05 ui  Authors.AuthorsScreen ->> 04
+```
+
+That becomes a BDD-style specification:
+
+| Given | When | Then |
+|---|---|---|
+| no author exists for this id | `RegisterAuthor` runs through Arc | the command succeeds |
+| no author exists for this id | `RegisterAuthor` runs through Arc | Chronicle records `AuthorRegistered` |
+| `AuthorRegistered` exists | the read model projection handles it | the `Authors` screen can read the author |
+
+Cratis Specifications gives that shape a light wrapper over xUnit: `Establish()` is the given, `Because()` is the when, and each `[Fact]` is one then. Arc adds `CommandScenario<TCommand>` so the command runs through the real pipeline. Chronicle adds in-process scenarios for events, projections, and reactors. Together, you test the slice in the same language you designed it: facts in, command happens, facts and read models out.
+
+[Testing with Cratis](/testing-with-cratis/) walks through the packages and the full stack-slice example.
 
 ## Build it with AI
 
@@ -53,13 +81,16 @@ Model in Studio, generate the slices, build them, inspect the result — an agen
     Authentication, tenant resolution, identity enrichment, routing, and invite-based onboarding in front of your services.
   </SimpleCard>
   <SimpleCard title="Arc — CQRS + proxies" icon="puzzle" link="/arc/">
-    Full-stack CQRS with generated, typed C# → TypeScript proxies. Runs over Chronicle, MongoDB, or EF Core.
+    Full-stack CQRS with generated, typed C# → TypeScript proxies. It pairs naturally with Chronicle, and can also run over MongoDB or EF Core.
   </SimpleCard>
   <SimpleCard title="Components — React" icon="laptop" link="/components/">
     Command dialogs, forms, and live data tables that consume Arc's proxies — a screen is a few lines.
   </SimpleCard>
   <SimpleCard title="CLI + Workbench — operate" icon="rocket" link="/cli/">
     Inspect and interact with a running store: events, observers, read models, recommendations, jobs, replay, failed partitions, and diagnostics.
+  </SimpleCard>
+  <SimpleCard title="Specifications — test" icon="approve-check" link="/testing-with-cratis/">
+    BDD-style specs over xUnit, with Arc command scenarios and Chronicle in-process event, read-model, and reactor scenarios.
   </SimpleCard>
   <SimpleCard title="Fundamentals — foundation" icon="seti:folder" link="/fundamentals/">
     The shared .NET and TypeScript building blocks the rest of the stack is built on.
@@ -74,6 +105,9 @@ Model in Studio, generate the slices, build them, inspect the result — an agen
   </SimpleCard>
   <SimpleCard title="Build a full-stack feature" icon="open-book" link="/build-a-full-app/">
     Put Chronicle, Arc, and Components together — backend to React, type-safe throughout.
+  </SimpleCard>
+  <SimpleCard title="Test a full-stack slice" icon="approve-check" link="/testing-with-cratis/">
+    Turn an event-model column into given/when/then specs.
   </SimpleCard>
   <SimpleCard title="Choosing where to start" icon="right-arrow" link="/adopting-cratis/">
     Greenfield or brownfield — pick an entry point and adopt one piece at a time.

@@ -94,6 +94,20 @@ This is not a coincidence — both come from the same idea, that **events are th
 Read a single vertical column of an event model — one screen, its command, the event, the read model behind the next screen — and you're looking at one [vertical slice](/arc/vertical-slices/): one feature folder with the command, event, projection, and React component that implement it. The [full-stack walkthrough](/build-a-full-app/) builds exactly that column, block by block.
 </Aside>
 
+## The model is also the test
+
+Event modeling already has the given/when/then shape baked in. The left side of the column is the context, the command is the behavior under test, and the event/read-model blocks are the expected outcome:
+
+| Event-model block | Specification role |
+|---|---|
+| Existing events before the command | **Given** |
+| Command or reactor in the column | **When** |
+| New event, projected read model, or side effect | **Then** |
+
+That is why Cratis uses BDD-style specifications so heavily. `Cratis.Specifications.XUnit` gives xUnit the `Establish()` / `Because()` / `[Fact]` lifecycle, while Arc and Chronicle add scenarios that speak the same language: `CommandScenario<TCommand>` for the command, `EventScenario.Given` for past facts, `ReadModelScenario<TReadModel>` for projections, and `ReactorScenario<TReactor>` for automation.
+
+[Testing with Cratis](/testing-with-cratis/) shows a concrete event-model column translated into an executable stack spec.
+
 ## When it's the wrong fit
 
 Event modeling earns its keep when behavior is interesting — when facts accumulate, screens derive state from history, and work flows between contexts. It's overkill when there isn't much of a story to tell: a settings form that reads and writes a single row, a static lookup table, a pure request/response with no meaningful event worth keeping. If a feature is honestly just CRUD over one record, model it as CRUD. Reach for event modeling when the *flow* — not the storage — is where the complexity lives.
@@ -102,6 +116,7 @@ Event modeling earns its keep when behavior is interesting — when facts accumu
 
 <CardGrid>
   <SimpleCard title="Build the slice it describes" icon="add-document" link="/build-a-full-app/" />
+  <SimpleCard title="Test the slice it describes" icon="approve-check" link="/testing-with-cratis/" />
   <SimpleCard title="Events &amp; projections in Chronicle" icon="seti:db" link="/chronicle/" />
   <SimpleCard title="Vertical slices in Arc" icon="seti:folder" link="/arc/vertical-slices/" />
 </CardGrid>

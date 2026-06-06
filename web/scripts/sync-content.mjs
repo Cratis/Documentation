@@ -35,22 +35,29 @@ const PRODUCTS = [
             path.join(reposRoot, 'Chronicle', 'Documentation'),
             path.join(docRepoRoot, 'Chronicle', 'Documentation')),
         buckets: [
-            { label: 'Get started', sections: ['Getting started', 'Tutorial'] },
+            { label: 'Start here', sections: ['Getting started', 'Tutorial', 'Scenarios'] },
             {
-                label: 'Understand',
-                sections: ['Why Event Sourcing', 'Coming from CRUD and EF Core', 'Understanding constraints and event evolution', 'Concepts', 'Architecture', 'Dynamic Consistency Boundary'],
+                label: 'Concepts and architecture',
+                sections: ['Why Event Sourcing', 'CRUD, EF Core, and Chronicle', 'Understanding constraints and event evolution', 'Concepts', 'Architecture', 'Dynamic Consistency Boundary'],
             },
             {
-                label: 'Guides',
+                label: 'Event store',
                 sections: [
-                    'Scenarios', 'Events', 'Event Seeding', 'Read Models', 'Projections', 'Reactors',
-                    'Reducers', 'Subscriptions', 'Sinks', 'Namespaces', 'Constraints', 'Closing Streams',
-                    'Migrations', 'Compliance', 'Testing', 'Hosting',
+                    'Events', 'Event Seeding', 'Namespaces', 'Constraints', 'Closing Streams',
+                    'Migrations', 'Compliance',
                 ],
             },
             {
+                label: 'Read models and processing',
+                sections: ['Read Models', 'Projections', 'Reactors', 'Reducers', 'Subscriptions', 'Sinks'],
+            },
+            {
+                label: 'Running Chronicle',
+                sections: ['Hosting', 'Configuration', 'Connection Strings', 'Testing', 'Troubleshooting'],
+            },
+            {
                 label: 'Reference',
-                sections: ['Configuration', 'Connection Strings', 'Code Analysis', 'Statistics', 'Troubleshooting', 'Contributing'],
+                sections: ['Code Analysis', 'Statistics', 'Contributing'],
             },
         ],
     },
@@ -59,11 +66,12 @@ const PRODUCTS = [
         src: firstExisting(
             path.join(reposRoot, 'Arc', 'Documentation'),
             path.join(docRepoRoot, 'Arc', 'Documentation')),
-        // Group the orientation pages; Backend/Frontend/General stay top-level.
         buckets: [
-            { label: 'Get started', sections: ['Tutorial'] },
-            { label: 'Understand', sections: ['Why Arc', 'Arc without event sourcing', 'Coming from MediatR or MVC', 'Vertical slices', 'Understanding the proxy boundary', 'Understanding identity and access'] },
-            { label: 'Guides', sections: ['Scenarios'] },
+            { label: 'Start here', sections: ['Tutorial', 'Scenarios'] },
+            { label: 'Concepts and architecture', sections: ['Why Arc', 'CQRS without event sourcing', 'MediatR, MVC, and Arc', 'Vertical slices', 'Understanding the proxy boundary', 'Understanding identity and access'] },
+            { label: 'Backend', sections: ['Backend'] },
+            { label: 'Frontend', sections: ['Frontend'] },
+            { label: 'Operations and reference', sections: ['General', 'Troubleshooting'] },
         ],
     },
     {
@@ -72,13 +80,13 @@ const PRODUCTS = [
             path.join(reposRoot, 'Components', 'Documentation'),
             path.join(docRepoRoot, 'Components', 'Documentation')),
         buckets: [
-            { label: 'Get started', sections: ['Getting started', 'Tutorial', 'Choosing a component', 'Styling', 'Storybook'] },
-            { label: 'Understand', sections: ['Why Components', 'Coming from PrimeReact'] },
+            { label: 'Start here', sections: ['Getting started', 'Tutorial', 'Choosing a component'] },
+            { label: 'Design and styling', sections: ['Why Components', 'PrimeReact and Components', 'Styling'] },
             { label: 'Recipes', sections: ['Building a form', 'Displaying data', 'Multi-step form', 'A list screen with actions'] },
             {
-                label: 'Components',
+                label: 'Component library',
                 sections: [
-                    'CommandDialog', 'CommandForm', 'CommandStepper', 'StepperCommandDialog', 'DataPage',
+                    'Storybook', 'CommandDialog', 'CommandForm', 'CommandStepper', 'StepperCommandDialog', 'DataPage',
                     'DataTables', 'Dialogs', 'Filter', 'Dropdown', 'Toolbar', 'ObjectNavigationalBar',
                     'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common',
                 ],
@@ -92,6 +100,11 @@ const PRODUCTS = [
         src: firstExisting(
             path.join(reposRoot, 'cli', 'Documentation'),
             path.join(docRepoRoot, 'cli', 'Documentation')),
+        buckets: [
+            { label: 'Start here', sections: ['Getting Started', 'Context'] },
+            { label: 'Commands', sections: ['Chronicle', 'Arc'] },
+            { label: 'Reference', sections: ['Reference'] },
+        ],
     },
     {
         // Shared utilities (concepts, serialization, DI, type discovery) for .NET and TS.
@@ -367,7 +380,14 @@ async function entryToItem(e, dirAbs, slugBase) {
         const subRel = href.replace(/\/?toc\.yml$/, '');
         const subDirAbs = path.resolve(dirAbs, subRel);
         const children = await tocToSidebar(subDirAbs, slugify(path.posix.join(slugBase, subRel)));
-        return children.length ? { label, collapsed: true, items: children } : null;
+        if (!children.length) return null;
+
+        const onlyChild = children.length === 1 ? children[0] : null;
+        if (onlyChild?.slug && !onlyChild.items) {
+            return { label, slug: onlyChild.slug };
+        }
+
+        return { label, collapsed: true, items: children };
     }
     // Inline nested items (e.g. storybook trees)
     if (Array.isArray(e.items)) {
@@ -422,9 +442,18 @@ function applyBuckets(items, buckets) {
         used.add(overview);
     }
     for (const bucket of buckets) {
-        const children = items.filter((i) => !used.has(i) && bucket.sections.includes(i.label));
+        const children = bucket.sections
+            .map((section) => items.find((i) => !used.has(i) && i.label === section))
+            .filter(Boolean);
         children.forEach((c) => used.add(c));
-        if (children.length) result.push({ label: bucket.label, collapsed: true, items: children });
+        if (children.length) {
+            const onlyChild = children.length === 1 ? children[0] : null;
+            if (onlyChild?.items) {
+                result.push({ label: bucket.label, collapsed: true, items: onlyChild.items });
+            } else {
+                result.push({ label: bucket.label, collapsed: true, items: children });
+            }
+        }
     }
     // Anything not assigned to a bucket stays as its own top-level group/link.
     for (const i of items) if (!used.has(i)) result.push(i);

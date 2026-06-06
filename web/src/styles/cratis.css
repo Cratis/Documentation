@@ -391,7 +391,7 @@
 
 /* Tier 1 — product / top-level group headers (Chronicle, Arc, …) */
 .sidebar-content ul.top-level > li > details > summary .group-label > .large {
-    font-size: var(--sl-text-base);
+    font-size: var(--sl-text-sm);
     font-weight: 700;
     letter-spacing: 0;
     color: var(--sl-color-white);
@@ -399,6 +399,7 @@
 
 /* Tier 1 — top-level standalone links (Why Cratis, Samples, API reference …) */
 .sidebar-content ul.top-level > li > a.large {
+    font-size: var(--sl-text-sm);
     font-weight: 600;
 }
 
@@ -413,17 +414,18 @@
 
 /* A touch more vertical rhythm between the top-level products */
 .sidebar-content ul.top-level > li + li {
-    margin-top: 0.6rem;
+    margin-top: 0.45rem;
 }
 .sidebar-content summary {
-    padding-block: 0.35rem;
+    padding-block: 0.3rem;
 }
 
 /* Tier 3 — page links: calm, rounded, with room to breathe */
 .sidebar-content a {
-    font-size: var(--sl-text-base);
+    font-size: var(--sl-text-sm);
+    line-height: 1.35;
     border-radius: 0.4rem;
-    padding-block: 0.4em;
+    padding-block: 0.34em;
     color: var(--sl-color-gray-2);
     transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -477,7 +479,7 @@
     align-items: center;
     gap: 0.6rem;
     padding: 0.45rem 0.5rem;
-    font-size: var(--sl-text-base);
+    font-size: var(--sl-text-sm);
     font-weight: 600;
     line-height: 1.4;
     color: var(--sl-color-white);
