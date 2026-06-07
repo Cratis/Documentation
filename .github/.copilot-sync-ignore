@@ -1,0 +1,9 @@
+# Site-host rules stay in the Documentation repo. Product repos do not own
+# Documentation/web and should not receive these through Copilot instruction sync.
+.ai/rules/astro-starlight-site.md
+.claude/rules/astro-starlight-site.md
+.github/instructions/astro-starlight-site.instructions.md
+
+.ai/rules/documentation-rendering-and-qa.md
+.claude/rules/documentation-rendering-and-qa.md
+.github/instructions/documentation-rendering-and-qa.instructions.md

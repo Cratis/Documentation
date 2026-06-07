@@ -105,7 +105,7 @@ Follow the documentation conventions in `.ai/rules/documentation.md` (Diátaxis 
 
 ## Working on the docs (AI assistants & contributors)
 
-Because the content is split across repos and the site has a few non-obvious build mechanisms, the operating knowledge is captured as **AI rules and skills** in the `Documentation` repo's `.ai/` folder. These are written once in `.ai/` and surfaced to GitHub Copilot (`.github/instructions/`, `.github/skills/`) and Claude Code (`.claude/rules/`, `.claude/skills/`) via symlinks — and synced to the other Cratis repos. They're plain Markdown, so they double as human docs.
+Because the content is split across repos and the site has a few non-obvious build mechanisms, the operating knowledge is captured as **AI rules and skills** in the `Documentation` repo's `.ai/` folder. These are written once in `.ai/` and surfaced to GitHub Copilot (`.github/instructions/`, `.github/skills/`) and Claude Code (`.claude/rules/`, `.claude/skills/`) via symlinks. Product-doc rules are synced to the other Cratis repos; site-host rules are excluded by `.github/.copilot-sync-ignore` because only this repo owns `web/`. They're plain Markdown, so they double as human docs.
 
 **Rules** (`.ai/rules/`):
 

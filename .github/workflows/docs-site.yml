@@ -2,19 +2,19 @@
 #
 # Content lives in each product repo's `Documentation/` folder. This workflow checks
 # each product repo out as a sibling of this repo — matching the local dev layout the
-# converter expects (scripts/sync-content.mjs) — at the SAME branch this repo builds
-# from: `main` in production, otherwise `docs-overhaul` (preview/CI).
+# converter expects (scripts/sync-content.mjs). It uses `docs-overhaul` for
+# docs-overhaul validation and `main` for production builds and product-repo dispatches.
 #
-# The build runs on both `docs-overhaul` (validation) and `main`; the deploy job runs
-# ONLY on `main`, so a docs-overhaul push validates the build without publishing.
+# The build runs on both `docs-overhaul` (validation) and `main`; product repos
+# dispatch `build-docs` after docs changes on their `main` branches. The deploy job
+# runs ONLY on `main`, so a docs-overhaul push validates the build without publishing.
 #
 # PREREQUISITES (one-time, manual):
 #   1. Enable GitHub Pages for this repo with "GitHub Actions" as the source.
 #   2. Add a repo/org secret `DOCS_CHECKOUT_TOKEN` (a PAT or GitHub App token) with read
 #      access to Cratis/Chronicle, Cratis/Arc, Cratis/Components, Cratis/Fundamentals,
 #      Cratis/cli and Cratis/.github. The default GITHUB_TOKEN cannot check out other repos.
-#   3. Keep the old DocFX deploy (pages.yml) manual-only so this workflow owns Pages on main.
-#   4. If serving under a sub-path (e.g. cratis.io/docs), set `base: '/docs'` in astro.config.mjs.
+#   3. If serving under a sub-path (e.g. cratis.io/docs), set `base: '/docs'` in astro.config.mjs.
 
 name: Documentation site
 
@@ -22,6 +22,8 @@ on:
   push:
     branches: [docs-overhaul, main]
   workflow_dispatch:
+  repository_dispatch:
+    types: [build-docs]
 
 permissions:
   contents: read
@@ -29,13 +31,13 @@ permissions:
   id-token: write
 
 concurrency:
-  group: docs-site
+  group: docs-site-${{ github.ref_name }}
   cancel-in-progress: true
 
-# Product repos are checked out at the same branch this repo builds from:
-# `main` in production, `docs-overhaul` everywhere else.
+# Product repos are checked out at docs-overhaul only for docs-overhaul validation.
+# Main pushes, manual runs from main, and repository_dispatch runs use main.
 env:
-  DOCS_REF: ${{ github.ref_name == 'main' && 'main' || 'docs-overhaul' }}
+  DOCS_REF: ${{ github.ref_name == 'docs-overhaul' && 'docs-overhaul' || 'main' }}
 
 jobs:
   build:
