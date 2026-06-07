@@ -19,8 +19,9 @@ const docfx = existsSync(path.join(os.homedir(), '.dotnet', 'tools', 'docfx'))
 
 const run = (cmd, cwd = web) => { console.log(`\n+ ${cmd}`); execSync(cmd, { stdio: 'inherit', cwd }); };
 
-// 1) Build Arc + MongoDB Release DLLs — docfx can't run their source generators, so it reads the compiled DLL.
-console.log('== [1/4] Build Arc Release DLLs ==');
+// 1) Build Release DLLs for projects whose source generators are newer than DocFX's Roslyn.
+console.log('== [1/4] Build Release DLLs ==');
+run(`dotnet build "${path.join(repos, 'Chronicle/Source/Clients/DotNET/DotNET.csproj')}" -c Release`);
 run(`dotnet build "${path.join(repos, 'Arc/Source/DotNET/Arc/Arc.csproj')}" -c Release`);
 run(`dotnet build "${path.join(repos, 'Arc/Source/DotNET/MongoDB/MongoDB.csproj')}" -c Release`);
 

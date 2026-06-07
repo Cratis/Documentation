@@ -8,8 +8,8 @@
   },
   "metadata": [
     {
-      "src": [{ "files": ["Clients/DotNET/DotNET.csproj"], "exclude": ["**/obj/**", "**/bin/**"], "src": "../../../Chronicle/Source" }],
-      "properties": { "TargetFramework": "net10.0" },
+      "comment": "Chronicle client uses source-generated tracing methods. DocFX's bundled Roslyn can fail to load the newer generators, so build-api.mjs builds Release first and DocFX reads the compiled DLL.",
+      "src": [{ "files": ["Cratis.Chronicle.dll"], "src": "../../../Chronicle/Source/Clients/DotNET/bin/Release/net10.0" }],
       "output": "chronicle/clients/dotnet"
     },
     {
