@@ -1,0 +1,76 @@
+---
+title: Lens (browser extension)
+description: Lens is a browser extension that brings Cratis developer tools into your browser — detect a running Arc app, browse its commands and queries by namespace, execute them with structured input, and switch the active user and tenant, all from a popup.
+---
+
+import { CardGrid, Aside, Steps } from '@astrojs/starlight/components';
+import SimpleCard from '@components/SimpleCard.astro';
+import TopicHero from '@components/TopicHero.astro';
+
+<TopicHero icon="seti:html" eyebrow="Tools" title="Your Arc app, inspectable in the browser">
+You're testing an Arc app in the browser and you want to fire a command with a specific payload, or check what a query returns for a different tenant — without writing a throwaway page. **Lens** is a browser extension that does exactly that: it detects the running Arc app in your current tab, lets you browse its commands and queries by namespace, run them with a structured form, and switch the active user and tenant on the fly.
+</TopicHero>
+
+<Aside type="caution" title="Pre-release">
+Lens is early (v0.1.0). It isn't on the public extension stores yet — install it today by building from source and side-loading (below). Store links are *coming soon*.
+</Aside>
+
+## What it does
+
+Lens opens as a popup with four tabs. When the current tab is a running Arc application, it detects it automatically and lights up the command and query browsers.
+
+<CardGrid>
+  <SimpleCard title="Commands" icon="rocket">
+    Browse the app's commands by namespace and execute them with a schema-driven form; see the formatted result or validation errors.
+  </SimpleCard>
+  <SimpleCard title="Queries" icon="list-format">
+    Browse queries by namespace and perform them, with results shown in a data table — no scratch UI needed.
+  </SimpleCard>
+  <SimpleCard title="Context" icon="seti:lock">
+    Choose the active user and tenant for this browser profile; Lens applies them as request headers when it calls the app.
+  </SimpleCard>
+  <SimpleCard title="Settings" icon="right-arrow">
+    Manage users and tenants by hand, or sync them straight from the connected Arc app, and set the tenant header name.
+  </SimpleCard>
+</CardGrid>
+
+Under the hood it's a Manifest V3 extension built with React, Vite, and PrimeReact — the same UI stack as [Components](/components/) — and it talks to the Arc backend's introspection endpoints to discover the command and query catalog.
+
+## Install it (side-load)
+
+Until Lens reaches the stores, build it from source and load it unpacked. The source is at [github.com/Cratis/Lens](https://github.com/Cratis/Lens).
+
+<Steps>
+
+1. Clone the repo, then from the `Source` folder install and build:
+
+   ```bash
+   cd Source
+   yarn
+   yarn build
+   ```
+
+   This produces `Source/dist/` (including `manifest.json`).
+
+2. Open `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the `Source/dist` folder. Lens appears as **Lens – Cratis Developer Tools**.
+
+3. Navigate to your running Arc app, open the Lens popup once so it detects the app, then open its settings, confirm the **Tenant Header Name**, and save.
+
+</Steps>
+
+For an active edit loop, run `yarn dev` to rebuild on change, and reload the extension from `chrome://extensions` after each rebuild.
+
+<Aside type="note" title="Coming to the stores">
+Lens targets Chrome, Microsoft Edge, Firefox, and Safari — the publishing pipeline for all four is already in place. This page will link the store listings once they're live.
+</Aside>
+
+## Where to go next
+
+<CardGrid>
+  <SimpleCard title="Queries in Arc" icon="puzzle" link="/arc/backend/queries/">
+    What Lens is browsing — how Arc exposes queries and observable queries over your read models.
+  </SimpleCard>
+  <SimpleCard title="VS Code extension (Narrator)" icon="laptop" link="/tools/vscode-extension/">
+    The editor-side companion — explore the Chronicle event store from VS Code.
+  </SimpleCard>
+</CardGrid>

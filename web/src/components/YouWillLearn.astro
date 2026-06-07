@@ -1,0 +1,46 @@
+---
+// "What you'll learn / build" objectives box for the top of a tutorial chapter or
+// guide. Set the outcome up front (Diátaxis: a tutorial states its payoff first).
+//
+// Usage (in .mdx) — leave blank lines so the list is parsed as markdown:
+//   import YouWillLearn from '@components/YouWillLearn.astro';
+//
+//   <YouWillLearn>
+//
+//   - append your first event
+//   - project it into a read model
+//
+//   </YouWillLearn>
+const { title = "What you'll learn" } = Astro.props;
+---
+
+<aside class="cr-learn not-content" aria-label={title}>
+    <p class="cr-learn__title">
+        <span class="cr-learn__icon" aria-hidden="true">🎯</span>{title}
+    </p>
+    <div class="cr-learn__body">
+        <slot />
+    </div>
+</aside>
+
+<style>
+    .cr-learn {
+        margin: 0 0 1.75rem;
+        padding: 1.1rem 1.3rem;
+        border: 1px solid color-mix(in srgb, var(--sl-color-accent) 35%, var(--sl-color-hairline));
+        border-left: 3px solid var(--sl-color-accent);
+        border-radius: 0.6rem;
+        background: color-mix(in srgb, var(--sl-color-accent) 7%, var(--sl-color-bg));
+    }
+    .cr-learn__title {
+        margin: 0 0 0.4rem;
+        font-weight: 700;
+        font-size: var(--sl-text-sm);
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--sl-color-accent);
+    }
+    .cr-learn__icon { margin-right: 0.5rem; }
+    .cr-learn__body :global(:last-child) { margin-bottom: 0; }
+    .cr-learn__body :global(ul) { margin: 0; }
+</style>

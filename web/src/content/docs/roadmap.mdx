@@ -1,0 +1,57 @@
+---
+title: Roadmap
+description: "Directional roadmap for Cratis: what is stable, what is being hardened, what is being explored, and where feedback helps."
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+The roadmap is directional, not a delivery contract. Cratis is open source, and priorities move when real adoption uncovers sharper needs. Treat this page as a map of intent: what you can rely on, what is being strengthened, and where feedback will shape the work.
+
+<CardGrid>
+  <LinkCard title="Share roadmap feedback" description="Tell us what would unblock adoption, production use, training, or contribution." href="/feedback/" />
+  <LinkCard title="Watch what changed" description="Read curated release digests across the Cratis repositories." href="/whats-new/" />
+  <LinkCard title="Ask before depending on a future item" description="Use Discord when a planned or exploratory item matters to your project." href="/community/" />
+</CardGrid>
+
+## Stable foundations
+
+These are the core areas the documentation treats as the current Cratis foundation:
+
+| Area | Direction |
+|---|---|
+| Chronicle | Event log, event types, projections, reducers, reactors, subscriptions, storage choices, hosting, CLI inspection, and testing helpers |
+| Arc | Commands, queries, validation, generated TypeScript proxies, backend integrations, identity, tenancy, and CQRS without mandatory event sourcing |
+| Components | Command forms, dialogs, data tables, styling, Storybook, and typed React screens over Arc proxies |
+| Fundamentals | Concepts, serialization, type discovery, diagnostics helpers, and TypeScript utilities |
+| Documentation | Product docs, full-stack guides, samples, API reference, Storybook, community routes, and AI-readable exports |
+
+## Being hardened
+
+- Production guidance across the full stack.
+- Compatibility documentation across .NET, Node, React, storage engines, and package versions.
+- API reference and Storybook publishing.
+- CLI diagnostics and AI command catalogs.
+- Documentation coverage for common adoption paths and migration paths.
+- Testing guidance from unit-level specs to full workflow specs.
+
+## Being explored
+
+- Studio and richer visual operations around a running system.
+- Lens and developer tools that make event models and running systems easier to inspect.
+- More reference architectures and runnable sample applications.
+- Professional help, workshops, and training material around Cratis and event sourcing.
+- A clearer RFC path for larger design proposals.
+
+## Feedback wanted
+
+The most useful roadmap feedback is concrete:
+
+- Which adoption step felt risky or unclear?
+- Which production question blocked a decision?
+- Which tool or diagnostic would have saved time?
+- Which docs page did you expect but could not find?
+- Which integration would make Cratis easier to introduce in an existing system?
+
+<Aside type="tip" title="Roadmap items need context">
+If a future item matters to your project, start a conversation before depending on it. We can clarify whether it is stable, experimental, or only an idea.
+</Aside>

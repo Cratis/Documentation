@@ -1,0 +1,35 @@
+---
+title: Showcase and architectures
+description: Runnable samples and reference architecture shapes for adopting Chronicle, Arc, Components, AuthProxy, CLI, and the full Cratis stack.
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+The best way to understand Cratis is to follow a working shape. This page collects runnable samples and architecture patterns that show how the pieces fit together.
+
+<CardGrid>
+  <LinkCard title="Run the samples" description="Clone runnable examples from minimal Chronicle quickstarts to a full-stack library app." href="/samples/" />
+  <LinkCard title="Build the full-stack feature" description="Walk through command, event, projection, query, and React screen in one feature." href="/build-a-full-app/" />
+  <LinkCard title="Choose your adoption path" description="Use the adoption guide to decide whether to start full stack, Arc-only, Chronicle-only, or one bounded slice." href="/adopting-cratis/" />
+</CardGrid>
+
+## Reference shapes
+
+| Shape | Use when | Start with |
+|---|---|---|
+| Full-stack Cratis | You are building a new information system and want the full command, event, read model, and React loop. | [Build a full-stack feature](/build-a-full-app/) |
+| Chronicle-first service | You need a durable event history before you need a frontend. | [Chronicle getting started](/chronicle/get-started/) |
+| Arc over current-state storage | You want typed commands, queries, and generated React proxies without event sourcing yet. | [CQRS without event sourcing](/arc/arc-without-event-sourcing/) |
+| Components frontend | You already have Arc proxies and want forms, dialogs, tables, and styling conventions. | [Components getting started](/components/getting-started/) |
+| Existing system adoption | You want to introduce Cratis one bounded context or frontend/backend boundary at a time. | [Adopting Cratis](/adopting-cratis/) |
+| Operational inspection | You need to inspect events, observers, failed partitions, projections, and jobs. | [CLI](/cli/) |
+
+## Sample applications
+
+- [Console quickstart](https://github.com/Cratis/Samples/tree/main/Chronicle/Quickstart/Console) - the smallest event-sourcing loop.
+- [ASP.NET Core quickstart](https://github.com/Cratis/Samples/tree/main/Chronicle/Quickstart/AspNetCore) - Chronicle behind a web API.
+- [Library app](https://github.com/Cratis/Samples/tree/main/Library) - a full-stack vertical-slice application with Arc, Chronicle, Components, and tests.
+
+## Add your example
+
+If you have a sample, architecture note, migration story, or teaching example that would help other teams, use [Feedback and suggestions](/feedback/) or open a documentation issue.

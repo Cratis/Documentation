@@ -1,0 +1,41 @@
+---
+title: Security
+description: How to report Cratis security vulnerabilities and what to include in a responsible disclosure.
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+Security reports need a private path. Please do not report suspected vulnerabilities in public GitHub issues, pull requests, Discord threads, or public discussions.
+
+<CardGrid>
+  <LinkCard title="Report a vulnerability" description="Email the maintainers with the affected product, impact, reproduction steps, and any proof of concept." href="mailto:oss@cratis.io?subject=Security%20report%20for%20Cratis" />
+  <LinkCard title="Check production guidance" description="Review the operational checklist for TLS, secrets, storage, observability, and deployment." href="/production-readiness/" />
+  <LinkCard title="Browse product repositories" description="Find the repository that owns the affected code once a fix is ready to be coordinated." href="https://github.com/cratis" />
+</CardGrid>
+
+## Report privately
+
+Use the private vulnerability reporting feature in the affected GitHub repository if it is enabled. If you are not sure where the issue belongs, email [oss@cratis.io](mailto:oss@cratis.io?subject=Security%20report%20for%20Cratis) with a subject that starts with `Security:`.
+
+Include:
+
+- The affected product: Chronicle, Arc, Components, CLI, Fundamentals, AuthProxy, Studio, tools, or documentation.
+- The affected version, Docker image tag, package version, branch, or commit if known.
+- The kind of issue: authentication, authorization, data exposure, remote execution, injection, dependency vulnerability, unsafe default, or another category.
+- Reproduction steps and any configuration required to trigger the issue.
+- Impact: what an attacker can read, change, disrupt, or escalate.
+- Any proof of concept, logs, screenshots, or sample repository you can safely share.
+
+## What not to share publicly
+
+Do not post exploit details, secrets, tokens, customer data, private logs, or reproduction repositories in public channels. If you have already opened a public issue, remove sensitive details and email the maintainers with a link to the issue.
+
+## Supported versions
+
+Security fixes normally target actively maintained releases and the current development line. If a vulnerability affects an older release, include the version you are using so we can assess the practical fix path.
+
+For package and runtime compatibility, see [Version compatibility](/compatibility/). For operational hardening, see [Production readiness](/production-readiness/).
+
+<Aside type="note" title="No bounty program">
+Cratis does not currently run a bug bounty program. We still appreciate responsible disclosure and will coordinate fixes as quickly as practical.
+</Aside>

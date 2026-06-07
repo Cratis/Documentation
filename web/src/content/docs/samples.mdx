@@ -1,0 +1,46 @@
+---
+title: Samples
+description: Runnable, clone-and-go Cratis sample applications — from a minimal console quickstart to a full-stack vertical-slice app.
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+Reading is one thing; running real code is another. These samples live in the [Cratis Samples repository](https://github.com/Cratis/Samples) — clone them, run them, and read along with the docs. They use the same library domain the [tutorial](/chronicle/tutorial/) and [capstone](/build-a-full-app/) build, so the code and the prose reinforce each other.
+
+```bash
+git clone https://github.com/cratis/Samples.git
+```
+
+## Start small
+
+<CardGrid>
+	<Card title="Console quickstart" icon="seti:c-sharp">
+		The smallest thing that exercises the whole event-sourcing loop — append events, project them into a read model, react — in a plain .NET console app.
+		[Open on GitHub →](https://github.com/Cratis/Samples/tree/main/Chronicle/Quickstart/Console) · backs the [Chronicle tutorial](/chronicle/tutorial/).
+	</Card>
+	<Card title="ASP.NET Core quickstart" icon="seti:html">
+		The same library domain wired into an ASP.NET Core web API — events and projections served over HTTP.
+		[Open on GitHub →](https://github.com/Cratis/Samples/tree/main/Chronicle/Quickstart/AspNetCore)
+	</Card>
+</CardGrid>
+
+## Go full-stack
+
+<CardGrid>
+	<Card title="Library — a full-stack app" icon="laptop">
+		A complete vertical-slice application built with **Arc + Chronicle + Components**: Authors, Inventory, and Lending features, each a slice from command and events through projection to a React screen, with BDD specs and a `docker-compose` for Chronicle.
+		[Open on GitHub →](https://github.com/Cratis/Samples/tree/main/Library) · pairs with [Build a full-stack feature](/build-a-full-app/).
+	</Card>
+</CardGrid>
+
+## How to use them
+
+1. **Run the quickstart** alongside [Get started](/chronicle/get-started/) to see the loop work.
+2. **Follow the [tutorial](/chronicle/tutorial/)** with the Console sample open — it builds the same domain one concept at a time.
+3. **Explore the Library app** with the [capstone walkthrough](/build-a-full-app/) to see how a real feature spans the whole stack.
+
+<LinkCard
+	title="Browse all samples on GitHub"
+	description="The full Cratis Samples repository, with build status and the latest code."
+	href="https://github.com/Cratis/Samples"
+/>

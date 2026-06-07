@@ -1,0 +1,64 @@
+---
+title: FAQ
+description: Practical answers for teams evaluating Cratis, event sourcing, CQRS, adoption paths, production readiness, and support.
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+This FAQ answers the questions that usually come up before a team commits to Cratis. For deeper explanations, follow the linked pages.
+
+<CardGrid>
+  <LinkCard title="Choose a starting point" description="Greenfield, brownfield, Arc-only, Chronicle-only, or full stack." href="/adopting-cratis/" />
+  <LinkCard title="Learn the model" description="Follow role-based paths from event sourcing basics to operations." href="/learning-paths/" />
+  <LinkCard title="Ask the community" description="Bring open questions to Discord when the answer depends on your context." href="/community/" />
+</CardGrid>
+
+## Is Cratis only for event sourcing?
+
+No. Chronicle is the event-sourcing engine, but Arc can be used without Chronicle for CQRS over current-state storage. Components can be used with Arc-generated proxies, and Fundamentals provides shared .NET and TypeScript utilities.
+
+Start with [Adopting Cratis](/adopting-cratis/) and [CQRS without event sourcing](/arc/arc-without-event-sourcing/).
+
+## Should every feature be event-sourced?
+
+No. Event sourcing is a strong default for information systems that care about history, decisions, audit, process, replay, and integration. It is not automatically worth it for static lookup tables or settings screens where the current value is the whole story.
+
+Read [When to use event sourcing](/chronicle/concepts/when-to-use-event-sourcing/) and [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/).
+
+## Can I use Chronicle without Arc?
+
+Yes. Chronicle has its own clients and hosting model. Arc gives you an application framework around commands, queries, and generated frontend proxies, but Chronicle can be used directly from services, workers, or APIs.
+
+Start with [Chronicle getting started](/chronicle/get-started/) and [Chronicle architecture](/chronicle/architecture/).
+
+## Can I use Arc without Chronicle?
+
+Yes. Arc supports commands, queries, validation, generated TypeScript proxies, and integrations over current-state persistence. That is useful when you want typed full-stack CQRS before adopting event sourcing, or when a bounded slice does not need an event log.
+
+Read [CQRS without event sourcing](/arc/arc-without-event-sourcing/).
+
+## Is Cratis production-ready?
+
+The products include production-oriented pieces such as TLS configuration, storage configuration, OpenTelemetry, deployment guidance, and operational CLI diagnostics. You still need to make deliberate choices about version tags, storage, backups, secrets, identity, replay, monitoring, and incident handling.
+
+Use [Production readiness](/production-readiness/) as the cross-stack checklist.
+
+## Which storage engines are supported?
+
+Chronicle documents MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite as storage options. Arc integrates with MongoDB and Entity Framework Core for application persistence.
+
+See [Chronicle storage](/chronicle/hosting/configuration/storage/), [Arc MongoDB](/arc/backend/mongodb/), and [Arc Entity Framework Core](/arc/backend/entity-framework/).
+
+## How does Cratis compare to MediatR, MVC, EF Core, Marten, or Wolverine?
+
+Cratis is not a single library replacement. Chronicle is an event-sourcing engine; Arc is a CQRS and proxy-generation framework; Components is a React library built around those generated contracts. The comparisons are about architecture shape more than API surface.
+
+Start with [MediatR, MVC, and Arc](/arc/coming-from-mediatr-and-mvc/) and [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/).
+
+## Where do I ask for help?
+
+Use [Community and help](/community/) for open questions, [Feedback and suggestions](/feedback/) for product and docs feedback, GitHub issues for durable bugs and feature requests, and [Professional help](/professional-help/) when you need private, dedicated time.
+
+## Where do I see what changed?
+
+Use [What's new](/whats-new/) for curated release digests and links to repository releases.

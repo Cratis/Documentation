@@ -1,0 +1,43 @@
+# build output
+dist/
+# generated types
+.astro/
+# generated docs content (synced from product repos by scripts/sync-content.mjs)
+src/content/docs/chronicle/
+src/content/docs/arc/
+src/content/docs/components/
+src/content/docs/cli/
+src/content/docs/fundamentals/
+src/content/docs/contributing/
+# generated API reference + Storybook (built into public/ by CI or `npm run build:storybook` / `build:api`)
+public/storybook/
+public/storybook-arc/
+public/api/
+# DocFX API build dir: ignore ALL generated output (_site, _meta, per-product yml, etc.),
+# keep only the committed config. This is robust to new/renamed generated subfolders.
+api-build/*
+!api-build/docfx.json
+!api-build/toc.yml
+!api-build/index.md
+# generated sidebar
+src/generated/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# environment variables
+.env
+.env.production
+
+# macOS-specific files
+.DS_Store
+
+# Editor/tool backup files
+*.bak

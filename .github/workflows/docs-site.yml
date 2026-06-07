@@ -1,0 +1,159 @@
+# Builds and deploys the Astro Starlight documentation site (Documentation/web).
+#
+# Content lives in each product repo's `Documentation/` folder. This workflow checks
+# each product repo out as a sibling of this repo — matching the local dev layout the
+# converter expects (scripts/sync-content.mjs). It uses `docs-overhaul` for
+# docs-overhaul validation and `main` for production builds and product-repo dispatches.
+#
+# The build runs on both `docs-overhaul` (validation) and `main`; product repos
+# dispatch `build-docs` after docs changes on their `main` branches. The deploy job
+# runs ONLY on `main`, so a docs-overhaul push validates the build without publishing.
+#
+# PREREQUISITES (one-time, manual):
+#   1. Enable GitHub Pages for this repo with "GitHub Actions" as the source.
+#   2. Add a repo/org secret `DOCS_CHECKOUT_TOKEN` (a PAT or GitHub App token) with read
+#      access to Cratis/Chronicle, Cratis/Arc, Cratis/Components, Cratis/Fundamentals,
+#      Cratis/cli and Cratis/.github. The default GITHUB_TOKEN cannot check out other repos.
+#   3. If serving under a sub-path (e.g. cratis.io/docs), set `base: '/docs'` in astro.config.mjs.
+
+name: Documentation site
+
+on:
+  push:
+    branches: [docs-overhaul, main]
+  workflow_dispatch:
+  repository_dispatch:
+    types: [build-docs]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: docs-site-${{ github.ref_name }}
+  cancel-in-progress: true
+
+# Product repos are checked out at docs-overhaul only for docs-overhaul validation.
+# Main pushes, manual runs from main, and repository_dispatch runs use main.
+env:
+  DOCS_REF: ${{ github.ref_name == 'docs-overhaul' && 'docs-overhaul' || 'main' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Documentation
+        uses: actions/checkout@v4
+        with:
+          path: Documentation
+
+      - name: Checkout Chronicle
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Chronicle
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          path: Chronicle
+
+      - name: Checkout Arc
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Arc
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          path: Arc
+
+      - name: Checkout Components
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Components
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          path: Components
+
+      - name: Checkout Fundamentals
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Fundamentals
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          path: Fundamentals
+
+      - name: Checkout cli
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/cli
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          path: cli
+
+      - name: Checkout .github (Contributing)
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/.github
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          path: .github
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 23   # Components (Storybook build) requires node >=23
+
+      - name: Install dependencies
+        working-directory: Documentation/web
+        run: npm ci || npm install
+
+      - name: Build Components Storybook
+        working-directory: Components
+        run: |
+          corepack enable
+          yarn install --immutable
+          (cd Source && ../node_modules/.bin/storybook build -o ../../Documentation/web/public/storybook)
+
+      - name: Build Arc React Storybook
+        working-directory: Arc/Source/JavaScript
+        run: |
+          corepack enable
+          yarn install --immutable
+          yarn workspace @cratis/arc.react exec storybook build -o ../../../../Documentation/web/public/storybook-arc
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Generate API reference (DocFX + TypeDoc)
+        working-directory: Documentation/web
+        run: |
+          dotnet tool install -g docfx || dotnet tool update -g docfx
+          npm run build:api
+
+      - name: Lint docs
+        working-directory: Documentation/web
+        run: npm run sync && npm run lint:docs
+
+      - name: Build site
+        working-directory: Documentation/web
+        run: npm run build
+
+      - name: Check internal links
+        working-directory: Documentation/web
+        run: npm run check:links
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: Documentation/web/dist
+
+  deploy:
+    needs: build
+    # Publish to Pages only from main — docs-overhaul runs are build-only validation.
+    if: ${{ github.ref_name == 'main' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

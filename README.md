@@ -1,45 +1,25 @@
-# Documentation Site project
+# Cratis Documentation
 
-[![Documentation site](https://github.com/Cratis/Documentation/actions/workflows/pages.yml/badge.svg)](https://github.com/Cratis/Documentation/actions/workflows/pages.yml)
+The Cratis documentation site. Documentation is kept close to the code it documents, so each
+Cratis repository carries its own `Documentation/` folder; this repo aggregates them into one
+Astro Starlight site.
 
-Documentation is kept close to the code that it documents, this means we have documentation in most Cratis repositories.
-The documentation is then added as Git sub modules. Check out this repository using the following:
+The site lives in [`web/`](./web/). Start with [`web/README.md`](./web/README.md) for
+prerequisites, local development, and verification.
 
-```shell
-git clone --recursive https://github.com/cratis/Documentation.git
-```
+## Run the site locally
 
-If you have already cloned it without recursive sub modules, you can initialize it using the following:
-
-```shell
-git submodule update --init --recursive
-```
-
-To pull the latest from all the repositories:
+The site reads each product's `Documentation/` from a sibling clone, so check the product repos out
+next to this one on the branch you want to preview. For the released site, use `main`:
 
 ```shell
-git submodule update --init --remote --recursive
+# layout: <parent>/{Documentation, Chronicle, Arc, Components, cli, Fundamentals, .github}
+for r in Chronicle Arc Components cli Fundamentals .github; do (cd "$r" && git checkout main); done
+
+cd Documentation/web
+npm install
+npm run dev        # http://localhost:4321
 ```
 
-Sometimes, updating submodules leave them in a detached HEAD state, to you can then run:
-
-```shell
-git submodule foreach 'git checkout main && git pull'
-```
-
-To get started with local development, navigate to the `Source` folder and run `yarn restore`. This will make sure all NPM and NuGet packages, including
-tools are restored.
-
-Then all you need to do is run `yarn watch` and after build and the Web server has started navigate to [http://localhost:8080](http://localhost:8080).
-It will watch for any changes and rebuild and restart the web server after this.
-
-Everything is configured through the `docfx.json` file, documentation for the file can be found [here](https://dotnet.github.io/docfx/tutorial/docfx.exe_user_manual.html#3-docfxjson-format).
-
-## Template
-
-We've configured using the [SingulinkFX](https://github.com/Singulink/SingulinkFX) template.
-
-## Resources
-
-[Customizing](https://www.cazzulino.com/customize-docfx.html)
-[.NET Docs config](https://github.com/dotnet/docs/blob/main/docfx.json)
+Verify with `npm run check` (build + docs lint + link check). Full details, including the
+verification checklist, are in [`web/README.md`](./web/README.md).

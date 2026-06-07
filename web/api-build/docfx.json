@@ -1,0 +1,56 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "rules": {
+    "InvalidFileLink": "suggestion",
+    "InvalidBookmark": "suggestion",
+    "DuplicateUids": "suggestion",
+    "InvalidTocInclude": "suggestion"
+  },
+  "metadata": [
+    {
+      "src": [{ "files": ["Clients/DotNET/DotNET.csproj"], "exclude": ["**/obj/**", "**/bin/**"], "src": "../../../Chronicle/Source" }],
+      "properties": { "TargetFramework": "net10.0" },
+      "output": "chronicle/clients/dotnet"
+    },
+    {
+      "src": [{ "files": ["Clients/AspNetCore/AspNetCore.csproj"], "exclude": ["**/obj/**", "**/bin/**"], "src": "../../../Chronicle/Source" }],
+      "properties": { "TargetFramework": "net10.0" },
+      "output": "chronicle/clients/aspnetcore"
+    },
+    {
+      "src": [{ "files": ["Clients/Testing/Testing.csproj"], "exclude": ["**/obj/**", "**/bin/**"], "src": "../../../Chronicle/Source" }],
+      "properties": { "TargetFramework": "net10.0" },
+      "output": "chronicle/clients/testing"
+    },
+    {
+      "comment": "Arc + MongoDB use the pre-built Release DLL: docfx's bundled Roslyn cannot run their source generators (ReferencesNewerCompiler), so the partial methods those generators implement fail to compile from source (CS8795). build-api.mjs runs `dotnet build -c Release` first.",
+      "src": [{ "files": ["Cratis.Arc.dll"], "src": "../../../Arc/Source/DotNET/Arc/bin/Release/net10.0" }],
+      "output": "arc/dotnet/arc"
+    },
+    {
+      "src": [{ "files": ["Cratis.Arc.MongoDB.dll"], "src": "../../../Arc/Source/DotNET/MongoDB/bin/Release/net10.0" }],
+      "output": "arc/dotnet/mongodb"
+    },
+    {
+      "src": [{ "files": ["Fundamentals/Fundamentals.csproj"], "exclude": ["**/obj/**", "**/bin/**"], "src": "../../../Fundamentals/Source/DotNET" }],
+      "properties": { "TargetFramework": "net10.0" },
+      "output": "fundamentals/dotnet/fundamentals"
+    }
+  ],
+  "build": {
+    "content": [
+      { "files": ["chronicle/**/*.{yml,md}", "arc/**/*.{yml,md}", "fundamentals/**/*.{yml,md}"] },
+      { "files": ["toc.yml", "index.md"] }
+    ],
+    "output": "_site",
+    "template": ["default", "modern"],
+    "postProcessors": ["ExtractSearchIndex"],
+    "globalMetadata": {
+      "_appTitle": "Cratis API reference",
+      "_appName": "Cratis",
+      "_enableSearch": true,
+      "_disableContribution": true,
+      "_appFooter": "Cratis API reference"
+    }
+  }
+}

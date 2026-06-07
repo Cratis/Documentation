@@ -1,0 +1,51 @@
+---
+title: Version compatibility
+description: Runtime, package, framework, storage, and tooling compatibility for the current Cratis documentation baseline.
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+Cratis spans .NET packages, TypeScript packages, Docker images, storage engines, React components, Storybook, and documentation tooling. This page gives the current compatibility baseline used by the documentation site. For exact released package versions, use the package manager and repository release pages linked from [What's new](/whats-new/).
+
+<CardGrid>
+  <LinkCard title="Review releases" description="Use curated release digests and repository releases for exact published versions." href="/whats-new/" />
+  <LinkCard title="Check production readiness" description="Use the operational checklist before deploying Chronicle or the full stack." href="/production-readiness/" />
+  <LinkCard title="Ask about a version" description="Use Discord when a specific runtime or package version matters to your project." href="/community/" />
+</CardGrid>
+
+## Current baseline
+
+| Area | Baseline |
+|---|---|
+| .NET local development | .NET 10 is the current development target in Chronicle, Arc, Fundamentals, and CLI source. |
+| .NET package targeting | Arc and Fundamentals package across `net8.0`, `net9.0`, and `net10.0` in release configuration. Chronicle packaging also carries `net8.0`, `net9.0`, and `net10.0` where configured. |
+| CLI | The `cratis` CLI targets `net10.0` in the current source tree. |
+| Node | Arc, Components, and Fundamentals JavaScript workspaces declare `node >=23.0.0`. |
+| Package manager | The JavaScript workspaces use Yarn 4.5.3. |
+| React | Arc React declares React 18 or 19 peer compatibility. Components is currently built and documented around the React 19 workspace. |
+| TypeScript | Current JavaScript workspaces use TypeScript 6. |
+| Chronicle storage | MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite are documented storage choices. |
+| Arc persistence | MongoDB and Entity Framework Core integrations are documented. |
+| Docs site | Astro Starlight, generated product content, Storybook builds, API reference builds, and `/llms.txt` exports are part of the documentation site. |
+
+## Product relationships
+
+| Product | Common dependency relationship |
+|---|---|
+| Chronicle | Uses Fundamentals and Arc packages internally, exposes .NET clients and gRPC/protobuf contracts, and can be inspected through CLI and Workbench. |
+| Arc | Uses Fundamentals and can integrate with Chronicle, MongoDB, Entity Framework Core, ASP.NET Core, OpenAPI, Swagger, and generated TypeScript proxies. |
+| Components | Depends on Arc-generated frontend contracts and React; wraps PrimeReact-oriented UI patterns. |
+| CLI | Talks to Chronicle and produces AI command catalogs through `cratis init`. |
+| Documentation | Aggregates product `Documentation/` folders and builds Storybook/API reference artifacts into the site. |
+
+## How to verify your stack
+
+1. Check the package versions you plan to install.
+2. Check the matching release notes in [What's new](/whats-new/).
+3. Check the product guide for runtime-specific setup.
+4. Pin container images and package versions in production.
+5. Ask in [Community and help](/community/) if your runtime combination is not listed.
+
+<Aside type="caution" title="Do not rely on latest tags in production">
+Use explicit package versions and Docker image tags for deployed systems. The Chronicle hosting docs also recommend specific version tags for production deployments.
+</Aside>

@@ -1,0 +1,66 @@
+---
+title: Feedback and suggestions
+description: Share ideas, product feedback, documentation gaps, and suggestions for improving Cratis.
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+Cratis gets better when people tell us where the model is confusing, where the tools feel rough, and where the docs leave a gap. You do not need a fully shaped proposal before you speak up. A rough observation from a real project is often the most useful feedback.
+
+Use this page when you want to suggest an improvement, report that something was hard to understand, or tell us what would make Cratis easier to adopt.
+
+<CardGrid>
+  <LinkCard title="Discuss an idea in Discord" description="Use Discord for early suggestions, adoption feedback, design questions, and exploratory product ideas." href="https://discord.gg/kt4AMpV8WV" />
+  <LinkCard title="Open a documentation issue" description="Report unclear guides, missing examples, broken explanations, or topics you expected to find." href="https://github.com/Cratis/Documentation/issues" />
+  <LinkCard title="Read the roadmap" description="See what is stable, what is being hardened, what is being explored, and where feedback helps." href="/roadmap/" />
+  <LinkCard title="Understand governance" description="See how ideas become issues, design notes, pull requests, releases, and documentation." href="/governance/" />
+  <LinkCard title="Browse product issues" description="Turn actionable product feedback into an issue in the repository that owns the behavior." href="https://github.com/cratis" />
+</CardGrid>
+
+## What to send where
+
+| Feedback | Best place |
+|---|---|
+| "This concept confused me" | [Cratis Discord](https://discord.gg/kt4AMpV8WV), then a [Documentation issue](https://github.com/Cratis/Documentation/issues) if the docs need a change |
+| "This API or workflow feels awkward" | [Cratis Discord](https://discord.gg/kt4AMpV8WV) for discussion, then the matching product issue tracker |
+| "The docs are missing an example" | [Documentation issues](https://github.com/Cratis/Documentation/issues) |
+| "This bug is reproducible" | The matching product issue tracker |
+| "I have an idea for a feature" | [Cratis Discord](https://discord.gg/kt4AMpV8WV) for early shaping, then a GitHub issue when the proposal is concrete |
+| "I want to understand what is planned" | [Roadmap](/roadmap/) |
+| "I want to propose a larger design change" | [Governance](/governance/) |
+| "I want to contribute the change" | [Contributing](/contributing/) |
+
+If you are not sure where the feedback belongs, start in [Community and help](/community/). We can help route it.
+
+## Product issue trackers
+
+| Area | Issue tracker |
+|---|---|
+| Chronicle event store, clients, Workbench, and hosting | [Chronicle issues](https://github.com/Cratis/Chronicle/issues) |
+| Arc commands, queries, proxy generation, validation, and backend/frontend integration | [Arc issues](https://github.com/Cratis/Arc/issues) |
+| React components, forms, dialogs, tables, styling, and Storybook | [Components issues](https://github.com/Cratis/Components/issues) |
+| CLI commands, diagnostics, and AI command catalogs | [CLI issues](https://github.com/Cratis/cli/issues) |
+| Fundamentals libraries and shared .NET/TypeScript helpers | [Fundamentals issues](https://github.com/Cratis/Fundamentals/issues) |
+| Documentation site, guides, examples, and broken links | [Documentation issues](https://github.com/Cratis/Documentation/issues) |
+
+## Useful feedback
+
+The most useful feedback tells us what happened in context:
+
+- What you were trying to do.
+- Which product or page you were using.
+- What you expected to happen.
+- What happened instead, or where you got stuck.
+- What would have made the next step obvious.
+
+For documentation feedback, a short note like "I reached this page looking for X, but found Y" is enough. For product feedback, include the package version, runtime, command, API, or component involved when you know it.
+
+<Aside type="tip" title="Real examples beat polished proposals">
+If you can share the event, command, projection, screen, CLI command, or paragraph that caused the friction, start there. We can help turn the observation into a concrete issue or improvement.
+</Aside>
+
+## What happens next
+
+Open feedback may stay as a conversation until the right shape is clear. Once it becomes actionable, we prefer to capture it as a GitHub issue so it has a durable record, can be linked from pull requests, and does not disappear in chat history.
+
+For questions that need an answer more than a change, use [Community and help](/community/).

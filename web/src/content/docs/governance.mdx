@@ -1,0 +1,45 @@
+---
+title: Governance
+description: How Cratis decisions are discussed, shaped, captured, reviewed, merged, released, and documented.
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+Cratis is an open-source project, but not every decision belongs in the same channel. Small fixes can move directly through issues and pull requests. Larger design choices need discussion, context, and a durable record.
+
+<CardGrid>
+  <LinkCard title="Share a suggestion" description="Use the feedback page for product ideas, rough edges, documentation gaps, and feature suggestions." href="/feedback/" />
+  <LinkCard title="Join the community" description="Use Discord for early discussion and questions that need context." href="/community/" />
+  <LinkCard title="Contribute" description="Read the contribution workflow, code standards, and project values." href="/contributing/" />
+</CardGrid>
+
+## Decision path
+
+| Change | Path |
+|---|---|
+| Small documentation fix | Pull request or documentation issue |
+| Reproducible bug | Product issue, then pull request |
+| Small feature | Product issue with motivation and expected behavior |
+| Cross-product design | Discord discussion, then a durable GitHub issue or design note |
+| Breaking change | Design discussion, migration notes, release note, and documentation update |
+| Security fix | Private report first, public disclosure only after coordination |
+
+## How proposals become work
+
+1. Start with the problem, not the implementation.
+2. Discuss early in [Community and help](/community/) when the shape is unclear.
+3. Capture actionable work in the repository that owns the behavior.
+4. Link related docs, examples, issues, and pull requests.
+5. Update documentation and release notes when behavior changes.
+
+## Maintainer judgment
+
+Maintainers may ask for narrower scope, more context, tests, documentation, migration guidance, or a different product boundary. The goal is to keep Cratis coherent across Chronicle, Arc, Components, CLI, Fundamentals, tools, and the docs.
+
+<Aside type="note" title="The project favors connected changes">
+Cratis spans backend, frontend, storage, operations, and documentation. A good proposal explains where the change lands in that loop and what it means for users.
+</Aside>
+
+## Community standards
+
+The [Code of Conduct](/contributing/code_of_conduct/) applies across repositories, Discord, issues, pull requests, and project spaces. Security reports use the private process on [Security](/security/).

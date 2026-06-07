@@ -1,0 +1,37 @@
+---
+// Synced C#/TypeScript tabs — the canonical way to show that a feature is typed
+// end to end (the Cratis differentiator). The `syncKey` keeps every full-stack
+// tab on the page (and across the site) on the same language once the reader picks.
+//
+// Usage (in .mdx):
+//   import FullStackTabs from '@components/FullStackTabs.astro';
+//
+//   <FullStackTabs>
+//     <Fragment slot="csharp">
+//     ```csharp
+//     // backend
+//     ```
+//     </Fragment>
+//     <Fragment slot="typescript">
+//     ```tsx
+//     // generated proxy + React
+//     ```
+//     </Fragment>
+//   </FullStackTabs>
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+const {
+    csharpLabel = 'C# — backend',
+    tsLabel = 'TypeScript — frontend',
+    syncKey = 'lang',
+} = Astro.props;
+---
+
+<Tabs syncKey={syncKey}>
+    <TabItem label={csharpLabel}>
+        <slot name="csharp" />
+    </TabItem>
+    <TabItem label={tsLabel}>
+        <slot name="typescript" />
+    </TabItem>
+</Tabs>

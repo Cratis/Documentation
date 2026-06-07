@@ -1,0 +1,74 @@
+---
+// The eye-catching banner at the top of each product Overview landing — an
+// accent-gradient card with a boxed icon, a title, and a short intro/CTA slot.
+// Mirrors the aspire.dev topic hero ("Choose your path for your stack").
+import { Icon } from '@astrojs/starlight/components';
+
+interface Props {
+    icon?: string;
+    title: string;
+    eyebrow?: string;
+}
+
+const { icon, title, eyebrow } = Astro.props;
+---
+
+<div class="cratis-topic-hero not-content">
+    {icon && (
+        <span class="cratis-topic-hero__icon">
+            <Icon name={icon} size="1.7rem" />
+        </span>
+    )}
+    {eyebrow && <p class="cratis-topic-hero__eyebrow">{eyebrow}</p>}
+    <h2 class="cratis-topic-hero__title">{title}</h2>
+    <div class="cratis-topic-hero__body"><slot /></div>
+</div>
+
+<style>
+    .cratis-topic-hero {
+        position: relative;
+        overflow: hidden;
+        margin-block: 1.5rem 2.5rem;
+        padding: 2rem;
+        border: 1px solid color-mix(in srgb, var(--sl-color-accent) 35%, var(--sl-color-gray-5));
+        border-radius: 1rem;
+        background:
+            radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--sl-color-accent) 22%, transparent) 0%, transparent 55%),
+            var(--sl-color-bg);
+    }
+    .cratis-topic-hero__icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.7rem;
+        margin-bottom: 1rem;
+        border-radius: 0.7rem;
+        color: var(--sl-color-text-invert);
+        background: var(--sl-color-accent);
+        box-shadow: 0 8px 24px -10px var(--sl-color-accent);
+    }
+    .cratis-topic-hero__eyebrow {
+        margin: 0 0 0.25rem;
+        font-size: var(--sl-text-sm);
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--sl-color-accent-high);
+    }
+    .cratis-topic-hero__title {
+        margin: 0;
+        font-size: clamp(1.6rem, 1rem + 2vw, 2.4rem);
+        line-height: 1.1;
+        letter-spacing: 0;
+        color: var(--sl-color-white);
+    }
+    .cratis-topic-hero__body {
+        margin-top: 0.75rem;
+        max-width: 60ch;
+        font-size: var(--sl-text-base);
+        color: var(--sl-color-gray-2);
+    }
+    .cratis-topic-hero__body :global(p) {
+        margin: 0;
+    }
+</style>

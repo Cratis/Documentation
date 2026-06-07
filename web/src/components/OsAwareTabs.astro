@@ -1,0 +1,50 @@
+---
+// OS-aware install tabs (macOS / Linux / Windows). On first visit the synced tab
+// is pre-selected from the reader's platform, so the right install command is shown
+// without a click; `syncKey` then keeps every OS-aware block in step.
+//
+// Usage (in .mdx):
+//   import OsAwareTabs from '@components/OsAwareTabs.astro';
+//
+//   <OsAwareTabs>
+//     <Fragment slot="macos">    ```bash  brew install ...  ``` </Fragment>
+//     <Fragment slot="linux">    ```bash  curl ...          ``` </Fragment>
+//     <Fragment slot="windows">  ```powershell  winget ...   ``` </Fragment>
+//   </OsAwareTabs>
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+const { syncKey = 'os' } = Astro.props;
+---
+
+<Tabs syncKey={syncKey}>
+    <TabItem label="macOS">
+        <slot name="macos" />
+    </TabItem>
+    <TabItem label="Linux">
+        <slot name="linux" />
+    </TabItem>
+    <TabItem label="Windows">
+        <slot name="windows" />
+    </TabItem>
+</Tabs>
+
+{/* Pre-seed the synced-tab choice from the visitor's OS (graceful — if the key
+    format ever changes, tabs simply fall back to the first one). */}
+<script is:inline define:vars={{ syncKey }}>
+    try {
+        const storageKey = `starlight-synced-tabs__${syncKey}`;
+        if (!localStorage.getItem(storageKey)) {
+            const platform = (
+                (navigator.userAgentData && navigator.userAgentData.platform) ||
+                navigator.platform ||
+                ''
+            ).toLowerCase();
+            let os = 'macOS';
+            if (platform.includes('win')) os = 'Windows';
+            else if (platform.includes('linux') && !platform.includes('android')) os = 'Linux';
+            localStorage.setItem(storageKey, os);
+        }
+    } catch {
+        /* localStorage unavailable — ignore */
+    }
+</script>

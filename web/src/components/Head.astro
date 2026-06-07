@@ -1,0 +1,41 @@
+---
+// Override of Starlight's <Head> that owns brand-font loading.
+//
+// @fontsource's bundled CSS hardcodes `font-display: swap`, which means a cold
+// load paints in a system fallback and then *swaps* to the web font — the
+// fallback wraps text slightly differently, so the whole page (and the hero
+// headline) visibly grows then snaps back. Preload alone can't prevent it:
+// `swap` still swaps whenever the font arrives after first paint.
+//
+// So we declare the faces ourselves with `font-display: optional`: the browser
+// uses the (preloaded) font only if it's ready within a short block window,
+// otherwise it keeps the fallback for that load — either way there is NO
+// mid-page swap, so no reflow/twitch. The `?url` imports resolve to the hashed
+// build assets; the @fontsource index.css imports are removed in astro.config
+// so these are the only faces (no `swap` duplicate).
+import Default from '@astrojs/starlight/components/Head.astro';
+import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import interLatinExt from '@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2?url';
+import jbMonoLatin from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
+import jbMonoLatinExt from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-ext-wght-normal.woff2?url';
+
+const LATIN =
+    'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD';
+const LATIN_EXT =
+    'U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF';
+
+const face = (family: string, weight: string, url: string, range: string) =>
+    `@font-face{font-family:'${family}';font-style:normal;font-display:optional;font-weight:${weight};src:url(${url}) format('woff2-variations');unicode-range:${range};}`;
+
+const fontCss = [
+    face('Inter Variable', '100 900', interLatin, LATIN),
+    face('Inter Variable', '100 900', interLatinExt, LATIN_EXT),
+    face('JetBrains Mono Variable', '100 800', jbMonoLatin, LATIN),
+    face('JetBrains Mono Variable', '100 800', jbMonoLatinExt, LATIN_EXT),
+].join('');
+---
+
+<Default />
+<style is:inline set:html={fontCss}></style>
+<link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin="anonymous" />
+<link rel="preload" href={jbMonoLatin} as="font" type="font/woff2" crossorigin="anonymous" />
