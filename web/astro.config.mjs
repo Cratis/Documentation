@@ -75,6 +75,7 @@ const overviewTopic = {
                 { label: 'Lens', slug: 'tools/lens' },
             ],
         },
+        { label: 'Auth and compliance', slug: 'auth-and-compliance' },
         { label: 'AuthProxy', slug: 'authproxy' },
         { label: 'Build a full-stack feature', slug: 'build-a-full-app' },
         { label: 'Samples', slug: 'samples' },
@@ -179,7 +180,7 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/professional-help', '/community', '/feedback', '/ai-native-development', '/plugins', '/code-analysis', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/authproxy', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/professional-help', '/community', '/feedback', '/ai-native-development', '/plugins', '/code-analysis', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/authproxy', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],

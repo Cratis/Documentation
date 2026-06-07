@@ -33,6 +33,17 @@ Wiring the stack into one host is itself a single call: the [`Cratis` package](/
   intro="Read it left to right: a domain idea becomes a secured tenant-aware request, a generated slice, a durable event, a live typed React screen, and an inspectable running system. AI can accelerate the same path because the conventions are explicit."
 />
 
+## Secure and comply end to end
+
+Authentication, authorization, tenancy, and compliance are separate concerns, but they travel through the
+same request. AuthProxy authenticates and resolves tenant context. Arc authorizes the command or query.
+The Arc + Chronicle integration writes events into the tenant's Chronicle namespace. Chronicle encrypts
+PII by compliance subject, and Arc releases protected read models before serving query responses.
+
+[Auth and compliance end to end](/auth-and-compliance/) shows that flow across the stack: where identity
+is enriched, where access decisions happen, how subjects differ from event source ids, and what erasure
+requires after protected data has reached read models.
+
 ## Test the same flow
 
 The same column you draw in an event model is also the shape of the test:
@@ -79,6 +90,9 @@ Model in Studio, generate the slices, build them, inspect the result — an agen
   </SimpleCard>
   <SimpleCard title="AuthProxy — edge" icon="seti:lock" link="/authproxy/">
     Authentication, tenant resolution, identity enrichment, routing, and invite-based onboarding in front of your services.
+  </SimpleCard>
+  <SimpleCard title="Auth and compliance — end to end" icon="seti:lock" link="/auth-and-compliance/">
+    How authenticated tenant-aware requests become authorized operations, protected events, and released read models.
   </SimpleCard>
   <SimpleCard title="Arc — CQRS + proxies" icon="puzzle" link="/arc/">
     Full-stack CQRS with generated, typed C# → TypeScript proxies. It pairs naturally with Chronicle, and can also run over MongoDB or EF Core.
