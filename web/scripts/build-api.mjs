@@ -4,7 +4,7 @@
 // Run from web/:  node scripts/build-api.mjs   (or: npm run build:api)
 // Requires: .NET 10 SDK, docfx (`dotnet tool install -g docfx`), and web deps installed.
 import { execSync } from 'node:child_process';
-import { existsSync, rmSync, cpSync, mkdirSync } from 'node:fs';
+import { existsSync, rmSync, cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 
@@ -18,6 +18,55 @@ const docfx = existsSync(path.join(os.homedir(), '.dotnet', 'tools', 'docfx'))
   : 'docfx';
 
 const run = (cmd, cwd = web) => { console.log(`\n+ ${cmd}`); execSync(cmd, { stdio: 'inherit', cwd }); };
+
+function walkFiles(dir, predicate, files = []) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) walkFiles(full, predicate, files);
+    else if (entry.isFile() && predicate(full)) files.push(full);
+  }
+  return files;
+}
+
+function localTargetExists(root, fromFile, href) {
+  let target = href.trim().replace(/&amp;/g, '&');
+  if (
+    !target ||
+    target.startsWith('#') ||
+    /^(?:https?:|mailto:|tel:|javascript:|data:|blob:)/i.test(target) ||
+    target.startsWith('//')
+  ) {
+    return true;
+  }
+
+  target = target.split('#')[0].split('?')[0];
+  if (!target) return true;
+
+  const relativeRoot = target.startsWith('/')
+    ? target.replace(/^\/api\/?/, '').replace(/^\/+/, '')
+    : path.relative(root, path.resolve(path.dirname(fromFile), target));
+  const candidate = path.join(root, relativeRoot);
+
+  return (
+    (existsSync(candidate) && statSync(candidate).isFile()) ||
+    (existsSync(candidate) && statSync(candidate).isDirectory() && existsSync(path.join(candidate, 'index.html'))) ||
+    (!path.extname(candidate) && existsSync(path.join(candidate, 'index.html')))
+  );
+}
+
+function removeBrokenLocalHrefs(root) {
+  let removed = 0;
+  for (const file of walkFiles(root, (f) => f.endsWith('.html'))) {
+    const html = readFileSync(file, 'utf8');
+    const fixed = html.replace(/<a\b([^>]*?)\s+href=(["'])([^"']+)\2([^>]*)>/gi, (tag, before, quote, href, after) => {
+      if (localTargetExists(root, file, href)) return tag;
+      removed++;
+      return `<a${before}${after}>`;
+    });
+    if (fixed !== html) writeFileSync(file, fixed, 'utf8');
+  }
+  console.log(`Removed ${removed} broken local hrefs from generated API HTML.`);
+}
 
 // 1) Build Release DLLs for projects whose source generators are newer than DocFX's Roslyn.
 console.log('== [1/4] Build Release DLLs ==');
@@ -57,5 +106,7 @@ for (const p of tsPackages) {
     console.warn(`  TypeDoc failed for ${p.name} (continuing): ${e.message}`);
   }
 }
+
+removeBrokenLocalHrefs(publicApi);
 
 console.log('\nAPI reference generated under web/public/api/ — served at /api/.');

@@ -124,7 +124,7 @@ const PRODUCTS = [
     },
 ];
 
-const ASSET_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif']);
+const ASSET_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.html', '.js', '.css', '.json']);
 const SKIP_DIRS = new Set([
     'node_modules', 'obj', 'bin', '.git', 'storybook-static', '.vitepress',
     // dotfolders found at the .github repo root that are not documentation
@@ -214,31 +214,96 @@ function extractFmField(fmText, field) {
     return m[1].trim().replace(/^["']/, '').replace(/["']$/, '');
 }
 
-function fixLinks(body) {
-    // Markdown links/images: ](target)
-    return body.replace(/\]\(([^)]+)\)/g, (whole, target) => {
-        const hashIdx = target.indexOf('#');
-        let pathPart = hashIdx === -1 ? target : target.slice(0, hashIdx);
-        const hash = hashIdx === -1 ? '' : target.slice(hashIdx);
-        // Skip external/anchor links; process both relative and root-relative
-        // internal links so `.md`/`toc.yml` get stripped either way.
-        if (/^(https?:|mailto:|tel:|#|data:)/.test(pathPart) || pathPart === '') return whole;
-        if (ASSET_EXT.has(path.extname(pathPart).toLowerCase())) return whole; // images keep extension
-        if (pathPart.endsWith('toc.yml')) {
-            pathPart = pathPart.replace(/toc\.yml$/, '');
-        } else if (pathPart.endsWith('.md')) {
-            pathPart = pathPart.slice(0, -3);
-            pathPart = pathPart.replace(/\/index$/, '/').replace(/(^|\/)index$/, '$1');
+function splitLinkTarget(target) {
+    const trimmed = target.trim();
+    const m = trimmed.match(/^(\S+)(.*)$/s);
+    return m ? { url: m[1], suffix: m[2] || '' } : { url: trimmed, suffix: '' };
+}
+
+function splitUrlSuffix(url) {
+    const hash = url.indexOf('#');
+    const query = url.indexOf('?');
+    const cut = [hash, query].filter((i) => i !== -1).sort((a, b) => a - b)[0];
+    if (cut === undefined) return { pathPart: url, suffix: '' };
+    return { pathPart: url.slice(0, cut), suffix: url.slice(cut) };
+}
+
+function isExternalOrSpecial(url) {
+    return /^(https?:|mailto:|tel:|#|data:|javascript:|blob:)/i.test(url) || url.startsWith('//');
+}
+
+function stripDocTarget(pathPart) {
+    let out = pathPart;
+    if (/\/?toc\.ya?ml$/i.test(out)) {
+        out = out.replace(/\/?toc\.ya?ml$/i, '');
+    } else if (/\.mdx?$/i.test(out)) {
+        out = out.replace(/\.mdx?$/i, '');
+        out = out.replace(/\/index$/i, '/').replace(/(^|\/)index$/i, '$1');
+    }
+    return out;
+}
+
+function slugifyPath(urlPath) {
+    const leadingSlash = urlPath.startsWith('/');
+    const trailingSlash = urlPath.endsWith('/');
+    let normalized = path.posix.normalize(urlPath.replace(/\\/g, '/'));
+    if (leadingSlash && !normalized.startsWith('/')) normalized = '/' + normalized;
+    if (trailingSlash && !normalized.endsWith('/')) normalized += '/';
+    const slugged = normalized
+        .split('/')
+        .map((seg) => (seg === '' || seg === '.' || seg === '..' ? seg : seg.toLowerCase().replace(/[^a-z0-9_-]+/g, '')))
+        .join('/');
+    return leadingSlash && !slugged.startsWith('/') ? '/' + slugged : slugged;
+}
+
+function withTrailingSlash(urlPath) {
+    if (urlPath === '/') return urlPath;
+    return urlPath.endsWith('/') ? urlPath : urlPath + '/';
+}
+
+function resolveInternalLink(ctx, target) {
+    const { url, suffix: titleSuffix } = splitLinkTarget(target);
+    if (!url || isExternalOrSpecial(url)) return target;
+
+    const { pathPart: originalPathPart, suffix: urlSuffix } = splitUrlSuffix(url);
+    if (!originalPathPart) return target;
+    if (ASSET_EXT.has(path.extname(originalPathPart).toLowerCase())) return target;
+
+    const strippedPath = stripDocTarget(originalPathPart);
+    let resolvedPath;
+
+    if (strippedPath.startsWith('/')) {
+        // Product-doc links should follow Astro's slug rules. Generated assets and
+        // reference sites under /api and /storybook already have literal paths.
+        if (/^\/(?:api|storybook|storybook-arc)(?:\/|$)/i.test(strippedPath)) {
+            resolvedPath = strippedPath;
+        } else {
+            const ext = path.extname(strippedPath);
+            resolvedPath = slugifyPath(strippedPath);
+            if (!ext) resolvedPath = withTrailingSlash(resolvedPath);
         }
-        // Normalize each path segment to match Astro's slug rule (lowercase, strip
-        // dots/punctuation) so links to e.g. `react.mvvm/` resolve to `reactmvvm`.
-        // `.` and `..` navigation segments are preserved.
-        pathPart = pathPart
-            .split('/')
-            .map((seg) => (seg === '' || seg === '.' || seg === '..' ? seg : seg.toLowerCase().replace(/[^a-z0-9_-]+/g, '')))
-            .join('/');
-        return '](' + pathPart + hash + ')';
+    } else {
+        const absoluteTarget = path.resolve(ctx.dir, strippedPath || '.');
+        const relToProduct = path.relative(ctx.product.src, absoluteTarget).replace(/\\/g, '/');
+        if (relToProduct.startsWith('..') || path.isAbsolute(relToProduct)) return target;
+        const slug = slugifyPath(relToProduct).replace(/^\/+|\/+$/g, '');
+        resolvedPath = withTrailingSlash('/' + ctx.product.key + (slug ? '/' + slug : ''));
+    }
+
+    return resolvedPath + urlSuffix + titleSuffix;
+}
+
+function fixLinks(body, ctx) {
+    // Markdown links/images: ](target)
+    let out = body.replace(/\]\(([^)]+)\)/g, (whole, target) => '](' + resolveInternalLink(ctx, target) + ')');
+
+    // MDX/HTML attributes used by Starlight cards and authored links. These do
+    // not appear in Markdown link syntax, so they must be normalized separately.
+    out = out.replace(/\bhref=(["'])([^"']+)\1/g, (_whole, quote, target) => {
+        return `href=${quote}${resolveInternalLink(ctx, target)}${quote}`;
     });
+
+    return out;
 }
 
 async function inlineIncludes(body, dir) {
@@ -277,7 +342,7 @@ async function convertFile(raw, ctx) {
     out = await inlineIncludes(out, ctx.dir);
     out = convertAlerts(out);
     out = convertXref(out);
-    out = fixLinks(out);
+    out = fixLinks(out, ctx);
 
     const fm = { title };
     if (src.description) fm.description = src.description;
@@ -299,14 +364,14 @@ async function hasSiblingLanding(parentDir, dirName) {
     }
 }
 
-async function walk(srcDir, outDir, relRoot) {
+async function walk(srcDir, outDir, product) {
     const entries = await fs.readdir(srcDir, { withFileTypes: true });
     await fs.mkdir(outDir, { recursive: true });
     const demoteIndex = await hasSiblingLanding(path.dirname(srcDir), path.basename(srcDir));
     for (const entry of entries) {
         if (entry.isDirectory()) {
             if (SKIP_DIRS.has(entry.name)) continue;
-            await walk(path.join(srcDir, entry.name), path.join(outDir, entry.name), relRoot);
+            await walk(path.join(srcDir, entry.name), path.join(outDir, entry.name), product);
             continue;
         }
         // Skip repo READMEs (e.g. the .github org landing) — not site content.
@@ -318,6 +383,7 @@ async function walk(srcDir, outDir, relRoot) {
             const converted = await convertFile(raw, {
                 dir: srcDir,
                 basename: entry.name,
+                product,
             });
             // Keep the source extension: `.md` stays Markdown, `.mdx` stays MDX so
             // authored getting-started pages can use Starlight components (<Steps>,
@@ -526,7 +592,7 @@ async function main() {
             continue;
         }
         await fs.rm(outDir, { recursive: true, force: true });
-        await walk(product.src, outDir, product.key);
+        await walk(product.src, outDir, product);
         const count = await countFiles(outDir);
         console.log(`[sync] ${product.key}: ${count} pages -> ${path.relative(webRoot, outDir)}`);
     }

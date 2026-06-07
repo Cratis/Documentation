@@ -9,6 +9,7 @@
     "start": "astro dev",
     "prebuild": "node scripts/sync-content.mjs",
     "build": "astro build",
+    "postbuild": "node scripts/emit-doc-artifacts.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "lint:docs": "node scripts/lint-docs.mjs",
