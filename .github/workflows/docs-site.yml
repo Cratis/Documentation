@@ -11,9 +11,8 @@
 #
 # PREREQUISITES (one-time, manual):
 #   1. Enable GitHub Pages for this repo with "GitHub Actions" as the source.
-#   2. Add a repo/org secret `DOCS_CHECKOUT_TOKEN` (a PAT or GitHub App token) with read
-#      access to Cratis/Chronicle, Cratis/Arc, Cratis/Components, Cratis/Fundamentals,
-#      Cratis/cli and Cratis/.github. The default GITHUB_TOKEN cannot check out other repos.
+#   2. The checked-out product repos are public. If any become private, add a repo/org
+#      secret `DOCS_CHECKOUT_TOKEN`; the checkout steps fall back to `github.token`.
 #   3. If serving under a sub-path (e.g. cratis.io/docs), set `base: '/docs'` in astro.config.mjs.
 
 name: Documentation site
@@ -53,7 +52,7 @@ jobs:
         with:
           repository: Cratis/Chronicle
           ref: ${{ env.DOCS_REF }}
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: Chronicle
 
       - name: Checkout Arc
@@ -61,7 +60,7 @@ jobs:
         with:
           repository: Cratis/Arc
           ref: ${{ env.DOCS_REF }}
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: Arc
 
       - name: Checkout Components
@@ -69,7 +68,7 @@ jobs:
         with:
           repository: Cratis/Components
           ref: ${{ env.DOCS_REF }}
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: Components
 
       - name: Checkout Fundamentals
@@ -77,7 +76,7 @@ jobs:
         with:
           repository: Cratis/Fundamentals
           ref: ${{ env.DOCS_REF }}
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: Fundamentals
 
       - name: Checkout cli
@@ -85,7 +84,7 @@ jobs:
         with:
           repository: Cratis/cli
           ref: ${{ env.DOCS_REF }}
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: cli
 
       - name: Checkout .github (Contributing)
@@ -93,7 +92,7 @@ jobs:
         with:
           repository: Cratis/.github
           ref: ${{ env.DOCS_REF }}
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: .github
 
       - uses: actions/setup-node@v4
