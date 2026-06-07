@@ -70,6 +70,7 @@ const PRODUCTS = [
             { label: 'Start here', sections: ['Tutorial', 'Scenarios'] },
             { label: 'Concepts and architecture', sections: ['Why Arc', 'CQRS without event sourcing', 'MediatR, MVC, and Arc', 'Vertical slices', 'Understanding the proxy boundary', 'Understanding identity and access'] },
             { label: 'Backend', sections: ['Backend'] },
+            { label: 'Integrations', sections: ['Integrate with Chronicle'] },
             { label: 'Frontend', sections: ['Frontend'] },
             { label: 'Operations and reference', sections: ['General', 'Troubleshooting'] },
         ],
