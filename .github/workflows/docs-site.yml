@@ -1,20 +1,19 @@
-# Builds and deploys the new Astro Starlight documentation site (Documentation/web).
+# Builds and deploys the Astro Starlight documentation site (Documentation/web).
 #
 # Content lives in each product repo's `Documentation/` folder. This workflow checks
 # each product repo out as a sibling of this repo — matching the local dev layout the
 # converter expects (scripts/sync-content.mjs) — at the SAME branch this repo builds
-# from: `main` in production, otherwise `docs-overhaul` (preview/CI). So no manual edit
-# is needed at cutover — merging to `main` makes it build + deploy `main` content.
+# from: `main` in production, otherwise `docs-overhaul` (preview/CI).
 #
 # The build runs on both `docs-overhaul` (validation) and `main`; the deploy job runs
 # ONLY on `main`, so a docs-overhaul push validates the build without publishing.
 #
-# PREREQUISITES (one-time, manual — see ../../../RELEASE-RUNBOOK.md):
+# PREREQUISITES (one-time, manual):
 #   1. Enable GitHub Pages for this repo with "GitHub Actions" as the source.
 #   2. Add a repo/org secret `DOCS_CHECKOUT_TOKEN` (a PAT or GitHub App token) with read
 #      access to Cratis/Chronicle, Cratis/Arc, Cratis/Components, Cratis/Fundamentals,
 #      Cratis/cli and Cratis/.github. The default GITHUB_TOKEN cannot check out other repos.
-#   3. Retire the old DocFX deploy (pages.yml) so the two don't both target Pages on main.
+#   3. Keep the old DocFX deploy (pages.yml) manual-only so this workflow owns Pages on main.
 #   4. If serving under a sub-path (e.g. cratis.io/docs), set `base: '/docs'` in astro.config.mjs.
 
 name: Documentation site

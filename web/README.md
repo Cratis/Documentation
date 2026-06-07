@@ -1,11 +1,11 @@
 # Cratis documentation site
 
-The Cratis documentation site, built with [Astro Starlight](https://starlight.astro.build/). It aggregates the documentation from each product repository (Chronicle, Arc, Components, Fundamentals) plus the Contributing guide, and presents them as one site.
+The Cratis documentation site, built with [Astro Starlight](https://starlight.astro.build/). It aggregates the documentation from each product repository (Chronicle, Arc, Components, CLI, Fundamentals) plus the Contributing guide, and presents them as one site.
 
 ## Prerequisites
 
-- **Node.js 20 or newer** (CI builds on Node 20).
-- **The product repositories checked out as siblings of this repo, all on the `docs-overhaul` branch.** The site reads each product's `Documentation/` folder from a sibling clone, so your layout should be:
+- **Node.js 23 or newer** (CI builds on Node 23 because the Storybook toolchain requires it).
+- **The product repositories checked out as siblings of this repo.** The site reads each product's `Documentation/` folder from a sibling clone, so your layout should be:
 
   ```
   <parent>/
@@ -13,17 +13,18 @@ The Cratis documentation site, built with [Astro Starlight](https://starlight.as
   ├── Chronicle/
   ├── Arc/               ← the ApplicationModel repo, cloned as "Arc"
   ├── Components/
+  ├── cli/
   ├── Fundamentals/
   └── .github/           ← the Cratis/.github org repo (Contributing docs)
   ```
 
-  Put each on `docs-overhaul`:
+  Put each on the branch you want to preview. For the released site, use `main`:
 
   ```bash
-  for r in Chronicle Arc Components Fundamentals .github; do (cd "$r" && git checkout docs-overhaul); done
+  for r in Chronicle Arc Components cli Fundamentals .github; do (cd "$r" && git checkout main); done
   ```
 
-  > If a product repo is missing as a sibling, the converter falls back to that product's git submodule inside this repo — but submodules track `main`, not the in-progress `docs-overhaul` content. Use sibling clones on `docs-overhaul` for now.
+  > If a product repo is missing as a sibling, the converter falls back to that product's git submodule inside this repo when one exists. Use sibling clones when you need to preview unmerged branch content.
 
 ## Quick start
 
@@ -41,8 +42,8 @@ Documentation **lives in each product repository's `Documentation/` folder** —
 
 - `scripts/sync-content.mjs` reads the product `Documentation/` folders (resolved as siblings of this repo, e.g. `../Chronicle/Documentation`), converts them, and writes the result into `src/content/docs/<product>/`.
 - Those generated folders are **git-ignored** — never edit them by hand. Edit the source in the product repo and re-sync.
-- The sidebar for Chronicle/Arc is generated from each product's `toc.yml`; it is written to `src/generated/sidebar.json` (also git-ignored) and imported by `astro.config.mjs`.
-- Site-level pages that don't belong to a single product (the landing page, `why-cratis.md`) are authored directly in `src/content/docs/` and are tracked in git.
+- Product sidebars are generated from each product's `toc.yml`; the topic model is written to `src/generated/topics.json` (also git-ignored) and imported by `astro.config.mjs`.
+- Site-level pages that don't belong to a single product (the landing page, `why-cratis.mdx`, compatibility, community, feedback, and comparison pages) are authored directly in `src/content/docs/` and are tracked in git.
 
 The conversion handles: front matter (adds a `title`), DocFX alerts (`> [!NOTE]` → `:::note`), `<xref:...>`, `[!INCLUDE]`, and `.md`/`toc.yml` link fix-ups.
 
@@ -87,9 +88,9 @@ Two QA scripts back this up:
 
 ## Verify it works locally — checklist
 
-1. **Build + gates pass:** `npm run check` ends with `[build] Complete!`, `0 error(s), 0 warning(s)`, and `Checked … 0 broken`.
+1. **Build + gates pass:** `npm run check` ends with `[build] Complete!`, `0 error(s)`, and `Checked … 0 broken`. Advisory style warnings may remain.
 2. **Dev server serves:** `npm run dev`, open http://localhost:4321 — the landing page shows the hero and the C#/TypeScript tabs ("One feature, one slice, both ends type-safe").
-3. **Navigation:** the sidebar starts with *Why Cratis · Build a full-stack feature · Samples · API reference*, then each product (Chronicle, Arc, Components, Fundamentals, Contributing) with its sections.
+3. **Navigation:** the sidebar starts with *Why Cratis · Build a full-stack feature · Samples · API reference*, then each product (Chronicle, Arc, Components, CLI, Fundamentals, Contributing) with its sections.
 4. **Search:** the top-bar search returns results (try "projection").
 5. **Diagrams render:** open *Chronicle → Architecture* — the Mermaid diagrams display.
 6. **AI export:** http://localhost:4321/llms.txt lists the docs.

@@ -1,10 +1,10 @@
 name: Build & Deploy Documentation site (legacy DocFX — DEPRECATED)
 
 # DEPRECATED — the DocFX site (Source/) is superseded by the Astro Starlight site
-# (docs-site.yml). Auto-deploy on push to main and repository_dispatch are DISABLED so
-# this can't fight docs-site.yml for the GitHub Pages deployment at/after cutover.
-# Kept runnable via workflow_dispatch for emergency rollback to the old DocFX site;
-# delete this file once the new site is confirmed live on main.
+# (docs-site.yml). Auto-deploy on push to main and repository_dispatch are DISABLED
+# so docs-site.yml owns the GitHub Pages deployment. Kept runnable via
+# workflow_dispatch for an emergency rebuild of the old DocFX site while Source/
+# remains in the repository.
 on:
   workflow_dispatch:
 

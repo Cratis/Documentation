@@ -21,9 +21,9 @@ const docRepoRoot = path.resolve(webRoot, '..'); // Documentation/  (submodules 
 const reposRoot = path.resolve(webRoot, '..', '..'); // cratis/      (sibling clones live here locally)
 
 // Each product's docs can come from a sibling clone next to this repo (local dev
-// and the docs-site CI workflow, both on the docs-overhaul branch) or a git
-// submodule inside the Documentation repo (legacy layout). Prefer the sibling so
-// the in-progress docs-overhaul content wins; fall back to the submodule.
+// and the docs-site CI workflow) or a git submodule inside the Documentation repo
+// (fallback layout). Prefer the sibling so the branch under test wins; fall back
+// to the submodule.
 function firstExisting(...candidates) {
     return candidates.find((c) => existsSync(c)) ?? candidates[candidates.length - 1];
 }

@@ -90,7 +90,7 @@ const topics = [overviewTopic, ...productTopics];
 // https://astro.build/config
 export default defineConfig({
     site: 'https://cratis.io',
-    // NOTE: if the site is served under cratis.io/docs at cutover, set `base: '/docs'`.
+    // NOTE: if the site is served under cratis.io/docs, set `base: '/docs'`.
     // GFM tables render in plain `.md`, but astro-mermaid injects plugins via the
     // (now-deprecated) `markdown.remarkPlugins` path, which leaves MDX's own `gfm`
     // flag falsy — so tables silently vanished from every `.mdx` page (front door,
@@ -168,8 +168,8 @@ export default defineConfig({
                 { icon: 'youtube', label: 'YouTube', href: 'https://www.youtube.com/@CratisStack' },
             ],
             editLink: {
-                // Per-product content is symlinked from product repos; refine at cutover.
-                baseUrl: 'https://github.com/cratis/Documentation/edit/docs-overhaul/web/',
+                // Per-product content is generated from product repos; site-level pages live here.
+                baseUrl: 'https://github.com/cratis/Documentation/edit/main/web/',
             },
             plugins: [
                 // Product icon rail + per-product sidebar (the aspire.dev "topics" look).
