@@ -27,6 +27,8 @@ Nothing in that list is a thing *you* keep in sync. The build does.
 
 Wiring the stack into one host is itself a single call: the [`Cratis` package](/arc/backend/chronicle/cratis-package/) brings Arc and Chronicle up together with `AddCratis`/`UseCratis`, sharing storage, identity, and hosting.
 
+How the two line up *in code* — how a command's `Handle()` return becomes an appended event, how the event source id picks the stream, and how a `[ReadModel]` projection is served back by a query — is laid out in [Integrate with Chronicle](/arc/backend/chronicle/).
+
 <StackJourney
   eyebrow="Design, build, operate"
   title="The journey, end to end"
