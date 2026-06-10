@@ -16,6 +16,14 @@ const typedoc = path.join(web, 'node_modules', '.bin', 'typedoc');
 const docfx = existsSync(path.join(os.homedir(), '.dotnet', 'tools', 'docfx'))
   ? path.join(os.homedir(), '.dotnet', 'tools', 'docfx')
   : 'docfx';
+// The docs site needs loadable reference assemblies for DocFX. Product CI owns
+// analyzer enforcement; warning-as-error policies should not block docs publishing.
+const referenceBuildProps = [
+  '-p:TreatWarningsAsErrors=false',
+  '-p:MSBuildTreatWarningsAsErrors=false',
+  '-p:CodeAnalysisTreatWarningsAsErrors=false',
+  '-p:StyleCopTreatErrorsAsWarnings=true',
+].join(' ');
 
 const run = (cmd, cwd = web) => { console.log(`\n+ ${cmd}`); execSync(cmd, { stdio: 'inherit', cwd }); };
 
@@ -70,11 +78,11 @@ function removeBrokenLocalHrefs(root) {
 
 // 1) Build Arc + Chronicle client Release DLLs — docfx can't run their source generators, so it reads the compiled DLLs.
 console.log('== [1/4] Build Arc + Chronicle client Release DLLs ==');
-run(`dotnet build "${path.join(repos, 'Arc/Source/DotNET/Arc/Arc.csproj')}" -c Release`);
-run(`dotnet build "${path.join(repos, 'Arc/Source/DotNET/MongoDB/MongoDB.csproj')}" -c Release`);
-run(`dotnet build "${path.join(repos, 'Chronicle/Source/Clients/DotNET/DotNET.csproj')}" -c Release`);
-run(`dotnet build "${path.join(repos, 'Chronicle/Source/Clients/AspNetCore/AspNetCore.csproj')}" -c Release`);
-run(`dotnet build "${path.join(repos, 'Chronicle/Source/Clients/Testing/Testing.csproj')}" -c Release`);
+run(`dotnet build "${path.join(repos, 'Arc/Source/DotNET/Arc/Arc.csproj')}" -c Release ${referenceBuildProps}`);
+run(`dotnet build "${path.join(repos, 'Arc/Source/DotNET/MongoDB/MongoDB.csproj')}" -c Release ${referenceBuildProps}`);
+run(`dotnet build "${path.join(repos, 'Chronicle/Source/Clients/DotNET/DotNET.csproj')}" -c Release ${referenceBuildProps}`);
+run(`dotnet build "${path.join(repos, 'Chronicle/Source/Clients/AspNetCore/AspNetCore.csproj')}" -c Release ${referenceBuildProps}`);
+run(`dotnet build "${path.join(repos, 'Chronicle/Source/Clients/Testing/Testing.csproj')}" -c Release ${referenceBuildProps}`);
 
 // 2) DocFX .NET API
 console.log('== [2/4] DocFX .NET API ==');
