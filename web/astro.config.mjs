@@ -76,7 +76,17 @@ const overviewTopic = {
             ],
         },
         { label: 'Auth and compliance', slug: 'auth-and-compliance' },
-        { label: 'AuthProxy', slug: 'authproxy' },
+        {
+            label: 'AuthProxy',
+            items: [
+                { label: 'Overview', slug: 'authproxy' },
+                { label: 'Get started', slug: 'authproxy/get-started' },
+                { label: 'Authentication', slug: 'authproxy/authentication' },
+                { label: 'Identity', slug: 'authproxy/identity' },
+                { label: 'Tenancy', slug: 'authproxy/tenancy' },
+                { label: 'Invites and lobby', slug: 'authproxy/invites-and-lobby' },
+            ],
+        },
         { label: 'Build a full-stack feature', slug: 'build-a-full-app' },
         { label: 'Samples', slug: 'samples' },
         { label: 'Showcase and architectures', slug: 'showcase' },
@@ -180,7 +190,7 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/professional-help', '/community', '/feedback', '/ai-native-development', '/plugins', '/code-analysis', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/authproxy', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/professional-help', '/community', '/feedback', '/ai-native-development', '/plugins', '/code-analysis', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/authproxy', '/authproxy/**', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],

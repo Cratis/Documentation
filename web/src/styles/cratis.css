@@ -163,8 +163,8 @@
 
 .hero h1 {
     max-width: 13ch;
-    font-size: clamp(3rem, 8vw, 5.8rem);
-    line-height: 0.96;
+    font-size: clamp(2.7rem, 6.5vw, 4.75rem);
+    line-height: 1;
     letter-spacing: 0;
 }
 
@@ -243,8 +243,8 @@
 
     .hero h1 {
         max-width: 12ch;
-        font-size: clamp(2.15rem, 11vw, 3rem);
-        line-height: 1.02;
+        font-size: clamp(2rem, 10vw, 2.75rem);
+        line-height: 1.05;
     }
 
     .hero .tagline {
@@ -580,6 +580,18 @@
    selector carrying `!important` reliably wins. Depth reads as:
    page → frame (lifted) → cluster (recessed inset) → node (brightest).
    ===================================================================== */
+/* The build-time prerenderer measures node labels with `line-height: normal`;
+   at runtime Starlight's global `line-height: 1.75` inherits into the SVG's
+   foreignObject HTML and any second label line overflows the measured box —
+   and foreignObject clips overflow. Pin the label line-height to match the
+   measurement so multi-line labels render in full. */
+.mermaid svg foreignObject div,
+.mermaid svg .nodeLabel,
+.mermaid svg .nodeLabel p,
+.mermaid svg .edgeLabel p {
+    line-height: 1.5 !important;
+    margin: 0 !important;
+}
 :root {
     /* Frame: a soft gradient panel with two faint accent glows in opposite
        corners (the aspire.dev look) instead of a flat fill. */

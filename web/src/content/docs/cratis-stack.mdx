@@ -1,6 +1,6 @@
 ---
 title: The Cratis Stack
-description: One stack, end to end — model your domain in Studio, secure the edge with AuthProxy, build it with Arc, Chronicle, and Components, choose the right Chronicle storage, operate it with the CLI and Workbench, and accelerate every step with AI.
+description: One stack, end to end — model your domain in Studio, secure the edge with AuthProxy, build it with Arc, Chronicle, and Components, choose the right Chronicle storage, run it all from one Aspire AppHost, operate it with the CLI and Workbench, and accelerate every step with AI.
 ---
 
 import { CardGrid } from '@astrojs/starlight/components';
@@ -9,18 +9,19 @@ import TopicHero from '@components/TopicHero.astro';
 import StackJourney from '@components/StackJourney.astro';
 
 <TopicHero icon="rocket" eyebrow="The Cratis Stack" title="From a sticky note to a running, typed, full-stack app">
-Most stacks are a bag of libraries you bolt together and then spend the whole project keeping in sync. Developers choose Cratis because the layers are designed as **one thing** — a domain you model on Monday can become typed C#, authenticated tenant-aware requests, a live React screen, and an inspectable event log by Friday, with event sourcing as the default backbone for information systems and the handoffs handled by conventions, generation, and open runtime boundaries. [Start building →](/chronicle/get-started/) · [Why developers choose Cratis →](/why-cratis/)
+Most stacks are a bag of libraries you bolt together and then spend the whole project keeping in sync. Developers choose Cratis because the layers are designed as **one thing** — the domain you sketch at the top of the hour is typed C#, authenticated tenant-aware requests, a live React screen, and an inspectable event log before the hour is out. Not because you typed faster — because event sourcing is the default backbone for information systems and every handoff you'd normally hand-write is covered by conventions, generation, and open runtime boundaries. [Start building →](/chronicle/get-started/) · [Why developers choose Cratis →](/why-cratis/)
 </TopicHero>
 
 ## One idea, all the way down
 
 Each product is strong on its own — you can [use them separately](/why-cratis/). The reason to reach for the *whole* stack is that the seams disappear: CQRS shapes information going in and out, event sourcing keeps the facts underneath, and everywhere you'd normally hand-write glue, Cratis generates it.
 
-- You **model** the domain, and [Studio](/studio/) will generate the C# for it.
+- You **model** the domain, and with access to [Studio](/studio/) that model is how you manage the entire lifecycle of the project — from generated C# to the running system.
 - You **secure the edge**, and [AuthProxy](/authproxy/) authenticates, resolves the tenant, enriches identity, and routes requests.
 - You **write a command**, and [Arc](/arc/) generates the [typed TypeScript proxy](/arc/understanding-the-proxy-boundary/) for it.
 - You **append an event**, and [Chronicle](/chronicle/) accepts it through a gRPC/protobuf boundary, stores it in MongoDB, PostgreSQL, Microsoft SQL Server, or SQLite, and projects the read model from it.
 - You **render a screen**, and [Components](/components/) consumes the proxy with no API client to write.
+- You **press F5**, and the [Aspire integration](/chronicle/hosting/aspire/) starts Chronicle next to your services — development image, embedded MongoDB, no compose file.
 - You **run it**, and the [CLI](/cli/), Workbench, OpenTelemetry, jobs, recommendations, and replay tools let you watch and operate the event store.
 
 Nothing in that list is a thing *you* keep in sync. The build does.
@@ -35,7 +36,34 @@ How the two line up *in code* — how a command's `Handle()` return becomes an a
   intro="Read it left to right: a domain idea becomes a secured tenant-aware request, a generated slice, a durable event, a live typed React screen, and an inspectable running system. AI can accelerate the same path because the conventions are explicit."
 />
 
-## Secure and comply end to end
+## Run the whole stack from one AppHost
+
+Before any of this renders, Chronicle and a database have to be running — and "clone the repo, then fix the
+compose file" is where most first hours go to die. Chronicle ships a first-class .NET Aspire resource instead,
+so the event store is one line in your AppHost:
+
+```csharp
+var builder = DistributedApplication.CreateBuilder(args);
+
+var chronicle = builder.AddCratisChronicle();
+
+builder.AddProject<Projects.MyApi>("api")
+    .WithReference(chronicle);
+
+builder.Build().Run();
+```
+
+With no arguments, `AddCratisChronicle()` registers a resource named `chronicle` running the development
+image — embedded MongoDB included — so F5 brings the store up with zero external infrastructure, and
+`WithReference(chronicle)` hands your API the connection string. When you graduate to real storage, the same
+call takes a configure callback after the name — `builder.AddCratisChronicle("chronicle", c => c.WithMongoDB(mongo))`,
+or `WithPostgreSql`, `WithMsSql`, `WithSqlite` — and compliance encryption keys can live in HashiCorp Vault or
+Azure Key Vault via `WithHashiCorpVault` and `WithAzureKeyVault`.
+
+[Chronicle's Aspire integration](/chronicle/hosting/aspire/) walks through development versus production
+images, every storage option, ports, and connecting .NET clients.
+
+## Security and compliance end to end
 
 Authentication, authorization, tenancy, and compliance are separate concerns, but they travel through the
 same request. AuthProxy authenticates and resolves tenant context. Arc authorizes the command or query.

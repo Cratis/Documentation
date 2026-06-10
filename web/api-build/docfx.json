@@ -8,18 +8,16 @@
   },
   "metadata": [
     {
-      "comment": "Chronicle client uses source-generated tracing methods. DocFX's bundled Roslyn can fail to load the newer generators, so build-api.mjs builds Release first and DocFX reads the compiled DLL.",
+      "comment": "Chronicle clients use pre-built Release DLLs for the same reason as Arc below: the Cratis.Traces [Span] source generator references a newer Roslyn than docfx bundles (ReferencesNewerCompiler), so the partial *Traces methods fail to compile from source (CS8795). build-api.mjs runs `dotnet build -c Release` first.",
       "src": [{ "files": ["Cratis.Chronicle.dll"], "src": "../../../Chronicle/Source/Clients/DotNET/bin/Release/net10.0" }],
       "output": "chronicle/clients/dotnet"
     },
     {
-      "src": [{ "files": ["Clients/AspNetCore/AspNetCore.csproj"], "exclude": ["**/obj/**", "**/bin/**"], "src": "../../../Chronicle/Source" }],
-      "properties": { "TargetFramework": "net10.0" },
+      "src": [{ "files": ["Cratis.Chronicle.AspNetCore.dll"], "src": "../../../Chronicle/Source/Clients/AspNetCore/bin/Release/net10.0" }],
       "output": "chronicle/clients/aspnetcore"
     },
     {
-      "src": [{ "files": ["Clients/Testing/Testing.csproj"], "exclude": ["**/obj/**", "**/bin/**"], "src": "../../../Chronicle/Source" }],
-      "properties": { "TargetFramework": "net10.0" },
+      "src": [{ "files": ["Cratis.Chronicle.Testing.dll"], "src": "../../../Chronicle/Source/Clients/Testing/bin/Release/net10.0" }],
       "output": "chronicle/clients/testing"
     },
     {

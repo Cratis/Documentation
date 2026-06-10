@@ -68,11 +68,13 @@ function removeBrokenLocalHrefs(root) {
   console.log(`Removed ${removed} broken local hrefs from generated API HTML.`);
 }
 
-// 1) Build Release DLLs for projects whose source generators are newer than DocFX's Roslyn.
-console.log('== [1/4] Build Release DLLs ==');
-run(`dotnet build "${path.join(repos, 'Chronicle/Source/Clients/DotNET/DotNET.csproj')}" -c Release`);
+// 1) Build Arc + Chronicle client Release DLLs — docfx can't run their source generators, so it reads the compiled DLLs.
+console.log('== [1/4] Build Arc + Chronicle client Release DLLs ==');
 run(`dotnet build "${path.join(repos, 'Arc/Source/DotNET/Arc/Arc.csproj')}" -c Release`);
 run(`dotnet build "${path.join(repos, 'Arc/Source/DotNET/MongoDB/MongoDB.csproj')}" -c Release`);
+run(`dotnet build "${path.join(repos, 'Chronicle/Source/Clients/DotNET/DotNET.csproj')}" -c Release`);
+run(`dotnet build "${path.join(repos, 'Chronicle/Source/Clients/AspNetCore/AspNetCore.csproj')}" -c Release`);
+run(`dotnet build "${path.join(repos, 'Chronicle/Source/Clients/Testing/Testing.csproj')}" -c Release`);
 
 // 2) DocFX .NET API
 console.log('== [2/4] DocFX .NET API ==');
