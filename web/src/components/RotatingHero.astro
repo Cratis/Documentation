@@ -123,11 +123,66 @@ const panes: Pane[] = [
         const dots = nav ? [...nav.querySelectorAll('button')] : [];
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const ROTATE_MS = 8000;
-        const FADE_MS = 300;
+        const EXIT_MS = 240;
         let current = 0;
         let swapping = false;
         let stopped = false;
         let timer: ReturnType<typeof setInterval> | undefined;
+
+        const wrap = (index: number) => (index + panes.length) % panes.length;
+
+        const measure = document.createElement('div');
+        const measureCopy = document.createElement('div');
+        const measureActions = document.createElement('div');
+        measure.className = 'rh-measurer';
+        measure.setAttribute('aria-hidden', 'true');
+        measureCopy.className = copy.className;
+        measureActions.className = actions.className;
+        measure.append(measureCopy, measureActions);
+        hero.append(measure);
+
+        const setStableHeights = () => {
+            let maxCopyHeight = 0;
+            let maxActionsHeight = 0;
+            const copyWidth = copy.getBoundingClientRect().width;
+            const actionsWidth = actions.getBoundingClientRect().width;
+
+            measureCopy.style.width = copyWidth > 0 ? `${Math.ceil(copyWidth)}px` : '';
+            measureActions.style.width = actionsWidth > 0 ? `${Math.ceil(actionsWidth)}px` : '';
+
+            panes.forEach((template) => {
+                const pane = template.content;
+                const measuredTitle = document.createElement('h1');
+                const measuredTagline = document.createElement('p');
+                measuredTitle.innerHTML = pane.querySelector('[data-rh-title]')?.innerHTML ?? '';
+                measuredTagline.className = tagline.className;
+                measuredTagline.innerHTML = pane.querySelector('[data-rh-tagline]')?.innerHTML ?? '';
+                measureCopy.replaceChildren(measuredTitle, measuredTagline);
+
+                const paneActions = pane.querySelector('[data-rh-actions]');
+                measureActions.replaceChildren(
+                    ...[...(paneActions?.children ?? [])].map((child) => child.cloneNode(true)),
+                );
+
+                maxCopyHeight = Math.max(maxCopyHeight, measureCopy.getBoundingClientRect().height);
+                maxActionsHeight = Math.max(maxActionsHeight, measureActions.getBoundingClientRect().height);
+            });
+
+            copy.style.setProperty('--rh-copy-height', `${Math.ceil(maxCopyHeight)}px`);
+            actions.style.setProperty('--rh-actions-height', `${Math.ceil(maxActionsHeight)}px`);
+        };
+
+        const setPaused = (paused: boolean) => {
+            hero.toggleAttribute('data-rh-paused', paused);
+        };
+
+        const restartProgress = () => {
+            const activeDot = dots[current];
+            if (!activeDot) return;
+            activeDot.classList.remove('rh-dot--active');
+            void activeDot.offsetWidth;
+            activeDot.classList.add('rh-dot--active');
+        };
 
         const apply = (index: number) => {
             const pane = panes[index].content;
@@ -151,13 +206,22 @@ const panes: Pane[] = [
                 apply(index);
                 return;
             }
+            const forward = wrap(index - current);
+            const backward = wrap(current - index);
+            const direction = forward <= backward ? 'next' : 'prev';
             swapping = true;
-            hero.setAttribute('data-rotating', 'swapping');
+            hero.setAttribute('data-rh-direction', direction);
+            hero.setAttribute('data-rh-phase', 'exit');
             setTimeout(() => {
                 apply(index);
-                hero.setAttribute('data-rotating', 'true');
-                swapping = false;
-            }, FADE_MS);
+                hero.setAttribute('data-rh-phase', 'enter');
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        hero.setAttribute('data-rh-phase', 'idle');
+                        swapping = false;
+                    });
+                });
+            }, EXIT_MS);
         };
 
         const pause = () => {
@@ -165,10 +229,13 @@ const panes: Pane[] = [
                 clearInterval(timer);
                 timer = undefined;
             }
+            setPaused(true);
         };
 
         const resume = () => {
             if (stopped || reducedMotion || timer) return;
+            setPaused(false);
+            restartProgress();
             timer = setInterval(() => show((current + 1) % panes.length), ROTATE_MS);
         };
 
@@ -181,7 +248,9 @@ const panes: Pane[] = [
             copy.setAttribute('aria-atomic', 'true');
         };
 
-        hero.setAttribute('data-rotating', 'true');
+        hero.setAttribute('data-rh-enhanced', 'true');
+        hero.setAttribute('data-rh-phase', 'idle');
+        hero.style.setProperty('--rh-rotate-duration', `${ROTATE_MS}ms`);
         hero.setAttribute('role', 'region');
         hero.setAttribute('aria-roledescription', 'carousel');
         hero.setAttribute('aria-label', 'Cratis highlights');
@@ -204,22 +273,73 @@ const panes: Pane[] = [
         hero.addEventListener('focusin', pause);
         hero.addEventListener('focusout', resume);
         document.addEventListener('visibilitychange', () => (document.hidden ? pause() : resume()));
+        window.addEventListener('resize', setStableHeights);
+        document.fonts?.ready.then(setStableHeights);
 
+        setStableHeights();
         resume();
     }
 </script>
 
 <style>
-    /* The swap crossfades the hero copy and actions; the attribute is only set
-       by the script, so without JavaScript none of this applies. */
-    :global(.hero[data-rotating] .copy),
-    :global(.hero[data-rotating] .actions) {
-        transition: opacity 0.3s ease;
+    :global(.hero[data-rh-enhanced] .copy) {
+        min-height: var(--rh-copy-height);
     }
 
-    :global(.hero[data-rotating='swapping'] .copy),
-    :global(.hero[data-rotating='swapping'] .actions) {
+    :global(.hero[data-rh-enhanced] .actions) {
+        min-height: var(--rh-actions-height);
+    }
+
+    :global(.hero[data-rh-enhanced] .copy),
+    :global(.hero[data-rh-enhanced] .actions) {
+        transition:
+            opacity 0.32s ease,
+            transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1);
+        will-change: opacity, transform;
+    }
+
+    :global(.hero[data-rh-phase='exit'][data-rh-direction='next'] .copy),
+    :global(.hero[data-rh-phase='exit'][data-rh-direction='next'] .actions) {
         opacity: 0;
+        transform: translateX(-1.35rem);
+    }
+
+    :global(.hero[data-rh-phase='exit'][data-rh-direction='prev'] .copy),
+    :global(.hero[data-rh-phase='exit'][data-rh-direction='prev'] .actions) {
+        opacity: 0;
+        transform: translateX(1.35rem);
+    }
+
+    :global(.hero[data-rh-phase='enter'] .copy),
+    :global(.hero[data-rh-phase='enter'] .actions) {
+        opacity: 0;
+        transition: none;
+    }
+
+    :global(.hero[data-rh-phase='enter'][data-rh-direction='next'] .copy),
+    :global(.hero[data-rh-phase='enter'][data-rh-direction='next'] .actions) {
+        transform: translateX(1.35rem);
+    }
+
+    :global(.hero[data-rh-phase='enter'][data-rh-direction='prev'] .copy),
+    :global(.hero[data-rh-phase='enter'][data-rh-direction='prev'] .actions) {
+        transform: translateX(-1.35rem);
+    }
+
+    :global(.hero .rh-measurer) {
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline-start: 0;
+        width: min(100%, 52rem);
+        visibility: hidden;
+        pointer-events: none;
+        z-index: -1;
+        contain: layout;
+    }
+
+    :global(.hero .rh-measurer .copy),
+    :global(.hero .rh-measurer .actions) {
+        min-height: 0 !important;
     }
 
     /* Labeled dot indicators — pills in the site's accent language that show
@@ -232,6 +352,7 @@ const panes: Pane[] = [
     }
 
     .rh-dot {
+        position: relative;
         display: inline-flex;
         align-items: center;
         gap: 0.45rem;
@@ -244,7 +365,20 @@ const panes: Pane[] = [
         font-weight: 600;
         line-height: 1.3;
         cursor: pointer;
+        overflow: hidden;
         transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+    }
+
+    .rh-dot::after {
+        content: '';
+        position: absolute;
+        inset-inline: 0;
+        inset-block-end: 0;
+        height: 2px;
+        background: var(--sl-color-accent);
+        opacity: 0;
+        transform: scaleX(0);
+        transform-origin: left;
     }
 
     .rh-dot:hover,
@@ -257,6 +391,15 @@ const panes: Pane[] = [
         border-color: color-mix(in srgb, var(--sl-color-accent) 60%, transparent);
         background: color-mix(in srgb, var(--sl-color-accent) 16%, transparent);
         color: var(--sl-color-accent-high);
+    }
+
+    .rh-dot--active::after {
+        opacity: 0.9;
+        animation: rh-progress var(--rh-rotate-duration, 8000ms) linear both;
+    }
+
+    :global(.hero[data-rh-paused]) .rh-dot--active::after {
+        animation-play-state: paused;
     }
 
     .rh-dot__marker {
@@ -278,11 +421,26 @@ const panes: Pane[] = [
     }
 
     @media (prefers-reduced-motion: reduce) {
-        :global(.hero[data-rotating] .copy),
-        :global(.hero[data-rotating] .actions),
+        :global(.hero[data-rh-enhanced] .copy),
+        :global(.hero[data-rh-enhanced] .actions),
         .rh-dot,
         .rh-dot__marker {
             transition: none;
+        }
+
+        .rh-dot--active::after {
+            animation: none;
+            transform: scaleX(1);
+        }
+    }
+
+    @keyframes rh-progress {
+        from {
+            transform: scaleX(0);
+        }
+
+        to {
+            transform: scaleX(1);
         }
     }
 </style>
