@@ -27,6 +27,12 @@ hero:
 import { Card, CardGrid, LinkCard, Tabs, TabItem, Steps } from '@astrojs/starlight/components';
 import SimpleCard from '../../components/SimpleCard.astro';
 import StackJourney from '../../components/StackJourney.astro';
+import RotatingHero from '../../components/RotatingHero.astro';
+
+{/* Rotates the hero above through Event Sourcing / CQRS / Application
+    Framework / Studio messages. The frontmatter hero is the first pane and
+    the no-JS fallback — keep the two in sync. */}
+<RotatingHero />
 
 ## Get started in 3 steps
 
@@ -119,17 +125,18 @@ public record RegisterAuthor(AuthorId Id, AuthorName Name)
 public record AuthorRegistered(AuthorName Name);
 
 [ReadModel, FromEvent<AuthorRegistered>]
-public record Author([property: Key] AuthorId Id, AuthorName Name)
+public record Author(AuthorId Id, AuthorName Name)
 {
     // This static method *is* the query — exposed over HTTP automatically.
-    public static ISubject<IEnumerable<Author>> AllAuthors(IMongoCollection<Author> c) => c.Observe();
+    public static Task<IEnumerable<Author>> AllAuthors(IReadModels readModels) =>
+        readModels.Materialized.GetInstances<Author>();
 }
 ```
 </TabItem>
 <TabItem label="React — the screen" icon="seti:react">
 ```tsx
 // Proxies are generated from the C# above — fully typed, always in sync.
-const [authors] = AllAuthors.use();           // live, updates as events arrive
+const [authors] = AllAuthors.use();           // typed result, no API client to write
 
 <CommandDialog command={RegisterAuthor} title="Add author">
     <InputTextField value={i => i.name} title="Name" />

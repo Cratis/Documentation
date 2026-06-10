@@ -1,0 +1,169 @@
+---
+title: Get started with AuthProxy
+description: Put AuthProxy in front of your backend and frontend — declare your services, configure an identity provider, and run the container with Docker Compose.
+---
+
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+You have a backend API and a frontend SPA, and you want users to log in before they reach either — without writing a line of authentication code in your services. Let's put [AuthProxy](/authproxy/) in front of them.
+
+Everything in this page is configuration: AuthProxy is configured entirely through the `Cratis:AuthProxy` section of `appsettings.json` (or the equivalent `Cratis__AuthProxy__` environment variables). You describe the providers, tenants, and services, and the proxy wires up the pipeline.
+
+```json
+{
+  "Cratis": {
+    "AuthProxy": {
+      "Authentication": { },
+      "TenantResolutions": [ ],
+      "TenantVerification": { },
+      "Tenants": { },
+      "Services": { },
+      "Invite": { },
+      "PagesPath": ""
+    }
+  }
+}
+```
+
+Each top-level key maps to one of the edge concerns — [Authentication](/authproxy/authentication/), [Tenancy](/authproxy/tenancy/) (`TenantResolutions`, `TenantVerification`, `Tenants`), and [Invites](/authproxy/invites-and-lobby/). The two we need to get running are `Services` and `Authentication`.
+
+## Declare your services
+
+`Services` is where you declare what AuthProxy sits in front of, keyed by a friendly name. Each service can have a backend, a frontend, or both:
+
+```json
+{
+  "Cratis": {
+    "AuthProxy": {
+      "Services": {
+        "portal": {
+          "Backend":  { "BaseUrl": "http://portal-api:8080/" },
+          "Frontend": { "BaseUrl": "http://portal-web:3000/" },
+          "ResolveIdentityDetails": true
+        }
+      }
+    }
+  }
+}
+```
+
+When a service has a `Backend`, AuthProxy calls its `/.cratis/me` endpoint after authentication and attaches the enriched identity to every forwarded request — that's `ResolveIdentityDetails`, and it defaults to `true` whenever a `Backend` is configured. Set it to `false` for services that don't expose the endpoint. The full enrichment flow is on the [Identity page](/authproxy/identity/).
+
+## Choose a provider
+
+The smallest useful `Authentication` block is a single OpenID Connect provider. With one provider configured, unauthenticated browser requests are challenged directly — no selection page in between:
+
+```json
+{
+  "Cratis": {
+    "AuthProxy": {
+      "Authentication": {
+        "OidcProviders": [
+          {
+            "Name": "Microsoft",
+            "Type": "Microsoft",
+            "Authority": "https://login.microsoftonline.com/<tenant-id>/v2.0",
+            "ClientId": "<client-id>",
+            "ClientSecret": "<client-secret>"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+Multiple providers, OAuth 2.0 providers like GitHub, and JWT Bearer for machine-to-machine calls are all covered on the [Authentication page](/authproxy/authentication/).
+
+## Run it
+
+AuthProxy is published as a container image — [`cratis/authproxy`](https://hub.docker.com/r/cratis/authproxy) — that you run with your configuration mounted or supplied as environment variables.
+
+<Tabs>
+  <TabItem label="Docker Compose">
+```yaml
+services:
+  authproxy:
+    image: cratis/authproxy:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./appsettings.json:/app/appsettings.json:ro
+      - ./pages:/mnt/pages:ro
+    environment:
+      Cratis__AuthProxy__PagesPath: /mnt/pages
+```
+  </TabItem>
+  <TabItem label="Minimal appsettings.json">
+```json
+{
+  "AllowedHosts": "*",
+  "Cratis": {
+    "AuthProxy": {
+      "Authentication": {
+        "OidcProviders": [
+          {
+            "Name": "Microsoft",
+            "Type": "Microsoft",
+            "Authority": "https://login.microsoftonline.com/<tenant-id>/v2.0",
+            "ClientId": "<client-id>",
+            "ClientSecret": "<client-secret>"
+          }
+        ]
+      },
+      "TenantResolutions": [ { "Strategy": "Host" } ],
+      "Tenants": { "acme": { "Domains": ["acme.example.com"] } },
+      "Services": {
+        "portal": {
+          "Backend":  { "BaseUrl": "http://portal-api:8080/" },
+          "Frontend": { "BaseUrl": "http://portal-web:3000/" }
+        }
+      }
+    }
+  }
+}
+```
+  </TabItem>
+</Tabs>
+
+Hit the proxy in a browser and you're redirected to the provider to sign in. Once authenticated, the request flows through tenant resolution and identity enrichment, then on to your service — with the identity and tenant attached as headers your backend can trust.
+
+## Routing
+
+With a single service, AuthProxy adds plain catch-all routes — no routing hints needed:
+
+- `/api/{**path}` → the service's backend
+- `/{**path}` → the service's frontend
+
+With multiple services, clients indicate the target with one of:
+
+| Mechanism | Example |
+|---|---|
+| `Service-ID` request header | `Service-ID: portal` |
+| `service` query parameter | `?service=portal` |
+
+Routes are matched case-insensitively.
+
+## Custom pages
+
+AuthProxy ships friendly built-in HTML for the edge cases — `404.html`, `403.html`, `tenant-not-found.html`, expired/invalid invitations, provider and tenant selection. Override any of them by mounting a directory of your own pages into the container and pointing `PagesPath` at the mount path:
+
+```json
+{
+  "Cratis": {
+    "AuthProxy": {
+      "PagesPath": "/mnt/pages"
+    }
+  }
+}
+```
+
+Pages are looked up by their well-known file name inside that directory; any file that's present overrides the built-in version, and missing files fall back to the defaults. Stylesheets, images, and other assets placed alongside your pages are served under the `/_pages/` URL prefix, so a custom page can reference `/_pages/styles.css` or `/_pages/logo.svg`.
+
+<Aside type="tip">
+Mount the pages directory read-only (as in the Compose example above) — the proxy only reads from it.
+</Aside>
+
+## Recap
+
+You declared a service (backend + frontend), configured one OIDC provider, and ran the proxy as a container. Requests now authenticate at the edge before they ever reach your code. From here, the natural next steps are wiring up [more providers and API authentication](/authproxy/authentication/) and deciding [how the tenant is resolved](/authproxy/tenancy/) for each request.

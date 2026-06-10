@@ -1,0 +1,288 @@
+---
+// Progressive enhancement for the splash hero: rotates the headline, tagline,
+// and actions through four messages (Event Sourcing, CQRS, Application
+// Framework, Studio) with labeled dot indicators. The static hero authored in
+// the page frontmatter IS the first pane — without JavaScript nothing here
+// renders and the page degrades to that single message. With JavaScript the
+// script below moves the dot nav into the hero and swaps the hero copy in
+// place, so the visual language (and the single H1) stays Starlight's own.
+import { LinkButton } from '@astrojs/starlight/components';
+
+interface PaneAction {
+    text: string;
+    link: string;
+    variant: 'primary' | 'minimal';
+    icon?: 'right-arrow' | 'open-book';
+}
+
+interface Pane {
+    label: string;
+    title: string;
+    tagline: string;
+    actions: PaneAction[];
+}
+
+const getStarted: PaneAction = { text: 'Get started', link: '#get-started-in-3-steps', variant: 'primary', icon: 'right-arrow' };
+const gitHub: PaneAction = { text: 'GitHub', link: 'https://github.com/cratis', variant: 'minimal' };
+const community: PaneAction = { text: 'Community', link: '/community/', variant: 'minimal' };
+
+// Pane 1 mirrors the frontmatter hero in index.mdx — keep the two in sync.
+const panes: Pane[] = [
+    {
+        label: 'Event Sourcing',
+        title: 'Event sourcing you can actually be productive with',
+        tagline:
+            'We treat event sourcing as the default architecture for information systems: capture what happened as immutable facts, project exactly the read models you need, and ship a full-stack, type-safe app — identity, tenancy, backend, React, storage choice, and operations — without the boilerplate.',
+        actions: [
+            getStarted,
+            { text: 'Why event sourcing?', link: '/chronicle/why-event-sourcing/', variant: 'minimal', icon: 'open-book' },
+            gitHub,
+            community,
+        ],
+    },
+    {
+        label: 'CQRS',
+        title: 'Commands in, purpose-built read models out',
+        tagline:
+            'Arc gives you CQRS without the ceremony: a command is a record with a Handle method, a query is a static method on your read model, and generated TypeScript proxies keep React in lockstep — over Chronicle’s event log, or over MongoDB and EF Core when event sourcing isn’t the right fit.',
+        actions: [
+            getStarted,
+            { text: 'CQRS without event sourcing', link: '/arc/arc-without-event-sourcing/', variant: 'minimal', icon: 'open-book' },
+            gitHub,
+            community,
+        ],
+    },
+    {
+        label: 'Application Framework',
+        title: 'One slice of C#, a whole full-stack feature',
+        tagline:
+            'Arc is the application framework that carries one C# slice — command, events, read model — through generated proxies into a live React screen, with identity, tenancy, validation, and operational tooling built into the stack instead of bolted on around it.',
+        actions: [
+            getStarted,
+            { text: 'Explore Arc', link: '/arc/', variant: 'minimal', icon: 'open-book' },
+            gitHub,
+            community,
+        ],
+    },
+    {
+        label: 'Studio',
+        title: 'Model the domain together, generate the code',
+        tagline:
+            'Cratis Studio is a collaborative Event Modeling canvas: map a flow as commands, events, and read models with your team, keep the model alive as the system grows, and generate type-safe C# straight from the diagram.',
+        actions: [
+            getStarted,
+            { text: 'Discover Studio', link: '/studio/', variant: 'minimal', icon: 'open-book' },
+            gitHub,
+            community,
+        ],
+    },
+];
+---
+
+<div class="rotating-hero not-content" data-rotating-hero hidden>
+    {panes.map((pane) => (
+        <template data-rh-pane>
+            <div data-rh-title>{pane.title}</div>
+            <div data-rh-tagline>{pane.tagline}</div>
+            <div data-rh-actions>
+                {pane.actions.map((action) => (
+                    <LinkButton href={action.link} variant={action.variant} icon={action.icon}>
+                        {action.text}
+                    </LinkButton>
+                ))}
+            </div>
+        </template>
+    ))}
+    <nav class="rh-nav" data-rh-nav aria-label="Hero messages" hidden>
+        {panes.map((pane, index) => (
+            <button
+                type="button"
+                class:list={['rh-dot', { 'rh-dot--active': index === 0 }]}
+                aria-label={`${pane.label} — message ${index + 1} of ${panes.length}`}
+                aria-current={index === 0 ? 'true' : undefined}
+            >
+                <span class="rh-dot__marker" aria-hidden="true"></span>
+                <span>{pane.label}</span>
+            </button>
+        ))}
+    </nav>
+</div>
+
+<script>
+    const root = document.querySelector('[data-rotating-hero]');
+    const hero = document.querySelector('.hero');
+    const stack = hero?.querySelector('.stack');
+    const copy = hero?.querySelector('.copy');
+    const title = hero?.querySelector('h1');
+    const tagline = hero?.querySelector('.tagline');
+    const actions = hero?.querySelector('.actions');
+
+    if (root && hero && stack && copy && title && tagline && actions) {
+        const panes = [...root.querySelectorAll('template[data-rh-pane]')] as HTMLTemplateElement[];
+        const nav = root.querySelector('[data-rh-nav]') as HTMLElement | null;
+        const dots = nav ? [...nav.querySelectorAll('button')] : [];
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const ROTATE_MS = 8000;
+        const FADE_MS = 300;
+        let current = 0;
+        let swapping = false;
+        let stopped = false;
+        let timer: ReturnType<typeof setInterval> | undefined;
+
+        const apply = (index: number) => {
+            const pane = panes[index].content;
+            title.innerHTML = pane.querySelector('[data-rh-title]')?.innerHTML ?? '';
+            tagline.innerHTML = pane.querySelector('[data-rh-tagline]')?.innerHTML ?? '';
+            const paneActions = pane.querySelector('[data-rh-actions]');
+            if (paneActions) {
+                actions.replaceChildren(...[...paneActions.children].map((child) => child.cloneNode(true)));
+            }
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('rh-dot--active', i === index);
+                if (i === index) dot.setAttribute('aria-current', 'true');
+                else dot.removeAttribute('aria-current');
+            });
+            current = index;
+        };
+
+        const show = (index: number) => {
+            if (index === current || swapping) return;
+            if (reducedMotion) {
+                apply(index);
+                return;
+            }
+            swapping = true;
+            hero.setAttribute('data-rotating', 'swapping');
+            setTimeout(() => {
+                apply(index);
+                hero.setAttribute('data-rotating', 'true');
+                swapping = false;
+            }, FADE_MS);
+        };
+
+        const pause = () => {
+            if (timer) {
+                clearInterval(timer);
+                timer = undefined;
+            }
+        };
+
+        const resume = () => {
+            if (stopped || reducedMotion || timer) return;
+            timer = setInterval(() => show((current + 1) % panes.length), ROTATE_MS);
+        };
+
+        // Once the visitor picks a message, stop rotating and let assistive
+        // technology announce subsequent (user-initiated) swaps.
+        const stopRotation = () => {
+            stopped = true;
+            pause();
+            copy.setAttribute('aria-live', 'polite');
+            copy.setAttribute('aria-atomic', 'true');
+        };
+
+        hero.setAttribute('data-rotating', 'true');
+        hero.setAttribute('role', 'region');
+        hero.setAttribute('aria-roledescription', 'carousel');
+        hero.setAttribute('aria-label', 'Cratis highlights');
+        copy.setAttribute('aria-live', 'off');
+
+        if (nav) {
+            stack.append(nav);
+            nav.hidden = false;
+        }
+
+        dots.forEach((dot, index) =>
+            dot.addEventListener('click', () => {
+                stopRotation();
+                show(index);
+            }),
+        );
+
+        hero.addEventListener('mouseenter', pause);
+        hero.addEventListener('mouseleave', resume);
+        hero.addEventListener('focusin', pause);
+        hero.addEventListener('focusout', resume);
+        document.addEventListener('visibilitychange', () => (document.hidden ? pause() : resume()));
+
+        resume();
+    }
+</script>
+
+<style>
+    /* The swap crossfades the hero copy and actions; the attribute is only set
+       by the script, so without JavaScript none of this applies. */
+    :global(.hero[data-rotating] .copy),
+    :global(.hero[data-rotating] .actions) {
+        transition: opacity 0.3s ease;
+    }
+
+    :global(.hero[data-rotating='swapping'] .copy),
+    :global(.hero[data-rotating='swapping'] .actions) {
+        opacity: 0;
+    }
+
+    /* Labeled dot indicators — pills in the site's accent language that show
+       which message is active and jump straight to any of them. */
+    .rh-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .rh-dot {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.35rem 0.8rem;
+        border: 1px solid color-mix(in srgb, var(--sl-color-accent) 22%, transparent);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--sl-color-accent) 7%, transparent);
+        color: var(--sl-color-gray-2);
+        font-size: var(--sl-text-xs);
+        font-weight: 600;
+        line-height: 1.3;
+        cursor: pointer;
+        transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+    }
+
+    .rh-dot:hover,
+    .rh-dot:focus-visible {
+        border-color: color-mix(in srgb, var(--sl-color-accent) 45%, transparent);
+        color: var(--sl-color-white);
+    }
+
+    .rh-dot--active {
+        border-color: color-mix(in srgb, var(--sl-color-accent) 60%, transparent);
+        background: color-mix(in srgb, var(--sl-color-accent) 16%, transparent);
+        color: var(--sl-color-accent-high);
+    }
+
+    .rh-dot__marker {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 999px;
+        background: var(--sl-color-gray-4);
+        transition: background-color 0.16s ease;
+    }
+
+    .rh-dot--active .rh-dot__marker {
+        background: var(--sl-color-accent);
+    }
+
+    @media (max-width: 49.99rem) {
+        .rh-dot {
+            padding: 0.3rem 0.65rem;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        :global(.hero[data-rotating] .copy),
+        :global(.hero[data-rotating] .actions),
+        .rh-dot,
+        .rh-dot__marker {
+            transition: none;
+        }
+    }
+</style>

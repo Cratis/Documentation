@@ -1,0 +1,102 @@
+---
+title: Authentication in AuthProxy
+description: Configure OpenID Connect providers, OAuth 2.0 providers like GitHub, and JWT Bearer for APIs — and let AuthProxy handle the login flow, including the provider-selection page.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A user opens your app and isn't signed in. Somebody has to run the OpenID Connect dance — redirect to the provider, handle the callback, establish a session. If every service does this itself, the handshake code is copy-pasted across your fleet and drifts. With [AuthProxy](/authproxy/) in front, the proxy owns the whole flow: your services never see an unauthenticated request.
+
+This page assumes the proxy is already [running in front of a service](/authproxy/get-started/). Let's configure who users sign in with.
+
+## OIDC providers
+
+Configure one or more **OpenID Connect** providers under `Cratis:AuthProxy:Authentication:OidcProviders`. With a single provider, unauthenticated browser requests are challenged directly:
+
+```json
+{
+  "Cratis": {
+    "AuthProxy": {
+      "Authentication": {
+        "OidcProviders": [
+          {
+            "Name": "Microsoft",
+            "Type": "Microsoft",
+            "Authority": "https://login.microsoftonline.com/<tenant-id>/v2.0",
+            "ClientId": "<client-id>",
+            "ClientSecret": "<client-secret>"
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+A provider's `Type` selects the brand and logo shown in the login UI — `Microsoft`, `Google`, `GitHub`, `Apple`, or `Custom` (the default). `Name` is the display name users see, and `Scopes` adds extra OAuth scopes on top of the default `openid profile email`.
+
+Every provider also gets a dedicated login endpoint at `/.cratis/login/{scheme}`, where the scheme is derived from the provider `Name` by lowercasing and replacing spaces with hyphens (`"My Provider"` → `/.cratis/login/my-provider`). A frontend that wants its own sign-in buttons can fetch the configured providers as JSON from `/.cratis/providers` and link each button to its login endpoint.
+
+## Multiple providers and the selection page
+
+When more than one provider is configured, AuthProxy can't know which one to challenge — so instead of redirecting, it serves a built-in **provider-selection page**. The proxy injects a short-lived `.cratis-providers` cookie containing a JSON array of the configured providers (name, type, login URL), and the page reads it to render a sign-in button per provider — no extra HTTP round-trip needed.
+
+The selection page is one of the [overridable pages](/authproxy/get-started/#custom-pages) (`select-provider.html`), so you can replace it with your own branded version that reads the same cookie.
+
+## OAuth 2.0 providers
+
+For providers that **don't** publish an OIDC discovery document — GitHub is the common one — use `OAuthProviders` instead and give the endpoints explicitly. `ClaimMappings` maps fields from the provider's user-info response onto claims: the key is the claim type to emit, the value is the JSON field in the user-info response.
+
+```json
+{
+  "Cratis": {
+    "AuthProxy": {
+      "Authentication": {
+        "OAuthProviders": [
+          {
+            "Name": "GitHub",
+            "Type": "GitHub",
+            "AuthorizationEndpoint": "https://github.com/login/oauth/authorize",
+            "TokenEndpoint": "https://github.com/login/oauth/access_token",
+            "UserInformationEndpoint": "https://api.github.com/user",
+            "ClientId": "<client-id>",
+            "ClientSecret": "<client-secret>",
+            "ClaimMappings": { "name": "login" }
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+OAuth providers participate in the same flows as OIDC providers — they show up on the selection page and get their own `/.cratis/login/{scheme}` endpoint.
+
+## JWT Bearer for APIs
+
+Browser flows establish a cookie session, but machine-to-machine callers present a token on every request. Configure JWT Bearer alongside (or instead of) the browser providers:
+
+```json
+{
+  "Cratis": {
+    "AuthProxy": {
+      "Authentication": {
+        "JwtBearer": {
+          "Authority": "https://login.microsoftonline.com/<tenant-id>/v2.0",
+          "Audience": "<api-audience>"
+        }
+      }
+    }
+  }
+}
+```
+
+A valid bearer token authenticates the request directly — no redirects, no selection page.
+
+<Aside type="note" title="Tenant-aware sign-in">
+When authentication starts from a tenant-scoped request, AuthProxy stores the tenant resolution metadata in the protected OAuth `state` and restores it on the provider callback. This lets you share one callback host (say `auth.example.com`) across tenants resolved by subdomain — after sign-in, the user is redirected back to the tenant host they started on. See [SubHost resolution](/authproxy/tenancy/#resolution-strategies).
+</Aside>
+
+## Recap
+
+Browser users sign in through OIDC or OAuth providers — challenged directly with one provider, offered a selection page with several — while API clients authenticate with JWT Bearer tokens. Either way, by the time a request reaches your service it carries an authenticated identity. Next: [what your services actually receive](/authproxy/identity/), and how AuthProxy enriches it.

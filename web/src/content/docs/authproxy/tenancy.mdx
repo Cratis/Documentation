@@ -1,0 +1,118 @@
+---
+title: Tenancy in AuthProxy
+description: Resolve the current tenant per request — from the host, a subdomain, a claim, the route, a fixed value, or an interactive selection page — and optionally verify it exists before forwarding.
+---
+
+One deployment, many customers: `acme.example.com` and `contoso.example.com` hit the same proxy, and every downstream query must be scoped to the right tenant. Somebody has to answer "which tenant is this request for?" — once, reliably, at the edge. That's AuthProxy's tenancy system. The answer is forwarded to your services as the `Tenant-ID` header (see [Identity](/authproxy/identity/) for the full header set), so your application never re-derives it.
+
+## Resolution strategies
+
+`TenantResolutions` is an ordered list of strategies — AuthProxy tries each in order until one resolves a tenant:
+
+```json
+{
+  "Cratis": {
+    "AuthProxy": {
+      "TenantResolutions": [
+        { "Strategy": "Host" },
+        { "Strategy": "Claim", "Options": { "ClaimType": "tid" } }
+      ]
+    }
+  }
+}
+```
+
+| Strategy | Resolves the tenant from… |
+|---|---|
+| `Host` | the request host, matched against configured `Domains` / `SourceIdentifiers` |
+| `SubHost` | a subdomain convention (e.g. `acme.example.com` → `acme`) — handy for SaaS provisioning |
+| `Claim` | a claim on the authenticated user, matched against `SourceIdentifiers` |
+| `Route` | a regex over the request path, matched against `SourceIdentifiers` |
+| `Specified` | a fixed tenant id (single-tenant deployments) |
+| `Default` | a fallback tenant id when nothing else matched |
+| `Selection` | a `.cratis-tenant` cookie set by the built-in tenant-selection page |
+
+Each strategy takes its own `Options`. `Claim` takes a `ClaimType` (defaulting to the Microsoft tenant claim, `http://schemas.microsoft.com/identity/claims/tenantid`); `Route` takes a `Pattern` whose regex must expose a named group called `sourceIdentifier`; `Specified` and `Default` take a `TenantId`; `SubHost` takes the `ParentHost` to strip; `Selection` takes a `TenantsEndpoint` (below).
+
+## The tenant registry
+
+For `Host`, `Claim`, and `Route`, the strategy produces a *source identifier* which is then looked up in the `Tenants` registry — the tenant id is the key it maps to:
+
+```json
+{
+  "Cratis": {
+    "AuthProxy": {
+      "TenantResolutions": [
+        { "Strategy": "Host" }
+      ],
+      "Tenants": {
+        "acme":    { "Domains": ["acme.example.com"], "SourceIdentifiers": ["acme"] },
+        "contoso": { "Domains": ["contoso.example.com"], "SourceIdentifiers": ["contoso"] }
+      }
+    }
+  }
+}
+```
+
+`SubHost` is the deliberate exception: the subdomain *becomes* the tenant id directly, with no registry lookup. That's what makes it fit dynamically-provisioned SaaS — a new customer's subdomain works without a configuration change. Because nothing proves such a tenant exists, pair `SubHost` with verification:
+
+```json
+{
+  "Strategy": "SubHost",
+  "Options": {
+    "ParentHost": "example.com",
+    "VerificationUrlTemplate": "https://platform.example.com/api/tenants/{tenantId}"
+  }
+}
+```
+
+Only single-segment subdomains resolve (`acme.example.com` → `acme`; `foo.bar.example.com` does not), and sign-in flows that bounce through a shared auth host redirect back to the tenant host afterwards — see the tenant-aware sign-in note on the [Authentication page](/authproxy/authentication/).
+
+## Letting the user pick: the Selection strategy
+
+Sometimes the tenant isn't in the URL or the token at all — a consultant belongs to three tenants and has to choose. The `Selection` strategy handles this interactively:
+
+```json
+{
+  "Strategy": "Selection",
+  "Options": {
+    "TenantsEndpoint": "https://platform.example.com/api/tenants/selectable"
+  }
+}
+```
+
+When an authenticated user arrives without a `.cratis-tenant` cookie, AuthProxy calls `TenantsEndpoint` (with the user's principal attached) expecting a JSON array of `{ "id": "...", "name": "..." }` objects:
+
+- **One tenant** — it's selected automatically; the cookie is written and the request retried.
+- **Several tenants** — the proxy injects a short-lived `.cratis-tenants` cookie with the options and serves the built-in `select-tenant.html` page. The page submits the choice to `/.cratis/select-tenant?tenantId=<id>&returnUrl=<path>`, and the proxy validates the selection against the endpoint's response before writing the `.cratis-tenant` cookie.
+
+The selection page is one of the [overridable pages](/authproxy/get-started/#custom-pages), so you can brand it.
+
+## Verifying the tenant exists
+
+Optionally verify that a resolved tenant actually exists by pointing AuthProxy at a verification endpoint — `{tenantId}` is replaced with the resolved id, a `200` means the tenant exists, and anything else sends the user to the `tenant-not-found` page:
+
+```json
+{
+  "Cratis": {
+    "AuthProxy": {
+      "TenantVerification": {
+        "UrlTemplate": "https://platform.example.com/api/tenants/{tenantId}"
+      }
+    }
+  }
+}
+```
+
+A strategy-specific template (like `SubHost`'s `VerificationUrlTemplate` above) takes precedence over this global one.
+
+## When no tenant resolves
+
+If strategies are configured but none resolves, AuthProxy rejects the request with `401 Unauthorized` rather than forwarding it tenant-less — fail closed, not open. There are two deliberate exceptions:
+
+- With **no** `TenantResolutions` configured, requests proceed without a tenant (single-tenant apps don't need any of this).
+- With a [lobby](/authproxy/invites-and-lobby/) configured and `Invite.RedirectToLobbyWhenTenantUnresolved` enabled, users without a tenant are redirected to the lobby frontend instead — that's the onboarding flow.
+
+## Recap
+
+Strategies run in order until one answers; `Host`, `Claim`, and `Route` go through the tenant registry, `SubHost` resolves by convention for dynamic SaaS, and `Selection` asks the user. Verification confirms the tenant is real, and the result rides into your services as `Tenant-ID`. For the users who *don't have* a tenant yet, continue to [invites and the lobby](/authproxy/invites-and-lobby/).
