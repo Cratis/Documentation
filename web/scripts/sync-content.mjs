@@ -127,6 +127,8 @@ const PRODUCTS = [
 const ASSET_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.html', '.js', '.css', '.json']);
 const SKIP_DIRS = new Set([
     'node_modules', 'obj', 'bin', '.git', 'storybook-static', '.vitepress',
+    // Shared Markdown snippets are included into pages but should not become pages.
+    '_includes', '_shared', '_snippets',
     // dotfolders found at the .github repo root that are not documentation
     '.ai', '.claude', '.github', '.vscode',
     // the org GitHub landing page (duplicates our front door) — not site content
@@ -306,7 +308,7 @@ function fixLinks(body, ctx) {
     return out;
 }
 
-async function inlineIncludes(body, dir) {
+async function inlineIncludes(body, dir, sourcePath) {
     const includeRe = /\[!INCLUDE\s*\[[^\]]*\]\(([^)]+)\)\]/g;
     let result = body;
     const matches = [...body.matchAll(includeRe)];
@@ -316,8 +318,9 @@ async function inlineIncludes(body, dir) {
             const raw = await fs.readFile(incPath, 'utf8');
             const { body: incBody } = splitFrontmatter(raw);
             result = result.replace(m[0], stripLeadingH1(incBody).trim());
-        } catch {
-            result = result.replace(m[0], '');
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            throw new Error(`[sync] Failed to include ${m[1]} from ${sourcePath}: ${message}`);
         }
     }
     return result;
@@ -339,7 +342,7 @@ async function convertFile(raw, ctx) {
     const title = src.title || firstH1(body) || humanize(ctx.basename);
 
     let out = stripLeadingH1(body);
-    out = await inlineIncludes(out, ctx.dir);
+    out = await inlineIncludes(out, ctx.dir, ctx.srcPath ?? path.join(ctx.dir, ctx.basename));
     out = convertAlerts(out);
     out = convertXref(out);
     out = fixLinks(out, ctx);
@@ -383,6 +386,7 @@ async function walk(srcDir, outDir, product) {
             const converted = await convertFile(raw, {
                 dir: srcDir,
                 basename: entry.name,
+                srcPath,
                 product,
             });
             // Keep the source extension: `.md` stays Markdown, `.mdx` stays MDX so
