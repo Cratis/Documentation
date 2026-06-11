@@ -37,6 +37,42 @@ const overviewTopic = {
         { label: 'Why developers choose Cratis', slug: 'why-cratis' },
         { label: 'Adopting Cratis', slug: 'adopting-cratis' },
         {
+            label: 'Scenarios',
+            collapsed: true,
+            items: [
+                { label: 'Overview', slug: 'scenarios' },
+                {
+                    label: 'Camel Casing',
+                    collapsed: true,
+                    items: [
+                        { label: 'Overview', slug: 'scenarios/camel-casing' },
+                    ],
+                },
+                {
+                    label: 'Vertical Slices',
+                    collapsed: true,
+                    items: [
+                        { label: 'Overview', slug: 'scenarios/vertical-slices' },
+                        { label: 'State Change', slug: 'scenarios/vertical-slices/state-change' },
+                        { label: 'State View', slug: 'scenarios/vertical-slices/state-view' },
+                        { label: 'Automation', slug: 'scenarios/vertical-slices/automation' },
+                        { label: 'Translator', slug: 'scenarios/vertical-slices/translator' },
+                    ],
+                },
+                {
+                    label: 'Real-Time Chat',
+                    collapsed: true,
+                    items: [
+                        { label: 'Overview', slug: 'scenarios/chat' },
+                        { label: 'In-Memory', slug: 'scenarios/chat/in-memory' },
+                        { label: 'With RabbitMQ', slug: 'scenarios/chat/rabbitmq' },
+                        { label: 'Frontend-Managed State', slug: 'scenarios/chat/change-stream' },
+                        { label: 'Incremental Pushes', slug: 'scenarios/chat/incremental-pushes' },
+                    ],
+                },
+            ],
+        },
+        {
             label: 'Adopt and trust',
             items: [
                 { label: 'Learning paths', slug: 'learning-paths' },
@@ -190,7 +226,7 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/professional-help', '/community', '/feedback', '/ai-native-development', '/plugins', '/code-analysis', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/authproxy', '/authproxy/**', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/professional-help', '/community', '/feedback', '/ai-native-development', '/plugins', '/code-analysis', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/authproxy', '/authproxy/**', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],
