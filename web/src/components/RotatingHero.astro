@@ -268,8 +268,9 @@ const panes: Pane[] = [
             }),
         );
 
-        hero.addEventListener('mouseenter', pause);
-        hero.addEventListener('mouseleave', resume);
+        // Keep pointer hover non-blocking so the landing page continues to
+        // rotate while someone reads or inspects the hero. Keyboard focus still
+        // pauses because rotating focused controls would be disorienting.
         hero.addEventListener('focusin', pause);
         hero.addEventListener('focusout', resume);
         document.addEventListener('visibilitychange', () => (document.hidden ? pause() : resume()));
