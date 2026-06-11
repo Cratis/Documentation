@@ -1,3 +1,7 @@
+---
+title: Automation — Cancel Expired Reservations
+---
+
 # Automation — Cancel Expired Reservations
 
 This tutorial builds the **Cancel Expired Reservations** slice of the Library system. It is an **Automation** — a pattern that runs entirely in the background, with no direct user interaction.

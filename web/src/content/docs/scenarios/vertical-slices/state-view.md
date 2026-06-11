@@ -1,3 +1,7 @@
+---
+title: State View — List Authors
+---
+
 # State View — List Authors
 
 This tutorial builds the **List Authors** slice of the Library system. It is a **State View** — the read side of Event Modeling.

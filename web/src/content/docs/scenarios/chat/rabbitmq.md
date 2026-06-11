@@ -1,3 +1,7 @@
+---
+title: Real-Time Chat — With RabbitMQ
+---
+
 # Real-Time Chat — With RabbitMQ
 
 This guide extends the chat pattern from the [in-memory guide](./in-memory.md) by replacing the in-process state with two external systems: a **persistence layer** that loads message history on startup, and **RabbitMQ** that delivers new messages to all connected server instances in real time.

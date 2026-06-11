@@ -1,3 +1,8 @@
+---
+title: Vertical Slices
+description: Step-by-step tutorials that build an event-sourced Library system one slice at a time, following Event Modeling patterns.
+---
+
 # Vertical Slices
 
 This series of tutorials builds a **Library system** end to end, one behaviour at a time. Each tutorial corresponds to one of the four slice patterns from [Event Modeling](https://novanet.no/stop-guessing-start-modeling/), and each one builds on the previous.

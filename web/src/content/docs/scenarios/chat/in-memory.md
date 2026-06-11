@@ -1,3 +1,7 @@
+---
+title: Real-Time Chat — In-Memory
+---
+
 # Real-Time Chat — In-Memory
 
 This guide builds a real-time chat room backed entirely by an in-memory service. It demonstrates the core observable query pattern: the frontend subscribes once and receives updates as they arrive — no polling, no manual WebSocket setup.

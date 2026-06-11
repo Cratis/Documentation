@@ -1,3 +1,7 @@
+---
+title: State Change — Register an Author
+---
+
 # State Change — Register an Author
 
 This tutorial builds the **Register Author** slice of the Library system. It is a **State Change** — the most fundamental pattern in Event Modeling.

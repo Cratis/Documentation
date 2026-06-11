@@ -1,3 +1,8 @@
+---
+title: Scenarios
+description: End-to-end tutorials that show you how to build real software using the full Cratis stack — from event-sourced backend to reactive frontend.
+---
+
 # Scenarios
 
 Scenarios are end-to-end tutorials that show you how to build real software using the full Cratis stack — from event-sourced backend to reactive frontend — with concrete, working examples.

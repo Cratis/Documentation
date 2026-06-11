@@ -1,3 +1,7 @@
+---
+title: Translation — Import Members from HR
+---
+
 # Translation — Import Members from HR
 
 This tutorial builds the **Member Import** slice of the Library system. It is a **Translation** — a pattern for integrating with external systems without letting their language leak into your domain.

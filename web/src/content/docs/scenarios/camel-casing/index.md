@@ -1,3 +1,8 @@
+---
+title: Configure camel casing for Chronicle and MongoDB
+description: How to configure camel casing when you use the Cratis meta package setup in an ASP.NET Core app.
+---
+
 # Configure camel casing for Chronicle and MongoDB
 
 This how-to shows how to configure camel casing when you use the Cratis meta package setup in an ASP.NET Core app.

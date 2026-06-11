@@ -1,3 +1,7 @@
+---
+title: Real-Time Chat — Incremental Pushes
+---
+
 # Real-Time Chat — Incremental Pushes
 
 The three previous guides all emit the **full message history** on every `OnNext()` call. Arc's delta mode compresses this down to a `ChangeSet` over the wire, but the backend still accumulates and sends a growing list.

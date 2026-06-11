@@ -1,3 +1,7 @@
+---
+title: Real-Time Chat — Frontend-Managed State
+---
+
 # Real-Time Chat — Frontend-Managed State
 
 The two previous guides use `ForRoom.use()`, which applies Arc's delta `ChangeSet` transparently and always gives the component a complete `messagesResult.data` array. That is the right default for most UIs.
