@@ -7,12 +7,14 @@ interface Props {
   storybook?: string;
   /** Deep-link into a specific story, e.g. "/story/commanddialog--default". Optional. */
   path?: string;
-  /** iframe height (CSS length). */
+  /** iframe height (CSS length). Only used when not in fullPage mode. */
   height?: string;
   /** Accessible iframe title. */
   title?: string;
+  /** Full-page mode: hide the nav bar and fill viewport height. */
+  fullPage?: boolean;
 }
-const { storybook = '/storybook', path = '', height = '820px', title = 'Cratis Storybook' } = Astro.props;
+const { storybook = '/storybook', path = '', height = '820px', title = 'Cratis Storybook', fullPage = false } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const storybookRoot = `${base}${storybook.replace(/\/$/, '')}`;
 
@@ -24,21 +26,28 @@ function normalizeStoryPath(value: string) {
   return `/story/${clean}`;
 }
 
-function buildStorybookSrc(root: string, storyPath: string) {
+function buildStorybookSrc(root: string, storyPath: string, showNav: boolean) {
   const params = new URLSearchParams();
   if (storyPath) {
-    // Match the old DocFX embed: focused story, docs/controls panel open, Storybook nav hidden.
-    params.set('nav', 'false');
+    // Focused story view: docs/controls panel open, nav visibility controlled by showNav.
+    if (!showNav) {
+      params.set('nav', 'false');
+    }
     params.set('panel', 'right');
     params.set('addonPanel', 'storybook/docs');
     params.set('path', storyPath);
+  } else if (!showNav) {
+    // Main storybook view with nav hidden (for embedded mode)
+    params.set('nav', 'false');
   }
   const query = params.toString();
   return `${root}/index.html${query ? `?${query}` : ''}`;
 }
 
 const initialStoryPath = normalizeStoryPath(path);
-const src = buildStorybookSrc(storybookRoot, initialStoryPath);
+// Show nav by default in full-page mode, hide it in embedded mode
+const showNav = fullPage;
+const src = buildStorybookSrc(storybookRoot, initialStoryPath, showNav);
 ---
 
 <div
@@ -46,11 +55,15 @@ const src = buildStorybookSrc(storybookRoot, initialStoryPath);
   data-storybook-embed
   data-storybook-root={storybookRoot}
   data-storybook-path={initialStoryPath}
-  style={`--sb-height:${height}`}
+  data-show-nav={showNav}
+  data-full-page={fullPage}
+  style={fullPage ? undefined : `--sb-height:${height}`}
 >
-  <div class="storybook-embed__bar">
-    <a href={src} target="_blank" rel="noopener">Open full screen ↗</a>
-  </div>
+  {!fullPage && (
+    <div class="storybook-embed__bar">
+      <a href={src} target="_blank" rel="noopener">Open full screen ↗</a>
+    </div>
+  )}
   <iframe src={src} title={title} loading="lazy"></iframe>
 </div>
 
@@ -63,13 +76,17 @@ const src = buildStorybookSrc(storybookRoot, initialStoryPath);
     return `/story/${clean}`;
   };
 
-  const buildStorybookSrc = (root, storyPath) => {
+  const buildStorybookSrc = (root, storyPath, showNav) => {
     const url = new URL(`${root}/index.html`, window.location.origin);
     if (storyPath) {
-      url.searchParams.set('nav', 'false');
+      if (!showNav) {
+        url.searchParams.set('nav', 'false');
+      }
       url.searchParams.set('panel', 'right');
       url.searchParams.set('addonPanel', 'storybook/docs');
       url.searchParams.set('path', storyPath);
+    } else if (!showNav) {
+      url.searchParams.set('nav', 'false');
     }
     return `${url.pathname}${url.search}`;
   };
@@ -80,7 +97,8 @@ const src = buildStorybookSrc(storybookRoot, initialStoryPath);
     const iframe = embed.querySelector('iframe');
     const link = embed.querySelector('a');
     const root = embed.dataset.storybookRoot;
-    if (!iframe || !link || !root) continue;
+    const showNav = embed.dataset.showNav === 'true';
+    if (!iframe || !root) continue;
 
     const params = new URLSearchParams(window.location.search);
     const story = params.get('story');
@@ -88,10 +106,10 @@ const src = buildStorybookSrc(storybookRoot, initialStoryPath);
       ? `/story/${story.replace(/^\/?story\//, '')}`
       : params.get('path') || embed.dataset.storybookPath || '';
     const storyPath = normalizeStoryPath(requestedPath);
-    const src = buildStorybookSrc(root, storyPath);
+    const src = buildStorybookSrc(root, storyPath, showNav);
 
     iframe.src = src;
-    link.href = src;
+    if (link) link.href = src;
 
     const syncTheme = () => {
       iframe.contentWindow?.postMessage({ type: 'STORYBOOK_THEME_CHANGE', theme: getTheme() }, '*');
@@ -108,7 +126,7 @@ const src = buildStorybookSrc(storybookRoot, initialStoryPath);
   }
 </script>
 
-<style>
+<style is:global>
   .storybook-embed {
     margin: 1.5rem 0;
     border: 1px solid var(--sl-color-gray-5);
@@ -128,5 +146,30 @@ const src = buildStorybookSrc(storybookRoot, initialStoryPath);
     width: 100%;
     height: var(--sb-height);
     border: 0;
+  }
+
+  /* Full-page mode: remove box styling and fill viewport */
+  .storybook-embed[data-full-page="true"] {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    min-height: calc(100vh - 8rem); /* viewport height minus header/footer */
+  }
+
+  .storybook-embed[data-full-page="true"] iframe {
+    height: calc(100vh - 8rem);
+    min-height: 600px;
+  }
+
+  /* Remove content padding when containing a full-page Storybook */
+  .sl-markdown-content:has(.storybook-embed[data-full-page="true"]) {
+    padding: 0;
+    max-width: none;
+  }
+
+  /* Stretch the content panel to full width for full-page Storybook */
+  .content-panel:has(.storybook-embed[data-full-page="true"]) {
+    padding: 0;
+    max-width: none;
   }
 </style>
