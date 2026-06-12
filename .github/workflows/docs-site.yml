@@ -95,6 +95,14 @@ jobs:
           token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: .github
 
+      - name: Checkout Architecture
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Architecture
+          ref: main
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          path: Architecture
+
       - uses: actions/setup-node@v4
         with:
           node-version: 23   # Components (Storybook build) requires node >=23
