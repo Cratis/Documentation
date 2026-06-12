@@ -219,4 +219,4 @@ Design your reactor methods to be safe:
 
 No scheduled tasks. No database polling. No message queue workers. The event log is the engine; the reactor is the wiring. Every cancellation is an event — auditable, replayable, and traceable.
 
-**Next**: [Translation — Import Members from HR](./translator)
+**Next**: [Translation — Import Members from HR](../translator)

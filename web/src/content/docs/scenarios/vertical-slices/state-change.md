@@ -193,10 +193,10 @@ export const AddAuthor = () => {
 
 The dialog component uses `useDialogContext` from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) to get the `closeDialog` function. It does not receive props for visibility — all dialog lifecycle is managed by the framework. A parent component uses the [`useDialog`](/arc/frontend/react/) hook to show and await this dialog.
 
-[`CommandDialog`](/components/CommandDialog/) from `@cratis/components` does the heavy lifting:
+[`CommandDialog`](/components/commanddialog/) from `@cratis/components` does the heavy lifting:
 
 - It reads the `RegisterAuthor` proxy to know what fields exist
-- [`InputTextField`](/components/CommandForm/) renders typed form fields bound to command properties
+- [`InputTextField`](/components/commandform/) renders typed form fields bound to command properties
 - It runs the frontend-side validation defined in the proxy
 - It calls the [Arc command pipeline](/arc/backend/commands/command-pipeline/) when the user confirms
 - `onConfirm` fires only after command execution succeeds
@@ -270,8 +270,8 @@ These specs run against Chronicle's in-memory test harness — no Docker, no Mon
 | Command + handler | `RegisterAuthor` with `Handle()` | [Arc](/arc/) [`[Command]`](/arc/backend/commands/model-bound/) model-bound |
 | Input validation | `RegisterAuthorValidator` | [Arc](/arc/) [`CommandValidator<T>`](/arc/backend/commands/command-validation/) + FluentValidation |
 | Uniqueness constraint | `UniqueAuthorName` | [Chronicle](/chronicle/) [`IConstraint`](/chronicle/constraints/) |
-| React form | `AddAuthor.tsx` | [`@cratis/components`](/components/) [`CommandDialog`](/components/CommandDialog/) |
+| React form | `AddAuthor.tsx` | [`@cratis/components`](/components/) [`CommandDialog`](/components/commanddialog/) |
 
 The entire write side — event, validator, constraint, command — is in one file. The frontend is one component that imports one generated proxy. Zero boilerplate. Zero glue code. The framework wires it together.
 
-**Next**: [State View — List Authors](./state-view)
+**Next**: [State View — List Authors](../state-view)

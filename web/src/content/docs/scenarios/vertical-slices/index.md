@@ -69,8 +69,8 @@ In Cratis this is: an [`IReactor`](/chronicle/reactors/) that listens for extern
 
 | Pattern | Chronicle | Arc | Components |
 | ------- | --------- | --- | ---------- |
-| **State Change** | [`[EventType]`](/chronicle/events/) records stored in the event log | [`[Command]`](/arc/backend/commands/model-bound/) + `Handle()`, [`CommandValidator<T>`](/arc/backend/commands/command-validation/), [`IConstraint`](/chronicle/constraints/) | [`CommandDialog`](/components/CommandDialog/) for the form UI |
-| **State View** | [Projections](/chronicle/projections/) (`[FromEvent<T>]`, `IProjectionFor<T>`) building [`[ReadModel]`](/chronicle/read-models/) | `IQueryFor<T>` / `IObservableQueryFor<T>` generated proxies | [`DataPage`](/components/DataPage/) for the listing UI |
+| **State Change** | [`[EventType]`](/chronicle/events/) records stored in the event log | [`[Command]`](/arc/backend/commands/model-bound/) + `Handle()`, [`CommandValidator<T>`](/arc/backend/commands/command-validation/), [`IConstraint`](/chronicle/constraints/) | [`CommandDialog`](/components/commanddialog/) for the form UI |
+| **State View** | [Projections](/chronicle/projections/) (`[FromEvent<T>]`, `IProjectionFor<T>`) building [`[ReadModel]`](/chronicle/read-models/) | `IQueryFor<T>` / `IObservableQueryFor<T>` generated proxies | [`DataPage`](/components/datapage/) for the listing UI |
 | **Automation** | [`IReactor`](/chronicle/reactors/) observing the event log | [`ICommandPipeline`](/arc/backend/commands/command-pipeline/) to fire commands | No UI — runs in the background |
 | **Translation** | [`IReactor`](/chronicle/reactors/) on external event streams | [`ICommandPipeline`](/arc/backend/commands/command-pipeline/) bridging to domain commands | No UI — integration layer |
 

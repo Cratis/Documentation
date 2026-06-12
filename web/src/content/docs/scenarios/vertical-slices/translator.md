@@ -62,7 +62,7 @@ The integration concern lives in its own slice folder. If the HR integration is 
 
 ## Step 1 — The Member Registration Slice
 
-First, the domain side — the Library's own vocabulary. This follows the same State Change pattern from [Register an Author](./state-change).
+First, the domain side — the Library's own vocabulary. This follows the same State Change pattern from [Register an Author](../state-change).
 
 ```csharp
 // Features/Members/MemberId.cs
@@ -231,9 +231,9 @@ Over the four tutorials in this series you have built:
 
 | Tutorial | Pattern | What you built |
 | -------- | ------- | -------------- |
-| [State Change](./state-change) | State Change | Register an author — command, event, validation, constraint, React form |
-| [State View](./state-view) | State View | List authors — reactive projection, observable query, live data page |
-| [Automation](./automation) | Automation | Cancel expired reservations — passive read model, DCB command, reactor |
+| [State Change](../state-change) | State Change | Register an author — command, event, validation, constraint, React form |
+| [State View](../state-view) | State View | List authors — reactive projection, observable query, live data page |
+| [Automation](../automation) | Automation | Cancel expired reservations — passive read model, DCB command, reactor |
 | Translation | Translation | Import members from HR — external event mirror, domain command, translator reactor |
 
 Four patterns. Three building blocks. One coherent framework that covers every layer — [Chronicle](/chronicle/) for the event log, [Arc](/arc/) for the application model, [Components](/components/) for the UI. This is how consistent Information Systems are built on the Cratis stack.

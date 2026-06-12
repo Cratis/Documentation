@@ -4,7 +4,7 @@ title: Real-Time Chat — With RabbitMQ
 
 # Real-Time Chat — With RabbitMQ
 
-This guide extends the chat pattern from the [in-memory guide](./in-memory) by replacing the in-process state with two external systems: a **persistence layer** that loads message history on startup, and **RabbitMQ** that delivers new messages to all connected server instances in real time.
+This guide extends the chat pattern from the [in-memory guide](../in-memory) by replacing the in-process state with two external systems: a **persistence layer** that loads message history on startup, and **RabbitMQ** that delivers new messages to all connected server instances in real time.
 
 The observable query and the React component are unchanged from the in-memory version. All the differences are in how the backend populates and pushes the `BehaviorSubject`.
 
@@ -340,13 +340,13 @@ Delta mode works identically here. The server still emits the full list on each 
 
 The `use()` hook applies each `ChangeSet` transparently, so `messagesResult.data` always holds the complete current collection.
 
-See [Delta Mode](/arc/backend/queries/change-stream/) and the [in-memory guide](./in-memory#step-3--delta-mode) for a full explanation of how the ChangeSet is computed and when to consider adding a `ChatMessageId` property.
+See [Delta Mode](/arc/backend/queries/change-stream/) and the [in-memory guide](../in-memory#step-3--delta-mode) for a full explanation of how the ChangeSet is computed and when to consider adding a `ChatMessageId` property.
 
 ---
 
 ## Step 6 — The React Component
 
-The React component is **identical** to the one in the [in-memory guide](./in-memory#step-4--the-react-component). The observable query contract — `ForRoom.use({ roomName })` returning `messagesResult.data` — does not change regardless of how the backend sources its data.
+The React component is **identical** to the one in the [in-memory guide](../in-memory#step-4--the-react-component). The observable query contract — `ForRoom.use({ roomName })` returning `messagesResult.data` — does not change regardless of how the backend sources its data.
 
 ---
 

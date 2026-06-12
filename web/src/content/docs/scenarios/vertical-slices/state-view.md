@@ -6,7 +6,7 @@ title: State View — List Authors
 
 This tutorial builds the **List Authors** slice of the Library system. It is a **State View** — the read side of Event Modeling.
 
-Events recorded by the [Register Author](./state-change) slice are projected into a purpose-built read model, exposed through an observable query, and rendered in a live-updating page.
+Events recorded by the [Register Author](../state-change) slice are projected into a purpose-built read model, exposed through an observable query, and rendered in a live-updating page.
 
 By the end you will have:
 
@@ -171,9 +171,9 @@ export const Listing = () => {
 
 ### What is happening here?
 
-**`AllAuthors`** is the generated query proxy — an `IObservableQueryFor<Author[]>` implementation. [`DataPage`](/components/DataPage/) calls it once, subscribes to its observable, and re-renders whenever the backend pushes a new list. If another user registers an author in another browser tab, this list updates without any manual refresh.
+**`AllAuthors`** is the generated query proxy — an `IObservableQueryFor<Author[]>` implementation. [`DataPage`](/components/datapage/) calls it once, subscribes to its observable, and re-renders whenever the backend pushes a new list. If another user registers an author in another browser tab, this list updates without any manual refresh.
 
-**[`DataPage`](/components/DataPage/)** from `@cratis/components` provides the complete page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. You declare columns as children using PrimeReact's `Column` and the component does everything else.
+**[`DataPage`](/components/datapage/)** from `@cratis/components` provides the complete page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. You declare columns as children using PrimeReact's `Column` and the component does everything else.
 
 **`useDialog<CommandResult<RegisterAuthorResponse>>(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) returns a tuple: `AddAuthorDialog` is a wrapper component that you render in JSX, and `showAddAuthor` is an async function that opens the dialog and returns `[dialogResult, commandResult]` when it closes. The type parameter `CommandResult<RegisterAuthorResponse>` flows end-to-end — the dialog uses `useDialogContext` with the same type, so close-data is fully typed.
 
@@ -220,8 +220,8 @@ import { Authors } from './Features/Authors/Authors';
 | Read model | `Author` record | [Chronicle](/chronicle/) [`[ReadModel]`](/chronicle/read-models/) + [`[FromEvent<T>]`](/chronicle/projections/) |
 | Query | `AllAuthors` static method | [Chronicle](/chronicle/) `ISubject<IEnumerable<T>>` |
 | Generated proxy | `AllAuthors.ts` | [Arc proxy generation](/arc/backend/proxy-generation/) |
-| Listing page | `Listing.tsx` | [`@cratis/components`](/components/) [`DataPage`](/components/DataPage/) |
+| Listing page | `Listing.tsx` | [`@cratis/components`](/components/) [`DataPage`](/components/datapage/) |
 
-The read model and its query fit in one record. The projection is zero-configuration convention mapping. The frontend subscribes to a live stream, not a static snapshot. The UI automatically reflects every state change appended anywhere in the system — including changes from the [Register Author](./state-change) slice.
+The read model and its query fit in one record. The projection is zero-configuration convention mapping. The frontend subscribes to a live stream, not a static snapshot. The UI automatically reflects every state change appended anywhere in the system — including changes from the [Register Author](../state-change) slice.
 
-**Next**: [Automation — Cancel Expired Reservations](./automation)
+**Next**: [Automation — Cancel Expired Reservations](../automation)
