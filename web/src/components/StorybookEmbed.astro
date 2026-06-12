@@ -172,4 +172,10 @@ const src = buildStorybookSrc(storybookRoot, initialStoryPath, showNav);
     padding: 0;
     max-width: none;
   }
+
+  /* Hide page title (h1#_top) and any description paragraph for full-page Storybook */
+  :has(.storybook-embed[data-full-page="true"]) h1#_top,
+  :has(.storybook-embed[data-full-page="true"]) h1#_top + p {
+    display: none;
+  }
 </style>
