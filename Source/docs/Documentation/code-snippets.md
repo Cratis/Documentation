@@ -101,6 +101,23 @@ The snippet will include:
 - The code with proper syntax highlighting
 - A link to the source file in GitHub with line numbers
 
+## Multi-language Snippets
+
+To render language tabs from language-specific snippet files, use:
+
+```markdown
+:::multilang title="Appending Events":::
+```
+
+The title is converted to `appending-events.md`, and snippets are
+resolved from a `snippets/` folder in the same hierarchy as the
+markdown file. Language variants are discovered in predefined folders:
+
+- Current folder (C# tab)
+- `<FolderName>.TypeScript` sibling folder (TypeScript tab)
+
+If a language file is missing, that language tab is omitted.
+
 ## Naming Conventions
 
 Snippet names should:
