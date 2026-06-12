@@ -19,3 +19,6 @@
 [submodule "CLI"]
 	path = CLI
 	url = https://github.com/cratis/cli
+[submodule "Architecture"]
+	path = Architecture
+	url = https://github.com/Cratis/Architecture

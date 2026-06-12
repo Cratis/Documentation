@@ -41,6 +41,7 @@ const overviewTopic = {
             collapsed: true,
             items: [
                 { label: 'Overview', slug: 'scenarios' },
+                { label: 'Build a full-stack feature', slug: 'build-a-full-app' },
                 {
                     label: 'Camel Casing',
                     collapsed: true,
@@ -74,6 +75,7 @@ const overviewTopic = {
         },
         {
             label: 'Adopt and trust',
+            collapsed: true,
             items: [
                 { label: 'Learning paths', slug: 'learning-paths' },
                 { label: 'FAQ', slug: 'faq' },
@@ -89,6 +91,7 @@ const overviewTopic = {
         },
         {
             label: 'AI',
+            collapsed: true,
             items: [
                 { label: 'AI-native development', slug: 'ai-native-development' },
                 { label: 'Plugins', slug: 'plugins' },
@@ -99,6 +102,7 @@ const overviewTopic = {
         { label: 'Event Modeling', slug: 'event-modeling' },
         {
             label: 'Testing',
+            collapsed: true,
             items: [
                 { label: 'Testing with Cratis', slug: 'testing-with-cratis' },
                 { label: 'Specifications', slug: 'specifications' },
@@ -106,6 +110,7 @@ const overviewTopic = {
         },
         {
             label: 'Tools',
+            collapsed: true,
             items: [
                 { label: 'VS Code extension', slug: 'tools/vscode-extension' },
                 { label: 'Lens', slug: 'tools/lens' },
@@ -114,6 +119,7 @@ const overviewTopic = {
         { label: 'Auth and compliance', slug: 'auth-and-compliance' },
         {
             label: 'AuthProxy',
+            collapsed: true,
             items: [
                 { label: 'Overview', slug: 'authproxy' },
                 { label: 'Get started', slug: 'authproxy/get-started' },
@@ -123,7 +129,6 @@ const overviewTopic = {
                 { label: 'Invites and lobby', slug: 'authproxy/invites-and-lobby' },
             ],
         },
-        { label: 'Build a full-stack feature', slug: 'build-a-full-app' },
         { label: 'Samples', slug: 'samples' },
         { label: 'Showcase and architectures', slug: 'showcase' },
         { label: "What's new", slug: 'whats-new' },
@@ -233,6 +238,7 @@ export default defineConfig({
                         cli: ['/cli', '/cli/**'],
                         fundamentals: ['/fundamentals', '/fundamentals/**'],
                         contributing: ['/contributing', '/contributing/**'],
+                        architecture: ['/architecture', '/architecture/**'],
                     },
                 }),
                 // Per-page action row: Copy Markdown + Open in AI assistant + Share.

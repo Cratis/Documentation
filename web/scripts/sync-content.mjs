@@ -123,6 +123,16 @@ const PRODUCTS = [
             path.join(reposRoot, '.github'),
             path.join(docRepoRoot, 'GitHubLanding')),
     },
+    {
+        // Roslyn analyzers enforcing Cratis architectural conventions across all products.
+        key: 'architecture', label: 'Architecture', icon: 'seti:config', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Architecture', 'Documentation'),
+            path.join(docRepoRoot, 'Architecture', 'Documentation')),
+        buckets: [
+            { label: 'Code Analysis', sections: ['Code Analysis'] },
+        ],
+    },
 ];
 
 const ASSET_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.html', '.js', '.css', '.json']);
