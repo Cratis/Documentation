@@ -148,32 +148,72 @@ const src = buildStorybookSrc(storybookRoot, initialStoryPath, showNav);
     border: 0;
   }
 
-  /* Full-page mode: remove box styling and fill viewport */
+  /* Full-page mode: remove box styling */
   .storybook-embed[data-full-page="true"] {
     margin: 0;
     border: 0;
     border-radius: 0;
-    min-height: calc(100vh - 8rem); /* viewport height minus header/footer */
   }
 
+  /* Full-page iframe: fill from header bottom to viewport bottom */
   .storybook-embed[data-full-page="true"] iframe {
-    height: calc(100vh - 8rem);
+    height: calc(100vh - 4rem);
     min-height: 600px;
   }
 
-  /* Remove content padding when containing a full-page Storybook */
+  /* Remove content padding and margin when containing a full-page Storybook */
   .sl-markdown-content:has(.storybook-embed[data-full-page="true"]) {
     padding: 0;
+    margin: 0;
     max-width: none;
   }
 
-  /* Stretch the content panel to full width for full-page Storybook */
+  /* Expand content panel to fill full width (right sidebar hidden) */
   .content-panel:has(.storybook-embed[data-full-page="true"]) {
     padding: 0;
     max-width: none;
+    width: 100%;
+    flex: 1;
   }
 
-  /* Hide page title (h1#_top) and any description paragraph for full-page Storybook */
+  /* Hide the right sidebar in full-page mode */
+  :has(.storybook-embed[data-full-page="true"]) .right-sidebar-container {
+    display: none;
+  }
+
+  /* Make main-pane grow to fill freed right-sidebar space */
+  :has(.storybook-embed[data-full-page="true"]) .main-pane {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+  }
+
+  /* Expand main and content panel to fill the full main-pane */
+  :has(.storybook-embed[data-full-page="true"]) main,
+  :has(.storybook-embed[data-full-page="true"]) .content-panel {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Hide the empty header content-panel (title/actions area) in full-page mode */
+  main:has(.storybook-embed[data-full-page="true"]) .content-panel:not(:has(.storybook-embed[data-full-page="true"])) {
+    display: none;
+  }
+
+  /* Remove the sl-container padding so the embed fills edge-to-edge */
+  .content-panel:has(.storybook-embed[data-full-page="true"]) .sl-container {
+    padding: 0;
+    margin: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  /* Hide the page-actions toolbar (Copy Markdown / Open) in full-page mode */
+  :has(.storybook-embed[data-full-page="true"]) .actions-container {
+    display: none;
+  }
+
+  /* Hide page title and description paragraph for full-page Storybook */
   :has(.storybook-embed[data-full-page="true"]) h1#_top,
   :has(.storybook-embed[data-full-page="true"]) h1#_top + p {
     display: none;
