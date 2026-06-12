@@ -3,17 +3,13 @@ title: Lens (browser extension)
 description: Lens is a browser extension that brings Cratis developer tools into your browser — detect a running Arc app, browse its commands and queries by namespace, execute them with structured input, and switch the active user and tenant, all from a popup.
 ---
 
-import { CardGrid, Aside, Steps } from '@astrojs/starlight/components';
+import { CardGrid, Steps } from '@astrojs/starlight/components';
 import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
 <TopicHero icon="seti:html" eyebrow="Tools" title="Your Arc app, inspectable in the browser">
 You're testing an Arc app in the browser and you want to fire a command with a specific payload, or check what a query returns for a different tenant — without writing a throwaway page. **Lens** is a browser extension that does exactly that: it detects the running Arc app in your current tab, lets you browse its commands and queries by namespace, run them with a structured form, and switch the active user and tenant on the fly.
 </TopicHero>
-
-<Aside type="caution" title="Pre-release">
-Lens is early (v0.1.0). It isn't on the public extension stores yet — install it today by building from source and side-loading (below). Store links are *coming soon*.
-</Aside>
 
 ## What it does
 
@@ -36,9 +32,13 @@ Lens opens as a popup with four tabs. When the current tab is a running Arc appl
 
 Under the hood it's a Manifest V3 extension built with React, Vite, and PrimeReact — the same UI stack as [Components](/components/) — and it talks to the Arc backend's introspection endpoints to discover the command and query catalog.
 
+## Install from the Chrome Web Store
+
+The easiest way to install Lens is directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/cratis-lens/hfdpoljbaknodcgejjohafbfjejijklj). Click **Add to Chrome** and the extension is ready to use.
+
 ## Install it (side-load)
 
-Until Lens reaches the stores, build it from source and load it unpacked. The source is at [github.com/Cratis/Lens](https://github.com/Cratis/Lens).
+You can also build Lens from source and load it unpacked — useful for development or trying unreleased changes. The source is at [github.com/Cratis/Lens](https://github.com/Cratis/Lens).
 
 <Steps>
 
@@ -59,10 +59,6 @@ Until Lens reaches the stores, build it from source and load it unpacked. The so
 </Steps>
 
 For an active edit loop, run `yarn dev` to rebuild on change, and reload the extension from `chrome://extensions` after each rebuild.
-
-<Aside type="note" title="Coming to the stores">
-Lens targets Chrome, Microsoft Edge, Firefox, and Safari — the publishing pipeline for all four is already in place. This page will link the store listings once they're live.
-</Aside>
 
 ## Where to go next
 
