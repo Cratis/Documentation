@@ -130,7 +130,7 @@ const PRODUCTS = [
             path.join(reposRoot, 'Architecture', 'Documentation'),
             path.join(docRepoRoot, 'Architecture', 'Documentation')),
         buckets: [
-            { label: 'Code Analysis', sections: ['Code Analysis'] },
+            { label: 'Code Analysis', sections: ['Documentation'] },
         ],
     },
 ];
