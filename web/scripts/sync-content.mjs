@@ -53,7 +53,7 @@ const PRODUCTS = [
             },
             {
                 label: 'Running Chronicle',
-                sections: ['Hosting', 'Configuration', 'Connection Strings', 'Testing', 'Troubleshooting'],
+                sections: ['Workbench', 'Hosting', 'Configuration', 'Connection Strings', 'Testing', 'Troubleshooting'],
             },
             {
                 label: 'Reference',
