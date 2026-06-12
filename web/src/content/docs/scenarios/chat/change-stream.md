@@ -6,7 +6,7 @@ title: Real-Time Chat — Frontend-Managed State
 
 The two previous guides use `ForRoom.use()`, which applies Arc's delta `ChangeSet` transparently and always gives the component a complete `messagesResult.data` array. That is the right default for most UIs.
 
-This guide uses `ForRoom.useChangeStream()` instead. The component receives the raw `ChangeSet` — `{ added, replaced, removed }` — and maintains its own `useState` accumulator. **The backend is unchanged from the [in-memory guide](./in-memory.md).** Only the frontend differs.
+This guide uses `ForRoom.useChangeStream()` instead. The component receives the raw `ChangeSet` — `{ added, replaced, removed }` — and maintains its own `useState` accumulator. **The backend is unchanged from the [in-memory guide](./in-memory).** Only the frontend differs.
 
 By the end you will have:
 
@@ -34,7 +34,7 @@ All of these require knowing *which* items just appeared. `useChangeStream()` gi
 
 ## Backend — Unchanged
 
-The backend is identical to the [in-memory guide](./in-memory.md). No changes to `ChatRoom.cs` or `ChatRoomPage.cs`.
+The backend is identical to the [in-memory guide](./in-memory). No changes to `ChatRoom.cs` or `ChatRoomPage.cs`.
 
 ```csharp
 // Features/Chat/ChatRoomPage.cs — unchanged

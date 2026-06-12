@@ -6,7 +6,7 @@ title: State View — List Authors
 
 This tutorial builds the **List Authors** slice of the Library system. It is a **State View** — the read side of Event Modeling.
 
-Events recorded by the [Register Author](./state-change.md) slice are projected into a purpose-built read model, exposed through an observable query, and rendered in a live-updating page.
+Events recorded by the [Register Author](./state-change) slice are projected into a purpose-built read model, exposed through an observable query, and rendered in a live-updating page.
 
 By the end you will have:
 
@@ -79,15 +79,15 @@ public record Author(
 
 ### What is happening here?
 
-**[`[ReadModel]`](/docs/Chronicle/read-models/)** registers the record with [Chronicle](/docs/Chronicle/) as a MongoDB-backed projection target. Chronicle automatically creates and maintains the collection. You never write a MongoDB query to update it — Chronicle does that from the event stream.
+**[`[ReadModel]`](/chronicle/read-models/)** registers the record with [Chronicle](/chronicle/) as a MongoDB-backed projection target. Chronicle automatically creates and maintains the collection. You never write a MongoDB query to update it — Chronicle does that from the event stream.
 
-**[`[FromEvent<AuthorRegistered>]`](/docs/Chronicle/projections/)** is a projection shorthand: *“when an `AuthorRegistered` event is appended, map its properties to this read model using convention.”* Chronicle matches properties by name. `FirstName` on the event maps to `FirstName` on the read model, `LastName` to `LastName`. No explicit mapping code needed.
+**[`[FromEvent<AuthorRegistered>]`](/chronicle/projections/)** is a projection shorthand: *“when an `AuthorRegistered` event is appended, map its properties to this read model using convention.”* Chronicle matches properties by name. `FirstName` on the event maps to `FirstName` on the read model, `LastName` to `LastName`. No explicit mapping code needed.
 
 **`[Key]`** on `AuthorId` tells Chronicle which property is the read model's primary key, and how to correlate events to read model instances. Because `RegisterAuthor.Handle()` returns an `AuthorId` as the event source identity, Chronicle stores the `AuthorRegistered` event under that ID — and the projection updates the `Author` document with the same ID.
 
-**`AllAuthors`** is a static query method. Method parameters are automatically resolved from DI — `IMongoCollection<Author>` is provided because the type is a `[ReadModel]`. The return type `ISubject<IEnumerable<Author>>` is a reactive [observable query](/docs/Arc/backend/queries/): the frontend receives the current list immediately, and then receives a new emission whenever any document in the collection changes. No polling. No WebSockets to configure manually.
+**`AllAuthors`** is a static query method. Method parameters are automatically resolved from DI — `IMongoCollection<Author>` is provided because the type is a `[ReadModel]`. The return type `ISubject<IEnumerable<Author>>` is a reactive [observable query](/arc/backend/queries/): the frontend receives the current list immediately, and then receives a new emission whenever any document in the collection changes. No polling. No WebSockets to configure manually.
 
-> **Run `dotnet build`** after saving `Listing.cs`. This generates the `AllAuthors.ts` query proxy and the `Author.ts` model type via [Arc's proxy generation](/docs/Arc/backend/proxy-generation/) used by the frontend component.
+> **Run `dotnet build`** after saving `Listing.cs`. This generates the `AllAuthors.ts` query proxy and the `Author.ts` model type via [Arc's proxy generation](/arc/backend/proxy-generation/) used by the frontend component.
 
 ---
 
@@ -171,11 +171,11 @@ export const Listing = () => {
 
 ### What is happening here?
 
-**`AllAuthors`** is the generated query proxy — an `IObservableQueryFor<Author[]>` implementation. [`DataPage`](/docs/Components/DataPage/) calls it once, subscribes to its observable, and re-renders whenever the backend pushes a new list. If another user registers an author in another browser tab, this list updates without any manual refresh.
+**`AllAuthors`** is the generated query proxy — an `IObservableQueryFor<Author[]>` implementation. [`DataPage`](/components/DataPage/) calls it once, subscribes to its observable, and re-renders whenever the backend pushes a new list. If another user registers an author in another browser tab, this list updates without any manual refresh.
 
-**[`DataPage`](/docs/Components/DataPage/)** from `@cratis/components` provides the complete page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. You declare columns as children using PrimeReact's `Column` and the component does everything else.
+**[`DataPage`](/components/DataPage/)** from `@cratis/components` provides the complete page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. You declare columns as children using PrimeReact's `Column` and the component does everything else.
 
-**`useDialog<CommandResult<RegisterAuthorResponse>>(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/docs/Arc/frontend/react/) returns a tuple: `AddAuthorDialog` is a wrapper component that you render in JSX, and `showAddAuthor` is an async function that opens the dialog and returns `[dialogResult, commandResult]` when it closes. The type parameter `CommandResult<RegisterAuthorResponse>` flows end-to-end — the dialog uses `useDialogContext` with the same type, so close-data is fully typed.
+**`useDialog<CommandResult<RegisterAuthorResponse>>(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) returns a tuple: `AddAuthorDialog` is a wrapper component that you render in JSX, and `showAddAuthor` is an async function that opens the dialog and returns `[dialogResult, commandResult]` when it closes. The type parameter `CommandResult<RegisterAuthorResponse>` flows end-to-end — the dialog uses `useDialogContext` with the same type, so close-data is fully typed.
 
 **`MenuItem`** in the `MenuItems` slot adds an action to the toolbar. The `command` handler `await`s the dialog — you can inspect the result if needed, but since `DataPage` subscribes to the observable query, the list updates automatically after a successful registration.
 
@@ -217,11 +217,11 @@ import { Authors } from './Features/Authors/Authors';
 
 | Layer | Artifact | Technology |
 | ----- | -------- | ---------- |
-| Read model | `Author` record | [Chronicle](/docs/Chronicle/) [`[ReadModel]`](/docs/Chronicle/read-models/) + [`[FromEvent<T>]`](/docs/Chronicle/projections/) |
-| Query | `AllAuthors` static method | [Chronicle](/docs/Chronicle/) `ISubject<IEnumerable<T>>` |
-| Generated proxy | `AllAuthors.ts` | [Arc proxy generation](/docs/Arc/backend/proxy-generation/) |
-| Listing page | `Listing.tsx` | [`@cratis/components`](/docs/Components/) [`DataPage`](/docs/Components/DataPage/) |
+| Read model | `Author` record | [Chronicle](/chronicle/) [`[ReadModel]`](/chronicle/read-models/) + [`[FromEvent<T>]`](/chronicle/projections/) |
+| Query | `AllAuthors` static method | [Chronicle](/chronicle/) `ISubject<IEnumerable<T>>` |
+| Generated proxy | `AllAuthors.ts` | [Arc proxy generation](/arc/backend/proxy-generation/) |
+| Listing page | `Listing.tsx` | [`@cratis/components`](/components/) [`DataPage`](/components/DataPage/) |
 
-The read model and its query fit in one record. The projection is zero-configuration convention mapping. The frontend subscribes to a live stream, not a static snapshot. The UI automatically reflects every state change appended anywhere in the system — including changes from the [Register Author](./state-change.md) slice.
+The read model and its query fit in one record. The projection is zero-configuration convention mapping. The frontend subscribes to a live stream, not a static snapshot. The UI automatically reflects every state change appended anywhere in the system — including changes from the [Register Author](./state-change) slice.
 
-**Next**: [Automation — Cancel Expired Reservations](./automation.md)
+**Next**: [Automation — Cancel Expired Reservations](./automation)

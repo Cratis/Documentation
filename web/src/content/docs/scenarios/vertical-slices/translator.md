@@ -62,7 +62,7 @@ The integration concern lives in its own slice folder. If the HR integration is 
 
 ## Step 1 — The Member Registration Slice
 
-First, the domain side — the Library's own vocabulary. This follows the same State Change pattern from [Register an Author](./state-change.md).
+First, the domain side — the Library's own vocabulary. This follows the same State Change pattern from [Register an Author](./state-change).
 
 ```csharp
 // Features/Members/MemberId.cs
@@ -169,13 +169,13 @@ public class MemberImportReactor(ICommandPipeline commandPipeline) : IReactor
 
 ### What is happening here?
 
-**[`[EventType]`](/docs/Chronicle/events/)** on `HRMemberCreated` does not make this a Library event. It is just the C# type that [Chronicle](/docs/Chronicle/) uses to deserialise the incoming event from the external stream. Chronicle needs strongly-typed events; this is the representation of the HR system's payload in our codebase. A better name for this concept is an *integration event* — it lives at the boundary and has no standing in the domain.
+**[`[EventType]`](/chronicle/events/)** on `HRMemberCreated` does not make this a Library event. It is just the C# type that [Chronicle](/chronicle/) uses to deserialise the incoming event from the external stream. Chronicle needs strongly-typed events; this is the representation of the HR system's payload in our codebase. A better name for this concept is an *integration event* — it lives at the boundary and has no standing in the domain.
 
-**`[OnceOnly]`** is essential here. This [reactor](/docs/Chronicle/reactors/) has an external side effect: it calls `RegisterMember`, which appends a `MemberRegistered` event to the Library's own event log. If the event log were ever replayed, you do not want to fire `RegisterMember` again for every HR event that already produced a successful import — that would create duplicate members. `[OnceOnly]` ensures this method runs exactly once per HR event, even across replays.
+**`[OnceOnly]`** is essential here. This [reactor](/chronicle/reactors/) has an external side effect: it calls `RegisterMember`, which appends a `MemberRegistered` event to the Library's own event log. If the event log were ever replayed, you do not want to fire `RegisterMember` again for every HR event that already produced a successful import — that would create duplicate members. `[OnceOnly]` ensures this method runs exactly once per HR event, even across replays.
 
 **Status filtering** shows how the translator makes decisions. The Library does not care about contract staff, secondees, or inactive records — it only wants active personnel. That filter lives here, at the integration boundary. The `RegisterMember` command never needs to know that the Library has an HR integration; it just registers members.
 
-**[`ICommandPipeline.Execute`](/docs/Arc/backend/commands/command-pipeline/)** routes through the full [Arc](/docs/Arc/) command pipeline — validation, [constraints](/docs/Chronicle/constraints/), [Chronicle](/docs/Chronicle/) event append — exactly as if a user had clicked a button on a form. The `UniqueMemberName` constraint from `Registration.cs` will fire here too. If the member was already imported (because, for example, the HR system sent the event twice), the constraint will reject the duplicate `RegisterMember` and nothing bad happens.
+**[`ICommandPipeline.Execute`](/arc/backend/commands/command-pipeline/)** routes through the full [Arc](/arc/) command pipeline — validation, [constraints](/chronicle/constraints/), [Chronicle](/chronicle/) event append — exactly as if a user had clicked a button on a form. The `UniqueMemberName` constraint from `Registration.cs` will fire here too. If the member was already imported (because, for example, the HR system sent the event twice), the constraint will reject the duplicate `RegisterMember` and nothing bad happens.
 
 ---
 
@@ -215,11 +215,11 @@ The exact configuration depends on how the external system publishes events (Kaf
 
 | Layer | Artifact | Technology |
 | ----- | -------- | ---------- |
-| External event (HR mirror) | `HRMemberCreated` | [Chronicle](/docs/Chronicle/) [`[EventType]`](/docs/Chronicle/events/) (integration type) |
-| Domain command | `RegisterMember` | [Arc](/docs/Arc/) [`[Command]`](/docs/Arc/backend/commands/model-bound/) |
-| Domain event | `MemberRegistered` | [Chronicle](/docs/Chronicle/) [`[EventType]`](/docs/Chronicle/events/) |
-| Translator | `MemberImportReactor` | [Chronicle](/docs/Chronicle/) [`IReactor`](/docs/Chronicle/reactors/) + `[OnceOnly]` |
-| Bridge | `ICommandPipeline.Execute(...)` | [Arc](/docs/Arc/) [command pipeline](/docs/Arc/backend/commands/command-pipeline/) |
+| External event (HR mirror) | `HRMemberCreated` | [Chronicle](/chronicle/) [`[EventType]`](/chronicle/events/) (integration type) |
+| Domain command | `RegisterMember` | [Arc](/arc/) [`[Command]`](/arc/backend/commands/model-bound/) |
+| Domain event | `MemberRegistered` | [Chronicle](/chronicle/) [`[EventType]`](/chronicle/events/) |
+| Translator | `MemberImportReactor` | [Chronicle](/chronicle/) [`IReactor`](/chronicle/reactors/) + `[OnceOnly]` |
+| Bridge | `ICommandPipeline.Execute(...)` | [Arc](/arc/) [command pipeline](/arc/backend/commands/command-pipeline/) |
 
 The HR system's vocabulary stops at the edge of `HRIntegration/`. Everything inside `Registration/` is pure Library domain, ignorant of HR entirely. Swap the HR system for a different one and you only touch `HRIntegration.cs`.
 
@@ -231,9 +231,9 @@ Over the four tutorials in this series you have built:
 
 | Tutorial | Pattern | What you built |
 | -------- | ------- | -------------- |
-| [State Change](./state-change.md) | State Change | Register an author — command, event, validation, constraint, React form |
-| [State View](./state-view.md) | State View | List authors — reactive projection, observable query, live data page |
-| [Automation](./automation.md) | Automation | Cancel expired reservations — passive read model, DCB command, reactor |
+| [State Change](./state-change) | State Change | Register an author — command, event, validation, constraint, React form |
+| [State View](./state-view) | State View | List authors — reactive projection, observable query, live data page |
+| [Automation](./automation) | Automation | Cancel expired reservations — passive read model, DCB command, reactor |
 | Translation | Translation | Import members from HR — external event mirror, domain command, translator reactor |
 
-Four patterns. Three building blocks. One coherent framework that covers every layer — [Chronicle](/docs/Chronicle/) for the event log, [Arc](/docs/Arc/) for the application model, [Components](/docs/Components/) for the UI. This is how consistent Information Systems are built on the Cratis stack.
+Four patterns. Three building blocks. One coherent framework that covers every layer — [Chronicle](/chronicle/) for the event log, [Arc](/arc/) for the application model, [Components](/components/) for the UI. This is how consistent Information Systems are built on the Cratis stack.

@@ -5,13 +5,13 @@ description: These guides build a real-time multi-room chat application using Ar
 
 # Real-Time Chat
 
-These guides build a real-time multi-room chat application using Arc's [observable queries](/docs/Arc/backend/queries/). They share a common shape — a `ChatMessage` read model with a `ForRoom` observable query, a `SendMessage` command, and a React page component — but each one explores a different dimension of the pattern.
+These guides build a real-time multi-room chat application using Arc's [observable queries](/arc/backend/queries/). They share a common shape — a `ChatMessage` read model with a `ForRoom` observable query, a `SendMessage` command, and a React page component — but each one explores a different dimension of the pattern.
 
 ---
 
 ## The Four Guides
 
-### [In-Memory](./in-memory.md)
+### [In-Memory](./in-memory)
 
 The simplest starting point. Message history is held in a `BehaviorSubject` inside a singleton `ChatService`. No external dependencies required.
 
@@ -20,7 +20,7 @@ Covers:
 - The relay pattern for per-client observable subscriptions
 - How Arc's **delta mode** works: the first emission delivers the full history; subsequent emissions deliver only the `ChangeSet` of new messages
 
-### [With RabbitMQ](./rabbitmq.md)
+### [With RabbitMQ](./rabbitmq)
 
 Replaces the in-process state with two external systems: a persistence layer that loads message history on startup, and a RabbitMQ fanout exchange that delivers new messages to every server instance. The observable query and the React component are identical to the in-memory version.
 
@@ -30,7 +30,7 @@ Covers:
 - Publishing from `SendMessage` rather than writing directly to the room
 - Scaling across multiple server instances
 
-### [Frontend-Managed State](./change-stream.md)
+### [Frontend-Managed State](./change-stream)
 
 The backend is unchanged from the in-memory guide. The React component switches from `ForRoom.use()` to `ForRoom.useChangeStream()` to receive the raw `ChangeSet` — `{ added, replaced, removed }` — and manages its own `useState` accumulator.
 
@@ -39,7 +39,7 @@ Covers:
 - Appending `ChangeSet.added` items to local state
 - Deriving secondary state from the delta: scroll-to-bottom logic and an unread message counter
 
-### [Incremental Pushes](./incremental-pushes.md)
+### [Incremental Pushes](./incremental-pushes)
 
 The backend changes fundamentally. `ChatRoom` becomes a pure pub/sub channel with no history — a plain `Subject` that fires only new messages. `ChatService` owns the history. The `ForRoom` query uses a `ReplaySubject(1)` to emit the full history once as the initial payload, then forwards each new message individually. The network payload per message stays constant regardless of conversation length.
 
