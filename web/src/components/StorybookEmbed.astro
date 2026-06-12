@@ -26,7 +26,7 @@ function normalizeStoryPath(value: string) {
   return `/story/${clean}`;
 }
 
-function buildStorybookSrc(root: string, storyPath: string, showNav: boolean) {
+function buildStorybookSrc(root: string, storyPath: string, showNav: boolean, docsSiteTheme = 'dark') {
   const params = new URLSearchParams();
   if (storyPath) {
     // Focused story view: docs/controls panel open, nav visibility controlled by showNav.
@@ -40,6 +40,7 @@ function buildStorybookSrc(root: string, storyPath: string, showNav: boolean) {
     // Main storybook view with nav hidden (for embedded mode)
     params.set('nav', 'false');
   }
+  params.set('docsSiteTheme', docsSiteTheme);
   const query = params.toString();
   return `${root}/index.html${query ? `?${query}` : ''}`;
 }
@@ -76,7 +77,7 @@ const src = buildStorybookSrc(storybookRoot, initialStoryPath, showNav);
     return `/story/${clean}`;
   };
 
-  const buildStorybookSrc = (root, storyPath, showNav) => {
+  const buildStorybookSrc = (root, storyPath, showNav, docsSiteTheme) => {
     const url = new URL(`${root}/index.html`, window.location.origin);
     if (storyPath) {
       if (!showNav) {
@@ -88,6 +89,7 @@ const src = buildStorybookSrc(storybookRoot, initialStoryPath, showNav);
     } else if (!showNav) {
       url.searchParams.set('nav', 'false');
     }
+    url.searchParams.set('docsSiteTheme', docsSiteTheme);
     return `${url.pathname}${url.search}`;
   };
 
@@ -106,7 +108,7 @@ const src = buildStorybookSrc(storybookRoot, initialStoryPath, showNav);
       ? `/story/${story.replace(/^\/?story\//, '')}`
       : params.get('path') || embed.dataset.storybookPath || '';
     const storyPath = normalizeStoryPath(requestedPath);
-    const src = buildStorybookSrc(root, storyPath, showNav);
+    const src = buildStorybookSrc(root, storyPath, showNav, getTheme());
 
     iframe.src = src;
     if (link) link.href = src;
