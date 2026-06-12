@@ -33,34 +33,10 @@ Each analyzer ships *inside* the package it validates — there's nothing extra 
   <SimpleCard title="Arc + Chronicle — ARCCHR####" icon="seti:db" link="/arc/backend/chronicle/code-analysis/">
     Aggregate-root event-handler rules for Arc-on-Chronicle. Ships with the Chronicle integration.
   </SimpleCard>
+  <SimpleCard title="Architecture — ARCH####" icon="seti:config" link="/architecture/code-analysis/">
+    Rules for architectural boundaries and dependency flow. Ships with the <code>Cratis.Architecture</code> package.
+  </SimpleCard>
 </CardGrid>
-
-### Chronicle event-sourcing rules (`CHR####`)
-
-The [Chronicle analyzer](/chronicle/code-analysis/) enforces the event-sourcing shapes — events, projections, reducers, reactors, and constraints. A representative slice:
-
-| Rule | Catches |
-|---|---|
-| `CHR0001` | A type appended to an event sequence that's missing `[EventType]` *(quick fix adds it)* |
-| `CHR0004` / `CHR0006` | A reactor / reducer method whose signature doesn't match an allowed shape |
-| `CHR0015` / `CHR0017` | A projection or constraint with side effects (injecting `ICommandPipeline` / `IEventLog`) |
-| `CHR0016` / `CHR0018` | Imperative code inside a `Define()` that should only contain builder calls |
-| `CHR0021` | An event type that isn't a `record` (immutability) |
-
-The error-level `[EventType]` rules (`CHR0001`, `CHR0002`, `CHR0003`, `CHR0005`, `CHR0007`) come with an automatic code fix. See the [full CHR catalog](/chronicle/code-analysis/) for all 21 rules.
-
-### Arc command & read-model rules (`ARC####`)
-
-The [Arc.Core analyzer](/arc/backend/code-analysis/) validates the model-bound CQRS shapes — the ones the [writing-correct-examples](/plugins/) discipline keeps reiterating, now checked by the compiler:
-
-| Rule | Catches |
-|---|---|
-| `ARC0001` | A `[ReadModel]` query method that doesn't return the read model (or an allowed wrapper) |
-| `ARC0002` | A command-like type missing its `[Command]` attribute |
-| `ARC0003` | A `Handle()` method declared somewhere other than the command type itself |
-| `ARC0004` | A `[Command]` type with no public `Handle()` method |
-
-And for Arc on Chronicle, [`ARCCHR0001`](/arc/backend/chronicle/code-analysis/) checks aggregate-root event-handler `On` signatures.
 
 ## ESLint packages
 
