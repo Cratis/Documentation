@@ -350,6 +350,7 @@ async function convertFile(raw, ctx) {
     const fm = { title };
     if (src.description) fm.description = src.description;
     if (src.sidebar) fm.sidebar = src.sidebar; // order/label/badge, when authors set it
+    if (src.tableOfContents !== undefined) fm.tableOfContents = src.tableOfContents;
     const fmYaml = yaml.dump(fm, { lineWidth: -1 }).trimEnd();
     return `---\n${fmYaml}\n---\n\n` + out.replace(/\s*$/, '') + '\n';
 }
