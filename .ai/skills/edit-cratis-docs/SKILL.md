@@ -1,9 +1,11 @@
 ---
 name: edit-cratis-docs
-description: Use this skill when changing, fixing, or improving Cratis documentation — any page on the docs site. The content is split across repos (each product owns its docs in its own `Documentation/` folder; the `Documentation` repo aggregates them), so this skill finds the real source file, edits it, syncs, and verifies. Trigger whenever someone asks to edit/update/fix/reword a docs page, fix a broken link, correct a code example, update a guide or tutorial or reference page, or says a docs page is wrong/outdated — for Chronicle, Arc, Components, CLI, Fundamentals, or the site-level pages (front door, why-cratis, comparisons, glossary).
+description: Use this skill to change, fix, or improve Cratis documentation whose source is under `Documentation/**` in a product or contributing repo. Docs are split across repos (each product owns its `Documentation/` folder; the `Documentation` repo aggregates), so it finds the real source file, edits, syncs, and verifies. Trigger on edit/fix/reword a docs page, fix a broken link, or correct a code example/outdated page — for any Cratis product.
 ---
 
 # Editing a Cratis documentation page
+
+> Scope this skill to source files under `Documentation/**` in the product or contributing repo. Site-level pages in `Documentation/web` are owned by the Documentation repo.
 
 Cratis docs content lives in **each product's own repo** under that repo's `Documentation/` folder; the published site (in the `Documentation` repo at `Documentation/web/`) aggregates them. Editing the wrong copy wastes the work — the per-product folders under `web/src/content/docs/` are **generated and overwritten**.
 
@@ -17,7 +19,7 @@ Map the page URL to its owning repo:
 | `/arc/**` | `Arc/Documentation/**` (the `ApplicationModel` repo, cloned as `Arc`) |
 | `/components/**` | `Components/Documentation/**` |
 | `/cli/**`, `/fundamentals/**`, `/contributing/**` | the matching repo's `Documentation/` |
-| `/`, `/why-cratis`, `/cratis-stack`, `/glossary`, `/comparisons/**`, `/adopting-cratis`, … | `Documentation/web/src/content/docs/*.{md,mdx}` (site-level, hand-authored) |
+| `/`, `/why-cratis`, `/cratis-stack`, `/glossary`, `/comparisons/**`, `/adopting-cratis`, … | Site-level pages: use the Documentation repo; source lives in `Documentation/web/src/content/docs/*.{md,mdx}`. |
 
 Example: `/chronicle/concepts/event-source/` → `Chronicle/Documentation/concepts/event-source.md`. If unsure, `grep -rl "<a distinctive sentence>" */Documentation Documentation/web/src/content/docs/*.md*`.
 
@@ -45,4 +47,4 @@ For visual changes, screenshot the page in light and dark and read the result �
 
 Commit the change in the **product repo** that owns the page (the site repo only changes if you touched a site-level page, the nav buckets in `sync-content.mjs`, or the build). Keep commits to one logical unit; don't push without explicit approval.
 
-→ Background on the build pipeline: the `astro-starlight-site` and `documentation-rendering-and-qa` rules. To create a *new* page (not edit an existing one), use the `add-cratis-docs-page` skill.
+→ Site build and rendering internals live in the Documentation repo. To create a *new* page (not edit an existing one), use the `add-cratis-docs-page` skill.

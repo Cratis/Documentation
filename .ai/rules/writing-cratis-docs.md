@@ -56,7 +56,7 @@ import { FullStackTabs, TopicHero, SimpleCard, StackDiagram, YouWillLearn, Recap
 - **`<FullStackTabs>`** — synced C# ↔ generated-TypeScript tabs. **This is the differentiator** (full-stack type safety) — use it wherever a feature spans the stack; show both sides, not just the backend.
 - **`<TopicHero>` + `<SimpleCard>`** — the per-product Overview landings (pain→relief framing + a card grid).
 - **`<StackDiagram>`, `<YouWillLearn>`, `<Recap>`** — the stack picture, a chapter's learning goals, and the closing recap (checklist points 1 and 5).
-- **A Mermaid diagram for every non-trivial concept** — architecture, event/command flow, state transitions. A concept page without a diagram is usually incomplete. (They're pre-rendered to SVG at build — see the `documentation-rendering-and-qa` rule.)
+- **A Mermaid diagram for every non-trivial concept** — architecture, event/command flow, state transitions. A concept page without a diagram is usually incomplete. (The Documentation site pre-renders them to SVG at build time.)
 
 ## Two voices, and connect the products
 
@@ -70,6 +70,6 @@ import { FullStackTabs, TopicHero, SimpleCard, StackDiagram, YouWillLearn, Recap
 - `npm run check` is green (0 errors · 0 broken links); the page sits in the right nav bucket.
 - For a visual page, screenshot it in light **and** dark — see the `qa-cratis-docs` skill.
 
-**Study the masters (cloned locally):** `~/src/repos/aspire.dev` (Starlight — great CLI docs + tour writing), `~/src/repos/marten`, `~/src/repos/wolverine`. Mine their *patterns*; never copy their text.
+**Study the masters:** the **aspire.dev** docs (Astro Starlight — great CLI docs + tour writing)
 
-→ The mechanical format a page must follow (frontmatter, headings, asides, code fences, file layout): [Documentation Structure & Formatting](./documentation-structure-and-formatting.md). The edit→sync→verify loop and where pages live: [Editing Cratis Documentation](./editing-cratis-docs.md). Site build internals: [The Astro Starlight Docs Site](./astro-starlight-site.md).
+→ The mechanical format a page must follow (frontmatter, headings, asides, code fences, file layout): [Documentation Structure & Formatting](./documentation-structure-and-formatting.md). The edit→sync→verify loop and where pages live: [Editing Cratis Documentation](./editing-cratis-docs.md). Site build internals live in the Documentation repo.
