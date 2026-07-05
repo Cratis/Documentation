@@ -67,6 +67,7 @@ The project's voice is **direct, practical, and opinionated**. Write like an exp
 - Every example must be **complete and correct** — no pseudo-code, no `// ...` elisions that leave the reader guessing.
 - **Short illustrative snippets** may be purpose-built. **Longer or real samples must be embedded from compiled, tested source** (the Samples repo) via the snippet tooling, so they cannot drift as APIs change. Never paste untested code, and never substitute a bare "see the repo" link for showing the code.
 - Where a feature spans the stack, show **both sides** — the C# slice and the generated TypeScript consumer — with tabs. Full-stack type safety is the story; show it.
+- Chronicle's shared documentation is **language agnostic**. For Chronicle client SDK behavior, use the **chronicle-client-docs** skill and `<ChronicleClientTabs snippet="..." />`; each client owns its code under `Documentation/client-snippets/**`. Do not add raw `csharp`, `cs`, `kotlin`, `elixir`, `typescript`, or `ts` fences to shared Chronicle pages for client APIs. Put genuinely client-specific content under the public Client SDK docs instead (`Chronicle/Documentation/clients/dotnet/**` for .NET, and the external client repo's `Documentation/**` for Kotlin, Elixir, and TypeScript).
 
 ## Links
 

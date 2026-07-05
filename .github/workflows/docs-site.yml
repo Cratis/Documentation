@@ -1,9 +1,11 @@
 # Builds and deploys the Astro Starlight documentation site (Documentation/web).
 #
-# Content lives in each product repo's `Documentation/` folder. This workflow checks
-# each product repo out as a sibling of this repo — matching the local dev layout the
-# converter expects (scripts/sync-content.mjs). It uses `docs-overhaul` for
-# docs-overhaul validation and `main` for production builds and product-repo dispatches.
+# Content lives in each product repo's `Documentation/` folder. Chronicle client
+# docs and snippets live in each client repo's `Documentation/` folder. This
+# workflow checks each source repo out as a sibling of this repo, matching the
+# local dev layout the converter expects (scripts/sync-content.mjs).
+# It uses `docs-overhaul` for docs-overhaul validation and `main` for production
+# builds and product-repo dispatches.
 #
 # The build runs on both `docs-overhaul` (validation) and `main`; product repos
 # dispatch `build-docs` after docs changes on their `main` branches. The deploy job
@@ -37,6 +39,8 @@ concurrency:
 # Main pushes, manual runs from main, and repository_dispatch runs use main.
 env:
   DOCS_REF: ${{ github.ref_name == 'docs-overhaul' && 'docs-overhaul' || 'main' }}
+  ELIXIR_VERSION: "1.19.5"
+  OTP_VERSION: "28.5"
 
 jobs:
   build:
@@ -54,6 +58,30 @@ jobs:
           ref: ${{ env.DOCS_REF }}
           token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: Chronicle
+
+      - name: Checkout Chronicle.Kotlin client docs
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Chronicle.Kotlin
+          ref: main
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          path: Chronicle.Kotlin
+
+      - name: Checkout Chronicle.Elixir client docs
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Chronicle.Elixir
+          ref: main
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          path: Chronicle.Elixir
+
+      - name: Checkout Chronicle.TypeScript client docs
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Chronicle.TypeScript
+          ref: main
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          path: Chronicle.TypeScript
 
       - name: Checkout Arc
         uses: actions/checkout@v4
@@ -111,6 +139,36 @@ jobs:
         working-directory: Documentation/web
         run: npm ci || npm install
 
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Setup Elixir and Erlang
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+
+      - name: Install Chronicle TypeScript dependencies
+        working-directory: Chronicle.TypeScript
+        run: |
+          corepack enable
+          yarn install --immutable
+
+      - name: Install Chronicle Elixir dependencies
+        working-directory: Chronicle.Elixir/Source/chronicle
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get
+
       - name: Build Components Storybook
         working-directory: Components
         run: |
@@ -147,6 +205,10 @@ jobs:
       - name: Lint docs
         working-directory: Documentation/web
         run: npm run sync && npm run lint:docs
+
+      - name: Check Chronicle client docs
+        working-directory: Documentation/web
+        run: npm run chronicle-client-docs:check:ci
 
       - name: Build site
         working-directory: Documentation/web

@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "description": "Known direct client-language fences in shared Chronicle docs. Lower counts are allowed; increases fail the audit.",
+  "directClientLanguageFences": {}
+}

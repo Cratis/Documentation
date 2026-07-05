@@ -17,11 +17,15 @@
     "lint:markdown": "node scripts/lint-markdown.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:external": "node scripts/check-external-links.mjs",
+    "audit:chronicle-client-docs": "node scripts/audit-chronicle-client-docs.mjs --baseline scripts/chronicle-client-docs-baseline.json",
+    "audit:chronicle-client-docs:strict": "node scripts/audit-chronicle-client-docs.mjs --strict",
+    "chronicle-client-docs:check": "node scripts/check-chronicle-client-docs.mjs",
+    "chronicle-client-docs:check:ci": "node scripts/check-chronicle-client-docs.mjs --strict-toolchains",
     "build:storybook": "cd ../../Components/Source && ../node_modules/.bin/storybook build -o ../../Documentation/web/public/storybook",
     "build:storybook:arc": "cd ../../Arc/Source/JavaScript && yarn workspace @cratis/arc.react exec storybook build -o ../../../../Documentation/web/public/storybook-arc",
     "build:storybooks": "npm run build:storybook && npm run build:storybook:arc",
     "build:api": "node scripts/build-api.mjs",
-    "check": "npm run build && node scripts/lint-docs.mjs && node scripts/check-links.mjs && node scripts/lint-prose.mjs && node scripts/lint-markdown.mjs && node scripts/check-external-links.mjs"
+    "check": "npm run build && npm run chronicle-client-docs:check && node scripts/lint-docs.mjs && node scripts/check-links.mjs && node scripts/lint-prose.mjs && node scripts/lint-markdown.mjs && node scripts/check-external-links.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.39.2",

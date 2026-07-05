@@ -1,0 +1,171 @@
+version: 1
+
+sharedDocs:
+  paths:
+    - ../../Chronicle/Documentation
+    - ../Chronicle/Documentation
+
+sharedTopics:
+  - label: Get started
+    href: /chronicle/get-started/
+  - label: Events and event logs
+    href: /chronicle/events/
+  - label: Event appending
+    href: /chronicle/events/appending/
+  - label: Read models
+    href: /chronicle/read-models/
+  - label: Projections
+    href: /chronicle/projections/
+  - label: Reactors
+    href: /chronicle/reactors/
+  - label: Reducers
+    href: /chronicle/reducers/
+  - label: Constraints
+    href: /chronicle/constraints/
+  - label: Event seeding
+    href: /chronicle/event-seeding/
+  - label: Compliance
+    href: /chronicle/compliance/
+  - label: Transactions and unit of work
+    href: /chronicle/events/transactions/
+  - label: Event evolution
+    href: /chronicle/understanding-event-evolution/
+
+publicDocsAudit:
+  sharedTopicPatterns:
+    - concepts/**
+    - guides/**
+    - events.md
+    - event-types.md
+    - event-type-migrations.md
+    - event-log.md
+    - event-sequences.md
+    - reactors.md
+    - reducers.md
+    - read-models.md
+    - constraints.md
+    - transactions.md
+    - migrations.md
+    - concurrency.md
+    - compliance/**
+  # Note: `seeding.md`/`seeding/**` is intentionally NOT in sharedTopicPatterns above.
+  # Unlike the other topics here, event-seeding has no shared multi-client <ChronicleClientTabs>
+  # coverage in Chronicle/Documentation/event-seeding/** (it's C#-only there), so each client's
+  # own seeding.md carries real, non-duplicated API reference rather than a pure bridge.
+  baselines:
+    csharp: 0
+    # Kotlin's guides/seeding.md is a reviewed exception within the otherwise-pure-bridge
+    # guides/** folder — it has real Kotlin seeding content for the same reason as above.
+    kotlin: 1
+    elixir: 0
+    typescript: 0
+
+clients:
+  csharp:
+    label: C#
+    snippets:
+      paths:
+        - ../../Chronicle/Documentation/client-snippets
+        - ../Chronicle/Documentation/client-snippets
+      legacyBaseline: 0
+    publicDocs:
+      key: dotnet
+      label: .NET client
+      paths:
+        - ../../Chronicle/Documentation/clients/dotnet
+        - ../Chronicle/Documentation/clients/dotnet
+    validator:
+      cwd:
+        - ../../Chronicle
+        - ../Chronicle
+      command: python3
+      args:
+        - Documentation/validate-client-snippets.py
+
+  kotlin:
+    label: Kotlin
+    includeByDefault: true
+    snippets:
+      paths:
+        - ../../Chronicle.Kotlin/Documentation/client-snippets
+        - ../Chronicle.Kotlin/Documentation/client-snippets
+      legacyBaseline: 0
+    publicDocs:
+      key: kotlin
+      label: Kotlin client
+      paths:
+        - ../../Chronicle.Kotlin/Documentation
+        - ../Chronicle.Kotlin/Documentation
+    validator:
+      cwd:
+        - ../../Chronicle.Kotlin
+        - ../Chronicle.Kotlin
+      command: python3
+      args:
+        - Documentation/validate-client-snippets.py
+      blockedOutput:
+        - Unable to locate a Java Runtime
+
+  java:
+    label: Java
+    includeByDefault: false
+    snippets:
+      paths:
+        - ../../Chronicle.Kotlin/Documentation/client-snippets-java
+        - ../Chronicle.Kotlin/Documentation/client-snippets-java
+      legacyBaseline: 0
+    validator:
+      cwd:
+        - ../../Chronicle.Kotlin
+        - ../Chronicle.Kotlin
+      command: python3
+      args:
+        - Documentation/validate-client-snippets.py
+      blockedOutput:
+        - Unable to locate a Java Runtime
+
+  elixir:
+    label: Elixir
+    includeByDefault: true
+    snippets:
+      paths:
+        - ../../Chronicle.Elixir/Documentation/client-snippets
+        - ../Chronicle.Elixir/Documentation/client-snippets
+      legacyBaseline: 0
+    publicDocs:
+      key: elixir
+      label: Elixir client
+      paths:
+        - ../../Chronicle.Elixir/Documentation
+        - ../Chronicle.Elixir/Documentation
+    validator:
+      cwd:
+        - ../../Chronicle.Elixir
+        - ../Chronicle.Elixir
+      command: python3
+      args:
+        - Documentation/validate-client-snippets.py
+      blockedOutput:
+        - "No such file or directory: 'mix'"
+
+  typescript:
+    label: TypeScript
+    includeByDefault: true
+    snippets:
+      paths:
+        - ../../Chronicle.TypeScript/Documentation/client-snippets
+        - ../Chronicle.TypeScript/Documentation/client-snippets
+      legacyBaseline: 0
+    publicDocs:
+      key: typescript
+      label: TypeScript client
+      paths:
+        - ../../Chronicle.TypeScript/Documentation
+        - ../Chronicle.TypeScript/Documentation
+    validator:
+      cwd:
+        - ../../Chronicle.TypeScript
+        - ../Chronicle.TypeScript
+      command: python3
+      args:
+        - Documentation/validate-client-snippets.py
