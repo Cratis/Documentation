@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 
 import { existsSync } from 'node:fs';
+import { loadChronicleClientDocsConfig } from './chronicle-client-docs-config.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..'); // Documentation/web
@@ -28,12 +29,12 @@ function firstExisting(...candidates) {
     return candidates.find((c) => existsSync(c)) ?? candidates[candidates.length - 1];
 }
 
+const chronicleClientDocsConfig = await loadChronicleClientDocsConfig();
+
 const PRODUCTS = [
     {
         key: 'chronicle', label: 'Chronicle', icon: 'seti:db', sidebarMode: 'toc',
-        src: firstExisting(
-            path.join(reposRoot, 'Chronicle', 'Documentation'),
-            path.join(docRepoRoot, 'Chronicle', 'Documentation')),
+        src: chronicleClientDocsConfig.sharedDocsRoot,
         buckets: [
             { label: 'Start here', sections: ['Getting started', 'Tutorial', 'Scenarios'] },
             {
@@ -49,7 +50,7 @@ const PRODUCTS = [
             },
             {
                 label: 'Read models and processing',
-                sections: ['Read Models', 'Projections', 'Reactors', 'Reducers', 'Subscriptions', 'Sinks'],
+                sections: ['Read Models', 'Projections', 'Reactors', 'Reducers', 'Subscriptions', 'Sinks', 'Jobs', 'Webhooks'],
             },
             {
                 label: 'Running Chronicle',
@@ -135,11 +136,19 @@ const PRODUCTS = [
     },
 ];
 
+const CHRONICLE_CLIENT_SNIPPETS = chronicleClientDocsConfig.snippetClients;
+const DEFAULT_CHRONICLE_CLIENT_SNIPPETS = chronicleClientDocsConfig.defaultSnippetClients;
+const CHRONICLE_CLIENT_DOCS = chronicleClientDocsConfig.publicDocsClients;
+const CHRONICLE_SHARED_TOPICS = chronicleClientDocsConfig.sharedTopics;
+
 const ASSET_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.html', '.js', '.css', '.json']);
 const SKIP_DIRS = new Set([
     'node_modules', 'obj', 'bin', '.git', 'storybook-static', '.vitepress',
     // Shared Markdown snippets are included into pages but should not become pages.
     '_includes', '_shared', '_snippets',
+    // Client-owned snippets are expanded into shared Chronicle pages through
+    // <ChronicleClientTabs />; they are not standalone public docs pages.
+    'client-snippets', 'client-snippets-java',
     // dotfolders found at the .github repo root that are not documentation
     '.ai', '.claude', '.github', '.vscode',
     // the org GitHub landing page (duplicates our front door) — not site content
@@ -296,11 +305,13 @@ function resolveInternalLink(ctx, target) {
             if (!ext) resolvedPath = withTrailingSlash(resolvedPath);
         }
     } else {
+        const contentRoot = ctx.contentRoot ?? ctx.product.src;
+        const slugBase = ctx.slugBase ?? ctx.product.key;
         const absoluteTarget = path.resolve(ctx.dir, strippedPath || '.');
-        const relToProduct = path.relative(ctx.product.src, absoluteTarget).replace(/\\/g, '/');
+        const relToProduct = path.relative(contentRoot, absoluteTarget).replace(/\\/g, '/');
         if (relToProduct.startsWith('..') || path.isAbsolute(relToProduct)) return target;
         const slug = slugifyPath(relToProduct).replace(/^\/+|\/+$/g, '');
-        resolvedPath = withTrailingSlash('/' + ctx.product.key + (slug ? '/' + slug : ''));
+        resolvedPath = withTrailingSlash('/' + slugBase + (slug ? '/' + slug : ''));
     }
 
     return resolvedPath + urlSuffix + titleSuffix;
@@ -337,6 +348,123 @@ async function inlineIncludes(body, dir, sourcePath) {
     return result;
 }
 
+function getAttr(attrs, name) {
+    const m = attrs.match(new RegExp(`\\b${name}\\s*=\\s*("([^"]*)"|'([^']*)')`));
+    return m ? (m[2] ?? m[3] ?? '') : null;
+}
+
+async function fileExists(filePath) {
+    try {
+        await fs.access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+async function readClientSnippet(source, snippet) {
+    for (const ext of ['.mdx', '.md']) {
+        const candidate = path.join(source.src, snippet + ext);
+        if (await fileExists(candidate)) {
+            const raw = await fs.readFile(candidate, 'utf8');
+            const { body } = splitFrontmatter(raw);
+            return body.trim();
+        }
+    }
+    throw new Error(
+        `[sync] Missing Chronicle ${source.label} client snippet "${snippet}" in ${source.src}`
+    );
+}
+
+function isInsideFencedCode(body, index) {
+    const prefix = body.slice(0, index);
+    const backtickFences = prefix.match(/^```/gm)?.length ?? 0;
+    const tildeFences = prefix.match(/^~~~/gm)?.length ?? 0;
+    return backtickFences % 2 === 1 || tildeFences % 2 === 1;
+}
+
+function ensureTabsImport(body) {
+    const importRe = /import\s+\{([^}]+)\}\s+from\s+['"]@astrojs\/starlight\/components['"];?/;
+    const existing = body.match(importRe);
+    if (!existing) {
+        return `import { Tabs, TabItem } from '@astrojs/starlight/components';\n\n${body}`;
+    }
+
+    const names = existing[1]
+        .split(',')
+        .map((name) => name.trim())
+        .filter(Boolean);
+    for (const name of ['Tabs', 'TabItem']) {
+        if (!names.includes(name)) names.push(name);
+    }
+
+    return body.replace(importRe, `import { ${names.join(', ')} } from '@astrojs/starlight/components';`);
+}
+
+async function expandChronicleClientTabs(body, ctx) {
+    if (ctx.product.key !== 'chronicle' || !body.includes('<ChronicleClientTabs')) {
+        return { body, used: false };
+    }
+
+    const componentRe = /^[ \t]*<ChronicleClientTabs\s+([^>]*)\/>[ \t]*$/gm;
+    const parts = [];
+    let expandedAny = false;
+    let lastIndex = 0;
+
+    for (const match of body.matchAll(componentRe)) {
+        const index = match.index ?? 0;
+        if (isInsideFencedCode(body, index)) {
+            continue;
+        }
+
+        const attrs = match[1];
+        const snippet = getAttr(attrs, 'snippet');
+        if (!snippet) {
+            throw new Error(`[sync] ChronicleClientTabs in ${ctx.srcPath} is missing snippet="..."`);
+        }
+
+        const syncKey = getAttr(attrs, 'syncKey') ?? 'chronicle-client';
+        const clientsAttr = getAttr(attrs, 'clients');
+        const requested = clientsAttr
+            ? clientsAttr.split(',').map((client) => client.trim().toLowerCase()).filter(Boolean)
+            : DEFAULT_CHRONICLE_CLIENT_SNIPPETS.map((source) => source.key);
+
+        const tabs = [];
+        for (const key of requested) {
+            const source = CHRONICLE_CLIENT_SNIPPETS.find((candidate) => candidate.key === key);
+            if (!source) {
+                throw new Error(`[sync] Unknown Chronicle client snippet key "${key}" in ${ctx.srcPath}`);
+            }
+            const content = await readClientSnippet(source, snippet);
+            tabs.push({ source, content });
+        }
+
+        const expanded = [
+            `<Tabs syncKey="${syncKey}">`,
+            ...tabs.flatMap(({ source, content }) => [
+                `<TabItem label="${source.label}">`,
+                '',
+                content,
+                '',
+                `</TabItem>`,
+            ]),
+            `</Tabs>`,
+        ].join('\n');
+
+        parts.push(body.slice(lastIndex, index), expanded);
+        lastIndex = index + match[0].length;
+        expandedAny = true;
+    }
+
+    if (!expandedAny) {
+        return { body, used: false };
+    }
+
+    parts.push(body.slice(lastIndex));
+    const result = parts.join('');
+    return { body: expandedAny ? ensureTabsImport(result) : result, used: expandedAny };
+}
+
 async function convertFile(raw, ctx) {
     const { fmText, body, hasFm } = splitFrontmatter(raw);
     // Parse source front matter and carry over only Starlight-supported keys
@@ -354,6 +482,7 @@ async function convertFile(raw, ctx) {
 
     let out = stripLeadingH1(body);
     out = await inlineIncludes(out, ctx.dir, ctx.srcPath ?? path.join(ctx.dir, ctx.basename));
+    ({ body: out } = await expandChronicleClientTabs(out, ctx));
     out = convertAlerts(out);
     out = convertXref(out);
     out = fixLinks(out, ctx);
@@ -379,14 +508,15 @@ async function hasSiblingLanding(parentDir, dirName) {
     }
 }
 
-async function walk(srcDir, outDir, product) {
+async function walk(srcDir, outDir, product, options = {}) {
     const entries = await fs.readdir(srcDir, { withFileTypes: true });
     await fs.mkdir(outDir, { recursive: true });
     const demoteIndex = await hasSiblingLanding(path.dirname(srcDir), path.basename(srcDir));
     for (const entry of entries) {
         if (entry.isDirectory()) {
             if (SKIP_DIRS.has(entry.name)) continue;
-            await walk(path.join(srcDir, entry.name), path.join(outDir, entry.name), product);
+            if (product.key === 'chronicle' && !options.slugBase && path.resolve(srcDir) === path.resolve(product.src) && entry.name === 'clients') continue;
+            await walk(path.join(srcDir, entry.name), path.join(outDir, entry.name), product, options);
             continue;
         }
         // Skip repo READMEs (e.g. the .github org landing) — not site content.
@@ -400,6 +530,8 @@ async function walk(srcDir, outDir, product) {
                 basename: entry.name,
                 srcPath,
                 product,
+                contentRoot: options.contentRoot,
+                slugBase: options.slugBase,
             });
             // Keep the source extension: `.md` stays Markdown, `.mdx` stays MDX so
             // authored getting-started pages can use Starlight components (<Steps>,
@@ -413,6 +545,53 @@ async function walk(srcDir, outDir, product) {
             await fs.copyFile(srcPath, path.join(outDir, entry.name));
         }
         // toc.yml and other files are intentionally skipped (sidebar handled separately).
+    }
+}
+
+async function availableChronicleClientDocs() {
+    const available = [];
+    for (const client of CHRONICLE_CLIENT_DOCS) {
+        try {
+            await fs.access(client.src);
+            available.push(client);
+        } catch {
+            // Client repositories are optional for local partial builds.
+        }
+    }
+    return available;
+}
+
+async function writeChronicleClientsLanding(outDir, clients) {
+    if (!clients.length) return;
+
+    const clientsDir = path.join(outDir, 'clients');
+    await fs.mkdir(clientsDir, { recursive: true });
+    const topicLinks = CHRONICLE_SHARED_TOPICS
+        .map((topic) => `- [${topic.label}](${topic.href})`)
+        .join('\n');
+    const clientLinks = clients
+        .map((client) => `- [${client.label}](/chronicle/clients/${client.key}/)`)
+        .join('\n');
+
+    const body = `---\ntitle: Client SDKs\n---\n\nChronicle concepts, guides, and feature workflows live in the shared Chronicle docs and use language tabs when the client APIs differ. Use the client SDK sections for installation, connection setup, runtime integration, language idioms, and API reference details.\n\n## Shared Chronicle topics\n\n${topicLinks}\n\n## Client SDK details\n\n${clientLinks}\n`;
+
+    await fs.writeFile(path.join(clientsDir, 'index.md'), body, 'utf8');
+}
+
+async function syncChronicleClientDocs(outDir, product) {
+    const clients = await availableChronicleClientDocs();
+    await writeChronicleClientsLanding(outDir, clients);
+
+    for (const client of clients) {
+        await walk(
+            client.src,
+            path.join(outDir, 'clients', client.key),
+            product,
+            {
+                contentRoot: client.src,
+                slugBase: `chronicle/clients/${client.key}`,
+            }
+        );
     }
 }
 
@@ -560,6 +739,50 @@ function applyBadges(items) {
     return items;
 }
 
+async function chronicleClientSidebarItems() {
+    const clients = await availableChronicleClientDocs();
+    const items = [];
+
+    for (const client of clients) {
+        const slugBase = `chronicle/clients/${client.key}`;
+        const clientItems = await tocToSidebar(client.src, slugBase);
+        items.push({
+            label: client.label,
+            collapsed: true,
+            items: clientItems.length
+                ? clientItems
+                : [{ autogenerate: { directory: slugBase } }],
+        });
+    }
+
+    return items;
+}
+
+async function addChronicleClientSidebar(items) {
+    const clientItems = await chronicleClientSidebarItems();
+    if (!clientItems.length) return items;
+
+    const group = {
+        label: 'Client SDKs',
+        collapsed: true,
+        items: [
+            { label: 'Overview', slug: 'chronicle/clients' },
+            ...clientItems,
+        ],
+    };
+
+    const startHereIndex = items.findIndex((item) => item.label === 'Start here');
+    if (startHereIndex >= 0) {
+        return [
+            ...items.slice(0, startHereIndex + 1),
+            group,
+            ...items.slice(startHereIndex + 1),
+        ];
+    }
+
+    return [group, ...items];
+}
+
 // Emit one Diataxis-bucketed sidebar per product as a `starlight-sidebar-topics`
 // topic ({ label, link, icon, items }). The plugin renders the product icons as a
 // switchable rail at the top of the sidebar and shows the matching product's nav
@@ -579,6 +802,7 @@ async function generateSidebar() {
             items = await tocToSidebar(product.src, product.key);
             if (items.length === 0) items = [{ autogenerate: { directory: product.key } }];
             else if (product.buckets) items = applyBuckets(items, product.buckets);
+            if (product.key === 'chronicle') items = await addChronicleClientSidebar(items);
         } else {
             items = [{ autogenerate: { directory: product.key } }];
         }
@@ -609,10 +833,14 @@ async function main() {
         }
         await fs.rm(outDir, { recursive: true, force: true });
         await walk(product.src, outDir, product);
+        if (product.key === 'chronicle') {
+            await syncChronicleClientDocs(outDir, product);
+        }
         const count = await countFiles(outDir);
         console.log(`[sync] ${product.key}: ${count} pages -> ${path.relative(webRoot, outDir)}`);
     }
     await generateSidebar();
+    await clearStaleAstroContentCache();
 }
 
 async function countFiles(dir) {
@@ -623,6 +851,58 @@ async function countFiles(dir) {
         else if (e.name.endsWith('.md') || e.name.endsWith('.mdx')) n++;
     }
     return n;
+}
+
+function collectGeneratedContentRefs(value, refs) {
+    if (typeof value === 'string') {
+        if (/^src\/content\/docs\/.+\.mdx?$/.test(value)) {
+            refs.add(value);
+        }
+        return;
+    }
+
+    if (Array.isArray(value)) {
+        for (const item of value) {
+            collectGeneratedContentRefs(item, refs);
+        }
+        return;
+    }
+
+    if (value && typeof value === 'object') {
+        for (const item of Object.values(value)) {
+            collectGeneratedContentRefs(item, refs);
+        }
+    }
+}
+
+async function clearStaleAstroContentCache() {
+    const cacheDir = path.join(webRoot, 'node_modules', '.astro');
+    const dataStorePath = path.join(cacheDir, 'data-store.json');
+
+    let raw;
+    try {
+        raw = await fs.readFile(dataStorePath, 'utf8');
+    } catch {
+        return;
+    }
+
+    let dataStore;
+    try {
+        dataStore = JSON.parse(raw);
+    } catch {
+        await fs.rm(cacheDir, { recursive: true, force: true });
+        console.log('[sync] cleared invalid Astro content cache');
+        return;
+    }
+
+    const refs = new Set();
+    collectGeneratedContentRefs(dataStore, refs);
+    const missing = [...refs].filter((ref) => !existsSync(path.join(webRoot, ref)));
+
+    if (missing.length) {
+        await fs.rm(cacheDir, { recursive: true, force: true });
+        console.log(`[sync] cleared stale Astro content cache (${missing.length} missing generated source refs)`);
+    }
 }
 
 await main();

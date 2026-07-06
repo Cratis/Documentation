@@ -22,3 +22,12 @@
 [submodule "Architecture"]
 	path = Architecture
 	url = https://github.com/Cratis/Architecture
+[submodule "Chronicle.Kotlin"]
+	path = Chronicle.Kotlin
+	url = https://github.com/Cratis/Chronicle.Kotlin
+[submodule "Chronicle.Elixir"]
+	path = Chronicle.Elixir
+	url = https://github.com/Cratis/Chronicle.Elixir
+[submodule "Chronicle.TypeScript"]
+	path = Chronicle.TypeScript
+	url = https://github.com/Cratis/Chronicle.TypeScript

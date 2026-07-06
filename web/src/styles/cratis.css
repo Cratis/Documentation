@@ -323,6 +323,76 @@
     border-radius: 0.5rem;
 }
 
+/* --- Chronicle client tabs: make language selection read as an explicit
+   switcher instead of a quiet underline above the code block. */
+starlight-tabs[data-sync-key^='chronicle-client'] .tablist-wrapper {
+    margin-block: 1.15rem 0.8rem;
+    border: 0;
+    overflow-x: auto;
+}
+
+starlight-tabs[data-sync-key^='chronicle-client'] [role='tablist'] {
+    display: inline-flex;
+    gap: 0.2rem;
+    min-width: max-content;
+    margin: 0;
+    padding: 0.25rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.55rem;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--sl-color-accent) 7%, transparent), transparent),
+        color-mix(in srgb, var(--sl-color-gray-6) 78%, var(--sl-color-bg));
+    box-shadow:
+        inset 0 1px 0 color-mix(in srgb, var(--sl-color-white) 4%, transparent),
+        0 8px 20px -18px color-mix(in srgb, var(--sl-color-accent) 80%, transparent);
+}
+
+starlight-tabs[data-sync-key^='chronicle-client'] .tab {
+    margin: 0;
+    border: 0;
+}
+
+starlight-tabs[data-sync-key^='chronicle-client'] a[role='tab'] {
+    display: block;
+    min-width: 3.25rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid transparent;
+    border-radius: 0.4rem;
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-xs);
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+starlight-tabs[data-sync-key^='chronicle-client'] a[role='tab']:hover,
+starlight-tabs[data-sync-key^='chronicle-client'] a[role='tab']:focus-visible {
+    background: color-mix(in srgb, var(--sl-color-accent) 10%, transparent);
+    color: var(--sl-color-white);
+}
+
+starlight-tabs[data-sync-key^='chronicle-client'] a[role='tab'][aria-selected='true'] {
+    border-color: color-mix(in srgb, var(--sl-color-accent) 42%, var(--sl-color-gray-5));
+    background: var(--sl-color-bg);
+    color: var(--sl-color-accent-high);
+    box-shadow:
+        0 1px 2px rgb(0 0 0 / 0.14),
+        inset 0 1px 0 color-mix(in srgb, var(--sl-color-white) 5%, transparent);
+}
+
+:root[data-theme='light'] starlight-tabs[data-sync-key^='chronicle-client'] [role='tablist'] {
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--sl-color-accent) 5%, transparent), transparent),
+        color-mix(in srgb, var(--sl-color-gray-6) 72%, var(--sl-color-bg));
+}
+
+:root[data-theme='light'] starlight-tabs[data-sync-key^='chronicle-client'] a[role='tab']:hover,
+:root[data-theme='light'] starlight-tabs[data-sync-key^='chronicle-client'] a[role='tab']:focus-visible {
+    color: var(--sl-color-accent-high);
+}
+
 /* --- Inline code: a brand-tinted chip instead of the flat gray box ---
    Following aspire.dev: the surface mixes the surrounding text color (so the
    chip adapts to its context, including inside asides) with black/white, the
