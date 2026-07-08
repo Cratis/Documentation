@@ -15,11 +15,9 @@ const chronicleDocsRoot = chronicleClientDocsConfig.sharedDocsRoot;
 const clients = chronicleClientDocsConfig.clients.map((client) => ({
     key: client.key,
     label: client.label,
-    includeByDefault: client.includeByDefault,
     snippetRoot: client.snippetRoot,
     docsRoot: client.publicDocs?.root,
 }));
-const defaultClients = clients.filter((client) => client.includeByDefault);
 
 const args = new Set(process.argv.slice(2));
 const valueArg = (name) => {
@@ -165,22 +163,17 @@ async function collectAudit() {
                 continue;
             }
 
-            const requested = (getAttr(attrs, 'clients') ?? defaultClients.map((client) => client.key).join(','))
-                .split(',')
-                .map((client) => client.trim().toLowerCase())
-                .filter(Boolean);
-
-            placeholders.push({ file: rel, snippet, clients: requested });
-
-            for (const key of requested) {
-                const client = clients.find((candidate) => candidate.key === key);
-                if (!client) {
-                    missingSnippets.push(`${rel}: unknown Chronicle client "${key}" for snippet "${snippet}"`);
-                    continue;
+            const available = [];
+            for (const client of clients) {
+                if (await snippetExists(client, snippet)) {
+                    available.push(client.key);
                 }
-                if (!(await snippetExists(client, snippet))) {
-                    missingSnippets.push(`${rel}: missing ${client.label} snippet "${snippet}" in ${client.snippetRoot}`);
-                }
+            }
+
+            placeholders.push({ file: rel, snippet, clients: available });
+
+            if (!available.length) {
+                missingSnippets.push(`${rel}: no client has a snippet for "${snippet}"`);
             }
         }
     }

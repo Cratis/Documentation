@@ -84,7 +84,6 @@ clients:
 
   kotlin:
     label: Kotlin
-    includeByDefault: true
     snippets:
       paths:
         - ../../Chronicle.Kotlin/Documentation/client-snippets
@@ -108,7 +107,6 @@ clients:
 
   java:
     label: Java
-    includeByDefault: false
     snippets:
       paths:
         - ../../Chronicle.Kotlin/Documentation/client-snippets-java
@@ -126,7 +124,6 @@ clients:
 
   elixir:
     label: Elixir
-    includeByDefault: true
     snippets:
       paths:
         - ../../Chronicle.Elixir/Documentation/client-snippets
@@ -150,7 +147,6 @@ clients:
 
   typescript:
     label: TypeScript
-    includeByDefault: true
     snippets:
       paths:
         - ../../Chronicle.TypeScript/Documentation/client-snippets
