@@ -36,6 +36,7 @@ const panes: Pane[] = [
         actions: [
             getStarted,
             { text: 'Why event sourcing?', link: '/chronicle/why-event-sourcing/', variant: 'minimal', icon: 'open-book' },
+            { text: 'Learn more', link: '/chronicle/', variant: 'minimal', icon: 'open-book' },
             gitHub,
             community,
         ],
@@ -48,6 +49,7 @@ const panes: Pane[] = [
         actions: [
             getStarted,
             { text: 'CQRS without event sourcing', link: '/arc/arc-without-event-sourcing/', variant: 'minimal', icon: 'open-book' },
+            { text: 'Learn more', link: '/arc/', variant: 'minimal', icon: 'open-book' },
             gitHub,
             community,
         ],
@@ -59,7 +61,19 @@ const panes: Pane[] = [
             'Arc is the application framework that carries one C# slice — command, events, read model — through generated proxies into a live React screen, with identity, tenancy, validation, and operational tooling built into the stack instead of bolted on around it.',
         actions: [
             getStarted,
-            { text: 'Explore Arc', link: '/arc/', variant: 'minimal', icon: 'open-book' },
+            { text: 'Learn more', link: '/arc/', variant: 'minimal', icon: 'open-book' },
+            gitHub,
+            community,
+        ],
+    },
+    {
+        label: 'The Stack',
+        title: 'Chronicle, Arc, Components, and the tools — working as one',
+        tagline:
+            'The Cratis Stack assembles into a cohesive whole: Chronicle owns the event log and read models, Arc carries a command through generated proxies to a live React screen, Components keeps the UI consistent, and Studio, the CLI, and Workbench complete the picture — all sharing identity, tenancy, and conventions so every piece reinforces the others.',
+        actions: [
+            getStarted,
+            { text: 'Learn more', link: '/cratis-stack/', variant: 'minimal', icon: 'open-book' },
             gitHub,
             community,
         ],
@@ -71,19 +85,7 @@ const panes: Pane[] = [
             'Cratis Studio is a collaborative Event Modeling canvas: map a flow as commands, events, and read models with your team, keep the model alive as the system grows, and generate type-safe C# straight from the diagram.',
         actions: [
             getStarted,
-            { text: 'Discover Studio', link: '/studio/', variant: 'minimal', icon: 'open-book' },
-            gitHub,
-            community,
-        ],
-    },
-    {
-        label: 'Cratis Stack',
-        title: 'Chronicle, Arc, Components, and the tools — working as one',
-        tagline:
-            'The Cratis Stack assembles into a cohesive whole: Chronicle owns the event log and read models, Arc carries a command through generated proxies to a live React screen, Components keeps the UI consistent, and Studio, the CLI, and Workbench complete the picture — all sharing identity, tenancy, and conventions so every piece reinforces the others.',
-        actions: [
-            getStarted,
-            { text: 'Explore the stack', link: '/cratis-stack/', variant: 'minimal', icon: 'open-book' },
+            { text: 'Learn more', link: '/studio/', variant: 'minimal', icon: 'open-book' },
             gitHub,
             community,
         ],
