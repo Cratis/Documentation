@@ -92,7 +92,6 @@ export async function loadChronicleClientDocsConfig() {
         return {
             key,
             label: client.label ?? key,
-            includeByDefault: client.includeByDefault !== false,
             snippetRoot: firstExistingPath(snippets.paths, `clients.${key}.snippets.paths`),
             legacySnippetBaseline: Number(snippets.legacyBaseline ?? 0),
             publicDocs: publicDocs
@@ -117,13 +116,6 @@ export async function loadChronicleClientDocsConfig() {
             label: client.label,
             src: client.snippetRoot,
         })),
-        defaultSnippetClients: clients
-            .filter((client) => client.includeByDefault)
-            .map((client) => ({
-                key: client.key,
-                label: client.label,
-                src: client.snippetRoot,
-            })),
         publicDocsClients: clients
             .filter((client) => client.publicDocs)
             .map((client) => ({

@@ -137,7 +137,6 @@ const PRODUCTS = [
 ];
 
 const CHRONICLE_CLIENT_SNIPPETS = chronicleClientDocsConfig.snippetClients;
-const DEFAULT_CHRONICLE_CLIENT_SNIPPETS = chronicleClientDocsConfig.defaultSnippetClients;
 const CHRONICLE_CLIENT_DOCS = chronicleClientDocsConfig.publicDocsClients;
 const CHRONICLE_SHARED_TOPICS = chronicleClientDocsConfig.sharedTopics;
 
@@ -362,6 +361,9 @@ async function fileExists(filePath) {
     }
 }
 
+// Returns null when the client repo has no snippet for this id — that just
+// means the tab is omitted, not an error. Chronicle shared docs don't track
+// which clients apply to a given example; that's discovered from disk.
 async function readClientSnippet(source, snippet) {
     for (const ext of ['.mdx', '.md']) {
         const candidate = path.join(source.src, snippet + ext);
@@ -371,9 +373,7 @@ async function readClientSnippet(source, snippet) {
             return body.trim();
         }
     }
-    throw new Error(
-        `[sync] Missing Chronicle ${source.label} client snippet "${snippet}" in ${source.src}`
-    );
+    return null;
 }
 
 function isInsideFencedCode(body, index) {
@@ -424,19 +424,18 @@ async function expandChronicleClientTabs(body, ctx) {
         }
 
         const syncKey = getAttr(attrs, 'syncKey') ?? 'chronicle-client';
-        const clientsAttr = getAttr(attrs, 'clients');
-        const requested = clientsAttr
-            ? clientsAttr.split(',').map((client) => client.trim().toLowerCase()).filter(Boolean)
-            : DEFAULT_CHRONICLE_CLIENT_SNIPPETS.map((source) => source.key);
 
         const tabs = [];
-        for (const key of requested) {
-            const source = CHRONICLE_CLIENT_SNIPPETS.find((candidate) => candidate.key === key);
-            if (!source) {
-                throw new Error(`[sync] Unknown Chronicle client snippet key "${key}" in ${ctx.srcPath}`);
-            }
+        for (const source of CHRONICLE_CLIENT_SNIPPETS) {
             const content = await readClientSnippet(source, snippet);
+            if (content === null) continue;
             tabs.push({ source, content });
+        }
+
+        if (!tabs.length) {
+            throw new Error(
+                `[sync] ChronicleClientTabs snippet "${snippet}" in ${ctx.srcPath} has no matching snippet in any client repo`
+            );
         }
 
         const expanded = [

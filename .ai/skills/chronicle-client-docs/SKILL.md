@@ -72,11 +72,7 @@ If a shared page still has direct C# fences, treat it as migration debt. Do not 
 5. Prefer `.md` for snippet files. Use `.mdx` only if the snippet file itself needs MDX syntax.
 6. Keep the snippet ID extensionless in the shared page. The sync supports both `.md` and `.mdx`.
 
-Use `clients="csharp,elixir"` only when a concept genuinely exists for only some clients:
-
-```mdx
-<ChronicleClientTabs snippet="events/appending/occurred" clients="csharp,elixir" />
-```
+`<ChronicleClientTabs />` has no `clients` property. Never add one, and never edit the sync/audit scripts to reintroduce one. The shared page does not declare which clients apply to an example — the sync discovers that by checking every registered client's snippet root for a file at that id, and renders a tab only for the clients where one exists. When a concept genuinely exists for only some clients, just don't add a snippet file for the others.
 
 Prefer keeping every generally supported client visible in shared pages. If a shared workflow is not implemented for one client yet, add a real snippet file for that client that says the feature is not supported yet instead of omitting the tab. This keeps the docs honest and makes the gap visible:
 
