@@ -25,21 +25,6 @@ Cratis documentation is **not** one folder. The content lives in **each product'
 
 **NEVER edit `Documentation/web/src/content/docs/{chronicle,arc,components,cli,fundamentals,contributing}/`.** Those are **generated and git-ignored** — `web/scripts/sync-content.mjs` regenerates them from the product repos on every build. Edit the **product-repo source** and re-sync. (Site-level pages directly under `web/src/content/docs/` *are* hand-authored — only the per-product subfolders are generated.)
 
-## Chronicle client examples
-
-Chronicle shared docs are language agnostic. When a Chronicle page needs C#, Kotlin, Elixir, TypeScript, or another client SDK example, use the **chronicle-client-docs** skill. The shared page in `Chronicle/Documentation/**` uses `<ChronicleClientTabs snippet="..." />`; each client repo owns the matching `Documentation/client-snippets/**` file and validation workflow.
-
-Do not add raw `csharp`, `cs`, `kotlin`, `elixir`, `typescript`, or `ts` fenced examples to shared Chronicle docs for client APIs. The docs audit keeps a baseline of legacy direct C# fences and fails when the count increases.
-
-Use public Client SDK pages only for genuinely client-specific content:
-
-- `.NET`: `Chronicle/Documentation/clients/dotnet/**` → `/chronicle/clients/dotnet/**`
-- Kotlin: `Chronicle.Kotlin/Documentation/**` → `/chronicle/clients/kotlin/**`
-- Elixir: `Chronicle.Elixir/Documentation/**` → `/chronicle/clients/elixir/**`
-- TypeScript: `Chronicle.TypeScript/Documentation/**` → `/chronicle/clients/typescript/**`
-
-Do not create client-specific pages just to hold equivalent snippets; use shared tabs for those.
-
 ## The loop
 
 1. **Edit** the source `.md`/`.mdx` in the owning product repo (or the site-level page in `web/src/content/docs/`).

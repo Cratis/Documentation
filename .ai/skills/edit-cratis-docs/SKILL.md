@@ -29,7 +29,6 @@ Example: `/chronicle/concepts/event-source/` → `Chronicle/Documentation/concep
 
 - Match the page's **Diátaxis type** (tutorial / how-to / explanation / reference) and the **tour voice** (teach, don't dump) — see the **`writing-cratis-docs`** rule (the tour-voice checklist + Starlight authoring tools). Don't mix types.
 - **Verify every framework API in a code example against real source** before writing it — readers paste them verbatim. (See the `writing-correct-examples` rule; grep Studio `*.cs`/`*.tsx` and the product `Source/` trees.)
-- For Chronicle client examples, use the **chronicle-client-docs** skill. Shared Chronicle pages must stay language-neutral and use `<ChronicleClientTabs />` for client SDK code; each client repo owns its own `Documentation/client-snippets/**` files and validator. .NET-specific public pages live under `Chronicle/Documentation/clients/dotnet/**`, not mixed into shared Chronicle docs.
 - Link rules: product `.md` may use `./foo.md`; links to a `.mdx` page must be **extension-less** (`./foo`); site-level `.mdx` uses clean root-relative URLs (`/arc/...`).
 
 ## 3. Sync, preview, verify
@@ -40,7 +39,7 @@ npm run dev      # serves http://localhost:4321 (re-syncs the product repos)
 npm run check    # the gate: build + lint + link-check
 ```
 
-`npm run check` MUST end **0 error(s)** and **0 broken** links (≈187 advisory style warnings are expected). For Chronicle docs, it also runs the Chronicle client-docs audit, which fails on missing client snippets or any increase in direct client-language fences in shared Chronicle docs. Fix anything it flags. **Restart `npm run dev` after running the gate** — the gate's re-sync degrades a live dev server.
+`npm run check` MUST end **0 error(s)** and **0 broken** links (≈187 advisory style warnings are expected). Fix anything it flags. **Restart `npm run dev` after running the gate** — the gate's re-sync degrades a live dev server.
 
 For visual changes, screenshot the page in light and dark and read the result — use the `qa-cratis-docs` skill.
 
