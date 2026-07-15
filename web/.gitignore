@@ -9,6 +9,8 @@ src/content/docs/components/
 src/content/docs/cli/
 src/content/docs/fundamentals/
 src/content/docs/contributing/
+src/content/docs/screenplay/
+src/content/docs/prompter/
 # generated API reference + Storybook (built into public/ by CI or `npm run build:storybook` / `build:api`)
 public/storybook/
 public/storybook-arc/

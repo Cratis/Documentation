@@ -98,6 +98,25 @@ const PRODUCTS = [
         ],
     },
     {
+        // Screenplay — the modeling language. A single declarative `.play` file describes
+        // a whole bounded context; Stage runs it live and Studio visualizes the same model.
+        // Content lives in the `screenplay/` subfolder, so point straight at it for clean
+        // `/screenplay/<page>` URLs (the outer Documentation/ wrapper isn't a site page).
+        key: 'screenplay', label: 'Screenplay', icon: 'pencil', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Screenplay', 'Documentation', 'screenplay'),
+            path.join(docRepoRoot, 'Screenplay', 'Documentation', 'screenplay')),
+        buckets: [
+            { label: 'Start here', sections: ['Getting started'] },
+            { label: 'Understand', sections: ['Why Screenplay', 'Language overview', 'Concepts', 'Policies', 'Modules, features and slices'] },
+            {
+                label: 'Language constructs',
+                sections: ['Events', 'Commands', 'Queries', 'Projections', 'Captures', 'Constraints', 'Reactors', 'Screens'],
+            },
+            { label: 'Reference', sections: ['Sub-language pluggability', 'Grammar', 'Glossary', 'Frequently asked questions'] },
+        ],
+    },
+    {
         // The Cratis CLI — a terminal window into a running Chronicle event store.
         key: 'cli', label: 'CLI', icon: 'rocket', sidebarMode: 'toc',
         src: firstExisting(
@@ -133,6 +152,16 @@ const PRODUCTS = [
         buckets: [
             { label: 'Code Analysis', sections: ['Documentation'] },
         ],
+    },
+    {
+        // Prompter — the community's Discord documentation assistant (RAG bot). Not a stack
+        // layer you build with; it lives on Discord and answers, with citations, grounded in
+        // this very site. Its docs are already Diataxis-shaped (Getting started / Guides /
+        // Concepts / Reference), so no bucket re-grouping is needed.
+        key: 'prompter', label: 'Prompter', icon: 'discord', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Prompter', 'Documentation'),
+            path.join(docRepoRoot, 'Prompter', 'Documentation')),
     },
 ];
 
