@@ -96,10 +96,12 @@ const overviewTopic = {
                 { label: 'AI-native development', slug: 'ai-native-development' },
                 { label: 'Plugins', slug: 'plugins' },
                 { label: 'Code analysis', slug: 'code-analysis' },
+                { label: 'Prompter — docs assistant', link: '/prompter/' },
             ],
         },
         { label: 'Studio', slug: 'studio', badge: { text: 'Soon', variant: 'tip' } },
         { label: 'Event Modeling', slug: 'event-modeling' },
+        { label: 'Screenplay', link: '/screenplay/' },
         {
             label: 'Testing',
             collapsed: true,
@@ -210,7 +212,7 @@ export default defineConfig({
                 shiki: {
                     langAlias: {
                         env: 'ini', pdl: 'text', ebnf: 'text', pql: 'text',
-                        gitignore: 'text', flow: 'text',
+                        gitignore: 'text', flow: 'text', screenplay: 'text',
                     },
                 },
             },
@@ -239,6 +241,8 @@ export default defineConfig({
                         fundamentals: ['/fundamentals', '/fundamentals/**'],
                         contributing: ['/contributing', '/contributing/**'],
                         architecture: ['/architecture', '/architecture/**'],
+                        screenplay: ['/screenplay', '/screenplay/**'],
+                        prompter: ['/prompter', '/prompter/**'],
                     },
                 }),
                 // Per-page action row: Copy Markdown + Open in AI assistant + Share.

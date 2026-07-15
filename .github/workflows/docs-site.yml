@@ -131,6 +131,22 @@ jobs:
           token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: Architecture
 
+      - name: Checkout Screenplay
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Screenplay
+          ref: main
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          path: Screenplay
+
+      - name: Checkout Prompter
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Prompter
+          ref: main
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          path: Prompter
+
       - uses: actions/setup-node@v4
         with:
           node-version: 23   # Components (Storybook build) requires node >=23
