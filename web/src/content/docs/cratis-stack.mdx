@@ -16,7 +16,7 @@ Most stacks are a bag of libraries you bolt together and then spend the whole pr
 
 Each product is strong on its own — you can [use them separately](/why-cratis/). The reason to reach for the *whole* stack is that the seams disappear: CQRS shapes information going in and out, event sourcing keeps the facts underneath, and everywhere you'd normally hand-write glue, Cratis generates it.
 
-- You **model** the domain, and with access to [Studio](/studio/) that model is how you manage the entire lifecycle of the project — from generated C# to the running system.
+- You **model** the domain — visually on the [Studio](/studio/) canvas, or as a declarative `.play` script in [Screenplay](/screenplay/) — and that one model is how you manage the entire lifecycle of the project, from generated C# to the running system.
 - You **secure the edge**, and [AuthProxy](/authproxy/) authenticates, resolves the tenant, enriches identity, and routes requests.
 - You **write a command**, and [Arc](/arc/) generates the [typed TypeScript proxy](/arc/understanding-the-proxy-boundary/) for it.
 - You **append an event**, and [Chronicle](/chronicle/) accepts it through a gRPC/protobuf boundary, stores it in MongoDB, PostgreSQL, Microsoft SQL Server, or SQLite, and projects the read model from it.
@@ -109,11 +109,16 @@ Cratis ships first-class tooling so an AI agent can build *and* operate the stac
 
 Model in Studio, generate the slices, build them, inspect the result — an agent can take part at every step. [AI-native development](/ai-native-development/) covers the setup and exactly what an agent can do.
 
+And when you or a teammate gets stuck, [Prompter](/prompter/) — the community's Discord assistant — answers Cratis questions grounded in this same documentation, with citations, right where your team already talks.
+
 ## Each layer, on its own and together
 
 <CardGrid>
   <SimpleCard title="Studio — design" icon="open-book" link="/studio/">
     Model the domain on a collaborative event-modeling canvas and generate type-safe C# from it. *(Coming soon.)*
+  </SimpleCard>
+  <SimpleCard title="Screenplay — model as code" icon="pencil" link="/screenplay/">
+    The modeling language: a whole bounded context — events, commands, queries, projections, screens, and rules — in one declarative `.play` file that Stage runs live and Studio visualizes.
   </SimpleCard>
   <SimpleCard title="Chronicle — events" icon="seti:db" link="/chronicle/">
     The event-sourcing engine: gRPC/protobuf boundary, .NET-first client, TypeScript and Elixir clients/contracts, MongoDB/PostgreSQL/SQL Server/SQLite storage, Orleans inside.

@@ -1,7 +1,7 @@
 ---
 // Progressive enhancement for the splash hero: rotates the headline, tagline,
-// and actions through four messages (Event Sourcing, CQRS, Application
-// Framework, Studio) with labeled dot indicators. The static hero authored in
+// and actions through the platform's stories (Event Sourcing, CQRS, Application
+// Framework, the Stack, Studio, Screenplay) with labeled dot indicators. The static hero authored in
 // the page frontmatter IS the first pane — without JavaScript nothing here
 // renders and the page degrades to that single message. With JavaScript the
 // script below moves the dot nav into the hero and swaps the hero copy in
@@ -86,6 +86,18 @@ const panes: Pane[] = [
         actions: [
             getStarted,
             { text: 'Learn more', link: '/studio/', variant: 'minimal', icon: 'open-book' },
+            gitHub,
+            community,
+        ],
+    },
+    {
+        label: 'Screenplay',
+        title: 'Write a whole bounded context as one script',
+        tagline:
+            'Screenplay is the Cratis modeling language: describe the events, commands, queries, projections, screens, and rules of a bounded context in a single declarative .play file. Stage runs it as a live application, Studio visualizes the same model, and the C# it generates is the code you ship.',
+        actions: [
+            getStarted,
+            { text: 'Learn more', link: '/screenplay/', variant: 'minimal', icon: 'open-book' },
             gitHub,
             community,
         ],

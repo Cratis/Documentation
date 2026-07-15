@@ -33,9 +33,9 @@ import SimpleCard from '../../components/SimpleCard.astro';
 import StackJourney from '../../components/StackJourney.astro';
 import RotatingHero from '../../components/RotatingHero.astro';
 
-{/* Rotates the hero above through Event Sourcing / CQRS / Application
-    Framework / Studio messages. The frontmatter hero is the first pane and
-    the no-JS fallback — keep the two in sync. */}
+{/* Rotates the hero above through the platform's stories (Event Sourcing, CQRS,
+    Application Framework, the Stack, Studio, Screenplay). The frontmatter hero is
+    the first pane and the no-JS fallback — keep the two in sync. */}
 <RotatingHero />
 
 ## Get started in 3 steps
@@ -161,6 +161,9 @@ const [authors] = AllAuthors.use();           // typed result, no API client to 
   <SimpleCard title="Components" icon="laptop" link="/components/">
     The React component library — command dialogs, forms, and data tables wired to your proxies.
   </SimpleCard>
+  <SimpleCard title="Screenplay" icon="pencil" link="/screenplay/">
+    The modeling language — describe a whole bounded context in one declarative `.play` file that Stage runs live and Studio visualizes.
+  </SimpleCard>
   <SimpleCard title="AuthProxy" icon="seti:lock" link="/authproxy/">
     The edge gateway — authentication, tenant resolution, identity enrichment, routing, and invites.
   </SimpleCard>
@@ -183,6 +186,7 @@ Cratis is modular. For a new information system, the default path is Chronicle +
 | MongoDB, PostgreSQL, SQL Server, or SQLite storage | [Chronicle storage](/chronicle/hosting/configuration/storage/) |
 | Typed commands, queries, and generated React proxies | [Arc](/arc/) |
 | Forms, dialogs, and data tables wired to Arc | [Components](/components/) |
+| To model a whole bounded context as one declarative file | [Screenplay](/screenplay/) |
 | Authentication, tenant resolution, identity enrichment, and routing | [AuthProxy](/authproxy/) |
 | A way to inspect a running store | [CLI](/cli/) |
 | AI guidance for building and operating the stack | [AI-native development](/ai-native-development/) |
@@ -191,6 +195,7 @@ Cratis is modular. For a new information system, the default path is Chronicle +
 | Runtime, package, and storage compatibility | [Version compatibility](/compatibility/) |
 | A production deployment checklist | [Production readiness](/production-readiness/) |
 | Help choosing a path, debugging setup, or talking through a design | [Community and help](/community/) |
+| Grounded, cited answers to Cratis questions on Discord | [Prompter](/prompter/) |
 | Dedicated training, architecture review, or implementation help | [Professional help](/professional-help/) |
 | A place to suggest improvements or report confusing docs | [Feedback and suggestions](/feedback/) |
 
@@ -206,5 +211,6 @@ Coming from a familiar architecture? Start with the bridge that matches the shap
   <LinkCard title="Follow a learning path" description="Choose a route for event sourcing, full-stack building, evaluation, operations, frontend work, or contribution." href="/learning-paths/" />
   <LinkCard title="Read the FAQ" description="Quick answers for adoption, production readiness, product boundaries, and support channels." href="/faq/" />
   <LinkCard title="Ask the community" description="Join Discord for questions, design discussion, setup help, and guidance on which GitHub repository owns an issue." href="/community/" />
+  <LinkCard title="Ask Prompter on Discord" description="The community's docs assistant answers Cratis questions in seconds, grounded in this site and with citations — or says honestly when the docs don't cover it." href="/prompter/" />
   <LinkCard title="Share feedback" description="Tell us what is confusing, missing, rough, or worth improving in Cratis and the docs." href="/feedback/" />
 </CardGrid>
