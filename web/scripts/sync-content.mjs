@@ -130,6 +130,19 @@ const PRODUCTS = [
         ],
     },
     {
+        // The Chronicle MCP server — connects an AI agent to a running store over the Model Context
+        // Protocol, for both operating the store and design-time, schema-grounded artifact generation.
+        key: 'chronicle-mcp', label: 'Chronicle MCP', icon: 'node', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Chronicle.Mcp', 'Documentation'),
+            path.join(docRepoRoot, 'Chronicle.Mcp', 'Documentation')),
+        buckets: [
+            { label: 'Start here', sections: ['Getting started', 'Configuration'] },
+            { label: 'Understand', sections: ['How it works'] },
+            { label: 'Capabilities', sections: ['Operate-side', 'Design-time'] },
+        ],
+    },
+    {
         // Shared utilities (concepts, serialization, DI, type discovery) for .NET and TS.
         key: 'fundamentals', label: 'Fundamentals', icon: 'seti:folder', sidebarMode: 'toc',
         src: firstExisting(

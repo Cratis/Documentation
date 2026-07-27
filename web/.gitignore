@@ -4,6 +4,7 @@ dist/
 .astro/
 # generated docs content (synced from product repos by scripts/sync-content.mjs)
 src/content/docs/chronicle/
+src/content/docs/chronicle-mcp/
 src/content/docs/arc/
 src/content/docs/components/
 src/content/docs/cli/
