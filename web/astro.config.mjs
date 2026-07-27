@@ -96,6 +96,7 @@ const overviewTopic = {
                 { label: 'AI-native development', slug: 'ai-native-development' },
                 { label: 'Plugins', slug: 'plugins' },
                 { label: 'Code analysis', slug: 'code-analysis' },
+                { label: 'Chronicle MCP server', link: '/chronicle-mcp/' },
                 { label: 'Prompter — docs assistant', link: '/prompter/' },
             ],
         },

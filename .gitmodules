@@ -31,3 +31,6 @@
 [submodule "Chronicle.TypeScript"]
 	path = Chronicle.TypeScript
 	url = https://github.com/Cratis/Chronicle.TypeScript
+[submodule "Chronicle.Mcp"]
+	path = Chronicle.Mcp
+	url = https://github.com/Cratis/Chronicle.Mcp
