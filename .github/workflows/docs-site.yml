@@ -83,6 +83,14 @@ jobs:
           token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: Chronicle.TypeScript
 
+      - name: Checkout Chronicle.Mcp
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Chronicle.Mcp
+          ref: main
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          path: Chronicle.Mcp
+
       - name: Checkout Arc
         uses: actions/checkout@v4
         with:
