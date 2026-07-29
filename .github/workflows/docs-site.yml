@@ -147,6 +147,14 @@ jobs:
           token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: Screenplay
 
+      - name: Checkout Prologue
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Prologue
+          ref: main
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          path: Prologue
+
       - name: Checkout Prompter
         uses: actions/checkout@v4
         with:
