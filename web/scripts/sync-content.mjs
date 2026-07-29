@@ -117,6 +117,22 @@ const PRODUCTS = [
         ],
     },
     {
+        // Prologue — captures what an existing system actually does (HTTP commands, database
+        // changes, telemetry) and interprets that into an event model. Self-contained: no
+        // dependency on Studio or Orleans. Its output is a Screenplay `.play` file, so it sits
+        // right after Screenplay in the product list.
+        key: 'prologue', label: 'Prologue', icon: 'magnifier', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Prologue', 'Documentation'),
+            path.join(docRepoRoot, 'Prologue', 'Documentation')),
+        buckets: [
+            { label: 'Get started', sections: ['Getting started'] },
+            { label: 'Understand', sections: ['Why Prologue', 'How Prologue works', 'Architecture'] },
+            { label: 'Guides', sections: ['Guides'] },
+            { label: 'Reference', sections: ['Reference'] },
+        ],
+    },
+    {
         // The Cratis CLI — a terminal window into a running Chronicle event store.
         key: 'cli', label: 'CLI', icon: 'rocket', sidebarMode: 'toc',
         src: firstExisting(

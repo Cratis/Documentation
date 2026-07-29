@@ -103,6 +103,7 @@ const overviewTopic = {
         { label: 'Studio', slug: 'studio', badge: { text: 'Soon', variant: 'tip' } },
         { label: 'Event Modeling', slug: 'event-modeling' },
         { label: 'Screenplay', link: '/screenplay/' },
+        { label: 'Prologue', link: '/prologue/' },
         {
             label: 'Testing',
             collapsed: true,
@@ -243,6 +244,7 @@ export default defineConfig({
                         contributing: ['/contributing', '/contributing/**'],
                         architecture: ['/architecture', '/architecture/**'],
                         screenplay: ['/screenplay', '/screenplay/**'],
+                        prologue: ['/prologue', '/prologue/**'],
                         prompter: ['/prompter', '/prompter/**'],
                     },
                 }),
