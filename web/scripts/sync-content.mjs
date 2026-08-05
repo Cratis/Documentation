@@ -98,6 +98,15 @@ const PRODUCTS = [
         ],
     },
     {
+        // AuthProxy — the ASP.NET Core gateway that sits in front of a Cratis app's
+        // backend and frontend services and owns the edge concerns (authentication,
+        // tenancy, identity enrichment, invites/lobby).
+        key: 'authproxy', label: 'AuthProxy', icon: 'seti:lock', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'AuthProxy', 'Documentation'),
+            path.join(docRepoRoot, 'AuthProxy', 'Documentation')),
+    },
+    {
         // Screenplay — the modeling language. A single declarative `.play` file describes
         // a whole bounded context; Stage runs it live and Studio visualizes the same model.
         // Content lives in the `screenplay/` subfolder, so point straight at it for clean

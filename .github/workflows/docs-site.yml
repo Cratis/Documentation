@@ -107,6 +107,14 @@ jobs:
           token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: Components
 
+      - name: Checkout AuthProxy
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/AuthProxy
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          path: AuthProxy
+
       - name: Checkout Fundamentals
         uses: actions/checkout@v4
         with:
