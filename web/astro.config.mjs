@@ -136,7 +136,6 @@ const aiTopic = {
     link: 'ai',
     icon: 'star',
     items: [
-        { label: 'AI-native development', slug: 'ai' },
         { label: 'Plugins', slug: 'plugins' },
         { label: 'Code analysis', slug: 'code-analysis' },
         chronicleMcpTopic
