@@ -25,6 +25,15 @@ try {
     ];
 }
 
+// Chronicle MCP and Prompter each ship a full toc.yml-driven sidebar of their own
+// (generated like any other product topic), but in the nav they surface as
+// sub-sections of the hand-authored "AI" topic below rather than getting their
+// own icon-rail entry. Pull their generated topics out of the flat product list
+// before building the rail.
+const chronicleMcpTopic = productTopics.find((topic) => topic.id === 'chronicle-mcp');
+const prompterTopic = productTopics.find((topic) => topic.id === 'prompter');
+productTopics = productTopics.filter((topic) => topic.id !== 'chronicle-mcp' && topic.id !== 'prompter');
+
 // The first topic gathers the site-level, cross-product pages (hand-authored in
 // web/, not owned by any product): the "why", the capstone, samples, tools.
 const overviewTopic = {
@@ -89,17 +98,6 @@ const overviewTopic = {
                 { label: 'Feedback and suggestions', slug: 'feedback' },
             ],
         },
-        {
-            label: 'AI',
-            collapsed: true,
-            items: [
-                { label: 'AI-native development', slug: 'ai-native-development' },
-                { label: 'Plugins', slug: 'plugins' },
-                { label: 'Code analysis', slug: 'code-analysis' },
-                { label: 'Chronicle MCP server', link: '/chronicle-mcp/' },
-                { label: 'Prompter — docs assistant', link: '/prompter/' },
-            ],
-        },
         { label: 'Studio', slug: 'studio', badge: { text: 'Soon', variant: 'tip' } },
         { label: 'Event Modeling', slug: 'event-modeling' },
         { label: 'Screenplay', link: '/screenplay/' },
@@ -141,7 +139,34 @@ const overviewTopic = {
     ],
 };
 
-const topics = [overviewTopic, ...productTopics];
+// AI-related pages gathered under one topic: the hand-authored explainer pages
+// plus Chronicle MCP's and Prompter's own generated sidebars, nested here as
+// sub-sections rather than separate icon-rail topics.
+const aiTopic = {
+    id: 'ai',
+    label: 'AI',
+    link: 'ai-native-development',
+    icon: 'star',
+    items: [
+        { label: 'AI-native development', slug: 'ai-native-development' },
+        { label: 'Plugins', slug: 'plugins' },
+        { label: 'Code analysis', slug: 'code-analysis' },
+        chronicleMcpTopic
+            ? { label: chronicleMcpTopic.label, collapsed: true, items: chronicleMcpTopic.items }
+            : { label: 'Chronicle MCP server', link: '/chronicle-mcp/' },
+        prompterTopic
+            ? { label: prompterTopic.label, collapsed: true, items: prompterTopic.items }
+            : { label: 'Prompter — docs assistant', link: '/prompter/' },
+    ],
+};
+
+// Insert the AI topic right after CLI in the icon rail.
+const cliIndex = productTopics.findIndex((topic) => topic.id === 'cli');
+const orderedProductTopics = cliIndex === -1
+    ? [...productTopics, aiTopic]
+    : [...productTopics.slice(0, cliIndex + 1), aiTopic, ...productTopics.slice(cliIndex + 1)];
+
+const topics = [overviewTopic, ...orderedProductTopics];
 
 // https://astro.build/config
 export default defineConfig({
@@ -235,17 +260,17 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/professional-help', '/community', '/feedback', '/ai-native-development', '/plugins', '/code-analysis', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/authproxy', '/authproxy/**', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/authproxy', '/authproxy/**', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],
                         cli: ['/cli', '/cli/**'],
+                        ai: ['/ai-native-development', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
                         fundamentals: ['/fundamentals', '/fundamentals/**'],
                         contributing: ['/contributing', '/contributing/**'],
                         architecture: ['/architecture', '/architecture/**'],
                         screenplay: ['/screenplay', '/screenplay/**'],
                         prologue: ['/prologue', '/prologue/**'],
-                        prompter: ['/prompter', '/prompter/**'],
                     },
                 }),
                 // Per-page action row: Copy Markdown + Open in AI assistant + Share.
