@@ -254,7 +254,7 @@ export default defineConfig({
                         components: ['/components', '/components/**'],
                         authproxy: ['/authproxy', '/authproxy/**'],
                         cli: ['/cli', '/cli/**'],
-                        ai: ['/ai-native-development', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
+                        ai: ['/ai', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
                         fundamentals: ['/fundamentals', '/fundamentals/**'],
                         contributing: ['/contributing', '/contributing/**'],
                         architecture: ['/architecture', '/architecture/**'],
