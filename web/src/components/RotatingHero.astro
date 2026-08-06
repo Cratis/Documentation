@@ -1,7 +1,8 @@
 ---
 // Progressive enhancement for the splash hero: rotates the headline, tagline,
 // and actions through the platform's stories (Event Sourcing, CQRS, Application
-// Framework, the Stack, Studio, Screenplay) with labeled dot indicators. The static hero authored in
+// Framework, the Stack, AI-Native, Studio, Screenplay, Prologue) with labeled dot
+// indicators. The static hero authored in
 // the page frontmatter IS the first pane — without JavaScript nothing here
 // renders and the page degrades to that single message. With JavaScript the
 // script below moves the dot nav into the hero and swaps the hero copy in
@@ -74,6 +75,18 @@ const panes: Pane[] = [
         actions: [
             getStarted,
             { text: 'Learn more', link: '/cratis-stack/', variant: 'minimal', icon: 'open-book' },
+            gitHub,
+            community,
+        ],
+    },
+    {
+        label: 'AI-Native',
+        title: 'Build and operate your system with AI agents',
+        tagline:
+            'Cratis is made to be driven by an AI assistant: agents, skills, and coding rules teach it the vertical-slice conventions so it writes real Cratis code instead of guessing — and the AI-aware CLI plus the Chronicle MCP server let it browse the event log, replay an observer, and diagnose a stuck partition against a live store.',
+        actions: [
+            getStarted,
+            { text: 'Learn more', link: '/ai/', variant: 'minimal', icon: 'open-book' },
             gitHub,
             community,
         ],
