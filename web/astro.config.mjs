@@ -36,6 +36,9 @@ const overviewTopic = {
         { label: 'The Cratis Stack', slug: 'cratis-stack' },
         { label: 'Why developers choose Cratis', slug: 'why-cratis' },
         { label: 'Adopting Cratis', slug: 'adopting-cratis' },
+        // Deliberately top-level and uncollapsed: this is the commercial front
+        // door, so it must stay reachable in one click from anywhere in the docs.
+        { label: 'Work with us', slug: 'work-with-us' },
         {
             label: 'Scenarios',
             collapsed: true,
@@ -233,7 +236,7 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/professional-help', '/community', '/feedback', '/ai-native-development', '/plugins', '/code-analysis', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/authproxy', '/authproxy/**', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/ai-native-development', '/plugins', '/code-analysis', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/authproxy', '/authproxy/**', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],
