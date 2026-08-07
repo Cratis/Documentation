@@ -1,45 +1,55 @@
 ---
 title: Professional help
-description: Dedicated help with event modeling, Cratis adoption, implementation, architecture review, workshops, and training.
+description: How dedicated, private help differs from community support — what an engagement looks like, when it is worth it, and where to go instead.
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
-The open community is the right place for public questions, design discussion, and help getting unstuck. Sometimes a team needs dedicated time: private domain context, a workshop, an architecture review, or hands-on help moving a slice into Cratis.
+The open community is the right place for most questions: public design discussion, help getting unstuck, and a second pair of eyes on a model. It is free, it is fast, and it stays open to everyone.
 
-That is what professional help is for. It is separate from the open-source community and depends on availability, fit, and the right engagement model.
+Sometimes a team needs something the community cannot give it — private domain context, a scheduled workshop, a written architecture review, or hands-on help moving a real slice into Cratis. That is what dedicated help is for. This page explains how it differs from community support and when it is worth the cost; [Work with us](/work-with-us/) covers what we actually help with and how to get in touch.
 
 <CardGrid>
-  <LinkCard title="Start a professional conversation" description="Email the Cratis maintainers with the context, the kind of help you need, and the timeframe." href="mailto:oss@cratis.io?subject=Cratis%20professional%20help" />
-  <LinkCard title="Ask in the community first" description="Use Discord when the question can be discussed in the open or when you are still exploring the problem." href="/community/" />
-  <LinkCard title="Choose an adoption path" description="Use the adoption guide before a paid engagement so the starting point is clear." href="/adopting-cratis/" />
+  <LinkCard title="Work with us" description="What we help teams with, how we work, and how to start a conversation." href="/work-with-us/" />
+  <LinkCard title="Ask in the community first" description="Use Discord when the question can be discussed in the open, or when you are still exploring the problem." href="/community/" />
+  <LinkCard title="Choose an adoption path" description="Work through the adoption guide before a paid engagement, so the starting point is already clear." href="/adopting-cratis/" />
 </CardGrid>
 
-## What we can help with
+## Community help compared with dedicated help
 
-| Need | Typical format |
+| | Community | Dedicated |
+|---|---|---|
+| Cost | Free | Paid, scoped per engagement |
+| Response | Best-effort, when someone is available | Agreed up front |
+| Context | Public — share only what you can share openly | Private, including code and domain detail |
+| Shape | Questions and answers, design discussion | Workshops, reviews, pairing, focused development, training |
+| Output | A thread, and often a documentation improvement | A deliverable: a model, a plan, a written review, or working code |
+| Depth | One problem at a time | Your whole system, in context |
+
+## When dedicated help is worth it
+
+Reach for a paid engagement when the thing blocking you is not a missing answer:
+
+- **The context cannot be public.** The domain, the schema, or the roadmap is confidential.
+- **You need someone's calendar, not their goodwill.** A workshop on a date, or a review by a deadline, is a commitment the community cannot make.
+- **The decision is expensive to reverse.** Consistency boundaries, tenancy, and storage choices are cheap to change now and costly later.
+- **You need the whole team moved at once.** Training a team is a session, not a thread.
+- **You want a durable artifact.** A written review or a modeled backlog outlives a Discord conversation.
+
+If none of those apply, the community will probably serve you better — and faster.
+
+## Where to go instead
+
+| If you need... | Go to... |
 |---|---|
-| Event modeling | Workshop around commands, events, read models, policies, and bounded contexts |
-| Cratis adoption | Slice selection, migration plan, product choice, and architecture review |
-| Implementation | Pairing, pull-request guidance, or focused development on a bounded slice |
-| Teaching Cratis | Team introduction to Chronicle, Arc, Components, CLI, and the full-stack loop |
-| Teaching event sourcing | Domain events, consistency, projections, replay, versioning, and operational tradeoffs |
-| Production readiness | Review of TLS, storage, secrets, deployment, observability, replay, and backup plans |
-
-## What to include
-
-When you contact us, include enough context to decide whether we can help:
-
-- What you are building or evaluating.
-- Which Cratis products you use or expect to use.
-- Whether this is greenfield, brownfield, or an existing production system.
-- The kind of help you want: workshop, architecture review, development help, training, or troubleshooting.
-- The rough timeframe and whether the work must be private.
+| What we help with, and how to make contact | [Work with us](/work-with-us/) |
+| An open question, design discussion, or setup help | [Community and help](/community/) |
+| A grounded, cited answer from the documentation | [Prompter on Discord](/prompter/) |
+| To report a suspected vulnerability | [Security](/security/) |
+| To suggest an improvement or report confusing documentation | [Feedback and suggestions](/feedback/) |
+| A reproducible bug or a feature request | The matching [GitHub issue tracker](/community/) |
+| A route through the documentation for your role | [Learning paths](/learning-paths/) |
 
 <Aside type="note" title="Commercial work is separate from community help">
-Discord remains open and best-effort. Professional engagements are private, time-boxed, and handled separately from the open-source support channels. Any engagement also depends on relevant consultancy, employer, and conflict-of-interest arrangements.
+Discord remains open and best-effort, and asking there never depends on being a customer. Professional engagements are private, time-boxed, and handled separately from the open-source support channels. Any engagement also depends on availability and on the relevant consultancy, employer, and conflict-of-interest arrangements.
 </Aside>
-
-## If you are not sure
-
-Start with [Community and help](/community/) for open questions, [Feedback and suggestions](/feedback/) for product ideas, or [Learning paths](/learning-paths/) if you are still choosing where to begin.
