@@ -54,15 +54,30 @@ publicDocsAudit:
   # own seeding.md carries real, non-duplicated API reference rather than a pure bridge.
   baselines:
     csharp: 0
-    # Kotlin's guides/seeding.md, guides/external-services.md, and
-    # guides/read-model-reactors.md are reviewed exceptions within the otherwise-pure-bridge
-    # guides/** folder. Each covers a topic with no shared multi-client <ChronicleClientTabs>
-    # coverage yet in Chronicle/Documentation/** (event seeding is C#-only there; external
-    # services has no shared snippet wiring for any client, including C#, which links out to
-    # its own clients/dotnet page instead; read model reactors — IReadModelReactor — has no
-    # shared page or snippet coverage at all yet), so these three carry real, non-duplicated
-    # API reference rather than a pure bridge.
-    kotlin: 3
+    # Kotlin's guides/** carries reviewed exceptions within the otherwise-pure-bridge
+    # folder. Each covers a topic with no shared multi-client <ChronicleClientTabs>
+    # coverage yet in Chronicle/Documentation/**, so it carries real, non-duplicated
+    # API reference rather than a pure bridge:
+    #   - seeding.md: event seeding is C#-only there.
+    #   - external-services.md: no shared snippet wiring for any client, including C#,
+    #     which links out to its own clients/dotnet page instead.
+    #   - read-model-reactors.md: IReadModelReactor has no shared page or snippet
+    #     coverage at all yet.
+    #   - artifact-registration.md: classpath-scanning artifact discovery
+    #     (ChronicleOptions, IArtifactActivator, IReactorMiddleware) is Kotlin/Java
+    #     client-SDK mechanics with no shared or other per-client equivalent page.
+    #   - captures.md: documents the Kotlin ICapture/store.captures API surface — the
+    #     same role .NET's clients/dotnet/captures/declarative and model-bound pages
+    #     play for C#; the shared captures page only covers CDL.
+    #   - concepts.md: documents declaring ConceptAs<T> in Kotlin/Java (data class vs
+    #     value class, Java interop) — client-SDK API, not the shared Chronicle
+    #     concepts/glossary.
+    #   - testing.md: documents io.cratis:chronicle-testing (EventScenario,
+    #     ReadModelScenario) — Kotlin's own new in-process test library, which the
+    #     shared testing docs do not yet mention.
+    #   - tracing.md: documents the Kotlin client's OpenTelemetry span/attribute
+    #     names — no shared "tracing" topic exists yet.
+    kotlin: 8
     elixir: 0
     typescript: 0
 
