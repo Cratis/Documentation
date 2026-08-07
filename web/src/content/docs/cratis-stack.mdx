@@ -17,6 +17,7 @@ Most stacks are a bag of libraries you bolt together and then spend the whole pr
 Each product is strong on its own — you can [use them separately](/why-cratis/). The reason to reach for the *whole* stack is that the seams disappear: CQRS shapes information going in and out, event sourcing keeps the facts underneath, and everywhere you'd normally hand-write glue, Cratis generates it.
 
 - You **model** the domain — visually on the [Studio](/studio/) canvas, or as a declarative `.play` script in [Screenplay](/screenplay/) — and that one model is how you manage the entire lifecycle of the project, from generated C# to the running system.
+- Or you **start from a system that already exists**, and [Prologue](/prologue/) captures what it actually does — HTTP commands, database changes, telemetry — and interprets that into the same kind of model, evidenced rather than guessed.
 - You **secure the edge**, and [AuthProxy](/authproxy/) authenticates, resolves the tenant, enriches identity, and routes requests.
 - You **write a command**, and [Arc](/arc/) generates the [typed TypeScript proxy](/arc/understanding-the-proxy-boundary/) for it.
 - You **append an event**, and [Chronicle](/chronicle/) accepts it through a gRPC/protobuf boundary, stores it in MongoDB, PostgreSQL, Microsoft SQL Server, or SQLite, and projects the read model from it.
@@ -107,7 +108,7 @@ Cratis ships first-class tooling so an AI agent can build *and* operate the stac
 - **`cratis init`** drops the Cratis AI configuration into your repo — agents and skills (like *new vertical slice* and *add projection*) that already know the Cratis conventions, so an assistant scaffolds correct slices instead of guessing at the framework.
 - The **Chronicle MCP server** lets an agent connect to a running store and inspect events, observers, and read models — the same window the CLI gives you, handed to your assistant.
 
-Model in Studio, generate the slices, build them, inspect the result — an agent can take part at every step. [AI-native development](/ai-native-development/) covers the setup and exactly what an agent can do.
+Model in Studio, generate the slices, build them, inspect the result — an agent can take part at every step. [AI-native development](/ai/) covers the setup and exactly what an agent can do.
 
 And when you or a teammate gets stuck, [Prompter](/prompter/) — the community's Discord assistant — answers Cratis questions grounded in this same documentation, with citations, right where your team already talks.
 
@@ -119,6 +120,9 @@ And when you or a teammate gets stuck, [Prompter](/prompter/) — the community'
   </SimpleCard>
   <SimpleCard title="Screenplay — model as code" icon="pencil" link="/screenplay/">
     The modeling language: a whole bounded context — events, commands, queries, projections, screens, and rules — in one declarative `.play` file that Stage runs live and Studio visualizes.
+  </SimpleCard>
+  <SimpleCard title="Prologue — capture" icon="magnifier" link="/prologue/">
+    Point it at an existing system — no Cratis constructs required — and it captures HTTP commands, database changes, and telemetry, then interprets them into an event model and a Screenplay.
   </SimpleCard>
   <SimpleCard title="Chronicle — events" icon="seti:db" link="/chronicle/">
     The event-sourcing engine: gRPC/protobuf boundary, .NET-first client, TypeScript and Elixir clients/contracts, MongoDB/PostgreSQL/SQL Server/SQLite storage, Orleans inside.

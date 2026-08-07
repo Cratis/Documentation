@@ -17,7 +17,7 @@ A convention you can break silently isn't a convention — it's a suggestion. If
 
 The same pattern matters on the frontend. Generated proxy files should not produce lint noise, view models should not call React hooks, and Components consumers should not import the root barrel or bypass the Cratis dialog wrappers. Those are architectural choices, so Cratis packages them as ESLint rules instead of leaving them as tribal knowledge.
 
-This matters doubly in the [AI-native](/ai-native-development/) workflow. When an agent scaffolds a slice, these gates are the same guardrail for the agent that they are for you — a wrong shape fails, the agent reads the diagnostic, and it corrects itself. The [coding rules in the AI configuration](/plugins/) teach the conventions; the build gates enforce them.
+This matters doubly in the [AI-native](/ai/) workflow. When an agent scaffolds a slice, these gates are the same guardrail for the agent that they are for you — a wrong shape fails, the agent reads the diagnostic, and it corrects itself. The [coding rules in the AI configuration](/plugins/) teach the conventions; the build gates enforce them.
 
 ## Roslyn analyzer packages
 

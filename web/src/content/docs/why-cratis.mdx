@@ -38,7 +38,7 @@ Developers choose Cratis when they want the domain model, backend, frontend, ide
   <SimpleCard title="Screens that follow the model" icon="laptop" link="/components/">
     Components renders generated commands and observable queries as forms, dialogs, and tables, so UI code stays close to the model.
   </SimpleCard>
-  <SimpleCard title="AI can work with it" icon="rocket" link="/ai-native-development/">
+  <SimpleCard title="AI can work with it" icon="rocket" link="/ai/">
     The same conventions that help developers navigate the codebase are packaged as AI skills, rules, and diagnostics, so agents build with the grain of the framework.
   </SimpleCard>
   <SimpleCard title="Specs read like the model" icon="approve-check" link="/testing-with-cratis/">
@@ -188,11 +188,11 @@ Cratis is opinionated on purpose. The opinions are what make it productive:
 - **Storage is a deployment choice.** Chronicle supports MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite without changing the domain model.
 - **High cohesion through [vertical slices](/arc/vertical-slices/).** Everything for one behavior — command, events, projection, UI, specs — lives in one folder, backend and frontend together.
 - **Full-stack type safety.** Models flow from C# through proxy generation to TypeScript, with no manual synchronization — [the proxy boundary](/arc/understanding-the-proxy-boundary/) is what keeps the two languages honest.
-- **Cross-cutting concerns are first-class.** [Identity and access](/arc/understanding-identity-and-access/), [authorization](/arc/backend/core/authorization/), [tenancy](/arc/backend/tenancy/overview/), [AuthProxy](/authproxy/), and [Chronicle namespaces](/chronicle/concepts/namespaces/) are part of the platform story.
+- **Cross-cutting concerns are first-class.** [Identity and access](/arc/understanding-identity-and-access/), [authorization](/arc/backend/core/authorization/), [tenancy](/arc/backend/tenancy/), [AuthProxy](/authproxy/), and [Chronicle namespaces](/chronicle/concepts/namespaces/) are part of the platform story.
 - **Operability is architecture.** Workbench, CLI, OpenTelemetry, recommendations, replay, jobs, and failed-partition recovery are part of how you run the event store.
 - **Specifications are executable models.** [Testing with Cratis](/testing-with-cratis/) maps event modeling's given/when/then flow to Arc command specs and Chronicle event/read-model/reactor scenarios.
 - **Easy to do the right thing.** Convention over configuration and artifact discovery by naming mean less boilerplate and fewer ways to get it wrong.
-- **Predictable code helps humans and AI.** The conventions are documented, packaged as [AI tooling](/ai-native-development/), and enforced by [code analysis](/code-analysis/), so a new feature looks like the rest of the system.
+- **Predictable code helps humans and AI.** The conventions are documented, packaged as [AI tooling](/ai/), and enforced by [code analysis](/code-analysis/), so a new feature looks like the rest of the system.
 
 ## When Cratis is a good fit — and when it isn't
 

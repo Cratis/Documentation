@@ -37,8 +37,8 @@ import StackJourney from '../../components/StackJourney.astro';
 import RotatingHero from '../../components/RotatingHero.astro';
 
 {/* Rotates the hero above through the platform's stories (Event Sourcing, CQRS,
-    Application Framework, the Stack, Studio, Screenplay). The frontmatter hero is
-    the first pane and the no-JS fallback — keep the two in sync. */}
+    Application Framework, the Stack, AI-Native, Studio, Screenplay, Prologue). The
+    frontmatter hero is the first pane and the no-JS fallback — keep the two in sync. */}
 <RotatingHero />
 
 ## Get started in 3 steps
@@ -103,7 +103,7 @@ Cratis is for teams that want the domain model to be the running system, not a d
   <SimpleCard title="Storage choice" icon="seti:db" link="/chronicle/hosting/configuration/storage/">
     Run Chronicle over MongoDB, PostgreSQL, Microsoft SQL Server, or SQLite without changing the event model.
   </SimpleCard>
-  <SimpleCard title="Predictable for AI" icon="rocket" link="/ai-native-development/">
+  <SimpleCard title="Predictable for AI" icon="rocket" link="/ai/">
     Strong conventions, analyzers, and `.ai` guidance give assistants the same rails developers use to build and operate the system.
   </SimpleCard>
   <SimpleCard title="Live screens by default" icon="laptop" link="/components/">
@@ -173,8 +173,11 @@ const [authors] = AllAuthors.use();           // typed result, no API client to 
   <SimpleCard title="CLI" icon="rocket" link="/cli/">
     A terminal window into a running store — inspect events, watch observers, and diagnose issues.
   </SimpleCard>
-  <SimpleCard title="AI tooling" icon="approve-check" link="/ai-native-development/">
+  <SimpleCard title="AI tooling" icon="approve-check" link="/ai/">
     Skills, rules, analyzers, CLI catalogs, and MCP support that let agents build and operate with the platform's conventions.
+  </SimpleCard>
+  <SimpleCard title="Prologue" icon="magnifier" link="/prologue/">
+    Bring an existing system in — capture its real HTTP commands, database changes, and telemetry, and interpret them into an event model.
   </SimpleCard>
 </CardGrid>
 
@@ -190,9 +193,10 @@ Cratis is modular. For a new information system, the default path is Chronicle +
 | Typed commands, queries, and generated React proxies | [Arc](/arc/) |
 | Forms, dialogs, and data tables wired to Arc | [Components](/components/) |
 | To model a whole bounded context as one declarative file | [Screenplay](/screenplay/) |
+| To bring an existing system into Cratis, not build one from scratch | [Prologue](/prologue/) |
 | Authentication, tenant resolution, identity enrichment, and routing | [AuthProxy](/authproxy/) |
 | A way to inspect a running store | [CLI](/cli/) |
-| AI guidance for building and operating the stack | [AI-native development](/ai-native-development/) |
+| AI guidance for building and operating the stack | [AI-native development](/ai/) |
 | A guided adoption path from an existing app | [Adopting Cratis](/adopting-cratis/) |
 | A role-based route through the docs | [Learning paths](/learning-paths/) |
 | Runtime, package, and storage compatibility | [Version compatibility](/compatibility/) |

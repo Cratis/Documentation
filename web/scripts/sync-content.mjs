@@ -98,6 +98,15 @@ const PRODUCTS = [
         ],
     },
     {
+        // AuthProxy — the ASP.NET Core gateway that sits in front of a Cratis app's
+        // backend and frontend services and owns the edge concerns (authentication,
+        // tenancy, identity enrichment, invites/lobby).
+        key: 'authproxy', label: 'AuthProxy', icon: 'seti:lock', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'AuthProxy', 'Documentation'),
+            path.join(docRepoRoot, 'AuthProxy', 'Documentation')),
+    },
+    {
         // Screenplay — the modeling language. A single declarative `.play` file describes
         // a whole bounded context; Stage runs it live and Studio visualizes the same model.
         // Content lives in the `screenplay/` subfolder, so point straight at it for clean
@@ -117,6 +126,22 @@ const PRODUCTS = [
         ],
     },
     {
+        // Prologue — captures what an existing system actually does (HTTP commands, database
+        // changes, telemetry) and interprets that into an event model. Self-contained: no
+        // dependency on Studio or Orleans. Its output is a Screenplay `.play` file, so it sits
+        // right after Screenplay in the product list.
+        key: 'prologue', label: 'Prologue', icon: 'magnifier', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Prologue', 'Documentation'),
+            path.join(docRepoRoot, 'Prologue', 'Documentation')),
+        buckets: [
+            { label: 'Get started', sections: ['Getting started'] },
+            { label: 'Understand', sections: ['Why Prologue', 'How Prologue works', 'Architecture'] },
+            { label: 'Guides', sections: ['Guides'] },
+            { label: 'Reference', sections: ['Reference'] },
+        ],
+    },
+    {
         // The Cratis CLI — a terminal window into a running Chronicle event store.
         key: 'cli', label: 'CLI', icon: 'rocket', sidebarMode: 'toc',
         src: firstExisting(
@@ -127,6 +152,19 @@ const PRODUCTS = [
             { label: 'Start here', sections: ['Getting Started', 'Context'] },
             { label: 'Commands', sections: ['Chronicle', 'Arc'] },
             { label: 'Reference', sections: ['Reference'] },
+        ],
+    },
+    {
+        // The Chronicle MCP server — connects an AI agent to a running store over the Model Context
+        // Protocol, for both operating the store and design-time, schema-grounded artifact generation.
+        key: 'chronicle-mcp', label: 'Chronicle MCP', icon: 'node', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Chronicle.Mcp', 'Documentation'),
+            path.join(docRepoRoot, 'Chronicle.Mcp', 'Documentation')),
+        buckets: [
+            { label: 'Start here', sections: ['Getting started', 'Configuration'] },
+            { label: 'Understand', sections: ['How it works'] },
+            { label: 'Capabilities', sections: ['Operate-side', 'Design-time'] },
         ],
     },
     {
