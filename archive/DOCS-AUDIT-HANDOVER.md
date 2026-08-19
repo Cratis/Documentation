@@ -15,7 +15,7 @@
 > script's behaviour, the routing table, and the verify loop were accurate on 2026-07-16 and
 > may have changed. Verify against the current repository before relying on any of it.
 >
-> The companion audit is at `.ai/notes/DOCS-AUDIT-2026-07.md`.
+> The companion audit is at `archive/DOCS-AUDIT-2026-07.md`.
 
 # Handover — Cratis documentation improvement (from the 2026-07-16 audit)
 
