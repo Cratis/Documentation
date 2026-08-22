@@ -1,6 +1,6 @@
 ---
 title: AI-native development
-description: Cratis ships first-class AI tooling — agents and skills that build your slices the Cratis way, and a CLI plus MCP server that let an assistant operate your running store. Here is how to set both up and what they can do.
+description: Cratis combines framework-aware AI workflows with documented CLI and MCP operating tools. Learn what maintainers can use today, what is still in distribution preview, and where each agent ecosystem fits.
 slug: ai
 ---
 
@@ -9,20 +9,29 @@ import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
 <TopicHero icon="rocket" eyebrow="The Cratis Stack" title="Build and operate with AI agents">
-Cratis is built to be driven by an AI assistant — not as an afterthought, but as part of the stack. There are two halves to it: tooling that teaches your agent to **build** applications the Cratis way, and tooling that lets it **operate** a running store. Here's how to turn both on.
+Cratis is designed to give an AI assistant the same domain vocabulary, framework boundaries, and verification gates your team uses. Cratis maintainers use framework-aware workflows in Cratis repositories today; external portable coding skills remain in distribution preview. The CLI and Chronicle MCP provide the documented operating side now.
 </TopicHero>
 
 ## Why "AI-native"
 
 An AI assistant is only as good as what it knows about your framework and your system. Drop a general-purpose agent into a Cratis codebase and it will *guess* — inventing handler classes, missing the vertical-slice conventions, hand-writing the API client you don't need. Point it at a running event store and it has no idea how to read the log or recover a stuck observer.
 
-Cratis closes both gaps with tooling you install, so your assistant works *with* the grain of the framework instead of against it.
+Cratis closes the operating gap with documented CLI and MCP setup today. For coding workflows, it separates the repository-local setup used by Cratis maintainers from a generated portable distribution that remains gated until its first real target and release are approved.
 
-## Build with AI: agents and skills that know the Cratis way
+## Build with AI: skills that know the Cratis way
 
-The **Cratis AI configuration** is a set of agents, skills, and coding rules that teach an assistant the conventions — vertical slices, `[Command]` with `Handle()` on the record, model-bound projections, `ConceptAs<T>` instead of raw primitives. It works with **Claude Code** and **GitHub Copilot**, surfaced through the standard `.claude/` and `.github/` folders.
+The **Cratis AI configuration** teaches an assistant the conventions—vertical
+slices, `[Command]` with `Handle()` on the record, model-bound projections, and
+`ConceptAs<T>` instead of raw primitives.
 
-Among the skills it hands your assistant:
+Cratis-owned repositories currently carry repository-local rules and host
+adapters, so maintainers can use these workflows today. The public portable
+skills are being generated for Agent Skills, Claude Code, Codex, GitHub Copilot,
+Cursor, Kiro, Junie, Gemini CLI, and Pi, but they are not released for external
+installation yet. The public distribution repository remains fixture-only until
+source, target, canary, and release gates pass.
+
+Among the workflows available to Cratis maintainers:
 
 - **`new-vertical-slice`** — scaffold a whole feature end to end: command, events, projection, query, React, and specs.
 - **`cratis-command`**, **`cratis-readmodel`**, **`add-projection`**, **`add-reactor`**, **`add-concept`** — build one artifact correctly, by convention.
@@ -30,7 +39,11 @@ Among the skills it hands your assistant:
 
 Because the skills encode the conventions, an agent that uses them produces slices that look like the rest of your codebase — not a layered approximation of it. (The configuration is the canonical `.ai/` source in the Cratis AI repository, dropped into a project as its `.claude/` and `.github/` folders.)
 
-→ See [Plugins](/plugins/) for the full catalog of agents, skills, and coding rules — and how Claude Code and GitHub Copilot load them. The same conventions are enforced during the build by the [code-analysis gates](/code-analysis/).
+Start with [AI setup and current availability](/ai/getting-started/), then use
+the [ecosystem support matrix](/ai/ecosystems/) to see what is verified and what
+remains blocked. [Plugins](/plugins/) explains the shared skill model, while the
+[code-analysis gates](/code-analysis/) enforce framework contracts during the
+build.
 
 <Aside type="tip" title="Model first, then generate">
 Pair this with [Studio](/studio/) or [Screenplay](/screenplay/): model the feature on the canvas or as a declarative `.play` script, generate the C# shapes, then let an agent flesh out the slices around them. Design → generate → build, with AI at each step.
@@ -86,7 +99,7 @@ The MCP server and the CLI are *operate-and-inspect* tools — the agent reads t
 ```mermaid
 flowchart LR
     subgraph Build["Build with AI"]
-        SK[".ai skills + agents<br/>new-vertical-slice, …"]
+        SK["Cratis AI skills<br/>model · build · review"]
     end
     subgraph Operate["Operate with AI"]
         IN["cratis init<br/>CLI command catalog"]
@@ -101,6 +114,15 @@ flowchart LR
 ## Where to go next
 
 <CardGrid>
+  <SimpleCard title="Get started with AI" icon="rocket" link="/ai/getting-started/">
+    Set up the operating tools today and understand the coding-skills release status.
+  </SimpleCard>
+  <SimpleCard title="Ecosystem support" icon="puzzle" link="/ai/ecosystems/">
+    See generated formats and verification status across supported AI hosts.
+  </SimpleCard>
+  <SimpleCard title="Trust and distribution" icon="approve-check" link="/ai/trust-and-distribution/">
+    Learn how approvals, generated bytes, canaries, rollback, and project context fit together.
+  </SimpleCard>
   <SimpleCard title="The Cratis Stack" icon="rocket" link="/cratis-stack/">
     How design, build, and operate fit together end to end — AI accelerates every step.
   </SimpleCard>

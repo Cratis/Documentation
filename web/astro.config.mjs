@@ -136,6 +136,10 @@ const aiTopic = {
     link: 'ai',
     icon: 'star',
     items: [
+        { label: 'Getting started', slug: 'ai/getting-started' },
+        { label: 'Ecosystem support', slug: 'ai/ecosystems' },
+        { label: 'Cratis maintainers', slug: 'ai/cratis-maintainers' },
+        { label: 'Trust and distribution', slug: 'ai/trust-and-distribution' },
         { label: 'Plugins', slug: 'plugins' },
         { label: 'Code analysis', slug: 'code-analysis' },
         chronicleMcpTopic
@@ -253,7 +257,7 @@ export default defineConfig({
                         components: ['/components', '/components/**'],
                         authproxy: ['/authproxy', '/authproxy/**'],
                         cli: ['/cli', '/cli/**'],
-                        ai: ['/ai', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
+                        ai: ['/ai', '/ai/**', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
                         fundamentals: ['/fundamentals', '/fundamentals/**'],
                         contributing: ['/contributing', '/contributing/**'],
                         architecture: ['/architecture', '/architecture/**'],
