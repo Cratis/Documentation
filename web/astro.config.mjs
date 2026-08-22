@@ -14,6 +14,8 @@ import starlightSidebarTopics from 'starlight-sidebar-topics';
 // One topic per product, generated from each product's toc.yml by
 // scripts/sync-content.mjs. starlight-sidebar-topics renders these as an icon
 // rail at the top of the sidebar (the aspire.dev pattern).
+/** @typedef {{ id?: string, label: string, link?: string, icon?: string, items: any[] }} ProductTopic */
+/** @type {ProductTopic[]} */
 let productTopics;
 try {
     productTopics = JSON.parse(readFileSync(new URL('./src/generated/topics.json', import.meta.url), 'utf8'));
@@ -136,6 +138,10 @@ const aiTopic = {
     link: 'ai',
     icon: 'star',
     items: [
+        { label: 'Getting started', slug: 'ai/getting-started' },
+        { label: 'Ecosystem support', slug: 'ai/ecosystems' },
+        { label: 'Cratis maintainers', slug: 'ai/cratis-maintainers' },
+        { label: 'Trust and distribution', slug: 'ai/trust-and-distribution' },
         { label: 'Plugins', slug: 'plugins' },
         { label: 'Code analysis', slug: 'code-analysis' },
         chronicleMcpTopic
@@ -253,7 +259,7 @@ export default defineConfig({
                         components: ['/components', '/components/**'],
                         authproxy: ['/authproxy', '/authproxy/**'],
                         cli: ['/cli', '/cli/**'],
-                        ai: ['/ai', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
+                        ai: ['/ai', '/ai/**', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
                         fundamentals: ['/fundamentals', '/fundamentals/**'],
                         contributing: ['/contributing', '/contributing/**'],
                         architecture: ['/architecture', '/architecture/**'],
