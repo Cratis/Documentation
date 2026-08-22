@@ -77,7 +77,10 @@ publicDocsAudit:
     #     shared testing docs do not yet mention.
     #   - tracing.md: documents the Kotlin client's OpenTelemetry span/attribute
     #     names — no shared "tracing" topic exists yet.
-    kotlin: 8
+    #   - spring-boot.md: documents the Kotlin/Java Spring Boot starter, request
+    #     filters, artifact discovery, tenancy, and blocking facade — client SDK
+    #     mechanics with no shared or non-JVM equivalent page.
+    kotlin: 9
     elixir: 0
     typescript: 0
 
