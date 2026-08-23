@@ -1,0 +1,86 @@
+<div class="sample-hero">
+    <p class="eyebrow">Learn by running</p>
+    <h2>Pick a journey. Open the code. Make it yours.</h2>
+    <p>
+        The samples keep the important parts close together: the intent, the events, the processing,
+        and—where the sample has a frontend—the generated contracts and React experience.
+    </p>
+    <div class="hero-actions">
+        <a class="primary" href="https://github.com/Cratis/Samples">Browse the repository</a>
+        <a href="/chronicle/get-started/">Start with Chronicle</a>
+    </div>
+</div>
+
+<style>
+    .sample-hero {
+        position: relative;
+        overflow: hidden;
+        margin: 1rem 0 2.5rem;
+        border: 1px solid color-mix(in srgb, var(--sl-color-accent) 35%, var(--sl-color-gray-5));
+        border-radius: 1.1rem;
+        padding: clamp(1.35rem, 4vw, 2.5rem);
+        background:
+            radial-gradient(circle at 85% 10%, color-mix(in srgb, var(--sl-color-accent) 22%, transparent), transparent 38%),
+            linear-gradient(135deg, color-mix(in srgb, var(--sl-color-accent) 8%, var(--sl-color-bg)), var(--sl-color-bg-nav));
+    }
+
+    .sample-hero::after {
+        position: absolute;
+        right: -3rem;
+        bottom: -5rem;
+        width: 13rem;
+        height: 13rem;
+        border: 1.6rem solid color-mix(in srgb, var(--sl-color-accent) 10%, transparent);
+        border-radius: 50%;
+        content: '';
+    }
+
+    .sample-hero h2 {
+        position: relative;
+        max-width: 42rem;
+        margin: 0.25rem 0 0.8rem;
+        font-size: clamp(1.8rem, 5vw, 3rem);
+        line-height: 1.05;
+    }
+
+    .sample-hero > p:not(.eyebrow) {
+        position: relative;
+        max-width: 43rem;
+        margin: 0;
+        color: var(--sl-color-gray-2);
+        font-size: 1.06rem;
+        line-height: 1.65;
+    }
+
+    .eyebrow {
+        margin: 0;
+        color: var(--sl-color-text-accent);
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+    }
+
+    .hero-actions {
+        position: relative;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1.35rem;
+        z-index: 1;
+    }
+
+    .hero-actions a {
+        border: 1px solid color-mix(in srgb, var(--sl-color-accent) 45%, var(--sl-color-gray-5));
+        border-radius: 0.6rem;
+        padding: 0.62rem 0.9rem;
+        font-weight: 750;
+        text-decoration: none;
+    }
+
+    .hero-actions a.primary {
+        border-color: var(--sl-color-accent-high);
+        background: var(--sl-color-accent-high);
+        color: var(--sl-color-black);
+    }
+</style>

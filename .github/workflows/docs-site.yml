@@ -51,6 +51,14 @@ jobs:
         with:
           path: Documentation
 
+      - name: Checkout Samples
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Samples
+          ref: main
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          path: Samples
+
       - name: Checkout Chronicle
         uses: actions/checkout@v4
         with:

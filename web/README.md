@@ -15,13 +15,14 @@ The Cratis documentation site, built with [Astro Starlight](https://starlight.as
   ├── Components/
   ├── cli/
   ├── Fundamentals/
+  ├── Samples/           ← sample catalog used by the /samples page
   └── .github/           ← the Cratis/.github org repo (Contributing docs)
   ```
 
   Put each on the branch you want to preview. For the released site, use `main`:
 
   ```bash
-  for r in Chronicle Arc Components cli Fundamentals .github; do (cd "$r" && git checkout main); done
+  for r in Chronicle Arc Components cli Fundamentals Samples .github; do (cd "$r" && git checkout main); done
   ```
 
   > If a product repo is missing as a sibling, the converter falls back to that product's git submodule inside this repo when one exists. Use sibling clones when you need to preview unmerged branch content.
@@ -41,6 +42,7 @@ Open http://localhost:4321 — you should land on the Cratis home page.
 Documentation **lives in each product repository's `Documentation/` folder** — that is the source of truth, kept next to the code it documents. A build step converts that DocFX-style Markdown into Starlight content.
 
 - `scripts/sync-content.mjs` reads the product `Documentation/` folders (resolved as siblings of this repo, e.g. `../Chronicle/Documentation`), converts them, and writes the result into `src/content/docs/<product>/`.
+- `scripts/sync-samples.mjs` reads `Samples/samples.json` and writes `src/generated/samples.json`, which powers the cards and comparison table on `/samples/`.
 - Those generated folders are **git-ignored** — never edit them by hand. Edit the source in the product repo and re-sync.
 - Product sidebars are generated from each product's `toc.yml`; the topic model is written to `src/generated/topics.json` (also git-ignored) and imported by `astro.config.mjs`.
 - Site-level pages that don't belong to a single product (the landing page, `why-cratis.mdx`, compatibility, community, feedback, and comparison pages) are authored directly in `src/content/docs/` and are tracked in git.
@@ -55,7 +57,7 @@ npm install        # first time only
 npm run dev        # sync content + start the dev server at http://localhost:4321
 ```
 
-`npm run dev` and `npm run build` both run `scripts/sync-content.mjs` first (via the `predev`/`prebuild` hooks), so the content is always freshly converted from the product repos.
+`npm run dev` and `npm run build` both run `npm run sync` first (via the `predev`/`prebuild` hooks), so product content and the Samples catalog are always freshly synchronized.
 
 To re-sync content without (re)starting the server — for example after editing a page in a product repo:
 
