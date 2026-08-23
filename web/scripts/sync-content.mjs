@@ -89,7 +89,7 @@ const PRODUCTS = [
             {
                 label: 'Component library',
                 sections: [
-                    'Storybook', 'CommandDialog', 'CommandForm', 'CommandStepper', 'StepperCommandDialog', 'DataPage',
+                    'Storybook', 'Canvas', 'CommandDialog', 'CommandForm', 'CommandStepper', 'StepperCommandDialog', 'DataPage',
                     'DataTables', 'Dialogs', 'Filter', 'Dropdown', 'Toolbar', 'ObjectNavigationalBar',
                     'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common',
                 ],
