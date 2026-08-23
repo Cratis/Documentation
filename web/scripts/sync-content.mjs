@@ -84,7 +84,7 @@ const PRODUCTS = [
             path.join(docRepoRoot, 'Components', 'Documentation')),
         buckets: [
             { label: 'Start here', sections: ['Getting started', 'Tutorial', 'Choosing a component'] },
-            { label: 'Design and styling', sections: ['Why Components', 'PrimeReact and Components', 'Styling'] },
+            { label: 'Design and styling', sections: ['Why Components', 'UI foundation', 'Coming from PrimeReact', 'Styling'] },
             { label: 'Recipes', sections: ['Building a form', 'Displaying data', 'Multi-step form', 'A list screen with actions'] },
             {
                 label: 'Component library',
@@ -94,7 +94,7 @@ const PRODUCTS = [
                     'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common',
                 ],
             },
-            { label: 'Reference', sections: ['Types', 'Migration'] },
+            { label: 'Reference', sections: ['Types', 'Migrate from Components 3 to 4', 'Migrate from Components 2 to 3'] },
         ],
     },
     {
