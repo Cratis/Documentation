@@ -144,6 +144,14 @@ const PRODUCTS = [
                     path.join(reposRoot, 'Screenplay.Generation', 'Documentation', 'guides'),
                     path.join(docRepoRoot, 'Screenplay.Generation', 'Documentation', 'guides')),
             },
+            {
+                label: 'CritterStack',
+                group: 'Ecosystem examples',
+                path: 'ecosystem-examples/critter-stack',
+                src: firstExisting(
+                    path.join(reposRoot, 'Screenplay.CritterStack', 'Documentation'),
+                    path.join(docRepoRoot, 'Screenplay.CritterStack', 'Documentation')),
+            },
         ],
     },
     {
