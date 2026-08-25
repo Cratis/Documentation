@@ -179,6 +179,14 @@ jobs:
           token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: Screenplay.Generation
 
+      - name: Checkout Screenplay.CritterStack
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Screenplay.CritterStack
+          ref: main
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          path: Screenplay.CritterStack
+
       - name: Checkout Prologue
         uses: actions/checkout@v4
         with:
