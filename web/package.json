@@ -3,13 +3,14 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "sync": "node scripts/sync-content.mjs && node scripts/sync-samples.mjs",
+    "sync": "node scripts/sync-public-content.mjs",
+    "sync:authoring": "node scripts/sync-content.mjs && node scripts/sync-samples.mjs",
     "predev": "npm run sync",
     "dev": "astro dev",
     "start": "astro dev",
-    "prebuild": "npm run sync",
+    "prebuild": "rm -rf dist && npm run sync",
     "build": "astro build",
-    "postbuild": "node scripts/emit-doc-artifacts.mjs",
+    "postbuild": "node scripts/emit-doc-artifacts.mjs && node scripts/check-public-surface.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "lint:docs": "node scripts/lint-docs.mjs",
@@ -25,7 +26,7 @@
     "build:storybook:arc": "cd ../../Arc/Source/JavaScript && yarn workspace @cratis/arc.react exec storybook build -o ../../../../Documentation/web/public/storybook-arc",
     "build:storybooks": "npm run build:storybook && npm run build:storybook:arc",
     "build:api": "node scripts/build-api.mjs",
-    "check": "npm run build && npm run chronicle-client-docs:check && node scripts/lint-docs.mjs && node scripts/check-links.mjs && node scripts/lint-prose.mjs && node scripts/lint-markdown.mjs && node scripts/check-external-links.mjs"
+    "check": "npm run build && node scripts/lint-docs.mjs && node scripts/check-links.mjs && node scripts/lint-prose.mjs && node scripts/lint-markdown.mjs && node scripts/check-external-links.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.39.2",
@@ -38,8 +39,6 @@
     "mermaid": "^11.15.0",
     "sharp": "^0.34.5",
     "starlight-image-zoom": "^0.14.2",
-    "starlight-llms-txt": "^0.10.0",
-    "starlight-page-actions": "^0.5.0",
     "starlight-scroll-to-top": "^1.0.1",
     "starlight-sidebar-topics": "^0.7.1",
     "starlight-typedoc": "^0.23.0",

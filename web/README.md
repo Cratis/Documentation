@@ -1,135 +1,96 @@
 # Cratis documentation site
 
-The Cratis documentation site, built with [Astro Starlight](https://starlight.astro.build/). It aggregates the documentation from each product repository (Chronicle, Arc, Components, CLI, Fundamentals) plus the Contributing guide, and presents them as one site.
+The cratis.io site is built with Astro Starlight. Product repositories own their technical documentation; this repository owns the exact reviewed projection that may be rendered and deployed.
 
-## Prerequisites
+## Production boundary
 
-- **Node.js 23 or newer** (CI builds on Node 23 because the Storybook toolchain requires it).
-- **The product repositories checked out as siblings of this repo.** The site reads each product's `Documentation/` folder from a sibling clone, so your layout should be:
+[`public-surface.json`](./public-surface.json) is the fail-closed deployment manifest. Every public route names:
 
-  ```
-  <parent>/
-  ├── Documentation/     ← this repo (the site lives in Documentation/web)
-  ├── Chronicle/
-  ├── Arc/               ← the ApplicationModel repo, cloned as "Arc"
-  ├── Components/
-  ├── cli/
-  ├── Fundamentals/
-  ├── Samples/           ← sample catalog used by the /samples page
-  └── .github/           ← the Cratis/.github org repo (Contributing docs)
-  ```
+- one source repository and relative path;
+- the exact SHA-256 of the reviewed source;
+- the generated content path and public route;
+- the Approved claim IDs used by the page; and
+- whether search, machine exports, and sitemap inclusion are allowed.
 
-  Put each on the branch you want to preview. For the released site, use `main`:
+`scripts/sync-public-content.mjs` rejects unknown repositories, unsafe paths, duplicate routes, stale hashes, Draft sources, unapproved claim IDs, and CLM-010 wording. It materializes only allowlisted content and static assets.
 
-  ```bash
-  for r in Chronicle Arc Components cli Fundamentals Samples .github; do (cd "$r" && git checkout main); done
-  ```
+The deployed site currently keeps Pagefind, `llms.txt`, `llms-full.txt`, page actions, raw Markdown mirrors, Storybooks, and generated API-reference sites disabled. Re-enable any of them only after their exact output tree is included in the same reviewed manifest boundary.
 
-  > If a product repo is missing as a sibling, the converter falls back to that product's git submodule inside this repo when one exists. Use sibling clones when you need to preview unmerged branch content.
+## Required sibling layout
 
-## Quick start
+Production sync needs the allowlisted product repositories next to Documentation:
+
+```text
+<parent>/
+├── Documentation/
+├── Chronicle/
+├── Arc/
+├── Components/
+└── cli/
+```
+
+Use the branch whose source hashes are recorded in the manifest. Production uses merged `main` revisions.
+
+## Install and run
+
+Node.js 23 or newer is required.
 
 ```bash
 cd Documentation/web
-npm install      # first time only
-npm run dev      # converts content + starts the dev server at http://localhost:4321
+npm install
+npm run dev
 ```
 
-Open http://localhost:4321 — you should land on the Cratis home page.
+The predev hook runs the exact production sync before starting Astro at `http://localhost:4321`.
 
-## How content is sourced
-
-Documentation **lives in each product repository's `Documentation/` folder** — that is the source of truth, kept next to the code it documents. A build step converts that DocFX-style Markdown into Starlight content.
-
-- `scripts/sync-content.mjs` reads the product `Documentation/` folders (resolved as siblings of this repo, e.g. `../Chronicle/Documentation`), converts them, and writes the result into `src/content/docs/<product>/`.
-- `scripts/sync-samples.mjs` reads `Samples/samples.json` and writes `src/generated/samples.json`, which powers the cards and comparison table on `/samples/`.
-- Those generated folders are **git-ignored** — never edit them by hand. Edit the source in the product repo and re-sync.
-- Product sidebars are generated from each product's `toc.yml`; the topic model is written to `src/generated/topics.json` (also git-ignored) and imported by `astro.config.mjs`.
-- Site-level pages that don't belong to a single product (the landing page, `why-cratis.mdx`, compatibility, community, feedback, and comparison pages) are authored directly in `src/content/docs/` and are tracked in git.
-
-The conversion handles: front matter (adds a `title`), DocFX alerts (`> [!NOTE]` → `:::note`), `<xref:...>`, `[!INCLUDE]`, and `.md`/`toc.yml` link fix-ups.
-
-## Local development
+## Synchronization modes
 
 ```bash
-# from this folder (Documentation/web)
-npm install        # first time only
-npm run dev        # sync content + start the dev server at http://localhost:4321
+npm run sync             # exact production manifest only
+npm run sync:authoring   # broad local authoring; never deploy this output
 ```
 
-`npm run dev` and `npm run build` both run `npm run sync` first (via the `predev`/`prebuild` hooks), so product content and the Samples catalog are always freshly synchronized.
+`sync:authoring` exists for working on product documentation before admission. Its generated pages, topics, and assets are not publication authority.
 
-To re-sync content without (re)starting the server — for example after editing a page in a product repo:
+## Verification
+
+Run the complete gate:
 
 ```bash
-npm run sync             # all products
-node scripts/sync-content.mjs chronicle   # just one product
+npm run check
 ```
 
-## Verify the build
+A successful check:
 
-Before pushing, confirm the site builds cleanly:
+- validates every source and static-file digest;
+- materializes only the exact public routes;
+- builds the Starlight site;
+- verifies the claim-contained front page, title, description, canonical links, and complete Approved sentences;
+- confirms CLM-010, Pagefind, machine exports, and raw Markdown mirrors are absent;
+- compares internal links with the built route set; and
+- runs documentation, prose, Markdown, and external-link checks.
 
-```bash
-npm run build
-```
+The deployment workflow runs the same command. Pull requests validate only. Merges to `main` build and deploy the exact `dist` artifact to GitHub Pages.
 
-A successful build:
+## Add or change a public page
 
-- converts all products (`[sync] chronicle: N pages ...` etc.),
-- reports `0 broken toc entries dropped`,
-- ends with `[build] N page(s) built` and `[build] Complete!`,
-- generates `/llms.txt` and `/llms-full.txt`, and builds the Pagefind search index.
+1. Edit the owning product documentation.
+2. Complete product, claim, privacy/provenance, and public-sanitization review.
+3. Add the exact source path, SHA-256, route, claim IDs, and output controls to `public-surface.json`.
+4. Add navigation generated from the same manifest only.
+5. Run `npm run check` from a clean sibling layout twice.
+6. Merge the owning product source before the dependent Documentation manifest change.
+7. Record the deployed URL/revision and withdrawal owner after publication.
 
-Two QA scripts back this up:
+Do not edit `src/content/docs/`, `src/generated/`, or `.public-approved/` directly. They are disposable projections.
 
-- `npm run lint:docs` — fails on non-descriptive link text (`[here]`, `[see documentation]`) and any leftover DocFX-isms (`<xref:>`, `[!INCLUDE]`, unconverted alerts). **Gates the build (0 errors required).**
-- `npm run check:links` — verifies every internal Markdown link resolves to a real built page (Starlight does not). Run after a build. The site is currently at **zero broken internal links**, and this **gates the CI build** to keep it that way.
+## Site-owned pages and assets
 
-`npm run check` runs build + lint + link-check together. Preview the production build locally with `npm run preview`.
+- Reviewed site-owned source lives in `src/public-pages/`.
+- Theme-adaptive marks live in `src/assets/` and are bundled by Astro.
+- Exact static public files are copied from `public/` into `.public-approved/` only when their hashes appear in the manifest.
+- Product source remains in each owning repository.
 
-## Verify it works locally — checklist
+## Broad authoring pipeline
 
-1. **Build + gates pass:** `npm run check` ends with `[build] Complete!`, `0 error(s)`, and `Checked … 0 broken`. Advisory style warnings may remain.
-2. **Dev server serves:** `npm run dev`, open http://localhost:4321 — the landing page shows the hero and the C#/TypeScript tabs ("One feature, one slice, both ends type-safe").
-3. **Navigation:** the sidebar starts with *Why Cratis · Build a full-stack feature · Samples · API reference*, then each product (Chronicle, Arc, Components, CLI, Fundamentals, Contributing) with its sections.
-4. **Search:** the top-bar search returns results (try "projection").
-5. **Diagrams render:** open *Chronicle → Architecture* — the Mermaid diagrams display.
-6. **AI export:** http://localhost:4321/llms.txt lists the docs.
-
-## Adding or editing a page
-
-1. Edit (or add) the Markdown in the relevant product repo's `Documentation/` folder — for example `Chronicle/Documentation/concepts/my-page.md`.
-2. Add it to that folder's `toc.yml` so it appears in the navigation.
-3. Run `npm run dev` (or `npm run sync`) and check it locally.
-
-Follow the documentation conventions in `.ai/rules/documentation.md` (Diátaxis page types, why-first voice, descriptive link text, diagrams for concepts).
-
-## Working on the docs (AI assistants & contributors)
-
-Because the content is split across repos and the site has a few non-obvious build mechanisms, the operating knowledge is captured as **AI rules and skills** in the `Documentation` repo's `.ai/` folder. These are written once in `.ai/` and surfaced to GitHub Copilot (`.github/instructions/`, `.github/skills/`) and Claude Code (`.claude/rules/`, `.claude/skills/`) via symlinks. Product-doc rules are synced to the other Cratis repos; site-host rules are excluded by `.github/.copilot-sync-ignore` because only this repo owns `web/`. They're plain Markdown, so they double as human docs.
-
-**Rules** (`.ai/rules/`):
-
-- **`writing-cratis-docs.md`** — the content craft: the tour voice (Marten/Wolverine/Aspire style), Diátaxis page types, and how to use Starlight's authoring tools (`<Steps>`, `<Tabs>`, `<FullStackTabs>`, diagrams) to achieve it.
-- **`documentation-structure-and-formatting.md`** — the mechanical format so a page fits the site: frontmatter schema, heading/ToC structure, asides, code-fence languages, tables, links, file layout, trailing newline.
-- **`editing-cratis-docs.md`** — where each page actually lives (which product repo), the edit → sync → verify loop, and the "never edit the generated folders" rule.
-- **`astro-starlight-site.md`** — how the site is built (content conversion, navigation, the QA gate) and the hard-won gotchas.
-- **`documentation-rendering-and-qa.md`** — the rendering pipeline (build-time Mermaid pre-rendering, `font-display: optional` fonts, GFM tables) and how to do headless visual/layout-shift QA.
-- **`writing-correct-examples.md`** — verify every framework API against real source; the list of APIs the docs kept getting wrong.
-
-**Skills** (`.ai/skills/`):
-
-- **`edit-cratis-docs`** — change/fix an existing page across the repos.
-- **`add-cratis-docs-page`** — create a new page and wire it into the nav.
-- **`qa-cratis-docs`** — screenshot pages in light/dark and diagnose layout-shift, using `scripts/screenshot.mjs`.
-
-For visual QA, `scripts/screenshot.mjs` drives the system Chrome to capture any page full-page in light **or** dark (no extra dependency): `node scripts/screenshot.mjs http://localhost:4321/chronicle/ /tmp/c.png dark`.
-
-## Branding
-
-The Cratis mark lives in `src/assets/cratis-mark-light.svg` and `src/assets/cratis-mark-dark.svg` (theme-adaptive). The accent color is set in `src/styles/cratis.css`.
-
-## API reference & Storybook
-
-The .NET API reference (DocFX) and the Components Storybook are wired separately — see the Reference section. This keeps the "combine tooling" approach: Starlight for narrative docs, the right tool for each generated artifact.
+`scripts/sync-content.mjs`, sample synchronization, Chronicle client-doc audits, Storybook builders, DocFX, and TypeDoc remain available for nondeployable authoring and validation. Their outputs must not be copied into the deployed public directory without explicit route/artifact admission.

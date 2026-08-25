@@ -1,6 +1,6 @@
-// Emits static artifacts that Starlight does not create by itself:
-// - /path.md mirrors for starlight-page-actions' "View in Markdown" and copy action.
-// - Static files synced from product docs, such as Chronicle statistics HTML/JS.
+// Emits approved static assets that Starlight does not create by itself.
+// Raw Markdown mirrors remain disabled until an explicit Approved-claim allowlist
+// controls which canonical pages may be exposed as machine-readable source.
 //
 // Run after astro build: node scripts/emit-doc-artifacts.mjs
 
@@ -13,7 +13,7 @@ const webRoot = path.resolve(here, '..');
 const docsRoot = path.join(webRoot, 'src', 'content', 'docs');
 const distRoot = path.join(webRoot, 'dist');
 
-const STATIC_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.html', '.js', '.css', '.json']);
+const STATIC_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif']);
 
 function slugifyPath(p) {
     return p
@@ -32,38 +32,26 @@ async function* walk(dir) {
     }
 }
 
-function pageMarkdownOutput(relFile) {
-    const withoutExt = relFile.replace(/\.(md|mdx)$/i, '');
-    const slug = slugifyPath(withoutExt.replace(/(^|\/)index$/i, '$1'));
-    return path.join(distRoot, slug ? `${slug}.md` : 'index.md');
-}
-
 function staticOutput(relFile) {
     const dir = slugifyPath(path.dirname(relFile));
     const file = path.basename(relFile).toLowerCase().replace(/[^a-z0-9._-]+/g, '');
     return path.join(distRoot, dir, file);
 }
 
-let markdownMirrors = 0;
 let staticFiles = 0;
 
 for await (const file of walk(docsRoot)) {
     const rel = path.relative(docsRoot, file);
     const ext = path.extname(file).toLowerCase();
 
-    let outFile;
-    if (ext === '.md' || ext === '.mdx') {
-        outFile = pageMarkdownOutput(rel);
-        markdownMirrors++;
-    } else if (STATIC_EXT.has(ext)) {
-        outFile = staticOutput(rel);
-        staticFiles++;
-    } else {
-        continue;
-    }
+    if (ext === '.md' || ext === '.mdx') continue;
+    if (!STATIC_EXT.has(ext)) continue;
+
+    const outFile = staticOutput(rel);
+    staticFiles++;
 
     await fs.mkdir(path.dirname(outFile), { recursive: true });
     await fs.copyFile(file, outFile);
 }
 
-console.log(`[postbuild] emitted ${markdownMirrors} markdown mirrors and ${staticFiles} static doc assets`);
+console.log(`[postbuild] emitted ${staticFiles} approved static doc assets; Markdown mirrors disabled`);

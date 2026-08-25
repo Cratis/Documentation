@@ -5,165 +5,35 @@ import starlight from '@astrojs/starlight';
 import mermaid from 'astro-mermaid';
 import remarkGfm from 'remark-gfm';
 import { remarkMermaidPrerender, closeBrowser } from './scripts/mermaid-prerender.mjs';
-import starlightLlmsTxt from 'starlight-llms-txt';
-import starlightPageActions from 'starlight-page-actions';
 import starlightScrollToTop from 'starlight-scroll-to-top';
 import starlightImageZoom from 'starlight-image-zoom';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
 
-// One topic per product, generated from each product's toc.yml by
-// scripts/sync-content.mjs. starlight-sidebar-topics renders these as an icon
-// rail at the top of the sidebar (the aspire.dev pattern).
+// One topic per allowlisted product, generated from public-surface.json by
+// sync-public-content.mjs. Production fails closed when this projection is missing.
 /** @typedef {{ id?: string, label: string, link?: string, icon?: string, items: any[] }} ProductTopic */
 /** @type {ProductTopic[]} */
 let productTopics;
 try {
     productTopics = JSON.parse(readFileSync(new URL('./src/generated/topics.json', import.meta.url), 'utf8'));
-} catch {
-    productTopics = [
-        { label: 'Chronicle', link: 'chronicle', icon: 'seti:db', items: [{ autogenerate: { directory: 'chronicle' } }] },
-        { label: 'Arc', link: 'arc', icon: 'puzzle', items: [{ autogenerate: { directory: 'arc' } }] },
-        { label: 'Components', link: 'components', icon: 'laptop', items: [{ autogenerate: { directory: 'components' } }] },
-    ];
+} catch (error) {
+    throw new Error(`Approved public topics are missing. Run npm run sync before Astro: ${error}`);
 }
 
-// Chronicle MCP and Prompter each ship a full toc.yml-driven sidebar of their own
-// (generated like any other product topic), but in the nav they surface as
-// sub-sections of the hand-authored "AI" topic below rather than getting their
-// own icon-rail entry. Pull their generated topics out of the flat product list
-// before building the rail.
-const chronicleMcpTopic = productTopics.find((topic) => topic.id === 'chronicle-mcp');
-const prompterTopic = productTopics.find((topic) => topic.id === 'prompter');
-productTopics = productTopics.filter((topic) => topic.id !== 'chronicle-mcp' && topic.id !== 'prompter');
-
-// The first topic gathers the site-level, cross-product pages (hand-authored in
-// web/, not owned by any product): the "why", the capstone, samples, tools.
 const overviewTopic = {
     id: 'overview',
-    label: 'Cratis Stack',
-    link: 'cratis-stack',
+    label: 'Documentation',
+    link: '/',
     icon: 'open-book',
-    items: [
-        { label: 'The Cratis Stack', slug: 'cratis-stack' },
-        { label: 'Why developers choose Cratis', slug: 'why-cratis' },
-        { label: 'Adopting Cratis', slug: 'adopting-cratis' },
-        {
-            label: 'Scenarios',
-            collapsed: true,
-            items: [
-                { label: 'Overview', slug: 'scenarios' },
-                { label: 'Build a full-stack feature', slug: 'build-a-full-app' },
-                {
-                    label: 'Camel Casing',
-                    collapsed: true,
-                    items: [
-                        { label: 'Overview', slug: 'scenarios/camel-casing' },
-                    ],
-                },
-                {
-                    label: 'Vertical Slices',
-                    collapsed: true,
-                    items: [
-                        { label: 'Overview', slug: 'scenarios/vertical-slices' },
-                        { label: 'State Change', slug: 'scenarios/vertical-slices/state-change' },
-                        { label: 'State View', slug: 'scenarios/vertical-slices/state-view' },
-                        { label: 'Automation', slug: 'scenarios/vertical-slices/automation' },
-                        { label: 'Translator', slug: 'scenarios/vertical-slices/translator' },
-                    ],
-                },
-                {
-                    label: 'Real-Time Chat',
-                    collapsed: true,
-                    items: [
-                        { label: 'Overview', slug: 'scenarios/chat' },
-                        { label: 'In-Memory', slug: 'scenarios/chat/in-memory' },
-                        { label: 'With RabbitMQ', slug: 'scenarios/chat/rabbitmq' },
-                        { label: 'Frontend-Managed State', slug: 'scenarios/chat/change-stream' },
-                        { label: 'Incremental Pushes', slug: 'scenarios/chat/incremental-pushes' },
-                    ],
-                },
-            ],
-        },
-        {
-            label: 'Adopt and trust',
-            collapsed: true,
-            items: [
-                { label: 'Learning paths', slug: 'learning-paths' },
-                { label: 'FAQ', slug: 'faq' },
-                { label: 'Version compatibility', slug: 'compatibility' },
-                { label: 'Production readiness', slug: 'production-readiness' },
-                { label: 'Roadmap', slug: 'roadmap' },
-                { label: 'Governance', slug: 'governance' },
-                { label: 'Security', slug: 'security' },
-                { label: 'Professional help', slug: 'professional-help' },
-                { label: 'Community and help', slug: 'community' },
-                { label: 'Feedback and suggestions', slug: 'feedback' },
-            ],
-        },
-        { label: 'Studio', slug: 'studio', badge: { text: 'Soon', variant: 'tip' } },
-        { label: 'Event Modeling', slug: 'event-modeling' },
-        { label: 'Screenplay', link: '/screenplay/' },
-        { label: 'Prologue', link: '/prologue/' },
-        {
-            label: 'Testing',
-            collapsed: true,
-            items: [
-                { label: 'Testing with Cratis', slug: 'testing-with-cratis' },
-                { label: 'Specifications', slug: 'specifications' },
-            ],
-        },
-        {
-            label: 'Tools',
-            collapsed: true,
-            items: [
-                { label: 'VS Code extension', slug: 'tools/vscode-extension' },
-                { label: 'Lens', slug: 'tools/lens' },
-            ],
-        },
-        { label: 'Auth and compliance', slug: 'auth-and-compliance' },
-        { label: 'Samples', slug: 'samples' },
-        { label: 'Showcase and architectures', slug: 'showcase' },
-        { label: "What's new", slug: 'whats-new' },
-        { label: 'Glossary', slug: 'glossary' },
-        { label: 'API reference', slug: 'api-reference' },
-    ],
+    items: [],
 };
 
-// AI-related pages gathered under one topic: the hand-authored explainer pages
-// plus Chronicle MCP's and Prompter's own generated sidebars, nested here as
-// sub-sections rather than separate icon-rail topics.
-const aiTopic = {
-    id: 'ai',
-    label: 'AI',
-    link: 'ai',
-    icon: 'star',
-    items: [
-        { label: 'Getting started', slug: 'ai/getting-started' },
-        { label: 'Ecosystem support', slug: 'ai/ecosystems' },
-        { label: 'Cratis maintainers', slug: 'ai/cratis-maintainers' },
-        { label: 'Trust and distribution', slug: 'ai/trust-and-distribution' },
-        { label: 'Plugins', slug: 'plugins' },
-        { label: 'Code analysis', slug: 'code-analysis' },
-        chronicleMcpTopic
-            ? { label: chronicleMcpTopic.label, collapsed: true, items: chronicleMcpTopic.items }
-            : { label: 'Chronicle MCP server', link: '/chronicle-mcp/' },
-        prompterTopic
-            ? { label: prompterTopic.label, collapsed: true, items: prompterTopic.items }
-            : { label: 'Prompter — docs assistant', link: '/prompter/' },
-    ],
-};
-
-// Insert the AI topic right after CLI in the icon rail.
-const cliIndex = productTopics.findIndex((topic) => topic.id === 'cli');
-const orderedProductTopics = cliIndex === -1
-    ? [...productTopics, aiTopic]
-    : [...productTopics.slice(0, cliIndex + 1), aiTopic, ...productTopics.slice(cliIndex + 1)];
-
-const topics = [overviewTopic, ...orderedProductTopics];
+const topics = [overviewTopic, ...productTopics];
 
 // https://astro.build/config
 export default defineConfig({
     site: 'https://cratis.io',
+    publicDir: './.public-approved',
     // NOTE: if the site is served under cratis.io/docs, set `base: '/docs'`.
     // GFM tables render in plain `.md`, but astro-mermaid injects plugins via the
     // (now-deprecated) `markdown.remarkPlugins` path, which leaves MDX's own `gfm`
@@ -202,8 +72,11 @@ export default defineConfig({
         }),
         starlight({
             title: 'Cratis',
+            // Disable the generated machine index until public routes are controlled
+            // by an explicit Approved-claim allowlist.
+            pagefind: false,
             description:
-                'Build event-sourced applications with Chronicle, Arc, and Components — the full-stack, type-safe Cratis platform.',
+                'Canonical technical documentation for Chronicle, Arc, Components, and the Cratis CLI.',
             logo: {
                 light: './src/assets/cratis-mark-light.svg',
                 dark: './src/assets/cratis-mark-dark.svg',
@@ -241,40 +114,22 @@ export default defineConfig({
                 { icon: 'discord', label: 'Discord', href: 'https://discord.gg/kt4AMpV8WV' },
                 { icon: 'youtube', label: 'YouTube', href: 'https://www.youtube.com/@CratisStack' },
             ],
-            editLink: {
-                // Per-product content is generated from product repos; site-level pages live here.
-                baseUrl: 'https://github.com/cratis/Documentation/edit/main/web/',
-            },
             plugins: [
                 // Product icon rail + per-product sidebar (the aspire.dev "topics" look).
                 starlightSidebarTopics(topics, {
                     // The splash homepage and 404 belong to no product.
                     exclude: ['/', '/404'],
-                    // Section-landing pages appear in the nav as collapsible groups,
-                    // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
-                        chronicle: ['/chronicle', '/chronicle/**'],
-                        arc: ['/arc', '/arc/**'],
-                        components: ['/components', '/components/**'],
-                        authproxy: ['/authproxy', '/authproxy/**'],
-                        cli: ['/cli', '/cli/**'],
-                        ai: ['/ai', '/ai/**', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
-                        fundamentals: ['/fundamentals', '/fundamentals/**'],
-                        contributing: ['/contributing', '/contributing/**'],
-                        architecture: ['/architecture', '/architecture/**'],
-                        screenplay: ['/screenplay', '/screenplay/**'],
-                        prologue: ['/prologue', '/prologue/**'],
+                        chronicle: ['/chronicle', '/chronicle/architecture', '/chronicle/workbench'],
+                        arc: ['/arc'],
+                        components: ['/components'],
+                        cli: ['/cli'],
                     },
                 }),
-                // Per-page action row: Copy Markdown + Open in AI assistant + Share.
-                starlightPageActions(),
                 // Floating "back to top" button (also on the splash homepage).
                 starlightScrollToTop({ showTooltip: true, showOnHomepage: true }),
                 // Click-to-zoom for screenshots and diagrams.
                 starlightImageZoom(),
-                // Generates /llms.txt and /llms-full.txt so AI assistants can ground answers.
-                starlightLlmsTxt(),
             ],
         }),
     ],

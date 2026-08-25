@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "approvedClaimIds": [
+    "CLM-011",
+    "CLM-012",
+    "CLM-013",
+    "CLM-014",
+    "CLM-028",
+    "CLM-032"
+  ],
+  "routes": [
+    {
+      "route": "/",
+      "contentPath": "index.mdx",
+      "source": {
+        "repository": "Documentation",
+        "revision": "self",
+        "path": "web/src/public-pages/index.mdx",
+        "sha256": "4c27c3b9d6de9611562df46551f8a89e57df870b4a4fefc60967a2db0f42bf6f"
+      },
+      "claims": ["CLM-011", "CLM-012", "CLM-013", "CLM-014", "CLM-028", "CLM-032"],
+      "search": false,
+      "machine": false,
+      "sitemap": true
+    },
+    {
+      "route": "/404.html",
+      "contentPath": "404.md",
+      "source": {
+        "repository": "Documentation",
+        "revision": "self",
+        "path": "web/src/public-pages/404.md",
+        "sha256": "9b12f8538f82e7245d9589d8e47dfde8bf42eb27ee7bdf560c76efbc5ee4b211"
+      },
+      "claims": [],
+      "search": false,
+      "machine": false,
+      "sitemap": false
+    },
+    {
+      "route": "/chronicle/",
+      "contentPath": "chronicle/index.mdx",
+      "source": {
+        "repository": "Chronicle",
+        "revision": "1b523b3ab70d58b487b840782992c317dd31e8bb",
+        "path": "Documentation/index.mdx",
+        "sha256": "df5778f606efc39e324e29cf733bb21a4606008e7df9aa9403f8df3de313beb8"
+      },
+      "claims": ["CLM-013", "CLM-014", "CLM-028", "CLM-032"],
+      "search": false,
+      "machine": false,
+      "sitemap": true
+    },
+    {
+      "route": "/chronicle/architecture/",
+      "contentPath": "chronicle/architecture.md",
+      "source": {
+        "repository": "Chronicle",
+        "revision": "1b523b3ab70d58b487b840782992c317dd31e8bb",
+        "path": "Documentation/architecture.md",
+        "sha256": "3163d6221ab9583583c9ddc8ad6a1f192f854503553daf193fb24d73a844d856"
+      },
+      "claims": ["CLM-013", "CLM-014", "CLM-028"],
+      "search": false,
+      "machine": false,
+      "sitemap": true
+    },
+    {
+      "route": "/chronicle/workbench/",
+      "contentPath": "chronicle/workbench/index.md",
+      "source": {
+        "repository": "Chronicle",
+        "revision": "1b523b3ab70d58b487b840782992c317dd31e8bb",
+        "path": "Documentation/workbench/index.md",
+        "sha256": "b542732dee52bce5d545a7099d58e45bbb223ed6ddd67fc31b60c7ac6cfd14a4"
+      },
+      "claims": ["CLM-013", "CLM-014", "CLM-032"],
+      "search": false,
+      "machine": false,
+      "sitemap": true
+    },
+    {
+      "route": "/arc/",
+      "contentPath": "arc/index.mdx",
+      "source": {
+        "repository": "Arc",
+        "revision": "f840015238b48ed9aad9998469d2fdaf2370b8df",
+        "path": "Documentation/index.mdx",
+        "sha256": "55e249cffbc3c6af1991f79ee8d2aab9904904aa2fb4322f0b463d2d04fd4c04"
+      },
+      "claims": ["CLM-011", "CLM-012"],
+      "search": false,
+      "machine": false,
+      "sitemap": true
+    },
+    {
+      "route": "/components/",
+      "contentPath": "components/index.mdx",
+      "source": {
+        "repository": "Components",
+        "revision": "2f7dd5046b7c5f2addb98ad4204d609a0f11d8fe",
+        "path": "Documentation/index.mdx",
+        "sha256": "945a3326dba9756a8eb809254da7c74a4dd25e4457dbb6ba0f77fd97e1e3e313"
+      },
+      "claims": ["CLM-011", "CLM-012"],
+      "search": false,
+      "machine": false,
+      "sitemap": true
+    },
+    {
+      "route": "/cli/",
+      "contentPath": "cli/index.mdx",
+      "source": {
+        "repository": "cli",
+        "revision": "db7d2339569042ff10896d0ae3219ad8e4505dd3",
+        "path": "Documentation/index.mdx",
+        "sha256": "f721d93f78f65174ee4ea681df1ea65199a42c3efca7b4890ae2aca041c7987f"
+      },
+      "claims": ["CLM-013", "CLM-014"],
+      "search": false,
+      "machine": false,
+      "sitemap": true
+    }
+  ],
+  "generatedArtifacts": {
+    "prefix": "_astro/",
+    "extensions": [".css", ".js", ".png", ".svg", ".woff2"],
+    "sitemapPattern": "^sitemap-(?:index|[0-9]+)\\.xml$"
+  },
+  "staticFiles": [
+    {
+      "path": "favicon-512.png",
+      "sha256": "da99d76b1513c92617e4f3104437fe8988a3b94cc27d457955eb7e155403b7f6"
+    },
+    {
+      "path": "favicon.ico",
+      "sha256": "9edf0320eae889809aa7b5fbd6b6bcd24f7485451f2a85d9804aa07ac9ec37da"
+    }
+  ]
+}
