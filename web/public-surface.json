@@ -42,7 +42,7 @@
       "contentPath": "chronicle/index.mdx",
       "source": {
         "repository": "Chronicle",
-        "revision": "de98cf9bde7210d38bb87af35fc1727d1d061ea4",
+        "revision": "0a13238cadccbab9f567885014eaf9c801211e17",
         "path": "Documentation/index.mdx",
         "sha256": "15b8eef95042b33e40cd69b7802bb75c35b288b0fe7f34dcd76a25e29f78f4cd"
       },
@@ -56,7 +56,7 @@
       "contentPath": "chronicle/architecture.mdx",
       "source": {
         "repository": "Chronicle",
-        "revision": "de98cf9bde7210d38bb87af35fc1727d1d061ea4",
+        "revision": "0a13238cadccbab9f567885014eaf9c801211e17",
         "path": "Documentation/architecture.mdx",
         "sha256": "6c02e3280288af61927c5f8b9133676067e6fef45ef11867fbc64b23ca581962"
       },
@@ -70,7 +70,7 @@
       "contentPath": "chronicle/workbench/index.mdx",
       "source": {
         "repository": "Chronicle",
-        "revision": "de98cf9bde7210d38bb87af35fc1727d1d061ea4",
+        "revision": "0a13238cadccbab9f567885014eaf9c801211e17",
         "path": "Documentation/workbench/index.mdx",
         "sha256": "545a3ff4516033f6bd549f5bc2ce4a744790af04e9405232adcdb096a5c309d6"
       },
@@ -84,7 +84,7 @@
       "contentPath": "arc/index.mdx",
       "source": {
         "repository": "Arc",
-        "revision": "953dff585a9d9db9f51233e9b22c22e4a6b0f7e9",
+        "revision": "b2ec087cc8d79f1a949e99699ebae3364af10536",
         "path": "Documentation/index.mdx",
         "sha256": "4e81a9bad393128c4db148e6257993b2ec68fbfead41f7632fe051af590e456b"
       },
@@ -98,7 +98,7 @@
       "contentPath": "components/index.mdx",
       "source": {
         "repository": "Components",
-        "revision": "d2ffdc0fd9518ade92eceafa9c387697c92e72e0",
+        "revision": "0303cb7a225ce2ee6d3e485ccec4e979a6e157ea",
         "path": "Documentation/index.mdx",
         "sha256": "181823a19ccf26e2ab03570a8b4429329c70811c3a1719756f02eb5e5e96bb53"
       },
@@ -112,7 +112,7 @@
       "contentPath": "cli/index.mdx",
       "source": {
         "repository": "cli",
-        "revision": "5e8b987e08af1fc6d26faa15b25df95f2b3cee95",
+        "revision": "21c488a3f038edb572a612896a178d6a181f8f51",
         "path": "Documentation/index.mdx",
         "sha256": "cfe3c0c14547130f06ebd37d378bdaa4259a3dfd6f8955583f8187ac0e80e7cf"
       },
