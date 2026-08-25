@@ -42,9 +42,9 @@
       "contentPath": "chronicle/index.mdx",
       "source": {
         "repository": "Chronicle",
-        "revision": "bbc01a8e18bda6f2d81d370ae91a8b324800773e",
+        "revision": "de98cf9bde7210d38bb87af35fc1727d1d061ea4",
         "path": "Documentation/index.mdx",
-        "sha256": "ce5e8a6ce7d17ba02023439fc90d3a2250fa71f75b3a584f312388edbcea57e4"
+        "sha256": "15b8eef95042b33e40cd69b7802bb75c35b288b0fe7f34dcd76a25e29f78f4cd"
       },
       "claims": ["CLM-013", "CLM-014", "CLM-028", "CLM-032"],
       "search": false,
@@ -56,9 +56,9 @@
       "contentPath": "chronicle/architecture.mdx",
       "source": {
         "repository": "Chronicle",
-        "revision": "bbc01a8e18bda6f2d81d370ae91a8b324800773e",
+        "revision": "de98cf9bde7210d38bb87af35fc1727d1d061ea4",
         "path": "Documentation/architecture.mdx",
-        "sha256": "0f79925a1e1130edfff89680a627660cb64a8749454562dacc7e73333cdabb30"
+        "sha256": "6c02e3280288af61927c5f8b9133676067e6fef45ef11867fbc64b23ca581962"
       },
       "claims": ["CLM-013", "CLM-014", "CLM-028"],
       "search": false,
@@ -70,9 +70,9 @@
       "contentPath": "chronicle/workbench/index.mdx",
       "source": {
         "repository": "Chronicle",
-        "revision": "bbc01a8e18bda6f2d81d370ae91a8b324800773e",
+        "revision": "de98cf9bde7210d38bb87af35fc1727d1d061ea4",
         "path": "Documentation/workbench/index.mdx",
-        "sha256": "52ada440bafa53727a031e3b4faa92c7b7a4b13750ffc24c919a2788390eaa23"
+        "sha256": "545a3ff4516033f6bd549f5bc2ce4a744790af04e9405232adcdb096a5c309d6"
       },
       "claims": ["CLM-013", "CLM-014", "CLM-032"],
       "search": false,
@@ -84,9 +84,9 @@
       "contentPath": "arc/index.mdx",
       "source": {
         "repository": "Arc",
-        "revision": "3b54436c95004ab989a8788dc960b87f4ff40f5c",
+        "revision": "953dff585a9d9db9f51233e9b22c22e4a6b0f7e9",
         "path": "Documentation/index.mdx",
-        "sha256": "c4bde7b68e35c2506453f19867f415f1abf4e3a234678a3daf33ba0b98410d18"
+        "sha256": "4e81a9bad393128c4db148e6257993b2ec68fbfead41f7632fe051af590e456b"
       },
       "claims": ["CLM-011", "CLM-012"],
       "search": false,
@@ -98,9 +98,9 @@
       "contentPath": "components/index.mdx",
       "source": {
         "repository": "Components",
-        "revision": "a1e4da5b36b3ffad67ab8b2e3a67098242dbbee2",
+        "revision": "d6e75bc8af3bf7ecd12d93098b1bbff7638635d1",
         "path": "Documentation/index.mdx",
-        "sha256": "1c966f3140ec1e854eef23d46257e75517a1b8224a5488346ab72db474702202"
+        "sha256": "181823a19ccf26e2ab03570a8b4429329c70811c3a1719756f02eb5e5e96bb53"
       },
       "claims": ["CLM-011", "CLM-012"],
       "search": false,
@@ -112,7 +112,7 @@
       "contentPath": "cli/index.mdx",
       "source": {
         "repository": "cli",
-        "revision": "711013ff87ec05dc8574ee133f56c1df230e253d",
+        "revision": "5e8b987e08af1fc6d26faa15b25df95f2b3cee95",
         "path": "Documentation/index.mdx",
         "sha256": "cfe3c0c14547130f06ebd37d378bdaa4259a3dfd6f8955583f8187ac0e80e7cf"
       },
@@ -129,7 +129,11 @@
     },
     {
       "path": "web/src/components/SimpleCard.astro",
-      "sha256": "49d34c3d9b2dfbf12fd99fb4ecd6797ce7e34379e3434ca50be286e7d19ceda5"
+      "sha256": "057370dc8bc7bd91262d9ad5b28e79cb7f963093afed136717f4bdf958c75f87"
+    },
+    {
+      "path": "web/src/components/YouWillLearn.astro",
+      "sha256": "cab0237be9dc77ec09bb7629ab16f66efa2a8e82bd6d09138f5f6ddb4456494e"
     }
   ],
   "generatedArtifacts": {

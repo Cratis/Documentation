@@ -297,6 +297,18 @@
     color: var(--sl-color-accent);
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .card,
+    .sl-link-card {
+        transition: none;
+    }
+
+    .card:hover,
+    .sl-link-card:hover {
+        transform: none;
+    }
+}
+
 /* --- Headings: confident rhythm without viewport/font-width tricks --- */
 .sl-markdown-content h2 {
     letter-spacing: 0;

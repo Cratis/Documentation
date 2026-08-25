@@ -25,7 +25,8 @@ const allowedClaims = new Set([
 
 const expectedRenderDependencies = [
     ['web/src/components/TopicHero.astro', 'a67bf5552c44b7eb53d86a1b367340d7ca9027222e4226f16e6f58be7ee262ac'],
-    ['web/src/components/SimpleCard.astro', '49d34c3d9b2dfbf12fd99fb4ecd6797ce7e34379e3434ca50be286e7d19ceda5'],
+    ['web/src/components/SimpleCard.astro', '057370dc8bc7bd91262d9ad5b28e79cb7f963093afed136717f4bdf958c75f87'],
+    ['web/src/components/YouWillLearn.astro', 'cab0237be9dc77ec09bb7629ab16f66efa2a8e82bd6d09138f5f6ddb4456494e'],
 ];
 
 const expectedRoutePolicy = [
@@ -61,7 +62,7 @@ const repositoryRoots = {
 };
 
 function firstExisting(...candidates) {
-    return candidates.find((candidate) => existsSync(candidate)) ?? candidates[candidates.length - 1];
+    return candidates.find((candidate) => existsSync(candidate)) ?? candidates.at(-1);
 }
 
 function assertObject(value, name) {
@@ -148,7 +149,13 @@ function topicsFor(routes) {
     return topics.filter((topic) => available.has(topic.id));
 }
 
-const manifest = assertObject(JSON.parse(await fs.readFile(manifestPath, 'utf8')), 'manifest');
+let manifestValue;
+try {
+    manifestValue = JSON.parse(await fs.readFile(manifestPath, 'utf8'));
+} catch (error) {
+    throw new Error(`public-surface.json is not valid JSON: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
+}
+const manifest = assertObject(manifestValue, 'manifest');
 if (manifest.schemaVersion !== 1) throw new Error('manifest.schemaVersion must be 1');
 if (!Array.isArray(manifest.routes) || manifest.routes.length === 0) {
     throw new Error('manifest.routes must be a non-empty array');

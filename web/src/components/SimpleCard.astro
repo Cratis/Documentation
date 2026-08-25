@@ -74,4 +74,13 @@ const { title, icon, link } = Astro.props;
         line-height: 1.5;
         color: var(--sl-color-gray-2);
     }
+    @media (prefers-reduced-motion: reduce) {
+        .cratis-feature-card {
+            transition: none;
+        }
+        .cratis-feature-card:hover,
+        .cratis-feature-card:focus-visible {
+            transform: none;
+        }
+    }
 </style>
