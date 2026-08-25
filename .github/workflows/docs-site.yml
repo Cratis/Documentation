@@ -163,6 +163,22 @@ jobs:
           token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           path: Screenplay
 
+      - name: Checkout Stage
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Stage
+          ref: main
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          path: Stage
+
+      - name: Checkout Screenplay.Generation
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Screenplay.Generation
+          ref: main
+          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          path: Screenplay.Generation
+
       - name: Checkout Prologue
         uses: actions/checkout@v4
         with:
