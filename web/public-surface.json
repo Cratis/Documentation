@@ -16,7 +16,7 @@
         "repository": "Documentation",
         "revision": "self",
         "path": "web/src/public-pages/index.mdx",
-        "sha256": "4c27c3b9d6de9611562df46551f8a89e57df870b4a4fefc60967a2db0f42bf6f"
+        "sha256": "5474530c30aee0ac6bcfae7532dc69b9face773d1c8ce8c066ced6e9b8ae8436"
       },
       "claims": ["CLM-011", "CLM-012", "CLM-013", "CLM-014", "CLM-028", "CLM-032"],
       "search": false,
@@ -30,7 +30,7 @@
         "repository": "Documentation",
         "revision": "self",
         "path": "web/src/public-pages/404.md",
-        "sha256": "9b12f8538f82e7245d9589d8e47dfde8bf42eb27ee7bdf560c76efbc5ee4b211"
+        "sha256": "011ad14e139708a88bf3663300459270137d4cf8012b1c04ccaa174eb95c9ef6"
       },
       "claims": [],
       "search": false,
@@ -42,9 +42,9 @@
       "contentPath": "chronicle/index.mdx",
       "source": {
         "repository": "Chronicle",
-        "revision": "1b523b3ab70d58b487b840782992c317dd31e8bb",
+        "revision": "bbc01a8e18bda6f2d81d370ae91a8b324800773e",
         "path": "Documentation/index.mdx",
-        "sha256": "df5778f606efc39e324e29cf733bb21a4606008e7df9aa9403f8df3de313beb8"
+        "sha256": "ce5e8a6ce7d17ba02023439fc90d3a2250fa71f75b3a584f312388edbcea57e4"
       },
       "claims": ["CLM-013", "CLM-014", "CLM-028", "CLM-032"],
       "search": false,
@@ -53,12 +53,12 @@
     },
     {
       "route": "/chronicle/architecture/",
-      "contentPath": "chronicle/architecture.md",
+      "contentPath": "chronicle/architecture.mdx",
       "source": {
         "repository": "Chronicle",
-        "revision": "1b523b3ab70d58b487b840782992c317dd31e8bb",
-        "path": "Documentation/architecture.md",
-        "sha256": "3163d6221ab9583583c9ddc8ad6a1f192f854503553daf193fb24d73a844d856"
+        "revision": "bbc01a8e18bda6f2d81d370ae91a8b324800773e",
+        "path": "Documentation/architecture.mdx",
+        "sha256": "0f79925a1e1130edfff89680a627660cb64a8749454562dacc7e73333cdabb30"
       },
       "claims": ["CLM-013", "CLM-014", "CLM-028"],
       "search": false,
@@ -67,12 +67,12 @@
     },
     {
       "route": "/chronicle/workbench/",
-      "contentPath": "chronicle/workbench/index.md",
+      "contentPath": "chronicle/workbench/index.mdx",
       "source": {
         "repository": "Chronicle",
-        "revision": "1b523b3ab70d58b487b840782992c317dd31e8bb",
-        "path": "Documentation/workbench/index.md",
-        "sha256": "b542732dee52bce5d545a7099d58e45bbb223ed6ddd67fc31b60c7ac6cfd14a4"
+        "revision": "bbc01a8e18bda6f2d81d370ae91a8b324800773e",
+        "path": "Documentation/workbench/index.mdx",
+        "sha256": "52ada440bafa53727a031e3b4faa92c7b7a4b13750ffc24c919a2788390eaa23"
       },
       "claims": ["CLM-013", "CLM-014", "CLM-032"],
       "search": false,
@@ -84,9 +84,9 @@
       "contentPath": "arc/index.mdx",
       "source": {
         "repository": "Arc",
-        "revision": "f840015238b48ed9aad9998469d2fdaf2370b8df",
+        "revision": "3b54436c95004ab989a8788dc960b87f4ff40f5c",
         "path": "Documentation/index.mdx",
-        "sha256": "55e249cffbc3c6af1991f79ee8d2aab9904904aa2fb4322f0b463d2d04fd4c04"
+        "sha256": "c4bde7b68e35c2506453f19867f415f1abf4e3a234678a3daf33ba0b98410d18"
       },
       "claims": ["CLM-011", "CLM-012"],
       "search": false,
@@ -98,9 +98,9 @@
       "contentPath": "components/index.mdx",
       "source": {
         "repository": "Components",
-        "revision": "2f7dd5046b7c5f2addb98ad4204d609a0f11d8fe",
+        "revision": "a1e4da5b36b3ffad67ab8b2e3a67098242dbbee2",
         "path": "Documentation/index.mdx",
-        "sha256": "945a3326dba9756a8eb809254da7c74a4dd25e4457dbb6ba0f77fd97e1e3e313"
+        "sha256": "1c966f3140ec1e854eef23d46257e75517a1b8224a5488346ab72db474702202"
       },
       "claims": ["CLM-011", "CLM-012"],
       "search": false,
@@ -112,14 +112,24 @@
       "contentPath": "cli/index.mdx",
       "source": {
         "repository": "cli",
-        "revision": "db7d2339569042ff10896d0ae3219ad8e4505dd3",
+        "revision": "711013ff87ec05dc8574ee133f56c1df230e253d",
         "path": "Documentation/index.mdx",
-        "sha256": "f721d93f78f65174ee4ea681df1ea65199a42c3efca7b4890ae2aca041c7987f"
+        "sha256": "cfe3c0c14547130f06ebd37d378bdaa4259a3dfd6f8955583f8187ac0e80e7cf"
       },
       "claims": ["CLM-013", "CLM-014"],
       "search": false,
       "machine": false,
       "sitemap": true
+    }
+  ],
+  "renderDependencies": [
+    {
+      "path": "web/src/components/TopicHero.astro",
+      "sha256": "a67bf5552c44b7eb53d86a1b367340d7ca9027222e4226f16e6f58be7ee262ac"
+    },
+    {
+      "path": "web/src/components/SimpleCard.astro",
+      "sha256": "49d34c3d9b2dfbf12fd99fb4ecd6797ce7e34379e3434ca50be286e7d19ceda5"
     }
   ],
   "generatedArtifacts": {

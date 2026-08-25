@@ -4,104 +4,100 @@ description: Canonical technical documentation for Chronicle, Arc, Components, a
 template: splash
 hero:
   title: Cratis documentation
-  tagline: "Choose a product, follow its technical documentation, and keep each product's current limits visible."
+  tagline: "Technical documentation for the current public Chronicle, Arc, Components, and Cratis CLI paths."
   image:
     dark: ../../assets/cratis-mark-dark.svg
     light: ../../assets/cratis-mark-light.svg
+    alt: ""
   actions:
-    - text: Explore Arc
-      link: /arc/
+    - text: Chronicle
+      link: /chronicle/
       icon: right-arrow
-    - text: Explore Components
+    - text: Arc
+      link: /arc/
+      variant: minimal
+      icon: right-arrow
+    - text: Components
       link: /components/
       variant: minimal
       icon: right-arrow
-    - text: Explore the CLI
+    - text: Cratis CLI
       link: /cli/
       variant: minimal
       icon: right-arrow
-    - text: Company
-      link: https://cratis.no
-      variant: minimal
 ---
 
 import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-## Product documentation
+## Choose a product
 
-Each product repository owns its technical documentation and released behavior. This site converts those sources into one navigable documentation surface.
-
-<CardGrid>
-  <Card title="Chronicle" icon="seti:db">
-    Chronicle uses a .NET/Orleans actor-based kernel behind gRPC/HTTP surfaces and supports multiple event stores, namespaces, and persistent event-store subscriptions with outbox/inbox sequences.
-
-    Chronicle and its bundled local Workbench are available as MIT-licensed self-hosted software; authorized local use is separate from paid Cratis support, hosted coordination, or managed operational responsibility.
-
-    [Open the Chronicle documentation](/chronicle/).
-  </Card>
-
-  <Card title="Arc" icon="puzzle">
-    Arc is an opinionated CQRS application framework for ASP.NET Core with commands, queries, validation, authorization, and TypeScript proxy generation.
-
-    [Open the Arc documentation](/arc/).
-  </Card>
-
-  <Card title="Components" icon="laptop">
-    Components is a React component library aligned with Arc application patterns.
-
-    [Open the Components documentation](/components/).
-  </Card>
-
-  <Card title="Cratis CLI" icon="rocket">
-    The Cratis CLI provides terminal workflows for inspecting and diagnosing Chronicle.
-
-    [Open the CLI documentation](/cli/).
-  </Card>
-</CardGrid>
-
-## How the current products relate
-
-- **Event sourcing is not required to use Arc.** Arc's exact command, query, validation, authorization, and generated-contract behavior is documented in the Arc product pages.
-- **Chronicle has separate browser and terminal inspection surfaces.** Chronicle Workbench provides a bundled local browser surface for authorized inspection of Chronicle runtime state and preview of supported projection behavior. The CLI provides terminal inspection and diagnosis.
-
-These relationships do not imply compatibility with every product version, frontend, runtime, client, provider, browser, environment, or topology. Use the exact package manifests, current product documentation, and exercised profile for the combination you evaluate.
-
-## Start with one bounded path
+Each product repository owns its technical source and released behavior. This
+site presents the current admitted documentation paths.
 
 <CardGrid>
   <LinkCard
-    title="Build a CQRS feature with Arc"
-    description="Follow Arc's command, query, validation, authorization, and generated TypeScript proxy path."
+    title="Chronicle"
+    description="Chronicle uses a .NET/Orleans actor-based kernel behind gRPC/HTTP surfaces and supports multiple event stores, namespaces, and persistent event-store subscriptions with outbox/inbox sequences."
+    href="/chronicle/"
+  />
+  <LinkCard
+    title="Arc"
+    description="Arc is an opinionated CQRS application framework for ASP.NET Core with commands, queries, validation, authorization, and TypeScript proxy generation."
     href="/arc/"
   />
   <LinkCard
-    title="Render an Arc command with Components"
-    description="Install Components, mount the provider, and render a typed command form."
+    title="Components"
+    description="Components is a React component library aligned with Arc application patterns."
     href="/components/"
   />
   <LinkCard
-    title="Inspect Chronicle from the terminal"
-    description="Install the CLI, connect to a Chronicle server, and follow its documented diagnostic workflows."
+    title="Cratis CLI"
+    description="The Cratis CLI provides terminal workflows for inspecting and diagnosing Chronicle."
     href="/cli/"
-  />
-  <LinkCard
-    title="Browse the Chronicle architecture"
-    description="Understand the current kernel, protocol surfaces, stores, namespaces, and subscription model."
-    href="/chronicle/architecture/"
   />
 </CardGrid>
 
-## What this site treats as authoritative
+## Chronicle technical paths
 
-- Product repositories own source, examples, technical documentation, package metadata, and release evidence.
-- cratis.io is the canonical rendered technical navigation surface.
-- [cratis.no](https://cratis.no) owns company, fit, trust, and commercial information.
-- Repository READMEs and package pages summarize one product or package and link back to canonical technical documentation.
+<CardGrid>
+  <Card title="Self-hosted software" icon="seti:db">
+    Chronicle and its bundled local Workbench are available as MIT-licensed
+    self-hosted software; authorized local use is separate from paid Cratis
+    support, hosted coordination, or managed operational responsibility.
+  </Card>
+  <LinkCard
+    title="Architecture"
+    description="Locate the kernel, protocol surfaces, event stores, namespaces, and persistent subscriptions."
+    href="/chronicle/architecture/"
+  />
+  <LinkCard
+    title="Workbench"
+    description="Chronicle Workbench provides a bundled local browser surface for authorized inspection of Chronicle runtime state and preview of supported projection behavior."
+    href="/chronicle/workbench/"
+  />
+</CardGrid>
 
-A repository, package, example, successful build, or polished page does not establish maturity, support, security, performance, compatibility, or production suitability. Those statements require their own current evidence and approval.
+## Keep the boundaries visible
 
-## Help improve the documentation
+<CardGrid>
+  <Card title="Arc and event sourcing" icon="puzzle">
+    Event sourcing is not required to use Arc. Evaluate the exact Arc package
+    profile documented on this site.
+  </Card>
+  <Card title="Browser and terminal inspection" icon="rocket">
+    Workbench provides the bounded local browser path. The Cratis CLI provides
+    terminal inspection and diagnostic workflows.
+  </Card>
+  <Card title="Evidence before inference" icon="approve-check">
+    A repository, package, example, or successful build does not establish
+    maturity, support, security, performance, compatibility, or production
+    suitability.
+  </Card>
+</CardGrid>
 
-- [Ask a technical question or join the community](https://discord.gg/kt4AMpV8WV)
-- [Report a documentation problem](https://github.com/Cratis/Documentation/issues)
-- [Browse the Cratis repositories](https://github.com/Cratis)
+## More paths
+
+- [Company, fit, and trust information](https://cratis.no/)
+- [Cratis repositories](https://github.com/Cratis)
+- [Community discussion](https://discord.gg/kt4AMpV8WV)
+- [Documentation issues](https://github.com/Cratis/Documentation/issues)

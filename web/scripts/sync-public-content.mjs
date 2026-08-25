@@ -23,12 +23,17 @@ const allowedClaims = new Set([
     'CLM-032',
 ]);
 
+const expectedRenderDependencies = [
+    ['web/src/components/TopicHero.astro', 'a67bf5552c44b7eb53d86a1b367340d7ca9027222e4226f16e6f58be7ee262ac'],
+    ['web/src/components/SimpleCard.astro', '49d34c3d9b2dfbf12fd99fb4ecd6797ce7e34379e3434ca50be286e7d19ceda5'],
+];
+
 const expectedRoutePolicy = [
     ['/', 'index.mdx', 'Documentation', 'web/src/public-pages/index.mdx', ['CLM-011', 'CLM-012', 'CLM-013', 'CLM-014', 'CLM-028', 'CLM-032'], true],
     ['/404.html', '404.md', 'Documentation', 'web/src/public-pages/404.md', [], false],
     ['/chronicle/', 'chronicle/index.mdx', 'Chronicle', 'Documentation/index.mdx', ['CLM-013', 'CLM-014', 'CLM-028', 'CLM-032'], true],
-    ['/chronicle/architecture/', 'chronicle/architecture.md', 'Chronicle', 'Documentation/architecture.md', ['CLM-013', 'CLM-014', 'CLM-028'], true],
-    ['/chronicle/workbench/', 'chronicle/workbench/index.md', 'Chronicle', 'Documentation/workbench/index.md', ['CLM-013', 'CLM-014', 'CLM-032'], true],
+    ['/chronicle/architecture/', 'chronicle/architecture.mdx', 'Chronicle', 'Documentation/architecture.mdx', ['CLM-013', 'CLM-014', 'CLM-028'], true],
+    ['/chronicle/workbench/', 'chronicle/workbench/index.mdx', 'Chronicle', 'Documentation/workbench/index.mdx', ['CLM-013', 'CLM-014', 'CLM-032'], true],
     ['/arc/', 'arc/index.mdx', 'Arc', 'Documentation/index.mdx', ['CLM-011', 'CLM-012'], true],
     ['/components/', 'components/index.mdx', 'Components', 'Documentation/index.mdx', ['CLM-011', 'CLM-012'], true],
     ['/cli/', 'cli/index.mdx', 'cli', 'Documentation/index.mdx', ['CLM-013', 'CLM-014'], true],
@@ -149,6 +154,11 @@ if (!Array.isArray(manifest.routes) || manifest.routes.length === 0) {
     throw new Error('manifest.routes must be a non-empty array');
 }
 if (!Array.isArray(manifest.staticFiles)) throw new Error('manifest.staticFiles must be an array');
+if (!Array.isArray(manifest.renderDependencies)) throw new Error('manifest.renderDependencies must be an array');
+const renderDependencies = manifest.renderDependencies.map((entry) => [entry.path, entry.sha256]);
+if (JSON.stringify(renderDependencies) !== JSON.stringify(expectedRenderDependencies)) {
+    throw new Error('manifest.renderDependencies differs from the owning-surface render dependency policy');
+}
 const generatedArtifacts = assertObject(manifest.generatedArtifacts, 'manifest.generatedArtifacts');
 const expectedGeneratedExtensions = ['.css', '.js', '.png', '.svg', '.woff2'];
 if (generatedArtifacts.prefix !== '_astro/' ||
@@ -240,6 +250,20 @@ for (const [index, rawRoute] of manifest.routes.entries()) {
     await fs.mkdir(path.dirname(destination), { recursive: true });
     await fs.writeFile(destination, content);
     console.log(`[public-sync] ${route.route} <- ${source.repository}:${sourcePath}`);
+}
+
+const realDocumentationRoot = await fs.realpath(documentationRoot);
+for (const [relative, expectedHash] of expectedRenderDependencies) {
+    const source = path.join(documentationRoot, assertSafeRelative(relative, 'render dependency path'));
+    const realSource = await fs.realpath(source);
+    if (!realSource.startsWith(`${realDocumentationRoot}${path.sep}`)) {
+        throw new Error(`render dependency escapes Documentation root: ${relative}`);
+    }
+    const content = await fs.readFile(realSource);
+    const actualHash = sha256(content);
+    if (actualHash !== expectedHash) {
+        throw new Error(`render dependency hash drift for ${relative}; expected ${expectedHash}, got ${actualHash}`);
+    }
 }
 
 await fs.rm(approvedPublicRoot, { recursive: true, force: true });
