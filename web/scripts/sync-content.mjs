@@ -117,12 +117,33 @@ const PRODUCTS = [
             path.join(docRepoRoot, 'Screenplay', 'Documentation', 'screenplay')),
         buckets: [
             { label: 'Start here', sections: ['Getting started'] },
-            { label: 'Understand', sections: ['Why Screenplay', 'Language overview', 'Concepts', 'Policies', 'Modules, features and slices'] },
+            { label: 'Understand', sections: ['Why Screenplay', 'Language overview', 'Concepts', 'Policies', 'Modules, features and slices', 'Interoperability and extensions'] },
             {
                 label: 'Language constructs',
                 sections: ['Events', 'Commands', 'Queries', 'Projections', 'Captures', 'Constraints', 'Reactors', 'Screens'],
             },
             { label: 'Reference', sections: ['Sub-language pluggability', 'Grammar', 'Glossary', 'Frequently asked questions'] },
+        ],
+        // Family sources stay under the single Screenplay documentation topic. This is
+        // catalog/navigation membership only; CLI adapters and render targets still
+        // require independent admission through their reviewed runtime rosters.
+        familySources: [
+            {
+                label: 'Stage',
+                sidebarLabel: 'Guides',
+                path: 'stage/guides',
+                src: firstExisting(
+                    path.join(reposRoot, 'Stage', 'Documentation', 'guides'),
+                    path.join(docRepoRoot, 'Stage', 'Documentation', 'guides')),
+            },
+            {
+                label: 'Generation',
+                sidebarLabel: 'Guides',
+                path: 'generation/guides',
+                src: firstExisting(
+                    path.join(reposRoot, 'Screenplay.Generation', 'Documentation', 'guides'),
+                    path.join(docRepoRoot, 'Screenplay.Generation', 'Documentation', 'guides')),
+            },
         ],
     },
     {
@@ -849,6 +870,45 @@ async function addChronicleClientSidebar(items) {
     return [group, ...items];
 }
 
+async function familySourceSidebarItems(product) {
+    const items = [];
+    const groups = new Map();
+
+    for (const source of product.familySources ?? []) {
+        try {
+            await fs.access(source.src);
+        } catch {
+            continue;
+        }
+
+        const slugBase = slugify(path.posix.join(product.key, source.path));
+        let sourceItems = await tocToSidebar(source.src, slugBase);
+        if (sourceItems.length === 0) {
+            sourceItems = [{ autogenerate: { directory: slugBase } }];
+        }
+        if (source.sidebarLabel) {
+            sourceItems = [{ label: source.sidebarLabel, collapsed: true, items: sourceItems }];
+        }
+
+        const sourceGroup = {
+            label: source.label,
+            collapsed: true,
+            items: sourceItems,
+        };
+        if (source.group) {
+            if (!groups.has(source.group)) groups.set(source.group, []);
+            groups.get(source.group).push(sourceGroup);
+        } else {
+            items.push(sourceGroup);
+        }
+    }
+
+    for (const [label, groupItems] of groups) {
+        items.push({ label, collapsed: true, items: groupItems });
+    }
+    return items;
+}
+
 // Emit one Diataxis-bucketed sidebar per product as a `starlight-sidebar-topics`
 // topic ({ label, link, icon, items }). The plugin renders the product icons as a
 // switchable rail at the top of the sidebar and shows the matching product's nav
@@ -872,6 +932,7 @@ async function generateSidebar() {
         } else {
             items = [{ autogenerate: { directory: product.key } }];
         }
+        items.push(...await familySourceSidebarItems(product));
         applyBadges(items);
         topics.push({ id: product.key, label: product.label, link: product.key, icon: product.icon, items });
     }
@@ -901,6 +962,21 @@ async function main() {
         await walk(product.src, outDir, product);
         if (product.key === 'chronicle') {
             await syncChronicleClientDocs(outDir, product);
+        }
+        for (const source of product.familySources ?? []) {
+            const sourceOutDir = path.join(outDir, source.path);
+            try {
+                await fs.access(source.src);
+            } catch {
+                console.warn(`[sync] SKIP ${product.key}/${source.path}: source not found at ${source.src}`);
+                continue;
+            }
+            await walk(source.src, sourceOutDir, product, {
+                contentRoot: source.src,
+                slugBase: path.posix.join(product.key, source.path),
+            });
+            const sourceCount = await countFiles(sourceOutDir);
+            console.log(`[sync] ${product.key}/${source.path}: ${sourceCount} pages -> ${path.relative(webRoot, sourceOutDir)}`);
         }
         const count = await countFiles(outDir);
         console.log(`[sync] ${product.key}: ${count} pages -> ${path.relative(webRoot, outDir)}`);
