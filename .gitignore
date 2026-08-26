@@ -330,3 +330,5 @@ snippets.json
 # Storybook build output
 **/storybook-static/
 web/src/content/docs/architecture
+# Local AI work artifacts (plans, handovers, session notes) — never tracked
+.ai-work/
