@@ -5,6 +5,7 @@ import starlight from '@astrojs/starlight';
 import mermaid from 'astro-mermaid';
 import remarkGfm from 'remark-gfm';
 import { remarkMermaidPrerender, closeBrowser } from './scripts/mermaid-prerender.mjs';
+import { rehypeFocusableTables } from './scripts/rehype-focusable-tables.mjs';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightPageActions from 'starlight-page-actions';
 import starlightScrollToTop from 'starlight-scroll-to-top';
@@ -175,6 +176,7 @@ export default defineConfig({
         // at build time (before astro-mermaid's plugin sees it); Mermaid blocks it
         // can't render fall through to astro-mermaid's client-side rendering.
         remarkPlugins: [remarkGfm, remarkMermaidPrerender],
+        rehypePlugins: [rehypeFocusableTables],
     },
     integrations: [
         // Shut down the build-time Mermaid Chrome instance when the build ends.
