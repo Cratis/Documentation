@@ -203,7 +203,7 @@ export default defineConfig({
         starlight({
             title: 'Cratis',
             description:
-                'Build event-sourced applications with Chronicle, Arc, and Components — the full-stack, type-safe Cratis platform.',
+                'Technical documentation for Chronicle, Arc, Components, and the Cratis CLI.',
             logo: {
                 light: './src/assets/cratis-mark-light.svg',
                 dark: './src/assets/cratis-mark-dark.svg',

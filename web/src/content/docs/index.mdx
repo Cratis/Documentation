@@ -4,7 +4,7 @@ description: Technical documentation for Chronicle, Arc, Components, and the Cra
 template: splash
 hero:
   title: Cratis documentation
-  tagline: "Build CQRS applications, run event-sourced systems, compose React interfaces, and inspect Chronicle with product-owned technical guidance."
+  tagline: "Technical documentation for Chronicle, Arc, Components, and the Cratis CLI."
   image:
     dark: ../../assets/cratis-mark-dark.svg
     light: ../../assets/cratis-mark-light.svg
@@ -31,29 +31,27 @@ import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
 ## Choose the job you need to do
 
-Cratis products can be evaluated independently. Start with the product that owns
-your immediate job, then add another product only when its boundary fits your
-application.
+Choose a documentation area by the technical subject you want to explore.
 
 <CardGrid>
   <LinkCard
-    title="Run an event-sourced system"
-    description="Start Chronicle, record event history, build read models, process events, and inspect the running system."
+    title="Explore Chronicle architecture"
+    description="Chronicle uses a .NET/Orleans actor-based kernel behind gRPC/HTTP surfaces and supports multiple event stores, namespaces, and persistent event-store subscriptions with outbox/inbox sequences."
     href="/chronicle/"
   />
   <LinkCard
-    title="Build a CQRS application"
-    description="Use Arc for commands, queries, validation, authorization, hosting, and generated TypeScript contracts."
+    title="Explore Arc"
+    description="Arc is an opinionated CQRS application framework for ASP.NET Core with commands, queries, validation, authorization, and TypeScript proxy generation."
     href="/arc/"
   />
   <LinkCard
-    title="Compose a React interface"
-    description="Use Components for Arc-aligned forms, dialogs, data views, application surfaces, and structured editors."
+    title="Explore Components"
+    description="Components is a React component library aligned with Arc application patterns."
     href="/components/"
   />
   <LinkCard
-    title="Inspect Chronicle from a terminal"
-    description="Use the Cratis CLI for Chronicle inspection and diagnostic workflows."
+    title="Explore the Cratis CLI"
+    description="The Cratis CLI provides terminal workflows for inspecting and diagnosing Chronicle."
     href="/cli/"
   />
 </CardGrid>
