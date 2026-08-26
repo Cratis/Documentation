@@ -20,6 +20,8 @@
 name: Documentation site
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [docs-overhaul, main]
   workflow_dispatch:
@@ -28,8 +30,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: docs-site-${{ github.ref_name }}
@@ -298,10 +298,14 @@ jobs:
 
   deploy:
     needs: build
-    # Publish to Pages only from main — docs-overhaul runs are build-only validation.
-    if: ${{ github.ref_name == 'main' }}
+    # Publish to Pages only from main — pull requests and docs-overhaul are build-only validation.
+    if: ${{ github.event_name != 'pull_request' && github.ref_name == 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
