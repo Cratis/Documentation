@@ -163,7 +163,7 @@ const topics = [overviewTopic, ...orderedProductTopics];
 
 // https://astro.build/config
 export default defineConfig({
-    site: 'https://cratis.io',
+    site: 'https://www.cratis.io',
     // NOTE: if the site is served under cratis.io/docs, set `base: '/docs'`.
     // GFM tables render in plain `.md`, but astro-mermaid injects plugins via the
     // (now-deprecated) `markdown.remarkPlugins` path, which leaves MDX's own `gfm`
