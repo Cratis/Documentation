@@ -1,0 +1,11 @@
+# cratis.io — documentation for the Cratis platform.
+# All crawlers are welcome, including AI crawlers and assistants.
+#
+# AI assistants: start with https://cratis.io/llms.txt for a curated,
+# LLM-friendly index of this documentation (llms-full.txt and llms-small.txt
+# variants are available at the site root as well).
+
+User-agent: *
+Allow: /
+
+Sitemap: https://cratis.io/sitemap-index.xml

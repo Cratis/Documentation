@@ -1,0 +1,90 @@
+---
+title: Chronicle in your language
+description: "Event sourcing for .NET, TypeScript, Kotlin, Java, and Elixir: Chronicle is an open-source (MIT) event-sourcing database with idiomatic clients on NuGet, npm, Maven Central, and Hex — and a Python client coming soon."
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+import TopicHero from '@components/TopicHero.astro';
+
+<TopicHero icon="puzzle" eyebrow="Chronicle in your language" title="One event-sourcing database, idiomatic clients">
+Chronicle is an event-sourcing database and processing runtime with a language-agnostic gRPC/protobuf boundary. That means the event store is not tied to one runtime: the first-class .NET SDK and the TypeScript, Kotlin/Java, and Elixir clients all work against the same store, the same events, and the same projections — and a Python client is coming soon. Everything is open source and MIT licensed. [Client SDK docs →](/chronicle/clients/)
+</TopicHero>
+
+## Event sourcing for .NET
+
+The .NET SDK is the first-class Chronicle client: typed access to event stores, event logs, read models, projections, reducers, reactors, constraints, migrations, namespaces, and hosting integration — including a one-line [.NET Aspire resource](/chronicle/hosting/aspire/).
+
+```bash
+dotnet add package Cratis.Chronicle
+```
+
+- [.NET client docs](/chronicle/clients/dotnet/) · [Get started](/chronicle/get-started/)
+- [`Cratis.Chronicle` on NuGet](https://www.nuget.org/packages/Cratis.Chronicle)
+- [Chronicle on GitHub](https://github.com/Cratis/Chronicle)
+
+## Event sourcing for TypeScript and Node.js
+
+`@cratis/chronicle` is the idiomatic TypeScript client for Chronicle, with support for transactions, jobs, webhooks, compliance/PII, and OpenTelemetry. It builds on the `@cratis/chronicle.contracts` gRPC contracts package.
+
+```bash
+npm install @cratis/chronicle
+```
+
+- [TypeScript client docs](/chronicle/clients/typescript/)
+- [`@cratis/chronicle` on npm](https://www.npmjs.com/package/@cratis/chronicle)
+- [Chronicle.TypeScript on GitHub](https://github.com/Cratis/Chronicle.TypeScript)
+
+## Event sourcing for Kotlin and Java
+
+`io.cratis:chronicle` is the idiomatic JVM client for Chronicle, usable from Kotlin and Java alike. It ships with a Spring Boot starter and a testing library.
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("io.cratis:chronicle:<version>")
+    // Or, in a Spring Boot application:
+    implementation("io.cratis:chronicle-spring-boot-starter:<version>")
+}
+```
+
+- [Kotlin/Java client docs](/chronicle/clients/kotlin/)
+- [`io.cratis:chronicle` on Maven Central](https://central.sonatype.com/artifact/io.cratis/chronicle)
+- [Chronicle.Kotlin on GitHub](https://github.com/Cratis/Chronicle.Kotlin)
+
+## Event sourcing for Elixir
+
+`cratis_chronicle` is the idiomatic Elixir client for Chronicle, with transactions, optimistic concurrency, webhooks, and resilient reconnection.
+
+```elixir
+# mix.exs
+defp deps do
+  [
+    {:cratis_chronicle, "~> 0.0"}
+  ]
+end
+```
+
+- [Elixir client docs](/chronicle/clients/elixir/)
+- [`cratis_chronicle` on Hex](https://hex.pm/packages/cratis_chronicle)
+- [Chronicle.Elixir on GitHub](https://github.com/Cratis/Chronicle.Elixir)
+
+## Event sourcing for Python — coming soon
+
+A Python client for Chronicle is in development. It is pre-release and not yet published to PyPI, so there is nothing to install yet — follow the repository for progress.
+
+- [Chronicle.Python on GitHub](https://github.com/Cratis/Chronicle.Python)
+
+<Aside type="note" title="Pre-release">
+The Python client is pre-alpha. APIs will change, and no package has been published. Watch the repository or ask in [the community](/community/) if it matters to your project.
+</Aside>
+
+## Any language, one contract
+
+Every client speaks the same gRPC/protobuf contracts, so any language with a gRPC implementation can talk to Chronicle. If your runtime is not listed above, you can implement the contracts directly.
+
+<CardGrid>
+  <LinkCard title="Building a client" description="Implement the Chronicle gRPC contracts for a new language or runtime." href="/chronicle/building-a-client/" />
+  <LinkCard title="Chronicle architecture" description="How the kernel, the gRPC boundary, and the storage providers fit together." href="/chronicle/architecture/" />
+  <LinkCard title="Chronicle MCP server" description="Connect an AI agent to a running Chronicle — it works regardless of which client language your app uses." href="/chronicle-mcp/" />
+  <LinkCard title="Storage choice" description="Run Chronicle over MongoDB (default), PostgreSQL, Microsoft SQL Server, or SQLite." href="/chronicle/hosting/configuration/storage/" />
+</CardGrid>

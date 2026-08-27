@@ -1,10 +1,10 @@
 ---
 title: Cratis
-description: Build event-sourced applications with Chronicle, Arc, and Components — the full-stack, type-safe Cratis platform.
+description: Build event-sourced and CQRS applications with Cratis — an open-source (MIT) event-sourcing database and full-stack platform with Chronicle clients for .NET, TypeScript, Kotlin/Java, and Elixir.
 template: splash
 hero:
   title: Event sourcing you can actually be productive with
-  tagline: "We treat event sourcing as the default architecture for information systems: capture what happened as immutable facts, project exactly the read models you need, and ship a full-stack, type-safe app — identity, tenancy, backend, React, storage choice, and operations — without the boilerplate."
+  tagline: "We treat event sourcing as the default architecture for information systems: capture what happened as immutable facts, project exactly the read models you need, and ship a full-stack, type-safe app — identity, tenancy, backend, React, storage choice, and operations — without the boilerplate. Open source and MIT licensed, with Chronicle clients for .NET, TypeScript, Kotlin/Java, and Elixir."
   image:
     dark: ../../assets/cratis-mark-dark.svg
     light: ../../assets/cratis-mark-light.svg
@@ -41,7 +41,7 @@ import StackJourney from '../../components/StackJourney.astro';
 import RotatingHero from '../../components/RotatingHero.astro';
 
 {/* Rotates the hero above through the platform's stories (Event Sourcing, CQRS,
-    Application Framework, the Stack, AI-Native, Studio, Screenplay, Prologue). The
+    Application Framework, the Stack, Any Language, AI-Native, Studio, Screenplay, Prologue). The
     frontmatter hero is the first pane and the no-JS fallback — keep the two in sync. */}
 <RotatingHero />
 
@@ -96,7 +96,7 @@ Prefer a guided path? The [Chronicle getting-started walkthrough](/chronicle/get
 
 ## Why developers choose Cratis
 
-Cratis is for teams that want the domain model to be the running system, not a diagram beside it. The big win is fit: Chronicle, Arc, Components, AuthProxy, Studio, the CLI, and the AI tooling are opinionated in the same direction, so codebases stay consistent, predictable, and easier for both developers and agents to work in.
+Cratis is for teams that want the domain model to be the running system, not a diagram beside it. The big win is fit: Chronicle, Arc, Components, AuthProxy, Studio, the CLI, and the AI tooling are opinionated in the same direction, so codebases stay consistent, predictable, and easier for both developers and agents to work in. Everything Cratis publishes today is MIT licensed and free to use.
 
 <CardGrid>
   <SimpleCard title="Everything fits together" icon="puzzle" link="/cratis-stack/">
@@ -114,8 +114,8 @@ Cratis is for teams that want the domain model to be the running system, not a d
   <SimpleCard title="Event sourcing by default" icon="seti:db" link="/chronicle/why-event-sourcing/">
     Chronicle records facts, projects read models, and keeps the history most information systems eventually need.
   </SimpleCard>
-  <SimpleCard title="Open event backbone" icon="puzzle" link="/chronicle/architecture/">
-    Chronicle exposes a gRPC/protobuf boundary, has a first-class .NET client, and also ships TypeScript and Elixir clients/contracts.
+  <SimpleCard title="Open event backbone" icon="puzzle" link="/chronicle-clients/">
+    Chronicle exposes a gRPC/protobuf boundary, has a first-class .NET SDK, and also ships TypeScript, Kotlin/Java, and Elixir clients — with a Python client coming soon.
   </SimpleCard>
   <SimpleCard title="Storage choice" icon="seti:db" link="/chronicle/hosting/configuration/storage/">
     Run Chronicle over MongoDB, PostgreSQL, Microsoft SQL Server, or SQLite without changing the event model.
@@ -173,7 +173,7 @@ const [authors] = AllAuthors.use();           // typed result, no API client to 
 
 <CardGrid>
   <SimpleCard title="Chronicle" icon="seti:db" link="/chronicle/">
-    The event sourcing engine — gRPC/protobuf boundary, .NET-first client, storage choice, Orleans runtime, and rich tooling over a durable event log.
+    The event-sourcing database and runtime — gRPC/protobuf boundary, clients for .NET, TypeScript, Kotlin/Java, and Elixir, storage choice, Orleans kernel, and rich tooling over a durable event log.
   </SimpleCard>
   <SimpleCard title="Arc" icon="puzzle" link="/arc/">
     The full-stack CQRS framework — commands, queries, and the generated proxies that keep React in sync.
@@ -196,6 +196,15 @@ const [authors] = AllAuthors.use();           // typed result, no API client to 
   <SimpleCard title="Prologue" icon="magnifier" link="/prologue/">
     Bring an existing system in — capture its real HTTP commands, database changes, and telemetry, and interpret them into an event model.
   </SimpleCard>
+  <SimpleCard title="Studio" icon="open-book" link="/studio/">
+    The collaborative modeling canvas — map commands, events, and read models with your team and generate type-safe C# from the model. Coming soon.
+  </SimpleCard>
+  <SimpleCard title="Specifications" icon="approve-check" link="/specifications/">
+    BDD-style testing for .NET — given/when/then specs that read like the event model, with Arc and Chronicle scenario helpers.
+  </SimpleCard>
+  <SimpleCard title="Fundamentals" icon="seti:folder" link="/fundamentals/">
+    The shared building blocks — concepts, serialization, dependency injection, and type discovery for .NET and TypeScript.
+  </SimpleCard>
 </CardGrid>
 
 ## Choose your starting point
@@ -206,6 +215,7 @@ Cratis is modular. For a new information system, the default path is Chronicle +
 |---|---|
 | A durable history of what happened | [Chronicle](/chronicle/) |
 | A language-neutral event-store boundary | [Chronicle architecture](/chronicle/architecture/) |
+| To use Chronicle from Kotlin/Java, TypeScript, or Elixir | [Chronicle in your language](/chronicle-clients/) |
 | MongoDB, PostgreSQL, SQL Server, or SQLite storage | [Chronicle storage](/chronicle/hosting/configuration/storage/) |
 | Typed commands, queries, and generated React proxies | [Arc](/arc/) |
 | Forms, dialogs, and data tables wired to Arc | [Components](/components/) |
