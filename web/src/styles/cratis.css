@@ -486,7 +486,7 @@ starlight-tabs[data-sync-key^='chronicle-client'] a[role='tab'][aria-selected='t
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--sl-color-gray-3);
+    color: var(--sl-color-gray-2);
 }
 
 /* A touch more vertical rhythm between the top-level products */

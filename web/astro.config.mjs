@@ -209,7 +209,7 @@ export default defineConfig({
             logo: {
                 light: './src/assets/cratis-mark-light.svg',
                 dark: './src/assets/cratis-mark-dark.svg',
-                alt: 'Cratis',
+                alt: '',
             },
             // Preload the brand fonts (see the component) so a cold load doesn't
             // paint in a fallback and then reflow when the web font swaps in.
