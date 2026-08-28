@@ -202,7 +202,9 @@ Because the products are separable, "is Cratis a good fit?" is really a set of c
 
 **Is event sourcing a good fit?** For information systems, our default answer is yes. Reach for Chronicle when the system records decisions, process, responsibility, tenant state, compliance, integrations, or any place where "how did we get here?" will become a real question. The exception is a genuinely current-state-only slice — reference data, settings, small admin surfaces — where Arc over a database can be the simpler boundary. [Why Event Sourcing](/chronicle/why-event-sourcing/) explains why we think the default pays off.
 
-When *neither* fits — a couple of static pages, a non-.NET backend, or a throwaway prototype — Cratis is more than you need, and that's fine.
+**What about a throwaway prototype?** Use Cratis anyway. It is meant to be quick and easy as well as robust and feature-rich — the conventions and scaffolding make even a prototype fast to stand up, so there is no reason not to use it for throwaway work. And if the prototype lives on, you are already on a solid foundation.
+
+When *neither* fits — a couple of static pages or a non-.NET backend — Cratis is more than you need, and that's fine.
 
 ## Where to start
 
