@@ -1,10 +1,10 @@
 ---
 title: Cratis documentation
-description: Technical documentation for Chronicle, Arc, Components, and the Cratis CLI.
+description: Build event-sourced and CQRS applications with Cratis — an open-source (MIT) event-sourcing database and full-stack platform with Chronicle clients for .NET, TypeScript, Kotlin/Java, and Elixir.
 template: splash
 hero:
   title: Cratis documentation
-  tagline: "Technical documentation for Chronicle, Arc, Components, and the Cratis CLI."
+  tagline: "Technical documentation for Chronicle — an event-sourcing database and processing runtime with a first-class .NET SDK and additional TypeScript, Kotlin/Java (JVM), and Elixir clients — plus Arc, Components, and the Cratis CLI. Everything Cratis publishes today is MIT licensed and free to use."
   image:
     dark: ../../assets/cratis-mark-dark.svg
     light: ../../assets/cratis-mark-light.svg
@@ -40,6 +40,11 @@ Choose a documentation area by the technical subject you want to explore.
     href="/chronicle/"
   />
   <LinkCard
+    title="Use Chronicle from your language"
+    description="Chronicle has a first-class .NET SDK and additional TypeScript, Kotlin/Java (JVM), and Elixir clients — with a Python client coming soon."
+    href="/chronicle-clients/"
+  />
+  <LinkCard
     title="Explore Arc"
     description="Arc is an opinionated CQRS application framework for ASP.NET Core with commands, queries, validation, authorization, and TypeScript proxy generation."
     href="/arc/"
@@ -60,9 +65,13 @@ Choose a documentation area by the technical subject you want to explore.
 
 <CardGrid>
   <Card title="Chronicle" icon="seti:db">
-    Chronicle uses a .NET/Orleans actor-based kernel behind gRPC/HTTP surfaces
-    and supports multiple event stores, namespaces, and persistent event-store
-    subscriptions with outbox/inbox sequences.
+    Chronicle is an event-sourcing database and processing runtime with a
+    first-class .NET SDK and additional TypeScript, Kotlin/Java (JVM), and
+    Elixir clients — with a Python client coming soon — plus pluggable
+    storage-provider implementations including MongoDB (default), PostgreSQL,
+    SQL Server, and SQLite. Its .NET/Orleans actor-based kernel sits behind
+    gRPC/HTTP surfaces and supports multiple event stores, namespaces, and
+    persistent event-store subscriptions with outbox/inbox sequences.
   </Card>
   <Card title="Arc" icon="puzzle">
     Arc is an opinionated CQRS application framework for ASP.NET Core with
@@ -86,6 +95,9 @@ Choose a documentation area by the technical subject you want to explore.
   an event-sourced path fits.
 - Arc does not require Components. Generated TypeScript clients can be consumed
   directly or through Arc's React packages.
+- Chronicle is not .NET-only. It exposes a language-agnostic gRPC/protobuf
+  boundary; the [client landing page](/chronicle-clients/) maps each shipped
+  client to its documentation and packages.
 - Chronicle and its bundled local Workbench are available as MIT-licensed
   self-hosted software; authorized local use is separate from paid Cratis
   support, hosted coordination, or managed operational responsibility.
@@ -108,6 +120,11 @@ package manifests for the combination you use.
     title="Understand Chronicle architecture"
     description="Locate protocol surfaces, the kernel, event stores, namespaces, processing, and subscriptions."
     href="/chronicle/architecture/"
+  />
+  <LinkCard
+    title="Pick a Chronicle client"
+    description="Start from .NET, TypeScript, Kotlin/Java, or Elixir, with links to each client's documentation and packages."
+    href="/chronicle-clients/"
   />
   <LinkCard
     title="Explore Arc"
