@@ -24,6 +24,13 @@ hero:
 ---
 
 import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import RotatingHero from '../../components/RotatingHero.astro';
+
+{/* Rotates the hero above through the platform's stories (One Ecosystem, Event
+    Sourcing, CQRS, Application Framework, the Stack, Any Language, Any Database,
+    AI-Native, Studio, Screenplay, Prologue). The frontmatter hero is the first
+    pane and the no-JS fallback — keep the two in sync. */}
+<RotatingHero />
 
 ## Why this matters
 
