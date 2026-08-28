@@ -247,6 +247,7 @@ export default defineConfig({
                 },
             },
             social: [
+                { icon: 'rss', label: 'Blog', href: 'https://blog.cratis.io' },
                 { icon: 'github', label: 'GitHub', href: 'https://github.com/cratis' },
                 { icon: 'discord', label: 'Discord', href: 'https://discord.gg/kt4AMpV8WV' },
                 { icon: 'youtube', label: 'YouTube', href: 'https://www.youtube.com/@CratisStack' },
