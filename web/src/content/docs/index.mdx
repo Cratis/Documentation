@@ -50,10 +50,13 @@ explicit and consistent are conventions an AI agent can follow. Cratis ships
 its conventions as [AI skills, rules, and diagnostics](/ai/), so assistants
 build with the grain of the platform instead of guessing at it.
 
-## One connected ecosystem
+## One connected ecosystem — adopt it one piece at a time
 
-Each product is strong on its own — and they are designed together, from one
-company, so value flows through the whole chain:
+Designed together does not mean all-or-nothing. Each product stands on its
+own, and you choose what you need: run Chronicle alone as your event store,
+build with Arc without event sourcing at all, or take the whole stack and let
+value flow through the entire chain. Start with the piece that solves today's
+problem — the rest are there when you want them, not before:
 
 <CardGrid>
   <LinkCard
@@ -101,6 +104,10 @@ Cratis is opinionated on purpose. The opinions are what carry the value:
 - **Built to fit your infrastructure.** A database-agnostic event store and
   multiple language clients mean the ecosystem adapts to you — not the other
   way around.
+- **Built to be adopted piecemeal.** Every product is independently
+  adoptable. Chronicle works without Arc, Arc works without event sourcing,
+  Components is optional on top of Arc — you never buy the whole stack to get
+  one piece, and nothing is wasted when you later add the next one.
 - **Built for people and AI together.** Predictable, convention-driven
   codebases are easier for new developers to join and for AI agents to extend.
 
@@ -111,7 +118,13 @@ journey end to end.
 
 ## Use one piece — or the whole thing
 
-The products compose, but none of them holds the others hostage:
+Modularity is a design commitment, not a marketing line. The products
+compose, but none of them holds the others hostage — each seam below is an
+intentional, supported adoption boundary:
+
+- Chronicle stands alone. Use it purely as an event store — from .NET,
+  TypeScript, Kotlin/Java, or Elixir — with no Arc, no Components, and no
+  other Cratis product involved.
 
 - Arc does not require event sourcing. Use application services, MongoDB, or
   Entity Framework Core for current-state behavior, and add Chronicle only where
