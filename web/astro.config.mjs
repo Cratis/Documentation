@@ -47,6 +47,7 @@ const overviewTopic = {
     items: [
         { label: 'The Cratis Stack', slug: 'cratis-stack' },
         { label: 'Why developers choose Cratis', slug: 'why-cratis' },
+        { label: 'Compare event sourcing for .NET', slug: 'compare-event-sourcing-dotnet' },
         { label: 'Adopting Cratis', slug: 'adopting-cratis' },
         {
             label: 'Scenarios',
@@ -264,7 +265,7 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/chronicle-clients', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/compare-event-sourcing-dotnet', '/adopting-cratis', '/chronicle-clients', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],
