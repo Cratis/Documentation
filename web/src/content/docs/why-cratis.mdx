@@ -8,7 +8,7 @@ import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
 <TopicHero icon="open-book" eyebrow="Why developers choose Cratis" title="Build the system you modeled">
-Developers choose Cratis when they want the domain model, backend, frontend, identity boundary, UI, and operations view to line up. Chronicle, Arc, Components, AuthProxy, the CLI, and the AI tooling are opinionated in the same direction: write the behavior once, keep the contract typed, keep the event store database-agnostic — MongoDB (default), PostgreSQL, SQL Server, or SQLite — handle the hard cross-cutting concerns, and make the running system inspectable. [Get started →](/chronicle/get-started/) · [Build a full-stack feature →](/build-a-full-app/)
+In the age of AI, software gets built differently — and the systems that stay coherent are the ones where the pieces were designed together. Cratis is one connected ecosystem from one company: Chronicle records the facts, Arc shapes the application, Components renders it, AuthProxy secures the edge, the CLI and Workbench let you see it run, and AI skills teach assistants the same conventions developers use. Write the behavior once, keep the contract typed, run on the database you already operate — MongoDB (default), PostgreSQL, SQL Server, or SQLite — and use it from .NET, TypeScript, Kotlin/Java, or Elixir. We believe software built this way is better, more robust, faster to deliver, and more cost-effective to own. [Get started →](/chronicle/get-started/) · [Build a full-stack feature →](/build-a-full-app/)
 </TopicHero>
 
 ## The developer payoff
@@ -202,7 +202,9 @@ Because the products are separable, "is Cratis a good fit?" is really a set of c
 
 **Is event sourcing a good fit?** For information systems, our default answer is yes. Reach for Chronicle when the system records decisions, process, responsibility, tenant state, compliance, integrations, or any place where "how did we get here?" will become a real question. The exception is a genuinely current-state-only slice — reference data, settings, small admin surfaces — where Arc over a database can be the simpler boundary. [Why Event Sourcing](/chronicle/why-event-sourcing/) explains why we think the default pays off.
 
-When *neither* fits — a couple of static pages, a non-.NET backend, or a throwaway prototype — Cratis is more than you need, and that's fine.
+**What about a throwaway prototype?** Use Cratis anyway. It is meant to be quick and easy as well as robust and feature-rich — the conventions and scaffolding make even a prototype fast to stand up, so there is no reason not to use it for throwaway work. And if the prototype lives on, you are already on a solid foundation.
+
+When *neither* fits — a couple of static pages or a non-.NET backend — Cratis is more than you need, and that's fine.
 
 ## Where to start
 

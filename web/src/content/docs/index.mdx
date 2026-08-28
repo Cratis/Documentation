@@ -3,117 +3,128 @@ title: Cratis documentation
 description: Build event-sourced and CQRS applications with Cratis — an open-source (MIT) full-stack platform around Chronicle, a database-agnostic event store with pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite, and clients for .NET, TypeScript, Kotlin/Java, and Elixir.
 template: splash
 hero:
-  title: Cratis documentation
-  tagline: "Technical documentation for Chronicle — a database-agnostic event-sourcing database and processing runtime with pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite, a first-class .NET SDK, and additional TypeScript, Kotlin/Java (JVM), and Elixir clients — plus Arc, Components, and the Cratis CLI. Everything Cratis publishes today is MIT licensed and free to use."
+  title: Software gets built differently now
+  tagline: "In the age of AI, software gets built differently. Cratis is one connected, purposeful ecosystem — an event store, an application framework, a UI library, developer tooling, and AI skills — designed together, from one company, so the pieces fit instead of being assembled. It is database-agnostic (MongoDB by default, PostgreSQL, SQL Server, or SQLite) with clients for .NET, TypeScript, Kotlin/Java, and Elixir. Everything Cratis publishes today is MIT licensed and free to use."
   image:
     dark: ../../assets/cratis-mark-dark.svg
     light: ../../assets/cratis-mark-light.svg
     alt: ""
   actions:
-    - text: Chronicle
-      link: /chronicle/
+    - text: Why Cratis
+      link: /why-cratis/
       icon: right-arrow
-    - text: Arc
-      link: /arc/
+    - text: The Cratis Stack
+      link: /cratis-stack/
       variant: minimal
       icon: right-arrow
-    - text: Components
-      link: /components/
-      variant: minimal
-      icon: right-arrow
-    - text: Cratis CLI
-      link: /cli/
+    - text: Get started
+      link: /chronicle/get-started/
       variant: minimal
       icon: right-arrow
 ---
 
 import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-## Choose the job you need to do
+## Why this matters
 
-Choose a documentation area by the technical subject you want to explore.
+Most stacks are assembled: a database here, a framework there, a UI kit from
+somewhere else, and glue code everywhere in between. Every seam is something a
+team — and now every AI assistant — has to learn, maintain, and keep in sync.
+
+Cratis takes the opposite bet. One company designs the whole path — from the
+facts your system records, through the application that shapes them, to the
+screens people use and the tools that operate it — around one shared model and
+one set of conventions. We believe software built this way is better, more
+robust, faster to deliver, higher quality, and more cost-effective, because the
+seams you would normally hand-write and babysit simply are not there.
+
+That same coherence is what makes the ecosystem AI-ready: conventions that are
+explicit and consistent are conventions an AI agent can follow. Cratis ships
+its conventions as [AI skills, rules, and diagnostics](/ai/), so assistants
+build with the grain of the platform instead of guessing at it.
+
+## One connected ecosystem
+
+Each product is strong on its own — and they are designed together, from one
+company, so value flows through the whole chain:
 
 <CardGrid>
   <LinkCard
-    title="Explore Chronicle architecture"
-    description="Chronicle uses a .NET/Orleans actor-based kernel behind gRPC/HTTP surfaces and supports multiple event stores, namespaces, and persistent event-store subscriptions with outbox/inbox sequences."
+    title="Chronicle — the event store"
+    description="Record what happened as immutable facts and derive read models from them. Database-agnostic — MongoDB (default), PostgreSQL, SQL Server, or SQLite — so it runs on the database you already operate."
     href="/chronicle/"
   />
   <LinkCard
-    title="Run Chronicle on your database"
-    description="Chronicle's event store is database-agnostic, with pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite."
-    href="/chronicle/hosting/configuration/storage/"
-  />
-  <LinkCard
-    title="Use Chronicle from your language"
-    description="Chronicle has a first-class .NET SDK and additional TypeScript, Kotlin/Java (JVM), and Elixir clients — with a Python client coming soon."
-    href="/chronicle-clients/"
-  />
-  <LinkCard
-    title="Explore Arc"
-    description="Arc is an opinionated CQRS application framework for ASP.NET Core with commands, queries, validation, authorization, and TypeScript proxy generation."
+    title="Arc — the application framework"
+    description="Turn commands and queries into a full-stack CQRS application with validation, authorization, and generated TypeScript proxies — no hand-written API layer."
     href="/arc/"
   />
   <LinkCard
-    title="Explore Components"
-    description="Components is a React component library aligned with Arc application patterns."
+    title="Components — the UI library"
+    description="React components that render Arc's generated contracts as forms, dialogs, and live tables, so screens follow the model."
     href="/components/"
   />
   <LinkCard
-    title="Explore the Cratis CLI"
-    description="The Cratis CLI provides terminal workflows for inspecting and diagnosing Chronicle."
+    title="CLI and Workbench — the tooling"
+    description="See what the running system is doing — inspect events, observers, and read models, replay, and diagnose — from the terminal or the browser."
     href="/cli/"
+  />
+  <LinkCard
+    title="AI skills — the accelerant"
+    description="The same conventions developers use, packaged for AI agents: skills, editor rules, analyzers, and an MCP server into the running store."
+    href="/ai/"
+  />
+  <LinkCard
+    title="Clients for your language"
+    description="Use Chronicle from .NET (first-class), TypeScript, Kotlin/Java (JVM), or Elixir — with a Python client coming soon."
+    href="/chronicle-clients/"
   />
 </CardGrid>
 
-## What each product owns
+## Built to deliver outcomes, not just features
 
-<CardGrid>
-  <Card title="Chronicle" icon="seti:db">
-    Chronicle is an event-sourcing database and processing runtime with a
-    first-class .NET SDK and additional TypeScript, Kotlin/Java (JVM), and
-    Elixir clients — with a Python client coming soon — plus pluggable
-    storage-provider implementations including MongoDB (default), PostgreSQL,
-    SQL Server, and SQLite. Its .NET/Orleans actor-based kernel sits behind
-    gRPC/HTTP surfaces and supports multiple event stores, namespaces, and
-    persistent event-store subscriptions with outbox/inbox sequences.
-  </Card>
-  <Card title="Arc" icon="puzzle">
-    Arc is an opinionated CQRS application framework for ASP.NET Core with
-    commands, queries, validation, authorization, and TypeScript proxy
-    generation.
-  </Card>
-  <Card title="Components" icon="laptop">
-    Components is a React component library aligned with Arc application
-    patterns.
-  </Card>
-  <Card title="Cratis CLI" icon="rocket">
-    The Cratis CLI provides terminal workflows for inspecting and diagnosing
-    Chronicle.
-  </Card>
-</CardGrid>
+Cratis is opinionated on purpose. The opinions are what carry the value:
 
-## Keep the product boundaries clear
+- **Built to keep history you can trust.** Events are immutable facts, and
+  read models derive from them — audit and replay are part of the design, not
+  an afterthought.
+- **Built to remove glue.** One C# model becomes typed frontend contracts;
+  drift between backend and frontend becomes a build error instead of a
+  production incident.
+- **Built to fit your infrastructure.** A database-agnostic event store and
+  multiple language clients mean the ecosystem adapts to you — not the other
+  way around.
+- **Built for people and AI together.** Predictable, convention-driven
+  codebases are easier for new developers to join and for AI agents to extend.
+
+We believe this adds up to software that is more robust, faster to build, and
+more cost-effective to own. [Why developers choose Cratis](/why-cratis/) walks
+through the reasoning; [The Cratis Stack](/cratis-stack/) shows the whole
+journey end to end.
+
+## Use one piece — or the whole thing
+
+The products compose, but none of them holds the others hostage:
 
 - Arc does not require event sourcing. Use application services, MongoDB, or
   Entity Framework Core for current-state behavior, and add Chronicle only where
   an event-sourced path fits.
 - Arc does not require Components. Generated TypeScript clients can be consumed
   directly or through Arc's React packages.
-- Chronicle is not .NET-only. It exposes a language-agnostic gRPC/protobuf
-  boundary; the [client landing page](/chronicle-clients/) maps each shipped
-  client to its documentation and packages.
+- Chronicle is not .NET-only. The [client landing page](/chronicle-clients/)
+  maps each shipped client to its documentation and packages; the protocol
+  details live in the [Chronicle architecture](/chronicle/architecture/) pages.
 - Chronicle and its bundled local Workbench are available as MIT-licensed
   self-hosted software; authorized local use is separate from paid Cratis
   support, hosted coordination, or managed operational responsibility.
-- Workbench is the bundled browser inspection surface. The Cratis CLI provides
-  separate terminal inspection and diagnostic workflows.
 
 These boundaries do not establish compatibility with every package, provider,
 browser, runtime, topology, or product version. Check the documentation and
 package manifests for the combination you use.
 
-## Follow a technical path
+## Go deeper
+
+Technical depth lives in each product's own documentation:
 
 <CardGrid>
   <LinkCard
@@ -125,6 +136,11 @@ package manifests for the combination you use.
     title="Understand Chronicle architecture"
     description="Locate protocol surfaces, the kernel, event stores, namespaces, processing, and subscriptions."
     href="/chronicle/architecture/"
+  />
+  <LinkCard
+    title="Run Chronicle on your database"
+    description="Configure the storage provider — MongoDB (default), PostgreSQL, SQL Server, or SQLite."
+    href="/chronicle/hosting/configuration/storage/"
   />
   <LinkCard
     title="Pick a Chronicle client"
