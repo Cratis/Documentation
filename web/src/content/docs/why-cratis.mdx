@@ -1,6 +1,6 @@
 ---
 title: Why developers choose Cratis
-description: "The practical reasons teams choose Cratis: one stack that fits together, strong conventions, open Chronicle boundaries, storage choice, full-stack contracts, end-to-end foundations, and codebases that stay predictable for people and AI."
+description: "The practical reasons teams choose Cratis: one stack that fits together, strong conventions, open Chronicle boundaries, a database-agnostic event store (MongoDB, PostgreSQL, SQL Server, SQLite), full-stack contracts, end-to-end foundations, and codebases that stay predictable for people and AI."
 ---
 
 import { CardGrid } from '@astrojs/starlight/components';
@@ -8,7 +8,7 @@ import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
 <TopicHero icon="open-book" eyebrow="Why developers choose Cratis" title="Build the system you modeled">
-Developers choose Cratis when they want the domain model, backend, frontend, identity boundary, UI, and operations view to line up. Chronicle, Arc, Components, AuthProxy, the CLI, and the AI tooling are opinionated in the same direction: write the behavior once, keep the contract typed, choose the right storage, handle the hard cross-cutting concerns, and make the running system inspectable. [Get started →](/chronicle/get-started/) · [Build a full-stack feature →](/build-a-full-app/)
+Developers choose Cratis when they want the domain model, backend, frontend, identity boundary, UI, and operations view to line up. Chronicle, Arc, Components, AuthProxy, the CLI, and the AI tooling are opinionated in the same direction: write the behavior once, keep the contract typed, keep the event store database-agnostic — MongoDB (default), PostgreSQL, SQL Server, or SQLite — handle the hard cross-cutting concerns, and make the running system inspectable. [Get started →](/chronicle/get-started/) · [Build a full-stack feature →](/build-a-full-app/)
 </TopicHero>
 
 ## The developer payoff
@@ -77,8 +77,8 @@ Chronicle is more than a .NET package. It is a client-server event platform with
   <SimpleCard title="Language-neutral boundary" icon="puzzle" link="/chronicle/architecture/">
     Chronicle speaks gRPC/protobuf at the kernel boundary. The .NET client is the first-class experience, and Chronicle also ships TypeScript, Kotlin/Java, and Elixir clients — the JVM client includes a Spring Boot starter.
   </SimpleCard>
-  <SimpleCard title="Storage choice" icon="seti:db" link="/chronicle/hosting/configuration/storage/">
-    The event store is storage-agnostic: MongoDB by default, with PostgreSQL, Microsoft SQL Server, and SQLite implementations when those fit better.
+  <SimpleCard title="A database-agnostic event store" icon="seti:db" link="/chronicle/hosting/configuration/storage/">
+    The event store is database-agnostic, with pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite — pick the one you already operate.
   </SimpleCard>
   <SimpleCard title="Built on Orleans" icon="rocket" link="/chronicle/architecture/">
     The kernel is built on .NET Orleans, giving Chronicle a distributed actor foundation for event sequences, observers, jobs, reminders, and recovery.

@@ -34,7 +34,7 @@ const panes: Pane[] = [
         label: 'Event Sourcing',
         title: 'Event sourcing you can actually be productive with',
         tagline:
-            'We treat event sourcing as the default architecture for information systems: capture what happened as immutable facts, project exactly the read models you need, and ship a full-stack, type-safe app — identity, tenancy, backend, React, storage choice, and operations — without the boilerplate. Open source and MIT licensed, with Chronicle clients for .NET, TypeScript, Kotlin/Java, and Elixir.',
+            'We treat event sourcing as the default architecture for information systems: capture what happened as immutable facts, project exactly the read models you need, and ship a full-stack, type-safe app — identity, tenancy, backend, React, storage choice, and operations — without the boilerplate. Open source and MIT licensed, with Chronicle clients for .NET, TypeScript, Kotlin/Java, and Elixir — and a database-agnostic event store with pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite.',
         actions: [
             getStarted,
             { text: 'Why event sourcing?', link: '/chronicle/why-event-sourcing/', variant: 'minimal', icon: 'open-book' },
@@ -92,6 +92,18 @@ const panes: Pane[] = [
         actions: [
             getStarted,
             { text: 'Chronicle in your language', link: '/chronicle-clients/', variant: 'minimal', icon: 'open-book' },
+            gitHub,
+            community,
+        ],
+    },
+    {
+        label: 'Any Database',
+        title: 'A database-agnostic event store, on the database you already run',
+        tagline:
+            'Chronicle keeps the event store database-agnostic through pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite — the same events, projections, and operational tooling over the database your team already operates, so choosing event sourcing never means choosing a new database.',
+        actions: [
+            getStarted,
+            { text: 'Storage configuration', link: '/chronicle/hosting/configuration/storage/', variant: 'minimal', icon: 'open-book' },
             gitHub,
             community,
         ],

@@ -1,10 +1,10 @@
 ---
 title: Cratis documentation
-description: Build event-sourced and CQRS applications with Cratis — an open-source (MIT) event-sourcing database and full-stack platform with Chronicle clients for .NET, TypeScript, Kotlin/Java, and Elixir.
+description: Build event-sourced and CQRS applications with Cratis — an open-source (MIT) full-stack platform around Chronicle, a database-agnostic event store with pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite, and clients for .NET, TypeScript, Kotlin/Java, and Elixir.
 template: splash
 hero:
   title: Cratis documentation
-  tagline: "Technical documentation for Chronicle — an event-sourcing database and processing runtime with a first-class .NET SDK and additional TypeScript, Kotlin/Java (JVM), and Elixir clients — plus Arc, Components, and the Cratis CLI. Everything Cratis publishes today is MIT licensed and free to use."
+  tagline: "Technical documentation for Chronicle — a database-agnostic event-sourcing database and processing runtime with pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite, a first-class .NET SDK, and additional TypeScript, Kotlin/Java (JVM), and Elixir clients — plus Arc, Components, and the Cratis CLI. Everything Cratis publishes today is MIT licensed and free to use."
   image:
     dark: ../../assets/cratis-mark-dark.svg
     light: ../../assets/cratis-mark-light.svg
@@ -38,6 +38,11 @@ Choose a documentation area by the technical subject you want to explore.
     title="Explore Chronicle architecture"
     description="Chronicle uses a .NET/Orleans actor-based kernel behind gRPC/HTTP surfaces and supports multiple event stores, namespaces, and persistent event-store subscriptions with outbox/inbox sequences."
     href="/chronicle/"
+  />
+  <LinkCard
+    title="Run Chronicle on your database"
+    description="Chronicle's event store is database-agnostic, with pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite."
+    href="/chronicle/hosting/configuration/storage/"
   />
   <LinkCard
     title="Use Chronicle from your language"
