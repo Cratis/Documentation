@@ -102,7 +102,18 @@ const overviewTopic = {
                 { label: 'Feedback and suggestions', slug: 'feedback' },
             ],
         },
-        { label: 'Chronicle in your language', slug: 'chronicle-clients' },
+        {
+            label: 'Chronicle in your language',
+            collapsed: true,
+            items: [
+                { label: 'Overview', slug: 'chronicle-clients' },
+                { label: 'Event sourcing in .NET', slug: 'event-sourcing/dotnet' },
+                { label: 'Event sourcing in TypeScript', slug: 'event-sourcing/typescript' },
+                { label: 'Event sourcing in Kotlin and Java', slug: 'event-sourcing/kotlin' },
+                { label: 'Event sourcing in Elixir', slug: 'event-sourcing/elixir' },
+                { label: 'Event sourcing in Python', slug: 'event-sourcing/python', badge: { text: 'Soon', variant: 'tip' } },
+            ],
+        },
         { label: 'Studio', slug: 'studio', badge: { text: 'Soon', variant: 'tip' } },
         { label: 'Event Modeling', slug: 'event-modeling' },
         { label: 'Screenplay', link: '/screenplay/' },
@@ -265,7 +276,7 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/compare-event-sourcing-dotnet', '/adopting-cratis', '/chronicle-clients', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/compare-event-sourcing-dotnet', '/adopting-cratis', '/chronicle-clients', '/event-sourcing/**', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],
