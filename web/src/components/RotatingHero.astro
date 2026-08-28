@@ -1,7 +1,8 @@
 ---
 // Progressive enhancement for the splash hero: rotates the headline, tagline,
-// and actions through the platform's stories (Event Sourcing, CQRS, Application
-// Framework, the Stack, Any Language, AI-Native, Studio, Screenplay, Prologue) with labeled dot
+// and actions through the platform's stories (One Ecosystem, Event Sourcing,
+// CQRS, Application Framework, the Stack, Any Language, Any Database, AI-Native,
+// Studio, Screenplay, Prologue) with labeled dot
 // indicators. The static hero authored in
 // the page frontmatter IS the first pane — without JavaScript nothing here
 // renders and the page degrades to that single message. With JavaScript the
@@ -23,7 +24,7 @@ interface Pane {
     actions: PaneAction[];
 }
 
-const getStarted: PaneAction = { text: 'Get started', link: '#get-started-in-3-steps', variant: 'primary', icon: 'right-arrow' };
+const getStarted: PaneAction = { text: 'Get started', link: '/chronicle/get-started/', variant: 'primary', icon: 'right-arrow' };
 const gitHub: PaneAction = { text: 'GitHub', link: 'https://github.com/cratis', variant: 'minimal' };
 const community: PaneAction = { text: 'Community', link: '/community/', variant: 'minimal' };
 const workWithUs: PaneAction = { text: 'Work with us', link: '/work-with-us/', variant: 'minimal' };
@@ -31,10 +32,21 @@ const workWithUs: PaneAction = { text: 'Work with us', link: '/work-with-us/', v
 // Pane 1 mirrors the frontmatter hero in index.mdx — keep the two in sync.
 const panes: Pane[] = [
     {
+        label: 'One Ecosystem',
+        title: 'Software gets built differently now',
+        tagline:
+            'In the age of AI, software gets built differently. Cratis is one connected, purposeful ecosystem — an event store, an application framework, a UI library, developer tooling, and AI skills — designed together, from one company, so the pieces fit instead of being assembled. It is database-agnostic (MongoDB by default, PostgreSQL, SQL Server, or SQLite) with clients for .NET, TypeScript, Kotlin/Java, and Elixir. Everything Cratis publishes today is MIT licensed and free to use.',
+        actions: [
+            { text: 'Why Cratis', link: '/why-cratis/', variant: 'primary', icon: 'right-arrow' },
+            { text: 'The Cratis Stack', link: '/cratis-stack/', variant: 'minimal', icon: 'right-arrow' },
+            { text: 'Get started', link: '/chronicle/get-started/', variant: 'minimal', icon: 'right-arrow' },
+        ],
+    },
+    {
         label: 'Event Sourcing',
         title: 'Event sourcing you can actually be productive with',
         tagline:
-            'We treat event sourcing as the default architecture for information systems: capture what happened as immutable facts, project exactly the read models you need, and ship a full-stack, type-safe app — identity, tenancy, backend, React, storage choice, and operations — without the boilerplate. Open source and MIT licensed, with Chronicle clients for .NET, TypeScript, Kotlin/Java, and Elixir — and a database-agnostic event store with pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite.',
+            'We treat event sourcing as the default architecture for information systems: capture what happened as immutable facts, project exactly the read models you need, and ship a full-stack, type-safe app — identity, tenancy, backend, React, storage choice, and operations — without the boilerplate.',
         actions: [
             getStarted,
             { text: 'Why event sourcing?', link: '/chronicle/why-event-sourcing/', variant: 'minimal', icon: 'open-book' },
