@@ -1,0 +1,69 @@
+---
+title: Event sourcing in Elixir
+description: "Do event sourcing in Elixir with Cratis Chronicle: an open-source (MIT) event-sourcing database with an idiomatic Elixir client on Hex — OTP-native event types, read models, transactions, optimistic concurrency, and resilient reconnection."
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+Chronicle is an open-source (MIT) event-sourcing database and processing runtime, and `cratis_chronicle` is its idiomatic Elixir client. It exposes OTP-native constructs — `use Chronicle.EventType`, `use Chronicle.ReadModel`, `use Chronicle.Reactor`, `use Chronicle.Reducer`, and `use Chronicle.Seeder` — plus model-bound constraints, context-aware appends with process-scoped identity, correlation, and causation metadata, optimistic concurrency, transactions, jobs and webhooks, and automatic reconnection with exponential backoff. The client supervises a connection to the Chronicle kernel as part of your application's supervision tree.
+
+With event sourcing, every state change is captured as an immutable event rather than an update in place. Chronicle stores those events, and read models are derived from them — declared model-bound projections execute server-side, or you can fold events into read models in your own process with a reducer.
+
+The event store is not BEAM-only: Chronicle's kernel exposes a language-agnostic gRPC/protobuf boundary, and the same store is reachable from the [.NET, TypeScript, and Kotlin/Java clients](/chronicle-clients/) as well. Storage is pluggable — MongoDB by default, with PostgreSQL, SQL Server, SQLite, and in-memory providers implemented in the kernel.
+
+## Install
+
+```elixir
+# mix.exs
+defp deps do
+  [
+    {:cratis_chronicle, "~> 0.0"}
+  ]
+end
+```
+
+## A taste
+
+An event type, a supervised client, and an append — from the client repository's quick example:
+
+```elixir
+defmodule MyApp.Events.AccountOpened do
+  use Chronicle.EventType, id: "account-opened-v1"
+  defstruct [:account_id, :owner_name, :initial_balance]
+end
+
+defmodule MyApp.Application do
+  use Application
+
+  def start(_type, _args) do
+    children = [
+      {Chronicle.Client,
+        connection_string: "chronicle://localhost:35000",
+        event_store: "my-app",
+        otp_app: :my_app}
+    ]
+
+    Supervisor.start_link(children, strategy: :one_for_one)
+  end
+end
+
+# Append an event
+:ok = Chronicle.append("account-42", %MyApp.Events.AccountOpened{
+  account_id: "account-42",
+  owner_name: "Alice",
+  initial_balance: 1000
+})
+```
+
+For a local kernel to append to, the development Docker image is the quickest path: `docker run -p 35000:35000 cratis/chronicle:latest-development`.
+
+## Where to go next
+
+<CardGrid>
+  <LinkCard title="Elixir client docs" description="Installation, connection setup, OTP integration, and the full Elixir API surface." href="/chronicle/clients/elixir/" />
+  <LinkCard title="Get started with Chronicle" description="Run Chronicle locally and build your first event-sourced feature." href="/chronicle/get-started/" />
+  <LinkCard title="Chronicle.Elixir on GitHub" description="The Elixir client repository — open source, MIT licensed." href="https://github.com/Cratis/Chronicle.Elixir" />
+  <LinkCard title="cratis_chronicle on Hex" description="The Elixir client package for Chronicle." href="https://hex.pm/packages/cratis_chronicle" />
+</CardGrid>
+
+Looking for another language? See [Chronicle in your language](/chronicle-clients/) for the .NET, TypeScript, and Kotlin/Java clients.

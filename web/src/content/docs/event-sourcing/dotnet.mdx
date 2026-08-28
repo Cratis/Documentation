@@ -1,0 +1,56 @@
+---
+title: Event sourcing in .NET
+description: "Do event sourcing in .NET with Cratis Chronicle: an open-source (MIT) event-sourcing database with a first-class .NET SDK — typed events, projections, reducers, reactors, and ASP.NET Core integration."
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+Chronicle is an open-source (MIT) event-sourcing database and processing runtime, and .NET is its first-class client platform. The `Cratis.Chronicle` SDK gives you typed access to event stores, event logs, read models, projections, reducers, reactors, constraints, migrations, namespaces, and hosting integration — including a one-line [.NET Aspire resource](/chronicle/hosting/aspire/). You define events as C# records, append them to an event log, and Chronicle takes care of storage, processing, and delivering derived read models.
+
+Instead of storing only the current state, every state change in your system is captured as an immutable event. That gives you a full history to audit, replay, and build new views from — while the SDK keeps the developer experience convention-based: events, reducers, reactors, and projections are discovered automatically and registered with the kernel when your application connects.
+
+Chronicle's kernel runs on Microsoft Orleans and stores events in pluggable storage — MongoDB by default, with PostgreSQL, SQL Server, SQLite, and in-memory providers implemented in the kernel. The same store is also reachable from [TypeScript, Kotlin/Java, and Elixir clients](/chronicle-clients/) over Chronicle's language-agnostic gRPC contract, so a .NET service and services in other languages can share one event store.
+
+## Install
+
+```bash
+dotnet add package Cratis.Chronicle
+```
+
+For ASP.NET Core applications, use the `Cratis.Chronicle.AspNetCore` package instead.
+
+## A taste
+
+Hook Chronicle into an ASP.NET Core application, define an event, and append it:
+
+```csharp
+var builder = WebApplication.CreateBuilder(args)
+    .AddCratisChronicle(options => options.EventStore = "MyApp");
+
+var app = builder.Build();
+app.UseCratisChronicle();
+app.Run();
+```
+
+```csharp
+[EventType]
+public record UserOnboarded(string Name, string Email);
+```
+
+```csharp
+// Inject IEventLog or grab it from the event store
+await eventLog.Append(Guid.NewGuid(), new UserOnboarded("Jane Doe", "jane@example.com"));
+```
+
+From there, reducers fold events into read models, reactors run side effects when events arrive, and declarative projections describe read models without writing the fold by hand.
+
+## Where to go next
+
+<CardGrid>
+  <LinkCard title="Get started with Chronicle" description="Run Chronicle locally and build your first event-sourced feature." href="/chronicle/get-started/" />
+  <LinkCard title=".NET client docs" description="Installation, connection setup, hosting, and the full .NET API surface." href="/chronicle/clients/dotnet/" />
+  <LinkCard title="Chronicle on GitHub" description="The Chronicle kernel and .NET SDK — open source, MIT licensed." href="https://github.com/Cratis/Chronicle" />
+  <LinkCard title="Cratis.Chronicle on NuGet" description="The .NET client package for Chronicle." href="https://www.nuget.org/packages/Cratis.Chronicle" />
+</CardGrid>
+
+Looking for another language? See [Chronicle in your language](/chronicle-clients/) for the TypeScript, Kotlin/Java, and Elixir clients.

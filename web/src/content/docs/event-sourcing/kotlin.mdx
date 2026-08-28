@@ -1,0 +1,71 @@
+---
+title: Event sourcing in Kotlin and Java
+description: "Do event sourcing in Kotlin and Java with Cratis Chronicle: an open-source (MIT) event-sourcing database with an idiomatic JVM client on Maven Central — annotations, coroutines, a Spring Boot starter, and a testing library."
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+Chronicle is an open-source (MIT) event-sourcing database and processing runtime, and `io.cratis:chronicle` is its idiomatic JVM client — one artifact, usable from both Kotlin and Java. Events are data classes or records annotated with `@EventType`, read models are classes annotated with `@ReadModel`, and reducers, reactors, projections, and constraints follow the same pattern. Artifacts on your classpath are found and registered with the kernel when you connect, so there is no schema file or registry to keep in sync. Kotlin gets suspending calls throughout; Java gets blocking bridges for the same surface. A Spring Boot starter reduces setup to a dependency, and `chronicle-testing` provides an in-process test library.
+
+With event sourcing, your application appends immutable facts, and every view of the world is derived from them rather than overwritten on top of them. Chronicle stores those events and enforces rules — uniqueness and other constraints are checked at append time, on the server. Nothing is updated in place, so every state your system has been in is reconstructible.
+
+The event store is not JVM-only: Chronicle's kernel exposes a language-agnostic gRPC/protobuf boundary, and the same store is reachable from the [.NET, TypeScript, and Elixir clients](/chronicle-clients/) as well. Storage is pluggable — MongoDB by default, with PostgreSQL, SQL Server, SQLite, and in-memory providers implemented in the kernel.
+
+## Install
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("io.cratis:chronicle:<version>")
+    // Or, in a Spring Boot application:
+    implementation("io.cratis:chronicle-spring-boot-starter:<version>")
+}
+```
+
+## A taste
+
+An annotated event, the read model it produces, and the reducer that folds one into the other — from the client repository's example:
+
+```kotlin
+@EventType
+data class EmployeeHired(
+    val firstName: String = "",
+    val lastName: String = "",
+    val title: String = ""
+)
+
+@ReadModel
+data class EmployeeState(
+    val id: String = "",
+    val firstName: String = "",
+    val title: String = ""
+)
+
+@Reducer
+class EmployeeStateReducer {
+    fun employeeHired(event: EmployeeHired) =
+        EmployeeState(
+            firstName = event.firstName,
+            title = event.title)
+}
+```
+
+No registration code is needed. Append an event and the read model is there:
+
+```kotlin
+store.eventLog.append("employee-1", EmployeeHired("Ada", "Lovelace", "Engineer"))
+val ada = store.readModels.getInstanceByKey(EmployeeState::class, "employee-1")
+```
+
+The same surface is available from Java, with events as records and blocking bridges in place of suspending calls.
+
+## Where to go next
+
+<CardGrid>
+  <LinkCard title="Kotlin/Java client docs" description="Installation, connection setup, Spring Boot integration, testing, and the full JVM API surface." href="/chronicle/clients/kotlin/" />
+  <LinkCard title="Get started with Chronicle" description="Run Chronicle locally and build your first event-sourced feature." href="/chronicle/get-started/" />
+  <LinkCard title="Chronicle.Kotlin on GitHub" description="The JVM client repository — open source, MIT licensed." href="https://github.com/Cratis/Chronicle.Kotlin" />
+  <LinkCard title="io.cratis:chronicle on Maven Central" description="The JVM client artifact for Chronicle." href="https://central.sonatype.com/artifact/io.cratis/chronicle" />
+</CardGrid>
+
+Looking for another language? See [Chronicle in your language](/chronicle-clients/) for the .NET, TypeScript, and Elixir clients.

@@ -1,0 +1,51 @@
+---
+title: Event sourcing in TypeScript and Node.js
+description: "Do event sourcing in TypeScript and Node.js with Cratis Chronicle: an open-source (MIT) event-sourcing database with an idiomatic TypeScript client — decorators, typed event logs, projections, transactions, and OpenTelemetry."
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+Chronicle is an open-source (MIT) event-sourcing database and processing runtime, and `@cratis/chronicle` is its idiomatic TypeScript client for Node.js. It provides a type-safe API built on decorators — `@eventType`, `@readModel`, `@reactor`, `@reducer`, `@projection`, `@constraint`, and more — together with value objects and a fluent client that goes from `ChronicleClient` to an event store to an event log you append to. It supports transactions, jobs, webhooks, compliance/PII, and OpenTelemetry, and builds on the `@cratis/chronicle.contracts` gRPC contracts package.
+
+With event sourcing, every state change in your application is captured as an immutable event rather than an update in place. Chronicle stores those events, and your read models, reactors, and projections are derived from them — so your TypeScript services get a full history to audit, replay, and build new views from.
+
+The event store itself is not tied to Node.js: Chronicle's kernel exposes a language-agnostic gRPC/protobuf boundary, and the same store is reachable from the [.NET, Kotlin/Java, and Elixir clients](/chronicle-clients/) as well. Storage is pluggable — MongoDB by default, with PostgreSQL, SQL Server, SQLite, and in-memory providers implemented in the kernel.
+
+## Install
+
+```bash
+npm install @cratis/chronicle
+```
+
+## A taste
+
+Define an event with a decorator, connect, and append — from the client repository's quick example:
+
+```typescript
+import 'reflect-metadata';
+import { ChronicleClient, ChronicleOptions, eventType } from '@cratis/chronicle';
+
+@eventType()
+class EmployeeHired {
+    constructor(readonly firstName: string, readonly lastName: string) {}
+}
+
+const client = new ChronicleClient(ChronicleOptions.development());
+const store = await client.getEventStore('MyStore');
+const result = await store.eventLog.append('employee-123', new EmployeeHired('Jane', 'Doe'));
+console.log(`Appended at sequence number ${result.sequenceNumber.value}`);
+client.dispose();
+```
+
+For a local kernel to append to, the development Docker image is the quickest path: `docker run -p 35000:35000 cratis/chronicle:latest-development`.
+
+## Where to go next
+
+<CardGrid>
+  <LinkCard title="TypeScript client docs" description="Installation, connection setup, decorators, and the full TypeScript API surface." href="/chronicle/clients/typescript/" />
+  <LinkCard title="Get started with Chronicle" description="Run Chronicle locally and build your first event-sourced feature." href="/chronicle/get-started/" />
+  <LinkCard title="Chronicle.TypeScript on GitHub" description="The TypeScript client repository — open source, MIT licensed." href="https://github.com/Cratis/Chronicle.TypeScript" />
+  <LinkCard title="@cratis/chronicle on npm" description="The TypeScript client package for Chronicle." href="https://www.npmjs.com/package/@cratis/chronicle" />
+</CardGrid>
+
+Looking for another language? See [Chronicle in your language](/chronicle-clients/) for the .NET, Kotlin/Java, and Elixir clients.
