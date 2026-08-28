@@ -1,6 +1,6 @@
 ---
 title: Why developers choose Cratis
-description: "The practical reasons teams choose Cratis: one stack that fits together, strong conventions, open Chronicle boundaries, storage choice, full-stack contracts, end-to-end foundations, and codebases that stay predictable for people and AI."
+description: "The practical reasons teams choose Cratis: one stack that fits together, strong conventions, open Chronicle boundaries, a database-agnostic event store (MongoDB, PostgreSQL, SQL Server, SQLite), full-stack contracts, end-to-end foundations, and codebases that stay predictable for people and AI."
 ---
 
 import { CardGrid } from '@astrojs/starlight/components';
@@ -8,7 +8,7 @@ import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
 <TopicHero icon="open-book" eyebrow="Why developers choose Cratis" title="Build the system you modeled">
-Developers choose Cratis when they want the domain model, backend, frontend, identity boundary, UI, and operations view to line up. Chronicle, Arc, Components, AuthProxy, the CLI, and the AI tooling are opinionated in the same direction: write the behavior once, keep the contract typed, choose the right storage, handle the hard cross-cutting concerns, and make the running system inspectable. [Get started →](/chronicle/get-started/) · [Build a full-stack feature →](/build-a-full-app/)
+Developers choose Cratis when they want the domain model, backend, frontend, identity boundary, UI, and operations view to line up. Chronicle, Arc, Components, AuthProxy, the CLI, and the AI tooling are opinionated in the same direction: write the behavior once, keep the contract typed, keep the event store database-agnostic — MongoDB (default), PostgreSQL, SQL Server, or SQLite — handle the hard cross-cutting concerns, and make the running system inspectable. [Get started →](/chronicle/get-started/) · [Build a full-stack feature →](/build-a-full-app/)
 </TopicHero>
 
 ## The developer payoff
@@ -57,7 +57,7 @@ The point is not that Cratis has many packages. The point is that the packages a
 |---|---|
 | Domain behavior | Studio models it, Arc turns it into commands and queries, Chronicle records the facts as the default source of truth for information systems |
 | Frontend contract | Arc generates TypeScript proxies from C#, and Components renders those proxies as forms, dialogs, and live tables |
-| Chronicle client boundary | Chronicle exposes gRPC/protobuf contracts, with .NET as the first-class client and TypeScript and Elixir clients/contracts for other runtimes |
+| Chronicle client boundary | Chronicle exposes gRPC/protobuf contracts, with .NET as the first-class client and TypeScript, Kotlin/Java, and Elixir clients for other runtimes |
 | Chronicle storage | MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite implementations let the event store fit the deployment |
 | Runtime scale | Chronicle runs its kernel on .NET Orleans, so event sequences, observers, jobs, and long-running processing live on a distributed actor runtime |
 | Authentication and tenant resolution | AuthProxy handles the edge and forwards trusted identity and tenant context into the app |
@@ -75,10 +75,10 @@ Chronicle is more than a .NET package. It is a client-server event platform with
 
 <CardGrid>
   <SimpleCard title="Language-neutral boundary" icon="puzzle" link="/chronicle/architecture/">
-    Chronicle speaks gRPC/protobuf at the kernel boundary. The .NET client is the first-class, most mature experience, and the repo also ships TypeScript and Elixir clients/contracts.
+    Chronicle speaks gRPC/protobuf at the kernel boundary. The .NET client is the first-class experience, and Chronicle also ships TypeScript, Kotlin/Java, and Elixir clients — the JVM client includes a Spring Boot starter.
   </SimpleCard>
-  <SimpleCard title="Storage choice" icon="seti:db" link="/chronicle/hosting/configuration/storage/">
-    The event store is storage-agnostic: MongoDB by default, with PostgreSQL, Microsoft SQL Server, and SQLite implementations when those fit better.
+  <SimpleCard title="A database-agnostic event store" icon="seti:db" link="/chronicle/hosting/configuration/storage/">
+    The event store is database-agnostic, with pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite — pick the one you already operate.
   </SimpleCard>
   <SimpleCard title="Built on Orleans" icon="rocket" link="/chronicle/architecture/">
     The kernel is built on .NET Orleans, giving Chronicle a distributed actor foundation for event sequences, observers, jobs, reminders, and recovery.
@@ -99,7 +99,7 @@ Cratis is not just a set of libraries. It changes the shape of the work:
 | Rebuilding screens by hand after a write | Observable queries and components that follow the read model |
 | Rebuilding authentication, tenancy, and identity plumbing per service | AuthProxy at the edge, Arc identity and tenancy inside the app, Chronicle namespaces underneath |
 | Teaching every developer and AI assistant a project-specific architecture from scratch | Strong conventions, analyzers, and `.ai` guidance that make each feature look like the rest |
-| Locking event history to one application language or database engine | Chronicle's gRPC boundary, .NET/TypeScript/Elixir clients/contracts, and MongoDB/PostgreSQL/SQL Server/SQLite storage implementations |
+| Locking event history to one application language or database engine | Chronicle's gRPC boundary, .NET/TypeScript/Kotlin/Java/Elixir clients, and MongoDB/PostgreSQL/SQL Server/SQLite storage implementations |
 | Debugging from logs alone | Events, observers, read models, and replay visible through the tools |
 | Treating CQRS and event sourcing as the same decision | Arc for the command/query boundary, Chronicle for the event-sourced backbone — independent, but strongest together |
 
@@ -132,7 +132,7 @@ The result is a workflow that stays close to the language developers already use
 
 The core pieces are built to stand alone. Each solves a complete problem by itself, so you can adopt exactly the part you need and nothing more:
 
-- **Chronicle on its own** is an event-sourcing engine you can run from *any* .NET host — a worker, a console app, a different web framework. The .NET client is the most mature path, but the kernel boundary is gRPC/protobuf and the repo also ships TypeScript and Elixir clients/contracts. Append events, build projections, react to them. No Arc, no React required.
+- **Chronicle on its own** is an event-sourcing database you can use from *any* .NET host — a worker, a console app, a different web framework — and from other runtimes too. The .NET client is the first-class path, but the kernel boundary is gRPC/protobuf and Chronicle also ships [TypeScript, Kotlin/Java, and Elixir clients](/chronicle-clients/) — the JVM client with a Spring Boot starter. Append events, build projections, react to them. No Arc, no React required.
 - **Arc on its own** is a full-stack CQRS framework with **generated, typed C# → TypeScript proxies**. Its commands and queries can persist straight to **MongoDB** or **EF Core / SQL** when you deliberately want CQRS without an event log ([here's the standalone shape](/arc/arc-without-event-sourcing/)). You still get the typed frontend, the command forms, and live queries.
 - **Components on its own** is a React library that renders Arc's generated proxies as forms, tables, and dialogs.
 - **AuthProxy on its own** is a gateway for authentication, tenancy, identity enrichment, routing, and invites in front of any backend and frontend you point it at.

@@ -24,6 +24,8 @@ Cratis spans .NET packages, TypeScript packages, Docker images, storage engines,
 | Package manager | The JavaScript workspaces use Yarn 4.5.3. |
 | React | Arc React declares React 18 or 19 peer compatibility. Components is currently built and documented around the React 19 workspace. |
 | TypeScript | Current JavaScript workspaces use TypeScript 6. |
+| Chronicle Kotlin/Java client | The JVM client (`io.cratis:chronicle` on Maven Central) builds with a JVM 17 toolchain and ships a Spring Boot starter (`io.cratis:chronicle-spring-boot-starter`) and a testing library. |
+| Chronicle Elixir client | The Elixir client (`cratis_chronicle` on Hex) declares Elixir `~> 1.14` and installs through `mix`. |
 | Chronicle storage | MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite are documented storage choices. |
 | Arc persistence | MongoDB and Entity Framework Core integrations are documented. |
 | Docs site | Astro Starlight, generated product content, Storybook builds, API reference builds, and `/llms.txt` exports are part of the documentation site. |
@@ -32,7 +34,7 @@ Cratis spans .NET packages, TypeScript packages, Docker images, storage engines,
 
 | Product | Common dependency relationship |
 |---|---|
-| Chronicle | Uses Fundamentals and Arc packages internally, exposes .NET clients and gRPC/protobuf contracts, and can be inspected through CLI and Workbench. |
+| Chronicle | Uses Fundamentals and Arc packages internally, exposes a first-class .NET client plus TypeScript, Kotlin/Java, and Elixir clients over gRPC/protobuf contracts, and can be inspected through CLI and Workbench. |
 | Arc | Uses Fundamentals and can integrate with Chronicle, MongoDB, Entity Framework Core, ASP.NET Core, OpenAPI, Swagger, and generated TypeScript proxies. |
 | Components | Depends on Arc-generated frontend contracts and React; wraps PrimeReact-oriented UI patterns. |
 | CLI | Talks to Chronicle and produces AI command catalogs through `cratis init`. |

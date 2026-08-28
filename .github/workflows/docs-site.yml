@@ -20,6 +20,8 @@
 name: Documentation site
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [docs-overhaul, main]
   workflow_dispatch:
@@ -28,8 +30,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: docs-site-${{ github.ref_name }}
@@ -50,6 +50,7 @@ jobs:
       - name: Checkout Documentation
         uses: actions/checkout@v4
         with:
+          persist-credentials: false
           path: Documentation
 
       - name: Checkout Samples
@@ -57,7 +58,8 @@ jobs:
         with:
           repository: Cratis/Samples
           ref: main
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Samples
 
       - name: Checkout Chronicle
@@ -65,7 +67,8 @@ jobs:
         with:
           repository: Cratis/Chronicle
           ref: ${{ env.DOCS_REF }}
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Chronicle
 
       - name: Checkout Chronicle.Kotlin client docs
@@ -73,7 +76,8 @@ jobs:
         with:
           repository: Cratis/Chronicle.Kotlin
           ref: main
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Chronicle.Kotlin
 
       - name: Checkout Chronicle.Elixir client docs
@@ -81,7 +85,8 @@ jobs:
         with:
           repository: Cratis/Chronicle.Elixir
           ref: main
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Chronicle.Elixir
 
       - name: Checkout Chronicle.TypeScript client docs
@@ -89,7 +94,8 @@ jobs:
         with:
           repository: Cratis/Chronicle.TypeScript
           ref: main
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Chronicle.TypeScript
 
       - name: Checkout Chronicle.Mcp
@@ -97,7 +103,8 @@ jobs:
         with:
           repository: Cratis/Chronicle.Mcp
           ref: main
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Chronicle.Mcp
 
       - name: Checkout Arc
@@ -105,7 +112,8 @@ jobs:
         with:
           repository: Cratis/Arc
           ref: ${{ env.DOCS_REF }}
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Arc
 
       - name: Checkout Components
@@ -113,7 +121,8 @@ jobs:
         with:
           repository: Cratis/Components
           ref: ${{ env.DOCS_REF }}
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Components
 
       - name: Checkout AuthProxy
@@ -121,7 +130,8 @@ jobs:
         with:
           repository: Cratis/AuthProxy
           ref: ${{ env.DOCS_REF }}
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: AuthProxy
 
       - name: Checkout Fundamentals
@@ -129,7 +139,8 @@ jobs:
         with:
           repository: Cratis/Fundamentals
           ref: ${{ env.DOCS_REF }}
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Fundamentals
 
       - name: Checkout cli
@@ -137,7 +148,8 @@ jobs:
         with:
           repository: Cratis/cli
           ref: ${{ env.DOCS_REF }}
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: cli
 
       - name: Checkout .github (Contributing)
@@ -145,7 +157,8 @@ jobs:
         with:
           repository: Cratis/.github
           ref: ${{ env.DOCS_REF }}
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: .github
 
       - name: Checkout Architecture
@@ -153,7 +166,8 @@ jobs:
         with:
           repository: Cratis/Architecture
           ref: main
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Architecture
 
       - name: Checkout Screenplay
@@ -161,7 +175,8 @@ jobs:
         with:
           repository: Cratis/Screenplay
           ref: main
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Screenplay
 
       - name: Checkout Stage
@@ -169,7 +184,8 @@ jobs:
         with:
           repository: Cratis/Stage
           ref: main
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Stage
 
       - name: Checkout Screenplay.Generation
@@ -177,7 +193,8 @@ jobs:
         with:
           repository: Cratis/Screenplay.Generation
           ref: main
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Screenplay.Generation
 
       - name: Checkout Screenplay.CritterStack
@@ -185,7 +202,8 @@ jobs:
         with:
           repository: Cratis/Screenplay.CritterStack
           ref: main
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Screenplay.CritterStack
 
       - name: Checkout Prologue
@@ -193,7 +211,8 @@ jobs:
         with:
           repository: Cratis/Prologue
           ref: main
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Prologue
 
       - name: Checkout Prompter
@@ -201,7 +220,8 @@ jobs:
         with:
           repository: Cratis/Prompter
           ref: main
-          token: ${{ secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
           path: Prompter
 
       - uses: actions/setup-node@v4
@@ -298,10 +318,14 @@ jobs:
 
   deploy:
     needs: build
-    # Publish to Pages only from main — docs-overhaul runs are build-only validation.
-    if: ${{ github.ref_name == 'main' }}
+    # Publish to Pages only from main — pull requests and docs-overhaul are build-only validation.
+    if: ${{ github.event_name != 'pull_request' && github.ref_name == 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

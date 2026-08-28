@@ -1,7 +1,7 @@
 ---
 // Progressive enhancement for the splash hero: rotates the headline, tagline,
 // and actions through the platform's stories (Event Sourcing, CQRS, Application
-// Framework, the Stack, AI-Native, Studio, Screenplay, Prologue) with labeled dot
+// Framework, the Stack, Any Language, AI-Native, Studio, Screenplay, Prologue) with labeled dot
 // indicators. The static hero authored in
 // the page frontmatter IS the first pane — without JavaScript nothing here
 // renders and the page degrades to that single message. With JavaScript the
@@ -34,7 +34,7 @@ const panes: Pane[] = [
         label: 'Event Sourcing',
         title: 'Event sourcing you can actually be productive with',
         tagline:
-            'We treat event sourcing as the default architecture for information systems: capture what happened as immutable facts, project exactly the read models you need, and ship a full-stack, type-safe app — identity, tenancy, backend, React, storage choice, and operations — without the boilerplate.',
+            'We treat event sourcing as the default architecture for information systems: capture what happened as immutable facts, project exactly the read models you need, and ship a full-stack, type-safe app — identity, tenancy, backend, React, storage choice, and operations — without the boilerplate. Open source and MIT licensed, with Chronicle clients for .NET, TypeScript, Kotlin/Java, and Elixir — and a database-agnostic event store with pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite.',
         actions: [
             getStarted,
             { text: 'Why event sourcing?', link: '/chronicle/why-event-sourcing/', variant: 'minimal', icon: 'open-book' },
@@ -75,13 +75,37 @@ const panes: Pane[] = [
         label: 'The Stack',
         title: 'Chronicle, Arc, Components, and the tools — working as one',
         tagline:
-            'The Cratis Stack assembles into a cohesive whole: Chronicle owns the event log and read models, Arc carries a command through generated proxies to a live React screen, Components keeps the UI consistent, and Studio, the CLI, and Workbench complete the picture — all sharing identity, tenancy, and conventions so every piece reinforces the others.',
+            'The Cratis Stack assembles into a cohesive whole: Chronicle — the event-sourcing database with clients for .NET, TypeScript, Kotlin/Java, and Elixir — owns the event log and read models, Arc carries a command through generated proxies to a live React screen, Components keeps the UI consistent, and Studio, the CLI, and Workbench complete the picture — all sharing identity, tenancy, and conventions so every piece reinforces the others.',
         actions: [
             getStarted,
             { text: 'Learn more', link: '/cratis-stack/', variant: 'minimal', icon: 'open-book' },
             gitHub,
             community,
             workWithUs,
+        ],
+    },
+    {
+        label: 'Any Language',
+        title: 'One event-sourcing database, your language of choice',
+        tagline:
+            'Chronicle speaks gRPC/protobuf at its boundary, so the event store is not tied to one runtime: use the first-class .NET SDK, or the TypeScript, Kotlin/Java, and Elixir clients — with a Python client coming soon — against the same store, the same events, and the same projections.',
+        actions: [
+            getStarted,
+            { text: 'Chronicle in your language', link: '/chronicle-clients/', variant: 'minimal', icon: 'open-book' },
+            gitHub,
+            community,
+        ],
+    },
+    {
+        label: 'Any Database',
+        title: 'A database-agnostic event store, on the database you already run',
+        tagline:
+            'Chronicle keeps the event store database-agnostic through pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite — the same events, projections, and operational tooling over the database your team already operates, so choosing event sourcing never means choosing a new database.',
+        actions: [
+            getStarted,
+            { text: 'Storage configuration', link: '/chronicle/hosting/configuration/storage/', variant: 'minimal', icon: 'open-book' },
+            gitHub,
+            community,
         ],
     },
     {
