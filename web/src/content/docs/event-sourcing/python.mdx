@@ -1,0 +1,23 @@
+---
+title: Event sourcing in Python — coming soon
+description: "A Python client for Cratis Chronicle, the open-source (MIT) event-sourcing database, is in development. It is pre-alpha and not yet published — the .NET, TypeScript, Kotlin/Java, and Elixir clients ship today."
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+A Python client for Chronicle — the open-source (MIT) event-sourcing database and processing runtime — is in development. It will join the existing [.NET, TypeScript, Kotlin/Java, and Elixir clients](/chronicle-clients/), all of which speak the same language-agnostic gRPC/protobuf contract against the same event store.
+
+<Aside type="note" title="Pre-release">
+The Python client is pre-alpha. APIs will change, no package has been published to PyPI, and no commitment is implied. There is nothing to install yet — follow the repository for progress, or ask in [the community](/community/) if it matters to your project.
+</Aside>
+
+In the meantime, Chronicle's gRPC boundary means any language with a gRPC implementation can talk to it — see [Building a client](/chronicle/building-a-client/) — and the [Chronicle MCP server](/chronicle-mcp/) connects AI agents to a running Chronicle regardless of client language.
+
+## Where to go next
+
+<CardGrid>
+  <LinkCard title="Chronicle.Python on GitHub" description="Follow the Python client's development." href="https://github.com/Cratis/Chronicle.Python" />
+  <LinkCard title="Chronicle in your language" description="The clients that ship today: .NET, TypeScript, Kotlin/Java, and Elixir." href="/chronicle-clients/" />
+  <LinkCard title="Get started with Chronicle" description="Run Chronicle locally and build your first event-sourced feature." href="/chronicle/get-started/" />
+  <LinkCard title="Building a client" description="Implement the Chronicle gRPC contracts for a new language or runtime." href="/chronicle/building-a-client/" />
+</CardGrid>
