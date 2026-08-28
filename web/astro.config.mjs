@@ -10,6 +10,7 @@ import starlightPageActions from 'starlight-page-actions';
 import starlightScrollToTop from 'starlight-scroll-to-top';
 import starlightImageZoom from 'starlight-image-zoom';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
+import starlightBlog from 'starlight-blog';
 
 // One topic per product, generated from each product's toc.yml by
 // scripts/sync-content.mjs. starlight-sidebar-topics renders these as an icon
@@ -246,10 +247,19 @@ export default defineConfig({
                 baseUrl: 'https://github.com/cratis/Documentation/edit/main/web/',
             },
             plugins: [
+                // The Cratis blog at /blog — post list, per-post pages, and RSS at
+                // /blog/rss.xml. Runs before starlight-sidebar-topics so blog pages
+                // get the blog sidebar instead of a product topic sidebar.
+                starlightBlog({
+                    title: 'Blog',
+                    authors: {
+                        cratis: { name: 'Cratis team', url: 'https://github.com/Cratis' },
+                    },
+                }),
                 // Product icon rail + per-product sidebar (the aspire.dev "topics" look).
                 starlightSidebarTopics(topics, {
-                    // The splash homepage and 404 belong to no product.
-                    exclude: ['/', '/404'],
+                    // The splash homepage, 404, and blog belong to no product.
+                    exclude: ['/', '/404', '/blog', '/blog/**'],
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {

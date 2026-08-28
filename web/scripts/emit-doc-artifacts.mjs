@@ -66,4 +66,35 @@ for await (const file of walk(docsRoot)) {
     await fs.copyFile(file, outFile);
 }
 
-console.log(`[postbuild] emitted ${markdownMirrors} markdown mirrors and ${staticFiles} static doc assets`);
+// starlight-blog generates listing routes (the blog index, pagination, tag, and
+// author pages) that have no source markdown file, but starlight-page-actions
+// still links every rendered page to a /path.md mirror. Emit small stubs so
+// those links resolve.
+async function fileExists(file) {
+    try {
+        return (await fs.stat(file)).isFile();
+    } catch {
+        return false;
+    }
+}
+
+let blogStubs = 0;
+const blogDist = path.join(distRoot, 'blog');
+try {
+    for await (const file of walk(blogDist)) {
+        if (path.basename(file) !== 'index.html') continue;
+        const relDir = path.relative(distRoot, path.dirname(file)).replace(/\\/g, '/');
+        const mirror = path.join(distRoot, `${relDir}.md`);
+        if (await fileExists(mirror)) continue; // a real post mirror already exists
+        await fs.mkdir(path.dirname(mirror), { recursive: true });
+        await fs.writeFile(
+            mirror,
+            `# Cratis blog\n\nThis is a generated listing page without a markdown source. Read the posts at https://cratis.io/${relDir}/.\n`,
+        );
+        blogStubs++;
+    }
+} catch {
+    // No blog output in this build; nothing to stub.
+}
+
+console.log(`[postbuild] emitted ${markdownMirrors} markdown mirrors, ${staticFiles} static doc assets, and ${blogStubs} blog listing stubs`);
