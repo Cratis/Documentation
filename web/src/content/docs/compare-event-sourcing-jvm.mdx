@@ -12,7 +12,11 @@ import { Aside } from '@astrojs/starlight/components';
 
 Axon Framework, KurrentDB, and Cratis Chronicle all support event-sourced JVM systems, but they are not the same kind of product. Axon is an application framework with command, event, and query infrastructure plus pluggable event storage. KurrentDB and Chronicle are separate server products used through client SDKs.
 
-This page compares the concerns where those products overlap. It does not treat a database client as a complete application framework, and it does not treat framework breadth as proof that a database is missing features.
+This page compares the concerns where those products overlap. It does not treat a database client as an application framework, and it does not treat framework breadth as proof that a database is missing features.
+
+## Comparison layers
+
+Axon Framework is the application-framework option; Axon Server is optional event infrastructure. KurrentDB and Chronicle are event servers consumed through clients. The matrix compares overlapping concerns and labels whether responsibility sits in the framework, server, or client; it does not treat the products as equivalent feature bundles.
 
 ## What is being compared
 
@@ -66,11 +70,23 @@ Examine Chronicle closely when you want event storage and event processing behin
 
 1. **Framework boundary:** Do you want a JVM framework to own commands, queries, entities, repositories, and event processing, or do you want an event server behind an application model you choose separately?
 2. **Storage boundary:** Should events live in Axon Server, PostgreSQL or JPA through Axon, KurrentDB's own engine, or one of Chronicle's documented providers?
-3. **Spring boundary:** Do you need a complete CQRS application framework integrated with Spring, a Spring-configured database client, or Chronicle artifact registration and request integration?
+3. **Spring boundary:** Do you need Axon's CQRS application framework integrated with Spring, a Spring-configured database client, or Chronicle artifact registration and request integration?
 4. **Processing model:** Which handlers must share a transaction, which processors must be replayable, and where should checkpoints, retries, and failed work be owned?
-5. **Language boundary:** Is the JVM the complete system boundary, or must several language clients use the same event server?
+5. **Language boundary:** Is the JVM the only system boundary, or must several language clients use the same event server?
 6. **Operations:** How will your team inspect processor or subscription progress, failed processing, projections, replay, and recovery for the exact topology you deploy?
 7. **Commercial and license boundary:** Which server edition, support terms, and licenses apply to the exact components you intend to run?
+
+## Decision criteria to verify separately
+
+This comparison does not score several decision-critical dimensions that depend on the exact deployment profile:
+
+- append and side-effect atomicity, plus read consistency;
+- event schema evolution, replay, and migration behavior;
+- backup, restore, upgrade, failure, and recovery procedures;
+- authentication, tenancy, encryption, PII, and redaction controls; and
+- support, commercial terms, and operational responsibility.
+
+Verify each dimension against the exact product versions and deployment profiles before choosing.
 
 ## Limitations
 

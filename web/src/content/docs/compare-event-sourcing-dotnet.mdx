@@ -12,7 +12,11 @@ import { Aside } from '@astrojs/starlight/components';
 
 KurrentDB, Marten, and Cratis Chronicle all support event-sourced systems, but they make different architectural choices. KurrentDB is a dedicated event database, Marten is an in-process .NET library built on PostgreSQL, and Chronicle is a separate event-sourcing server and processing runtime.
 
-This page compares the capabilities where those products overlap. It does not rank them, and it does not compare the complete Critter Stack with the wider Cratis ecosystem.
+This page compares the capabilities where those products overlap. It does not rank them, and it does not compare the Critter Stack as a whole with the wider Cratis ecosystem.
+
+## Comparison layers
+
+These products do not occupy the same layer. KurrentDB and Chronicle are separate event-server runtimes; Marten is an in-process .NET library. The Critter Stack and Cratis ecosystem add adjacent products rather than changing the boundary of the compared product. The matrix compares overlapping concerns and names which product owns each concern; it is not a feature checklist between equivalent products.
 
 ## What is being compared
 
@@ -69,9 +73,21 @@ Examine Chronicle closely when you want event storage and event processing behin
 2. **Database boundary:** Do you want PostgreSQL as the fixed foundation, a purpose-built storage engine, or a runtime with documented provider choices?
 3. **Application model:** Do you want to assemble the CQRS and messaging layers yourself, adopt the Critter Stack's .NET model, or use the wider Cratis application path?
 4. **Projection model:** Which work must share the append transaction, and which work may run asynchronously or on demand?
-5. **Language boundary:** Is .NET the complete application boundary, or must several language clients use the same event server?
+5. **Language boundary:** Is .NET the only application boundary, or must several language clients use the same event server?
 6. **Operations:** How will your team inspect subscription progress, failed processing, parked work, projections, replay, and recovery for the exact topology you deploy?
 7. **Commercial and license boundary:** Which server features, support terms, and licenses apply to the exact products you intend to run?
+
+## Decision criteria to verify separately
+
+This comparison does not score several decision-critical dimensions that depend on the exact deployment profile:
+
+- append and side-effect atomicity, plus read consistency;
+- event schema evolution, replay, and migration behavior;
+- backup, restore, upgrade, failure, and recovery procedures;
+- authentication, tenancy, encryption, PII, and redaction controls; and
+- support, commercial terms, and operational responsibility.
+
+Verify each dimension against the exact product versions and deployment profiles before choosing.
 
 ## Limitations
 
