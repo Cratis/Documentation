@@ -92,6 +92,10 @@ function checkFile(file, raw) {
             continue;
         }
 
+        // Inline code may deliberately name an authoring marker, as migration guidance
+        // does with `TODO(cratis-codemod)`. Only prose should trigger marker errors.
+        const prose = line.replace(/`[^`]*`/g, '');
+
         // Errors
         for (const re of NONDESCRIPTIVE) {
             if (re.test(line)) { console.error(`  [link-text] ${at}  ${line.trim()}`); errors++; }
@@ -100,11 +104,10 @@ function checkFile(file, raw) {
             if (re.test(line)) { console.error(`  [docfx] ${at}  ${line.trim()}`); errors++; }
         }
         for (const re of AUTHORING_MARKERS) {
-            if (re.test(line)) { console.error(`  [marker] ${at}  ${line.trim()}`); errors++; }
+            if (re.test(prose)) { console.error(`  [marker] ${at}  ${line.trim()}`); errors++; }
         }
 
         // Warnings (style guide) — skip inline-code spans so `simply` in `code` is ignored.
-        const prose = line.replace(/`[^`]*`/g, '');
         // Heading end-punctuation: check the original line (entities decoded), NOT the
         // code-stripped `prose`. A heading like `## Convenience: `[EventLog]`` ends in a
         // code span, not punctuation — stripping the code first would leave a phantom
