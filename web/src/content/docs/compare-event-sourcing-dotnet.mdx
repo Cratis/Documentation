@@ -1,104 +1,92 @@
 ---
-title: "Event sourcing in .NET: comparing KurrentDB, Marten, and Cratis Chronicle"
-description: "A version-pinned, source-cited comparison of event sourcing options for .NET — KurrentDB (formerly EventStoreDB) 26.0, Marten 9.30.0, and Cratis Chronicle 17.0.0 — covering license, storage model, language clients, subscriptions, projections, hosting, and each tool's wider ecosystem and supporting products, with citations and retrieval dates for every row."
-head:
-  - tag: meta
-    attrs:
-      name: keywords
-      content: "event sourcing .NET comparison, event sourcing C#, .NET event store comparison, KurrentDB vs Marten vs Cratis Chronicle, Marten vs Cratis Chronicle, EventStoreDB alternatives, KurrentDB alternatives, choosing an event sourcing framework for .NET, event sourcing database .NET"
+title: "Event sourcing in .NET: KurrentDB, Marten, and Cratis Chronicle"
+description: "Compare KurrentDB 26.0, Marten 9.30.0, and Cratis Chronicle 16.42.0 for .NET event sourcing, with versioned sources and architectural trade-offs."
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-Choosing an event sourcing foundation for a .NET system is a long-lived decision. The event store outlives frameworks, UI rewrites, and often the team that chose it. Yet most comparisons available today reduce to popularity: the tools with the most blog posts win the evaluation before it starts.
+KurrentDB, Marten, and Cratis Chronicle all support event-sourced systems, but they make different architectural choices. KurrentDB is a dedicated event database, Marten is an in-process .NET library built on PostgreSQL, and Chronicle is a separate event-sourcing server and processing runtime.
 
-This comparison takes a different approach. Every factual row names the exact versions compared and is reproducible from public documentation and released packages. Where our own product appears, the same rules apply — including the limitations.
+This page compares the capabilities where those products overlap. It does not rank them, and it does not compare the complete Critter Stack with the wider Cratis ecosystem.
 
-## The candidates
+## What is being compared
 
-- **KurrentDB (formerly EventStoreDB)** — a purpose-built event store database with clients for multiple languages. You bring your own CQRS layer and read-model infrastructure.
-- **Marten** — a .NET library that turns PostgreSQL into a document and event store. Deep .NET integration; PostgreSQL is a prerequisite; .NET is the boundary.
-- **Cratis Chronicle** — an event-sourcing database and processing runtime with a first-class .NET SDK and released TypeScript, Java/Kotlin (JVM), and Elixir client packages. Pairs with [Arc](/arc/) (an opinionated CQRS application framework for ASP.NET Core with TypeScript proxy generation) and a [React component library](/components/).
+- **KurrentDB (formerly EventStoreDB)** — a purpose-built event database with official clients for several languages, server-managed persistent subscriptions, projections, and connectors.
+- **Marten** — a transactional document database and event store for .NET applications using PostgreSQL, with inline, asynchronous, and live projection models.
+- **Cratis Chronicle** — an event-sourcing database and processing runtime with a separate server, multiple storage providers, and released clients for .NET, TypeScript, Kotlin/Java, and Elixir.
 
-## How this comparison is made
+Marten is also part of the [Critter Stack](https://jasperfx.net). [Wolverine](https://wolverinefx.net) is its messaging and web-development framework, with documented transport support, failure policies, and persistent inbox/outbox messaging. Polecat brings the event-store and document-database model to SQL Server, while Fisher targets SQLite. Chronicle belongs to the wider Cratis ecosystem, where [Arc](/arc/), [Components](/components/), the [Cratis CLI](/cli/), and Workbench cover adjacent application and operating concerns. These are separate products in their respective families, not features attributed to Marten or Chronicle itself.
+
+## Method and versions
 
 <Aside type="note" title="Method">
-Every row states a released, verifiable capability fact. Every cell is cited from the named tool's own public documentation, repository, or public package-registry listing for its released packages, with the retrieval date recorded. No cell states or implies performance, scalability, maturity, reliability, popularity, production-suitability, or superiority — for any tool, including Cratis Chronicle. Any reader can reproduce every cell from the cited source at the named version.
+The table records released, documented capabilities at named versions. Sources come from each product's own documentation, repository, license, or package registry and were checked on 2026-08-30. A listed capability is not a claim about performance, maturity, reliability, production suitability, or feature parity.
 </Aside>
 
-## Compared versions
-
-All facts retrieved **2026-08-28** unless a row states otherwise.
-
 | Tool | Compared version | Version source |
-| ---- | ---------------- | -------------- |
-| KurrentDB (formerly EventStoreDB) | Server 26.0 documentation series; 26.0.3 is the release named in the official installation documentation | [docs.kurrent.io/server/v26.0/quick-start/installation.html](https://docs.kurrent.io/server/v26.0/quick-start/installation.html) (retrieved 2026-08-28) |
-| Marten | 9.30.0 (latest stable package on NuGet at retrieval) | [nuget.org listing for `Marten`](https://www.nuget.org/packages/Marten) (retrieved 2026-08-28) |
-| Cratis Chronicle | 17.0.0 (latest stable `Cratis.Chronicle` package on NuGet at retrieval); server distributed as the `cratis/chronicle` Docker image | [nuget.org listing for `Cratis.Chronicle`](https://www.nuget.org/packages/Cratis.Chronicle); [hub.docker.com/r/cratis/chronicle](https://hub.docker.com/r/cratis/chronicle) (retrieved 2026-08-28) |
+| --- | --- | --- |
+| KurrentDB | Server 26.0 documentation series; 26.0.3 is the release named by the installation documentation | [KurrentDB 26.0 installation documentation](https://docs.kurrent.io/server/v26.0/quick-start/installation.html) |
+| Marten | 9.30.0 | [Marten 9.30.0 on NuGet](https://www.nuget.org/packages/Marten/9.30.0) |
+| Cratis Chronicle | Server and .NET client 16.42.0; server distributed as the `cratis/chronicle` Docker image | [Cratis.Chronicle 16.42.0 on NuGet](https://www.nuget.org/packages/Cratis.Chronicle/16.42.0), [Chronicle Docker tags](https://hub.docker.com/r/cratis/chronicle/tags) |
 
-## The comparison matrix
+## Core comparison
 
-| Row | KurrentDB (server 26.0) | Marten (9.30.0) | Cratis Chronicle (17.0.0) |
-| --- | ----------------------- | --------------- | ------------------------- |
-| License | Kurrent License v1 (KLv1). The KurrentDB documentation states the source code is available to view and that KLv1 "is not an OSI-approved Open Source License"; enterprise features are enabled with a license key. | MIT License. | MIT License. |
-| Storage model | Purpose-built, event-native database; events are stored in streams inside KurrentDB's own storage engine. | Library that uses PostgreSQL as the underlying data store, using its JSON support and ACID compliance; PostgreSQL is a prerequisite. | Event-sourcing database with pluggable storage-provider implementations documented in the [repository README](https://github.com/Cratis/Chronicle/blob/main/README.md): MongoDB (default), PostgreSQL, SQL Server, and SQLite, plus an in-memory provider. |
-| Language clients | Official gRPC client SDKs listed for Python, Node.js (JavaScript/TypeScript), Java, .NET, Go, and Rust; community clients listed for Ruby, Elixir, and PHP; an HTTP interface also exists (AtomPub-based application API disabled by default and planned for removal). | .NET library; runs inside a .NET application process. | First-class .NET client SDK (`Cratis.Chronicle` on NuGet). Released client packages also on public registries: `@cratis/chronicle` 3.1.0 on npm (MIT), `io.cratis:chronicle` 2.10.0 on Maven Central, `cratis_chronicle` 2.2.0 on Hex (MIT). A Python client is coming soon: no package is published on PyPI as of the retrieval date, and no commitment is implied. |
-| Subscriptions / event processing | Catch-up subscriptions (client keeps position) and persistent subscriptions (server keeps position, competing-consumers pattern, at-least-once delivery across consumer groups). | Subscription model (`ISubscription`, documented since 7.7) running in Marten's async daemon subsystem as a background process inside the application, for pushing captured events into custom processing. | Reactors (react to events as they occur), Reducers (imperatively transform events into typed read models), and Observers (low-level event subscriptions with guaranteed delivery), as documented in the [repository README](https://github.com/Cratis/Chronicle/blob/main/README.md). |
-| Projections / read models | Server-side projections subsystem: built-in (system) projections and user-defined JavaScript projections; projections require the event body to be JSON. The docs note many read-model problems are better served by a separate read model populated by a catch-up subscription. | Rich projection support for read-side views: inline projections (in the capture transaction), async projections (background, eventually consistent), and live projections (evaluated on demand). | Declarative, fluent projection builders with join, set, and remove support, producing typed read models, as documented in the [repository README](https://github.com/Cratis/Chronicle/blob/main/README.md). |
-| Hosting model | Separate database server process: single node or a highly-available cluster (three nodes for cluster deployment); installable from Linux package repositories, on Windows, or via Docker images; some features require a license key. | In-process library: embedded in the host .NET application; background projection/subscription work runs in the async daemon inside the application. Requires a PostgreSQL database. | Separate server (Chronicle Kernel) run via the `cratis/chronicle` Docker image, exposing gRPC, REST API, and the Web Workbench management dashboard on a single port; the `latest-development` image bundles MongoDB for local development. |
+| Question | KurrentDB 26.0 | Marten 9.30.0 | Cratis Chronicle 16.42.0 |
+| --- | --- | --- | --- |
+| What is the product boundary? | A separate event-native database server with an integrated streaming engine. | A .NET library providing a transactional document database and event store inside the application. | A separate event-sourcing server and processing runtime used through client SDKs. |
+| Where are events stored? | In streams managed by KurrentDB's storage engine. | Marten stores events and documents in PostgreSQL. Within the wider Critter Stack, the separate Polecat and Fisher products target SQL Server and SQLite respectively. | Through pluggable providers documented for MongoDB (default), PostgreSQL, SQL Server, SQLite, and in-memory use. |
+| What is the language boundary? | Official gRPC clients are listed for Python, Node.js, Java, .NET, Go, and Rust, with additional community clients. | The event-store and document-database APIs are .NET libraries running in the host application. | A first-class .NET SDK, plus released TypeScript 3.1.1, Kotlin/Java 2.10.0, and Elixir 2.2.0 clients. The Python client is not yet published. |
+| How are events consumed? | Catch-up subscriptions keep position in the client. Persistent subscriptions keep position on the server and support consumer groups, acknowledgements, retries, parked events, and replay. KurrentDB documents at-least-once delivery and explicitly notes that persistent-subscription ordering is not guaranteed. | Marten subscriptions run through the asynchronous daemon inside the application and pass captured events to application-defined processing. | Reactors handle event-driven application work, Reducers derive typed read models, and Observers provide low-level event subscriptions. |
+| How are read models produced? | Built-in and user-defined JavaScript projections can react to events and emit or link events. KurrentDB notes that many read-model workloads are better handled by a separate read model fed by a catch-up subscription. | Inline projections run in the event-capture transaction, asynchronous projections run in the daemon, and live projections are evaluated on demand. | Reducers and declarative projection builders produce typed read models, including documented set, join, and remove operations. |
+| How can events reach other systems? | Server-side Connectors use catch-up subscriptions to filter or transform events and send them to documented sinks including HTTP, Kafka, RabbitMQ, MongoDB, Elasticsearch, and Serilog. | Marten subscriptions hand events to custom .NET processing. Wolverine is the Critter Stack's separate messaging and web framework, with documented transports, failure policies, asynchronous processing, and persistent inbox/outbox messaging. | Client APIs expose the server over gRPC and REST, while Reactors provide application-defined event processing. |
+| What runs in production? | A separate KurrentDB server, as a single node or documented cluster topology. Some features require a license key. | The Marten library and asynchronous daemon run in the .NET application, backed by PostgreSQL. | The Chronicle Kernel runs as a separate Docker-hosted server and exposes gRPC, REST, and the bundled Workbench browser surface. |
+| What is the license boundary? | Kurrent License v1; KurrentDB states that it is not an OSI-approved open-source license. Some enterprise features require a license key. | MIT License. | MIT License for Chronicle and its bundled local Workbench. Other Cratis products retain their own license and release boundaries. |
 
-### Row sources
+## Where each option fits
 
-All retrieved 2026-08-28:
+These are not quality rankings. They identify the architectural choice each product makes most explicit.
 
-- **KurrentDB** — license, client list, protocols: [docs.kurrent.io/server/v26.0/quick-start/](https://docs.kurrent.io/server/v26.0/quick-start/) (Introduction); hosting, packages, Docker, license keys, 26.0.3: [docs.kurrent.io/server/v26.0/quick-start/installation.html](https://docs.kurrent.io/server/v26.0/quick-start/installation.html); projections: [docs.kurrent.io/server/v26.0/features/projections/](https://docs.kurrent.io/server/v26.0/features/projections/); persistent subscriptions: [docs.kurrent.io/server/v26.0/features/persistent-subscriptions.html](https://docs.kurrent.io/server/v26.0/features/persistent-subscriptions.html).
-- **Marten** — positioning, PostgreSQL store: [martendb.io](https://martendb.io) (home) and [martendb.io/events/](https://martendb.io/events/); projection types: [martendb.io/events/](https://martendb.io/events/) (terminology: inline/async/live projections); subscriptions: [martendb.io/events/subscriptions](https://martendb.io/events/subscriptions); license: [github.com/JasperFx/marten `LICENSE`](https://github.com/JasperFx/marten/blob/master/LICENSE) (MIT); version: [nuget.org listing for `Marten`](https://www.nuget.org/packages/Marten) (9.30.0).
-- **Cratis Chronicle** — identity, kernel/SDK/Workbench/storage providers (MongoDB default; PostgreSQL, SQL Server, SQLite, in-memory), reactors/reducers/projections/observers, Docker hosting: [github.com/Cratis/Chronicle `README.md`](https://github.com/Cratis/Chronicle/blob/main/README.md); license: [github.com/Cratis/Chronicle `LICENSE`](https://github.com/Cratis/Chronicle/blob/main/LICENSE) (MIT); versions and client packages: [nuget.org](https://www.nuget.org/packages/Cratis.Chronicle) (`Cratis.Chronicle` 17.0.0), [npm](https://www.npmjs.com/package/@cratis/chronicle) (`@cratis/chronicle` 3.1.0), [Maven Central](https://central.sonatype.com/artifact/io.cratis/chronicle) (`io.cratis:chronicle` 2.10.0), [hex.pm](https://hex.pm/packages/cratis_chronicle) (`cratis_chronicle` 2.2.0), [pypi.org](https://pypi.org) (no `cratis-chronicle` package published), [hub.docker.com/r/cratis/chronicle](https://hub.docker.com/r/cratis/chronicle).
+### KurrentDB
 
-## Ecosystem and supporting products
+Examine KurrentDB closely when you want the event store to be dedicated infrastructure, need official clients across several languages, or want server-managed persistent subscriptions and connectors while keeping the application architecture in your own code.
 
-An event store rarely ships alone. Each of the compared tools names its own supporting products; the same method applies here — every cell restates the named vendor's own public listing or documentation, with retrieval dates, and implies nothing about quality, integration depth, or superiority.
+### Marten and the Critter Stack
 
-| Row | KurrentDB (server 26.0) | Marten (9.30.0) | Cratis Chronicle (17.0.0) |
-| --- | ----------------------- | --------------- | ------------------------- |
-| Wider product family | Official gRPC client SDKs for six languages plus community clients (see the Language clients row); the documented server feature set includes projections, persistent subscriptions, and a Connectors subsystem (next row). | Listed by JasperFx as part of the "Critter Stack", described as "one family of .NET tools for event sourcing, document storage, and messaging": Wolverine (messaging), Polecat (SQL Server), Fisher (SQLite), Weasel (schema), Alba (integration testing), and CritterWatch (monitoring). | Part of the Cratis ecosystem: [Arc](/arc/) (an opinionated CQRS application framework for ASP.NET Core with commands, queries, validation, authorization, and TypeScript proxy generation), [Components](/components/) (a React component library aligned with Arc application patterns), the [Cratis CLI](/cli/) (terminal workflows for inspecting and diagnosing Chronicle), and the Web Workbench management dashboard exposed by the server. Released language clients for .NET, TypeScript, JVM, and Elixir (see the Language clients row). |
-| Pushing events to other systems | Server-side Connectors subsystem, documented as pre-installed and enabled by default: each connector runs a catch-up subscription that can filter or transform events and push them to an external system via a sink; the documented sink catalog lists Elasticsearch, HTTP, Kafka, MongoDB, RabbitMQ, and Serilog sinks. | Subscriptions running in the async daemon push captured events into custom processing (see the Subscriptions row); messaging integration is positioned in the wider Critter Stack through Wolverine. | The server exposes gRPC and REST APIs (see the Hosting model row); Reactors provide documented event-driven processing, and Arc's TypeScript proxy generation carries contracts to the frontend. |
-| AI assistance | No entry compiled for this row; per the caveats, absence means only that it was not found in the sources cited for this page. | The JasperFx site describes its libraries as "optimized for low-friction development, testability, and AI-assisted workflows" and references its AI skills in current posts. | Cratis documents free AI skills, rules, and diagnostics for AI-assisted development on the [AI page](/ai/); current availability and distribution status are stated on that page. |
+Examine Marten closely when your application is .NET, PostgreSQL is already an accepted dependency, and you want document storage, event storage, and several projection modes in the same application and database transaction boundary. The broader Critter Stack is not limited to that Marten/PostgreSQL profile: Polecat targets SQL Server, Fisher targets SQLite, and Wolverine provides the family's messaging and web-development model. Evaluate those products together when database choice, durable messaging, HTTP handling, testing, schema management, or monitoring are part of the decision.
 
-### Ecosystem row sources
+### Cratis Chronicle and the Cratis ecosystem
 
-All retrieved 2026-08-28:
+Examine Chronicle closely when you want event storage and event processing behind a separate runtime, need a choice among its documented storage providers, or want several language clients to use the same server contracts. The wider Cratis experience connects Chronicle to Arc's CQRS application model, generated TypeScript contracts, React components, CLI workflows, and Workbench. That coherence is a different product boundary, not evidence that the other approaches are incomplete.
 
-- **KurrentDB** — Connectors overview (pre-installed, enabled by default, catch-up subscription, filter/transform, sinks): [docs.kurrent.io/server/v26.0/features/connectors/](https://docs.kurrent.io/server/v26.0/features/connectors/); sink catalog: [docs.kurrent.io/server/v26.0/features/connectors/sinks/](https://docs.kurrent.io/server/v26.0/features/connectors/sinks/).
-- **Marten / Critter Stack** — family listing and wording ("one family of .NET tools for event sourcing, document storage, and messaging"; Wolverine, Polecat, Fisher, Weasel, Alba, CritterWatch; "AI-assisted workflows"): [jasperfx.net](https://jasperfx.net); Wolverine documentation: [wolverinefx.net](https://wolverinefx.net).
-- **Cratis Chronicle** — Arc: [cratis.io/arc/](https://cratis.io/arc/); Components: [cratis.io/components/](https://cratis.io/components/); CLI: [cratis.io/cli/](https://cratis.io/cli/); Workbench: [github.com/Cratis/Chronicle `README.md`](https://github.com/Cratis/Chronicle/blob/main/README.md); AI skills, rules, and diagnostics: [cratis.io/ai/](https://cratis.io/ai/); client packages: registry listings cited under Row sources above.
+## Questions to answer before choosing
 
-## Caveats and limitations
+1. **Process boundary:** Should event storage and processing run inside the application or behind a separate server?
+2. **Database boundary:** Do you want PostgreSQL as the fixed foundation, a purpose-built storage engine, or a runtime with documented provider choices?
+3. **Application model:** Do you want to assemble the CQRS and messaging layers yourself, adopt the Critter Stack's .NET model, or use the wider Cratis application path?
+4. **Projection model:** Which work must share the append transaction, and which work may run asynchronously or on demand?
+5. **Language boundary:** Is .NET the complete application boundary, or must several language clients use the same event server?
+6. **Operations:** How will your team inspect subscription progress, failed processing, parked work, projections, replay, and recovery for the exact topology you deploy?
+7. **Commercial and license boundary:** Which server features, support terms, and licenses apply to the exact products you intend to run?
 
-- **This matrix compares documentation, not behavior.** Every cell restates what the named tool's own public documentation or registry listing says at the named version and retrieval date. It does not test, measure, or rank anything, and absence of a capability from a cell means only that it was not found in the cited source — not that the tool lacks it.
-- **Client existence is not client parity.** A listed client package says nothing about feature coverage relative to the primary client — for any tool in this table, including Chronicle.
-- **An ecosystem listing is not an integration or quality claim.** The ecosystem rows restate each vendor's own product-family listing at the retrieval date. They say nothing about how well the pieces work together, how complete any supporting product is, or how the families compare — and an empty or missing entry means only that nothing was found in the cited sources.
-- **Chronicle's storage-provider row restates the repository README's own listing.** The [repository README](https://github.com/Cratis/Chronicle/blob/main/README.md) documents pluggable storage with MongoDB (default), PostgreSQL, SQL Server, SQLite, and in-memory providers; the row sticks to that cited wording and implies nothing about provider parity or completeness.
-- **The Python client is strictly coming soon.** Pre-alpha, unpublished, and no commitment implied.
-- **KurrentDB licensing nuance.** The license row quotes KurrentDB's own documentation; read KLv1 yourself for terms. This page draws no conclusion about fitness of any license for any use.
-- **Versions move.** Each compared tool releases on its own cadence; every cell is pinned to the versions and retrieval dates above and may be stale the day after retrieval.
+## Limitations
 
-## How to choose
+- This is a documentation comparison, not a benchmark or production evaluation.
+- The products do not have identical boundaries, so an empty cell would not prove that a wider product family lacks a capability.
+- Client availability does not establish client parity.
+- Storage-provider availability does not establish provider parity.
+- Product-family membership does not establish integration depth, common maturity, compatibility, support, or one commercial boundary.
+- Versions and documentation change independently; verify the cited sources against the release you plan to adopt.
 
-Rather than a winner, use fit questions:
+## Sources
 
-- **Do you want a dedicated event database and your own application layer?** A purpose-built store with bring-your-own CQRS gives maximum control and maximum assembly work.
-- **Are you a PostgreSQL shop wanting minimum new infrastructure?** A library-on-PostgreSQL approach is hard to beat for operational simplicity.
-- **Do you want event sourcing, CQRS, and frontend integration designed together?** An integrated platform trades some flexibility for coherence: projections, read models, generated frontend contracts, and query updates that share one design.
-- **Is your organization polyglot?** Check which client languages are first-party and what each client actually supports — client existence is not client parity, for any tool including ours.
-- **Who explains the system at 3 a.m.?** Compare the operational surfaces: what does each tool show you about observer progress, failed projections, and replay?
+Sources checked 2026-08-30:
 
-## What we deliberately did not claim
+- **KurrentDB:** [introduction and clients](https://docs.kurrent.io/server/v26.0/quick-start/), [installation](https://docs.kurrent.io/server/v26.0/quick-start/installation.html), [persistent subscriptions](https://docs.kurrent.io/server/v26.0/features/persistent-subscriptions.html), [projections](https://docs.kurrent.io/server/v26.0/features/projections/), and [Connectors](https://docs.kurrent.io/server/v26.0/features/connectors/).
+- **Marten and Critter Stack:** [Marten](https://martendb.io), [Marten event store and projections](https://martendb.io/events/), [Marten subscriptions](https://martendb.io/events/subscriptions), [Marten license](https://github.com/JasperFx/marten/blob/master/LICENSE), [Critter Stack product family](https://jasperfx.net), and [Wolverine](https://wolverinefx.net).
+- **Cratis Chronicle:** [Chronicle repository and documentation](https://github.com/Cratis/Chronicle), [Chronicle license](https://github.com/Cratis/Chronicle/blob/main/LICENSE), [NuGet](https://www.nuget.org/packages/Cratis.Chronicle/16.42.0), [npm](https://www.npmjs.com/package/@cratis/chronicle/v/3.1.1), [Maven Central](https://central.sonatype.com/artifact/io.cratis/chronicle/2.10.0), [Hex](https://hex.pm/packages/cratis_chronicle/2.2.0), and [Docker Hub](https://hub.docker.com/r/cratis/chronicle/tags).
 
-This comparison states released, verifiable facts. It does not claim any tool is faster, more scalable, more reliable, or more production-proven than another — those claims require benchmarks and evidence this page does not carry. Where a capability is listed for Chronicle, it comes from the named released version; the same courtesy is extended to every tool compared, from that tool's own documentation.
+## Corrections and refresh
 
-## How this page stays current
+We recheck this page when a compared product changes a relevant major or minor release, license, client list, or documented capability, and at least every 90 days. If a statement cannot be confirmed from the named product's own current public sources, we correct or remove it.
 
-This matrix is re-verified — every cell checked against the then-current released versions with new retrieval dates — whenever a compared tool ships a new major or minor server/package release, a compared tool changes its license or client list, or 90 days elapse since the last recorded retrieval date. If a compared tool disputes a row and it cannot be re-verified, the row is corrected or removed.
-
-If you spot a cell that no longer matches its source, [tell us](/feedback/) — we will re-verify and fix it.
+If you find a factual error or a better first-party source, [send the correction](/feedback/).
