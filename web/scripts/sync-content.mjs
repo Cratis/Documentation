@@ -94,7 +94,7 @@ const PRODUCTS = [
                     'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common',
                 ],
             },
-            { label: 'Reference', sections: ['Types', 'Migrate from Components 3 to 4', 'Migrate from Components 2 to 3'] },
+            { label: 'Reference', sections: ['Types', 'Migration'] },
         ],
     },
     {
