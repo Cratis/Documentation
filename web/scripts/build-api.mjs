@@ -78,11 +78,13 @@ for (const packageDefinition of typeScriptPackages) {
         '--out', destination,
         '--tsconfig', path.join(source, 'tsconfig.json'),
         '--name', packageDefinition.name,
-        // Deliberately not --treatWarningsAsErrors: TypeDoc warns about TSDoc
-        // hygiene in the *product* repositories (unused @param names and the
-        // like). Those are owned by Arc/Fundamentals, so gating the docs build
-        // on them would break this site's CI for changes it cannot make. The
-        // generated-output and link checks below remain hard gates.
+        // TypeDoc reads the Arc and Fundamentals sources, which this repository
+        // does not own and cannot fix. Its type errors there depend on how those
+        // workspaces resolve in a given checkout (hundreds appear on CI and none
+        // locally), and its warnings are TSDoc hygiene. Neither is a signal about
+        // this site, so documentation extraction stays decoupled from them; the
+        // generated-output and API link checks below remain hard gates.
+        '--skipErrorChecking',
         '--excludeExternals',
         '--readme', 'none',
         path.join(source, 'index.ts'),
