@@ -31,6 +31,12 @@ Yes. Chronicle has its own clients and hosting model. Arc gives you an applicati
 
 Start with [Chronicle getting started](/chronicle/get-started/) and [Chronicle architecture](/chronicle/architecture/).
 
+## Which languages can talk to Chronicle?
+
+Chronicle is an event-sourcing database with a language-agnostic gRPC/protobuf boundary. The first-class client is the .NET SDK (`Cratis.Chronicle` on NuGet), and Chronicle also ships TypeScript (`@cratis/chronicle` on npm), Kotlin/Java (`io.cratis:chronicle` on Maven Central, including a Spring Boot starter), and Elixir (`cratis_chronicle` on Hex) clients. A Python client is coming soon — it is pre-release and not yet published. Any language can implement the gRPC contracts directly.
+
+See [Chronicle in your language](/chronicle-clients/) and the [client SDK docs](/chronicle/clients/).
+
 ## Can I use Arc without Chronicle?
 
 Yes. Arc supports commands, queries, validation, generated TypeScript proxies, and integrations over current-state persistence. That is useful when you want typed full-stack CQRS before adopting event sourcing, or when a bounded slice does not need an event log.
@@ -54,6 +60,10 @@ See [Chronicle storage](/chronicle/hosting/configuration/storage/), [Arc MongoDB
 Cratis is not a single library replacement. Chronicle is an event-sourcing engine; Arc is a CQRS and proxy-generation framework; Components is a React library built around those generated contracts. The comparisons are about architecture shape more than API surface.
 
 Start with [MediatR, MVC, and Arc](/arc/coming-from-mediatr-and-mvc/) and [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/).
+
+## What does Cratis cost, and what license is it under?
+
+Everything Cratis publishes today is MIT licensed and free to use — Chronicle, Arc, Components, the CLI, the clients, and the supporting libraries. There is no paid tier for the software itself. If you want dedicated, private help, see [Work with us](/work-with-us/).
 
 ## Where do I ask for help?
 

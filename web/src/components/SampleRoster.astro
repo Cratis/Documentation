@@ -1,0 +1,366 @@
+---
+import catalogData from '../generated/samples.json';
+
+type Sample = {
+    id: string;
+    title: string;
+    tagline: string;
+    track: string;
+    path: string;
+    sourceUrl: string;
+    previewUrl?: string;
+    previewLabel?: string;
+    ui: string;
+    level: string;
+    products: string[];
+    runtime: string[];
+    prerequisites: string[];
+    highlights: string[];
+    verification: string[];
+    limitations: string[];
+    featured?: boolean;
+};
+
+type Track = {
+    id: string;
+    title: string;
+    description: string;
+};
+
+type Catalog = {
+    tracks: Track[];
+    samples: Sample[];
+};
+
+const catalog = catalogData as Catalog;
+const samplesFor = (trackId: string) => catalog.samples.filter(sample => sample.track === trackId);
+const uiIcon = (ui: string) => {
+    if (ui === 'React') return '◫';
+    if (ui === 'Terminal') return '⌘';
+    if (ui === 'Workbench and CLI') return '◉';
+    return '◆';
+};
+---
+
+<div class="sample-roster">
+    {
+        catalog.tracks.map(track => {
+            const samples = samplesFor(track.id);
+            if (samples.length === 0) return null;
+
+            return (
+                <section class="sample-track" aria-labelledby={`track-${track.id}`}>
+                    <header class="track-heading">
+                        <p class="track-kicker">Learning track</p>
+                        <h2 id={`track-${track.id}`}>{track.title}</h2>
+                        <p>{track.description}</p>
+                    </header>
+
+                    <div class="sample-grid">
+                        {samples.map(sample => (
+                            <article class="sample-card">
+                                <div class="sample-card-topline">
+                                    <span class="experience-icon" aria-hidden="true">{uiIcon(sample.ui)}</span>
+                                    <span class="level">{sample.level}</span>
+                                    <span class="ui">{sample.ui}</span>
+                                </div>
+
+                                <h3>{sample.title}</h3>
+                                <p class="tagline">{sample.tagline}</p>
+
+                                <div class="product-list" aria-label="Products used">
+                                    {sample.products.map(product => <span>{product}</span>)}
+                                </div>
+
+                                <ul class="highlights">
+                                    {sample.highlights.slice(0, 3).map(highlight => <li>{highlight}</li>)}
+                                </ul>
+
+                                <div class="sample-actions">
+                                    <div class="action-links">
+                                        <a class="primary-action" href={sample.sourceUrl}>Open sample <span aria-hidden="true">→</span></a>
+                                        {sample.previewUrl && (
+                                            <a class="preview-action" href={sample.previewUrl}>
+                                                {sample.previewLabel ?? 'Open preview'} <span aria-hidden="true">↗</span>
+                                            </a>
+                                        )}
+                                    </div>
+                                    <span class="runtime">{sample.runtime.join(' · ')}</span>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </section>
+            );
+        })
+    }
+
+    <section class="table-section" aria-labelledby="sample-comparison">
+        <header class="track-heading compact">
+            <p class="track-kicker">At a glance</p>
+            <h2 id="sample-comparison">Compare the samples</h2>
+            <p>Choose by experience, stack, and the tools you already have installed.</p>
+        </header>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Sample</th>
+                        <th>Experience</th>
+                        <th>Products</th>
+                        <th>Runtime</th>
+                        <th>Prerequisites</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {catalog.samples.map(sample => (
+                        <tr>
+                            <th scope="row"><a href={sample.sourceUrl}>{sample.title}</a></th>
+                            <td>{sample.ui}</td>
+                            <td>{sample.products.join(', ')}</td>
+                            <td>{sample.runtime.join(', ')}</td>
+                            <td>{sample.prerequisites.join(', ')}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<style>
+    .sample-roster {
+        --sample-accent: color-mix(in srgb, var(--sl-color-accent) 78%, #7c3aed);
+        --sample-border: color-mix(in srgb, var(--sl-color-gray-5) 74%, transparent);
+        margin-top: 2rem;
+    }
+
+    .sample-track + .sample-track,
+    .table-section {
+        margin-top: 4rem;
+    }
+
+    .track-heading {
+        max-width: 48rem;
+        margin-bottom: 1.4rem;
+    }
+
+    .track-heading.compact {
+        margin-bottom: 1rem;
+    }
+
+    .track-heading h2 {
+        margin: 0.15rem 0 0.5rem;
+        font-size: clamp(1.45rem, 3vw, 2rem);
+    }
+
+    .track-heading p:last-child {
+        margin: 0;
+        color: var(--sl-color-gray-2);
+        font-size: 1.02rem;
+    }
+
+    .track-kicker {
+        margin: 0;
+        color: var(--sample-accent);
+        font-size: 0.73rem;
+        font-weight: 800;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+    }
+
+    .sample-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+        gap: 1rem;
+    }
+
+    .sample-card {
+        position: relative;
+        display: flex;
+        min-height: 22rem;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid var(--sample-border);
+        border-radius: 1rem;
+        padding: 1.25rem;
+        background:
+            radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--sample-accent) 14%, transparent), transparent 42%),
+            var(--sl-color-bg-nav);
+        box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 8%);
+        transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .sample-card::before {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 3px;
+        background: linear-gradient(var(--sample-accent), transparent 78%);
+        content: '';
+    }
+
+    .sample-card:hover {
+        transform: translateY(-3px);
+        border-color: color-mix(in srgb, var(--sample-accent) 54%, var(--sample-border));
+        box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 13%);
+    }
+
+    .sample-card-topline {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        color: var(--sl-color-gray-2);
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .experience-icon {
+        display: grid;
+        width: 2rem;
+        height: 2rem;
+        place-items: center;
+        border-radius: 0.55rem;
+        background: color-mix(in srgb, var(--sample-accent) 18%, transparent);
+        color: var(--sample-accent);
+        font-size: 1rem;
+    }
+
+    .ui::before {
+        margin-right: 0.45rem;
+        color: var(--sl-color-gray-4);
+        content: '·';
+    }
+
+    .sample-card h3 {
+        margin: 1.2rem 0 0.55rem;
+        font-size: 1.35rem;
+    }
+
+    .tagline {
+        margin: 0;
+        color: var(--sl-color-gray-2);
+        line-height: 1.55;
+    }
+
+    .product-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-top: 1rem;
+    }
+
+    .product-list span {
+        border: 1px solid color-mix(in srgb, var(--sample-accent) 34%, var(--sample-border));
+        border-radius: 999px;
+        padding: 0.2rem 0.55rem;
+        background: color-mix(in srgb, var(--sample-accent) 8%, transparent);
+        color: var(--sl-color-text-accent);
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .highlights {
+        margin: 1rem 0 1.25rem;
+        padding-left: 1.15rem;
+        color: var(--sl-color-gray-2);
+        font-size: 0.92rem;
+    }
+
+    .highlights li + li {
+        margin-top: 0.35rem;
+    }
+
+    .sample-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+        margin-top: auto;
+    }
+
+    .action-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+    }
+
+    .primary-action,
+    .preview-action {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        gap: 0.45rem;
+        border-radius: 0.55rem;
+        padding: 0.55rem 0.8rem;
+        font-weight: 750;
+        text-decoration: none;
+    }
+
+    .primary-action {
+        background: var(--sample-accent);
+        color: white;
+    }
+
+    .preview-action {
+        border: 1px solid color-mix(in srgb, var(--sample-accent) 45%, var(--sample-border));
+        color: var(--sl-color-text-accent);
+    }
+
+    .primary-action:hover,
+    .preview-action:hover {
+        text-decoration: none;
+        filter: brightness(1.06);
+    }
+
+    .primary-action:hover {
+        color: white;
+    }
+
+    .runtime {
+        color: var(--sl-color-gray-3);
+        font-size: 0.76rem;
+        line-height: 1.35;
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--sample-border);
+        border-radius: 0.8rem;
+    }
+
+    table {
+        width: 100%;
+        margin: 0;
+        border-collapse: collapse;
+        font-size: 0.88rem;
+    }
+
+    th,
+    td {
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--sample-border);
+        text-align: left;
+        vertical-align: top;
+    }
+
+    thead {
+        background: color-mix(in srgb, var(--sample-accent) 9%, var(--sl-color-bg-nav));
+    }
+
+    tbody tr:last-child th,
+    tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .sample-card {
+            transition: none;
+        }
+
+        .sample-card:hover {
+            transform: none;
+        }
+    }
+</style>

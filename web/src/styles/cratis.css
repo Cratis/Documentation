@@ -303,6 +303,13 @@
     margin-top: 2.5rem;
 }
 
+/* Starlight makes tables horizontally scrollable on narrow screens. The build-time
+   table transformer adds tabindex so keyboard users can reach clipped columns. */
+.sl-markdown-content table[tabindex='0']:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 0.25rem;
+}
+
 /* --- Code blocks & asides: a hair more breathing room and softer corners --- */
 .expressive-code {
     margin-block: 1.25rem;
@@ -479,7 +486,7 @@ starlight-tabs[data-sync-key^='chronicle-client'] a[role='tab'][aria-selected='t
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--sl-color-gray-3);
+    color: var(--sl-color-gray-2);
 }
 
 /* A touch more vertical rhythm between the top-level products */

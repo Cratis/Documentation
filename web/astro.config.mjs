@@ -5,6 +5,7 @@ import starlight from '@astrojs/starlight';
 import mermaid from 'astro-mermaid';
 import remarkGfm from 'remark-gfm';
 import { remarkMermaidPrerender, closeBrowser } from './scripts/mermaid-prerender.mjs';
+import { rehypeFocusableTables } from './scripts/rehype-focusable-tables.mjs';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightPageActions from 'starlight-page-actions';
 import starlightScrollToTop from 'starlight-scroll-to-top';
@@ -46,6 +47,8 @@ const overviewTopic = {
     items: [
         { label: 'The Cratis Stack', slug: 'cratis-stack' },
         { label: 'Why developers choose Cratis', slug: 'why-cratis' },
+        { label: 'Compare event sourcing for .NET', slug: 'compare-event-sourcing-dotnet' },
+        { label: 'Compare event sourcing on the JVM', slug: 'compare-event-sourcing-jvm' },
         { label: 'Adopting Cratis', slug: 'adopting-cratis' },
         {
             label: 'Scenarios',
@@ -98,6 +101,18 @@ const overviewTopic = {
                 { label: 'Professional help', slug: 'professional-help' },
                 { label: 'Community and help', slug: 'community' },
                 { label: 'Feedback and suggestions', slug: 'feedback' },
+            ],
+        },
+        {
+            label: 'Chronicle in your language',
+            collapsed: true,
+            items: [
+                { label: 'Overview', slug: 'chronicle-clients' },
+                { label: 'Event sourcing in .NET', slug: 'event-sourcing/dotnet' },
+                { label: 'Event sourcing in TypeScript', slug: 'event-sourcing/typescript' },
+                { label: 'Event sourcing in Kotlin and Java', slug: 'event-sourcing/kotlin' },
+                { label: 'Event sourcing in Elixir', slug: 'event-sourcing/elixir' },
+                { label: 'Event sourcing in Python', slug: 'event-sourcing/python', badge: { text: 'Soon', variant: 'tip' } },
             ],
         },
         { label: 'Studio', slug: 'studio', badge: { text: 'Soon', variant: 'tip' } },
@@ -164,7 +179,7 @@ const topics = [overviewTopic, ...orderedProductTopics];
 
 // https://astro.build/config
 export default defineConfig({
-    site: 'https://cratis.io',
+    site: 'https://www.cratis.io',
     // NOTE: if the site is served under cratis.io/docs, set `base: '/docs'`.
     // GFM tables render in plain `.md`, but astro-mermaid injects plugins via the
     // (now-deprecated) `markdown.remarkPlugins` path, which leaves MDX's own `gfm`
@@ -176,6 +191,7 @@ export default defineConfig({
         // at build time (before astro-mermaid's plugin sees it); Mermaid blocks it
         // can't render fall through to astro-mermaid's client-side rendering.
         remarkPlugins: [remarkGfm, remarkMermaidPrerender],
+        rehypePlugins: [rehypeFocusableTables],
     },
     integrations: [
         // Shut down the build-time Mermaid Chrome instance when the build ends.
@@ -204,11 +220,18 @@ export default defineConfig({
         starlight({
             title: 'Cratis',
             description:
-                'Build event-sourced applications with Chronicle, Arc, and Components — the full-stack, type-safe Cratis platform.',
+                'Build event-sourced and CQRS applications with Cratis — an open-source (MIT) event-sourcing database and full-stack platform. Chronicle stores events in MongoDB, PostgreSQL, SQL Server, or SQLite and has clients for .NET, TypeScript, Kotlin/Java, and Elixir, with Arc and Components completing the type-safe stack.',
+            // Default social-sharing metadata for every page. Starlight already
+            // emits og:title/og:description; these add the image and card type.
+            head: [
+                { tag: 'meta', attrs: { property: 'og:image', content: 'https://cratis.io/favicon-512.png' } },
+                { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary' } },
+                { tag: 'meta', attrs: { name: 'twitter:image', content: 'https://cratis.io/favicon-512.png' } },
+            ],
             logo: {
                 light: './src/assets/cratis-mark-light.svg',
                 dark: './src/assets/cratis-mark-dark.svg',
-                alt: 'Cratis',
+                alt: '',
             },
             // Preload the brand fonts (see the component) so a cold load doesn't
             // paint in a fallback and then reflow when the web font swaps in.
@@ -238,6 +261,7 @@ export default defineConfig({
                 },
             },
             social: [
+                { icon: 'rss', label: 'Blog', href: 'https://blog.cratis.io' },
                 { icon: 'github', label: 'GitHub', href: 'https://github.com/cratis' },
                 { icon: 'discord', label: 'Discord', href: 'https://discord.gg/kt4AMpV8WV' },
                 { icon: 'youtube', label: 'YouTube', href: 'https://www.youtube.com/@CratisStack' },
@@ -254,7 +278,7 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/adopting-cratis', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/compare-event-sourcing-dotnet', '/compare-event-sourcing-jvm', '/adopting-cratis', '/chronicle-clients', '/event-sourcing/**', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],
@@ -275,7 +299,23 @@ export default defineConfig({
                 // Click-to-zoom for screenshots and diagrams.
                 starlightImageZoom(),
                 // Generates /llms.txt and /llms-full.txt so AI assistants can ground answers.
-                starlightLlmsTxt(),
+                // The description/details lead with the full product and client breadth so
+                // an assistant reading only /llms.txt still gets the whole picture.
+                starlightLlmsTxt({
+                    projectName: 'Cratis',
+                    description:
+                        'Cratis is an open-source, MIT-licensed platform for building event-sourced and CQRS applications. At its center is Chronicle, an event-sourcing database and processing runtime with a first-class .NET SDK and additional TypeScript, Kotlin/Java (JVM), and Elixir clients — with a Python client coming soon — plus pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite.',
+                    details: [
+                        'Key facts:',
+                        '',
+                        '- Chronicle exposes a language-agnostic gRPC/protobuf boundary; its kernel runs on Microsoft Orleans.',
+                        '- Arc is an opinionated CQRS application framework for ASP.NET Core — commands, queries, validation, authorization, and TypeScript proxy generation. It works without event sourcing; Chronicle integration is optional.',
+                        '- Components is a React component library aligned with Arc patterns: command dialogs, typed forms, and query-backed data tables.',
+                        '- The CLI and Workbench are the inspection and diagnosis surfaces for Chronicle: events, observers, projections, read models, and failed partitions.',
+                        '- The model-first layer — Studio, Screenplay, Stage, Scene, Prologue — is experimental and in early development.',
+                        '- Everything Cratis publishes today is MIT licensed and free to use.',
+                    ].join('\n'),
+                }),
             ],
         }),
     ],

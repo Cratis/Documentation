@@ -1,6 +1,6 @@
 ---
 title: The Cratis Stack
-description: One stack, end to end — model your domain in Studio, secure the edge with AuthProxy, build it with Arc, Chronicle, and Components, choose the right Chronicle storage, run it all from one Aspire AppHost, operate it with the CLI and Workbench, and accelerate every step with AI.
+description: One stack, end to end — model your domain in Studio, secure the edge with AuthProxy, build it with Arc, Chronicle, and Components, use Chronicle from .NET, TypeScript, Kotlin/Java, or Elixir, choose the right Chronicle storage, run it all from one Aspire AppHost, operate it with the CLI and Workbench, and accelerate every step with AI.
 ---
 
 import { CardGrid } from '@astrojs/starlight/components';
@@ -9,7 +9,7 @@ import TopicHero from '@components/TopicHero.astro';
 import StackJourney from '@components/StackJourney.astro';
 
 <TopicHero icon="rocket" eyebrow="The Cratis Stack" title="From a sticky note to a running, typed, full-stack app">
-Most stacks are a bag of libraries you bolt together and then spend the whole project keeping in sync. Developers choose Cratis because the layers are designed as **one thing** — the domain you sketch at the top of the hour is typed C#, authenticated tenant-aware requests, a live React screen, and an inspectable event log before the hour is out. Not because you typed faster — because event sourcing is the default backbone for information systems and every handoff you'd normally hand-write is covered by conventions, generation, and open runtime boundaries. [Start building →](/chronicle/get-started/) · [Why developers choose Cratis →](/why-cratis/)
+Most stacks are assembled parts you bolt together and then spend the whole project keeping in sync. Cratis is one connected ecosystem, designed together, from one company — event store, application framework, UI, tooling, and AI skills — so the domain you sketch at the top of the hour is typed C#, authenticated tenant-aware requests, a live React screen, and an inspectable event log before the hour is out. Not because you typed faster — because event sourcing is the default backbone for information systems and every handoff you'd normally hand-write is covered by conventions, generation, and open runtime boundaries. We believe that is what makes software better, more robust, and faster to deliver — for developers and for the AI agents working alongside them. [Start building →](/chronicle/get-started/) · [Why developers choose Cratis →](/why-cratis/)
 </TopicHero>
 
 ## One idea, all the way down
@@ -125,7 +125,7 @@ And when you or a teammate gets stuck, [Prompter](/prompter/) — the community'
     Point it at an existing system — no Cratis constructs required — and it captures HTTP commands, database changes, and telemetry, then interprets them into an event model and a Screenplay.
   </SimpleCard>
   <SimpleCard title="Chronicle — events" icon="seti:db" link="/chronicle/">
-    The event-sourcing engine: gRPC/protobuf boundary, .NET-first client, TypeScript and Elixir clients/contracts, MongoDB/PostgreSQL/SQL Server/SQLite storage, Orleans inside.
+    The event-sourcing database and runtime: gRPC/protobuf boundary, .NET-first client, TypeScript, Kotlin/Java, and Elixir clients, MongoDB/PostgreSQL/SQL Server/SQLite storage, Orleans inside.
   </SimpleCard>
   <SimpleCard title="AuthProxy — edge" icon="seti:lock" link="/authproxy/">
     Authentication, tenant resolution, identity enrichment, routing, and invite-based onboarding in front of your services.
@@ -139,8 +139,11 @@ And when you or a teammate gets stuck, [Prompter](/prompter/) — the community'
   <SimpleCard title="Components — React" icon="laptop" link="/components/">
     Command dialogs, forms, and live data tables that consume Arc's proxies — a screen is a few lines.
   </SimpleCard>
-  <SimpleCard title="CLI + Workbench — operate" icon="rocket" link="/cli/">
-    Inspect and interact with a running store: events, observers, read models, recommendations, jobs, replay, failed partitions, and diagnostics.
+  <SimpleCard title="CLI — operate" icon="rocket" link="/cli/">
+    Inspect and interact with a running store from the terminal: events, observers, read models, recommendations, jobs, replay, failed partitions, and diagnostics.
+  </SimpleCard>
+  <SimpleCard title="Workbench — inspect" icon="laptop" link="/chronicle/workbench/">
+    The web-based inspection surface for Chronicle event stores — browse events, observers, projections, and read models in the browser.
   </SimpleCard>
   <SimpleCard title="Specifications — test" icon="approve-check" link="/testing-with-cratis/">
     BDD-style specs over xUnit, with Arc command scenarios and Chronicle in-process event, read-model, and reactor scenarios.

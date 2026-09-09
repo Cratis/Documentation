@@ -1,7 +1,8 @@
 ---
 // Progressive enhancement for the splash hero: rotates the headline, tagline,
-// and actions through the platform's stories (Event Sourcing, CQRS, Application
-// Framework, the Stack, AI-Native, Studio, Screenplay, Prologue) with labeled dot
+// and actions through the platform's stories (One Ecosystem, Event Sourcing,
+// CQRS, Application Framework, the Stack, Any Language, Any Database, AI-Native,
+// Studio, Screenplay, Prologue) with labeled dot
 // indicators. The static hero authored in
 // the page frontmatter IS the first pane — without JavaScript nothing here
 // renders and the page degrades to that single message. With JavaScript the
@@ -23,13 +24,24 @@ interface Pane {
     actions: PaneAction[];
 }
 
-const getStarted: PaneAction = { text: 'Get started', link: '#get-started-in-3-steps', variant: 'primary', icon: 'right-arrow' };
+const getStarted: PaneAction = { text: 'Get started', link: '/chronicle/get-started/', variant: 'primary', icon: 'right-arrow' };
 const gitHub: PaneAction = { text: 'GitHub', link: 'https://github.com/cratis', variant: 'minimal' };
 const community: PaneAction = { text: 'Community', link: '/community/', variant: 'minimal' };
 const workWithUs: PaneAction = { text: 'Work with us', link: '/work-with-us/', variant: 'minimal' };
 
 // Pane 1 mirrors the frontmatter hero in index.mdx — keep the two in sync.
 const panes: Pane[] = [
+    {
+        label: 'One Ecosystem',
+        title: 'Software gets built differently now',
+        tagline:
+            'In the age of AI, software gets built differently. Cratis is one connected, purposeful ecosystem — an event store, an application framework, a UI library, developer tooling, and AI skills — designed together, from one company, so the pieces fit instead of being assembled. It is database-agnostic (MongoDB by default, PostgreSQL, SQL Server, or SQLite) with clients for .NET, TypeScript, Kotlin/Java, and Elixir. Everything Cratis publishes today is MIT licensed and free to use.',
+        actions: [
+            { text: 'Why Cratis', link: '/why-cratis/', variant: 'primary', icon: 'right-arrow' },
+            { text: 'The Cratis Stack', link: '/cratis-stack/', variant: 'minimal', icon: 'right-arrow' },
+            { text: 'Get started', link: '/chronicle/get-started/', variant: 'minimal', icon: 'right-arrow' },
+        ],
+    },
     {
         label: 'Event Sourcing',
         title: 'Event sourcing you can actually be productive with',
@@ -75,13 +87,37 @@ const panes: Pane[] = [
         label: 'The Stack',
         title: 'Chronicle, Arc, Components, and the tools — working as one',
         tagline:
-            'The Cratis Stack assembles into a cohesive whole: Chronicle owns the event log and read models, Arc carries a command through generated proxies to a live React screen, Components keeps the UI consistent, and Studio, the CLI, and Workbench complete the picture — all sharing identity, tenancy, and conventions so every piece reinforces the others.',
+            'The Cratis Stack assembles into a cohesive whole: Chronicle — the event-sourcing database with clients for .NET, TypeScript, Kotlin/Java, and Elixir — owns the event log and read models, Arc carries a command through generated proxies to a live React screen, Components keeps the UI consistent, and Studio, the CLI, and Workbench complete the picture — all sharing identity, tenancy, and conventions so every piece reinforces the others.',
         actions: [
             getStarted,
             { text: 'Learn more', link: '/cratis-stack/', variant: 'minimal', icon: 'open-book' },
             gitHub,
             community,
             workWithUs,
+        ],
+    },
+    {
+        label: 'Any Language',
+        title: 'One event-sourcing database, your language of choice',
+        tagline:
+            'Chronicle speaks gRPC/protobuf at its boundary, so the event store is not tied to one runtime: use the first-class .NET SDK, or the TypeScript, Kotlin/Java, and Elixir clients — with a Python client coming soon — against the same store, the same events, and the same projections.',
+        actions: [
+            getStarted,
+            { text: 'Chronicle in your language', link: '/chronicle-clients/', variant: 'minimal', icon: 'open-book' },
+            gitHub,
+            community,
+        ],
+    },
+    {
+        label: 'Any Database',
+        title: 'A database-agnostic event store, on the database you already run',
+        tagline:
+            'Chronicle keeps the event store database-agnostic through pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite — the same events, projections, and operational tooling over the database your team already operates, so choosing event sourcing never means choosing a new database.',
+        actions: [
+            getStarted,
+            { text: 'Storage configuration', link: '/chronicle/hosting/configuration/storage/', variant: 'minimal', icon: 'open-book' },
+            gitHub,
+            community,
         ],
     },
     {

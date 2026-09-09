@@ -1,0 +1,113 @@
+---
+title: "Event sourcing in .NET: KurrentDB, Marten, and Cratis Chronicle"
+description: "Compare KurrentDB 26.0, Marten 9.30.0, and Cratis Chronicle 16.42.0 for .NET event sourcing, with versioned sources and architectural trade-offs."
+head:
+  - tag: meta
+    attrs:
+      name: keywords
+      content: "event sourcing .NET comparison, event sourcing C#, .NET event store comparison, KurrentDB vs Marten vs Cratis Chronicle, Marten vs Cratis Chronicle, EventStoreDB alternatives, KurrentDB alternatives, choosing an event sourcing framework for .NET, event sourcing database .NET"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+KurrentDB, Marten, and Cratis Chronicle all support event-sourced systems, but they make different architectural choices. KurrentDB is a dedicated event database, Marten is an in-process .NET library built on PostgreSQL, and Chronicle is a separate event-sourcing server and processing runtime.
+
+This page compares the capabilities where those products overlap. It does not rank them, and it does not compare the Critter Stack as a whole with the wider Cratis ecosystem.
+
+## Comparison layers
+
+These products do not occupy the same layer. KurrentDB and Chronicle are separate event-server runtimes; Marten is an in-process .NET library. The Critter Stack and Cratis ecosystem add adjacent products rather than changing the boundary of the compared product. The matrix compares overlapping concerns and names which product owns each concern; it is not a feature checklist between equivalent products.
+
+## What is being compared
+
+- **KurrentDB (formerly EventStoreDB)** — a purpose-built event database with official clients for several languages, server-managed persistent subscriptions, projections, and connectors.
+- **Marten** — a transactional document database and event store for .NET applications using PostgreSQL, with inline, asynchronous, and live projection models.
+- **Cratis Chronicle** — an event-sourcing database and processing runtime with a separate server, multiple storage providers, and released clients for .NET, TypeScript, Kotlin/Java, and Elixir.
+
+Marten is also part of the [Critter Stack](https://jasperfx.net). [Wolverine](https://wolverinefx.net) is its messaging and web-development framework, with documented transport support, failure policies, and persistent inbox/outbox messaging. Polecat brings the event-store and document-database model to SQL Server, while Fisher targets SQLite. Chronicle belongs to the wider Cratis ecosystem, where [Arc](/arc/), [Components](/components/), the [Cratis CLI](/cli/), and Workbench cover adjacent application and operating concerns. These are separate products in their respective families, not features attributed to Marten or Chronicle itself.
+
+## Method and versions
+
+<Aside type="note" title="Method">
+The table records released, documented capabilities at named versions. Sources come from each product's own documentation, repository, license, or package registry and were checked on 2026-08-30. A listed capability is not a claim about performance, maturity, reliability, production suitability, or feature parity.
+</Aside>
+
+| Tool | Compared version | Version source |
+| --- | --- | --- |
+| KurrentDB | Server 26.0 documentation series; 26.0.3 is the release named by the installation documentation | [KurrentDB 26.0 installation documentation](https://docs.kurrent.io/server/v26.0/quick-start/installation.html) |
+| Marten | 9.30.0 | [Marten 9.30.0 on NuGet](https://www.nuget.org/packages/Marten/9.30.0) |
+| Cratis Chronicle | Server and .NET client 16.42.0; server distributed as the `cratis/chronicle` Docker image | [Cratis.Chronicle 16.42.0 on NuGet](https://www.nuget.org/packages/Cratis.Chronicle/16.42.0), [Chronicle Docker tags](https://hub.docker.com/r/cratis/chronicle/tags) |
+
+## Core comparison
+
+| Question | KurrentDB 26.0 | Marten 9.30.0 | Cratis Chronicle 16.42.0 |
+| --- | --- | --- | --- |
+| What is the product boundary? | A separate event-native database server with an integrated streaming engine. | A .NET library providing a transactional document database and event store inside the application. | A separate event-sourcing server and processing runtime used through client SDKs. |
+| Where are events stored? | In streams managed by KurrentDB's storage engine. | Marten stores events and documents in PostgreSQL. Within the wider Critter Stack, the separate Polecat and Fisher products target SQL Server and SQLite respectively. | Through pluggable providers documented for MongoDB (default), PostgreSQL, SQL Server, SQLite, and in-memory use. |
+| What is the language boundary? | Official gRPC clients are listed for Python, Node.js, Java, .NET, Go, and Rust, with additional community clients. | The event-store and document-database APIs are .NET libraries running in the host application. | A first-class .NET SDK, plus released TypeScript 3.1.1, Kotlin/Java 2.10.0, and Elixir 2.2.0 clients. The Python client is not yet published. |
+| How are events consumed? | Catch-up subscriptions keep position in the client. Persistent subscriptions keep position on the server and support consumer groups, acknowledgements, retries, parked events, and replay. KurrentDB documents at-least-once delivery and explicitly notes that persistent-subscription ordering is not guaranteed. | Marten subscriptions run through the asynchronous daemon inside the application and pass captured events to application-defined processing. | Reactors handle event-driven application work, Reducers derive typed read models, and Observers provide low-level event subscriptions. |
+| How are read models produced? | Built-in and user-defined JavaScript projections can react to events and emit or link events. KurrentDB notes that many read-model workloads are better handled by a separate read model fed by a catch-up subscription. | Inline projections run in the event-capture transaction, asynchronous projections run in the daemon, and live projections are evaluated on demand. | Reducers and declarative projection builders produce typed read models, including documented set, join, and remove operations. |
+| How can events reach other systems? | Server-side Connectors use catch-up subscriptions to filter or transform events and send them to documented sinks including HTTP, Kafka, RabbitMQ, MongoDB, Elasticsearch, and Serilog. | Marten subscriptions hand events to custom .NET processing. Wolverine is the Critter Stack's separate messaging and web framework, with documented transports, failure policies, asynchronous processing, and persistent inbox/outbox messaging. | Client APIs expose the server over gRPC and REST, while Reactors provide application-defined event processing. |
+| What runs in production? | A separate KurrentDB server, as a single node or documented cluster topology. Some features require a license key. | The Marten library and asynchronous daemon run in the .NET application, backed by PostgreSQL. | The Chronicle Kernel runs as a separate Docker-hosted server and exposes gRPC, REST, and the bundled Workbench browser surface. |
+| What is the license boundary? | Kurrent License v1; KurrentDB states that it is not an OSI-approved open-source license. Some enterprise features require a license key. | MIT License. | MIT License for Chronicle and its bundled local Workbench. Other Cratis products retain their own license and release boundaries. |
+
+## Where each option fits
+
+These are not quality rankings. They identify the architectural choice each product makes most explicit.
+
+### KurrentDB
+
+Examine KurrentDB closely when you want the event store to be dedicated infrastructure, need official clients across several languages, or want server-managed persistent subscriptions and connectors while keeping the application architecture in your own code.
+
+### Marten and the Critter Stack
+
+Examine Marten closely when your application is .NET, PostgreSQL is already an accepted dependency, and you want document storage, event storage, and several projection modes in the same application and database transaction boundary. The broader Critter Stack is not limited to that Marten/PostgreSQL profile: Polecat targets SQL Server, Fisher targets SQLite, and Wolverine provides the family's messaging and web-development model. Evaluate those products together when database choice, durable messaging, HTTP handling, testing, schema management, or monitoring are part of the decision.
+
+### Cratis Chronicle and the Cratis ecosystem
+
+Examine Chronicle closely when you want event storage and event processing behind a separate runtime, need a choice among its documented storage providers, or want several language clients to use the same server contracts. The wider Cratis experience connects Chronicle to Arc's CQRS application model, generated TypeScript contracts, React components, CLI workflows, and Workbench. That coherence is a different product boundary, not evidence that the other approaches are incomplete.
+
+## Questions to answer before choosing
+
+1. **Process boundary:** Should event storage and processing run inside the application or behind a separate server?
+2. **Database boundary:** Do you want PostgreSQL as the fixed foundation, a purpose-built storage engine, or a runtime with documented provider choices?
+3. **Application model:** Do you want to assemble the CQRS and messaging layers yourself, adopt the Critter Stack's .NET model, or use the wider Cratis application path?
+4. **Projection model:** Which work must share the append transaction, and which work may run asynchronously or on demand?
+5. **Language boundary:** Is .NET the only application boundary, or must several language clients use the same event server?
+6. **Operations:** How will your team inspect subscription progress, failed processing, parked work, projections, replay, and recovery for the exact topology you deploy?
+7. **Commercial and license boundary:** Which server features, support terms, and licenses apply to the exact products you intend to run?
+
+## Decision criteria to verify separately
+
+This comparison does not score several decision-critical dimensions that depend on the exact deployment profile:
+
+- append and side-effect atomicity, plus read consistency;
+- event schema evolution, replay, and migration behavior;
+- backup, restore, upgrade, failure, and recovery procedures;
+- authentication, tenancy, encryption, PII, and redaction controls; and
+- support, commercial terms, and operational responsibility.
+
+Verify each dimension against the exact product versions and deployment profiles before choosing.
+
+## Limitations
+
+- This is a documentation comparison, not a benchmark or production evaluation.
+- The products do not have identical boundaries, so an empty cell would not prove that a wider product family lacks a capability.
+- Client availability does not establish client parity.
+- Storage-provider availability does not establish provider parity.
+- Product-family membership does not establish integration depth, common maturity, compatibility, support, or one commercial boundary.
+- Versions and documentation change independently; verify the cited sources against the release you plan to adopt.
+
+## Sources
+
+Sources checked 2026-08-30:
+
+- **KurrentDB:** [introduction and clients](https://docs.kurrent.io/server/v26.0/quick-start/), [installation](https://docs.kurrent.io/server/v26.0/quick-start/installation.html), [persistent subscriptions](https://docs.kurrent.io/server/v26.0/features/persistent-subscriptions.html), [projections](https://docs.kurrent.io/server/v26.0/features/projections/), and [Connectors](https://docs.kurrent.io/server/v26.0/features/connectors/).
+- **Marten and Critter Stack:** [Marten](https://martendb.io), [Marten event store and projections](https://martendb.io/events/), [Marten subscriptions](https://martendb.io/events/subscriptions), [Marten license](https://github.com/JasperFx/marten/blob/master/LICENSE), [Critter Stack product family](https://jasperfx.net), and [Wolverine](https://wolverinefx.net).
+- **Cratis Chronicle:** [Chronicle repository and documentation](https://github.com/Cratis/Chronicle), [Chronicle license](https://github.com/Cratis/Chronicle/blob/main/LICENSE), [NuGet](https://www.nuget.org/packages/Cratis.Chronicle/16.42.0), [npm](https://www.npmjs.com/package/@cratis/chronicle/v/3.1.1), [Maven Central](https://central.sonatype.com/artifact/io.cratis/chronicle/2.10.0), [Hex](https://hex.pm/packages/cratis_chronicle/2.2.0), and [Docker Hub](https://hub.docker.com/r/cratis/chronicle/tags).
+
+## Corrections and refresh
+
+We recheck this page when a compared product changes a relevant major or minor release, license, client list, or documented capability, and at least every 90 days. If a statement cannot be confirmed from the named product's own current public sources, we correct or remove it.
+
+If you find a factual error or a better first-party source, [send the correction](/feedback/).
