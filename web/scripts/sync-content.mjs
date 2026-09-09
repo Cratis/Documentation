@@ -1,3 +1,6 @@
+// Copyright (c) Cratis. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 // Converts DocFX-format product documentation into Starlight-ready content.
 //
 // Source of truth stays in each product repo's `Documentation/` folder. This
@@ -15,6 +18,8 @@ import yaml from 'js-yaml';
 
 import { existsSync } from 'node:fs';
 import { loadChronicleClientDocsConfig } from './chronicle-client-docs-config.mjs';
+import { assertPublicDocPath, assertPublicDocSource, isPrivateDocPath } from './private-doc-paths.mjs';
+import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..'); // Documentation/web
@@ -244,8 +249,6 @@ const SKIP_DIRS = new Set([
     // Client-owned snippets are expanded into shared Chronicle pages through
     // <ChronicleClientTabs />; they are not standalone public docs pages.
     'client-snippets', 'client-snippets-java',
-    // dotfolders found at the .github repo root that are not documentation
-    '.ai', '.claude', '.github', '.vscode',
     // the org GitHub landing page (duplicates our front door) — not site content
     'profile',
 ]);
@@ -381,6 +384,7 @@ function withTrailingSlash(urlPath) {
 function resolveInternalLink(ctx, target) {
     const { url, suffix: titleSuffix } = splitLinkTarget(target);
     if (!url || isExternalOrSpecial(url)) return target;
+    assertPublicDocPath(url);
 
     const { pathPart: originalPathPart, suffix: urlSuffix } = splitUrlSuffix(url);
     if (!originalPathPart) return target;
@@ -425,13 +429,22 @@ function fixLinks(body, ctx) {
     return out;
 }
 
-async function inlineIncludes(body, dir, sourcePath) {
+async function inlineIncludes(body, dir, sourcePath, contentRoot) {
     const includeRe = /\[!INCLUDE\s*\[[^\]]*\]\(([^)]+)\)\]/g;
     let result = body;
     const matches = [...body.matchAll(includeRe)];
     for (const m of matches) {
         const incPath = path.resolve(dir, m[1]);
         try {
+            const rootPrefix = path.resolve(contentRoot) + path.sep;
+            // The configured source root is trusted, even when its name is
+            // .github or a fixture lives beneath .ai-work. Keep raw descendant
+            // segments intact so normalization cannot hide .ai-work/../ paths.
+            const relativeInclude = path.isAbsolute(m[1]) && m[1].startsWith(rootPrefix)
+                ? m[1].slice(rootPrefix.length)
+                : m[1];
+            assertPublicDocPath(relativeInclude);
+            await assertPublicDocSource(incPath, contentRoot);
             const raw = await fs.readFile(incPath, 'utf8');
             const { body: incBody } = splitFrontmatter(raw);
             result = result.replace(m[0], stripLeadingH1(incBody).trim());
@@ -461,9 +474,11 @@ async function fileExists(filePath) {
 // means the tab is omitted, not an error. Chronicle shared docs don't track
 // which clients apply to a given example; that's discovered from disk.
 async function readClientSnippet(source, snippet) {
+    assertPublicDocPath(snippet);
     for (const ext of ['.mdx', '.md']) {
         const candidate = path.join(source.src, snippet + ext);
         if (await fileExists(candidate)) {
+            await assertPublicDocSource(candidate, source.src);
             const raw = await fs.readFile(candidate, 'utf8');
             const { body } = splitFrontmatter(raw);
             return body.trim();
@@ -560,7 +575,7 @@ async function expandChronicleClientTabs(body, ctx) {
     return { body: expandedAny ? ensureTabsImport(result) : result, used: expandedAny };
 }
 
-async function convertFile(raw, ctx) {
+export async function convertFile(raw, ctx) {
     const { fmText, body, hasFm } = splitFrontmatter(raw);
     // Parse source front matter and carry over only Starlight-supported keys
     // (title, description, sidebar). DocFX keys (uid, applyTo, storybook, …) are
@@ -576,11 +591,11 @@ async function convertFile(raw, ctx) {
     const title = src.title || firstH1(body) || humanize(ctx.basename);
 
     let out = stripLeadingH1(body);
-    out = await inlineIncludes(out, ctx.dir, ctx.srcPath ?? path.join(ctx.dir, ctx.basename));
+    out = await inlineIncludes(out, ctx.dir, ctx.srcPath ?? path.join(ctx.dir, ctx.basename), ctx.contentRoot ?? ctx.product.src ?? ctx.dir);
     ({ body: out } = await expandChronicleClientTabs(out, ctx));
     out = convertAlerts(out);
     out = convertXref(out);
-    out = fixLinks(out, ctx);
+    out = normalizeMarkdownTables(fixLinks(out, ctx));
 
     const fm = { title };
     if (src.description) fm.description = src.description;
@@ -603,11 +618,19 @@ async function hasSiblingLanding(parentDir, dirName) {
     }
 }
 
-async function walk(srcDir, outDir, product, options = {}) {
+export async function walk(srcDir, outDir, product, options = {}) {
     const entries = await fs.readdir(srcDir, { withFileTypes: true });
     await fs.mkdir(outDir, { recursive: true });
     const demoteIndex = await hasSiblingLanding(path.dirname(srcDir), path.basename(srcDir));
     for (const entry of entries) {
+        if (isPrivateDocPath(entry.name)) continue;
+        if (entry.isSymbolicLink()) {
+            const source = path.join(srcDir, entry.name);
+            await assertPublicDocSource(source, options.contentRoot ?? product.src);
+            // Directory symlinks were never recursive inputs; public file aliases
+            // remain supported without allowing aliases into private work.
+            if (!(await fs.stat(source)).isFile()) continue;
+        }
         if (entry.isDirectory()) {
             if (SKIP_DIRS.has(entry.name)) continue;
             if (product.key === 'chronicle' && !options.slugBase && path.resolve(srcDir) === path.resolve(product.src) && entry.name === 'clients') continue;
@@ -709,7 +732,7 @@ let droppedSidebarEntries = 0;
 
 // Collect the slugs of every page actually written for a product, so the
 // sidebar can drop entries that point to missing pages (broken toc links).
-async function collectSlugs(dirAbs, slugBase, set) {
+export async function collectSlugs(dirAbs, slugBase, set) {
     let entries;
     try {
         entries = await fs.readdir(dirAbs, { withFileTypes: true });
@@ -717,6 +740,7 @@ async function collectSlugs(dirAbs, slugBase, set) {
         return;
     }
     for (const e of entries) {
+        if (isPrivateDocPath(e.name) || e.isSymbolicLink()) continue;
         if (e.isDirectory()) {
             await collectSlugs(path.join(dirAbs, e.name), slugify(path.posix.join(slugBase, e.name)), set);
         } else if (e.name.endsWith('.md') || e.name.endsWith('.mdx')) {
@@ -726,9 +750,10 @@ async function collectSlugs(dirAbs, slugBase, set) {
     }
 }
 
-async function entryToItem(e, dirAbs, slugBase) {
+export async function entryToItem(e, dirAbs, slugBase) {
     const label = e.name ?? 'Untitled';
     const href = e.href;
+    if (href && isPrivateDocPath(href)) return null;
     // External links and the auto-generated API section are wired separately — skip.
     if (href && (/^https?:/.test(href) || href.includes('/api/') || href.startsWith('../'))) {
         return null;
@@ -737,6 +762,7 @@ async function entryToItem(e, dirAbs, slugBase) {
     if (href && /toc\.yml$/.test(href)) {
         const subRel = href.replace(/\/?toc\.yml$/, '');
         const subDirAbs = path.resolve(dirAbs, subRel);
+        if (existsSync(subDirAbs)) await assertPublicDocSource(subDirAbs, dirAbs);
         const children = await tocToSidebar(subDirAbs, slugify(path.posix.join(slugBase, subRel)));
         if (!children.length) return null;
 
@@ -771,9 +797,10 @@ async function entryToItem(e, dirAbs, slugBase) {
     return null;
 }
 
-async function tocToSidebar(dirAbs, slugBase) {
+export async function tocToSidebar(dirAbs, slugBase) {
     let entries;
     try {
+        await assertPublicDocSource(path.join(dirAbs, 'toc.yml'), dirAbs);
         entries = yaml.load(await fs.readFile(path.join(dirAbs, 'toc.yml'), 'utf8'));
     } catch {
         return [];
@@ -1055,4 +1082,6 @@ async function clearStaleAstroContentCache() {
     }
 }
 
-await main();
+if (process.argv[1] && await fs.realpath(process.argv[1]) === await fs.realpath(fileURLToPath(import.meta.url))) {
+    await main();
+}

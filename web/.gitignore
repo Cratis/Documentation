@@ -26,6 +26,10 @@ api-build/*
 !api-build/index.md
 # generated sidebar
 src/generated/
+# Vale style packages downloaded by `vale sync` (declared via Packages in .vale.ini).
+# The house vocabulary under .vale/styles/config/vocabularies/ IS tracked.
+.vale/styles/*/
+!.vale/styles/config/
 
 # dependencies
 node_modules/
