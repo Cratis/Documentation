@@ -154,6 +154,18 @@ const aiTopic = {
     icon: 'star',
     items: [
         { label: 'Getting started', slug: 'ai/getting-started' },
+        { label: 'Agent harness guide', slug: 'ai/harnesses' },
+        { label: 'Concepts', slug: 'ai/concepts' },
+        {
+            label: 'Scenarios',
+            items: [
+                { label: 'Solo developer', slug: 'ai/scenarios/solo-developer' },
+                { label: 'Team repository', slug: 'ai/scenarios/team-repository' },
+                { label: 'Multiple harnesses', slug: 'ai/scenarios/multiple-harnesses' },
+                { label: 'Cratis maintainer', slug: 'ai/scenarios/cratis-maintainer' },
+                { label: 'Updates and rollback', slug: 'ai/scenarios/updates-and-rollback' },
+            ],
+        },
         { label: 'Profiles', slug: 'ai/profiles' },
         { label: 'Ecosystem support', slug: 'ai/ecosystems' },
         { label: 'Cratis maintainers', slug: 'ai/cratis-maintainers' },
