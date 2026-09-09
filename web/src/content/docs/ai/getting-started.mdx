@@ -1,130 +1,123 @@
 ---
-title: Start using AI with Cratis
-description: Set up the Cratis CLI and agent-facing operating tools today, understand the coding-skills release status, and choose the right next step for your team.
+title: Start using Cratis AI
+description: Cratis AI is a plugin for your AI coding tool — one command installs ~50 verified Cratis skills. Install matrix per host, what you get, and where to go next.
 ---
 
 import { Steps, Aside, CardGrid } from '@astrojs/starlight/components';
 import SimpleCard from '@components/SimpleCard.astro';
 
-A general coding assistant can read C#, but it does not automatically understand
-Cratis commands, facts, event sources, projections, or vertical slices. Cratis
-closes that gap in two places: documented operating tools you can set up today,
-and framework-aware coding skills you install through your host's marketplace or
-as version-pinned profile packages.
+**Cratis AI is a plugin for your AI coding tool.** It bundles roughly fifty
+skills — step-by-step, verified guidance for building event-sourced and CQRS
+applications on the Cratis ecosystem. Install it and you're done: the skills
+are passive markdown that your assistant loads when a task matches one. No
+hooks, no tools, no MCP server, no executable code.
 
-<Aside type="note" title="Evaluation status">
-Marketplace installation and the published npm package are real, but Cratis AI
-is an unsupported `0.x` evaluation distribution. A `1.0` supported release still
-has to pass the governed release gates.
-</Aside>
+## Install it
 
-## Set up the operating tools
+One command block per host. The marketplace source is the `Cratis/AI`
+repository's default branch, so what you install is exactly what a reviewer
+reads there ([Cratis/AI#264](https://github.com/Cratis/AI/issues/264)):
+
+```text
+Claude Code:    /plugin marketplace add Cratis/AI
+                /plugin install cratis@cratis
+
+Codex:          codex plugin marketplace add Cratis/AI
+                codex plugin install cratis@cratis
+
+GitHub Copilot: copilot plugin marketplace add Cratis/AI
+                copilot plugin install cratis@cratis
+
+Cursor:         resolves the same skills through its committed
+                marketplace manifest — no extra install step.
+
+Pi (npm):       pi install -l npm:@cratis/ai-fundamentals@0.10.0
+```
+
+The same marketplace also carries a separate maintainer plugin,
+`cratis-engineering`, for people contributing to Cratis' own repositories.
+
+The [agent harness guide](/ai/harnesses/) walks **every harness type** —
+Claude Code, Codex, GitHub Copilot, Cursor, Pi and npm, plus the pending
+hosts (Kiro, Junie, Gemini CLI) — with exact install, verify, and uninstall
+steps for each.
+
+## What you get
+
+- **Passive skills only.** Each skill is a `SKILL.md` (plus references and
+  assets). Your assistant auto-loads the matching skill from the task
+  description, or you can invoke one explicitly by name.
+- **Verified guidance.** Skills are authored against pinned product versions
+  in one canonical repository and reviewed there.
+- **No lock-in.** Skills never write into your project, never mutate your
+  settings, and removing the plugin removes everything they added.
+
+That's all you need. The rest of this page is for when you come back later
+and want more than the whole bundle.
+
+## Coming back later? Pick your scenario
+
+<CardGrid>
+  <SimpleCard title="Solo developer" icon="seti:account" link="/ai/scenarios/solo-developer/">
+    One person, one tool. Plugin only — nothing else to set up.
+  </SimpleCard>
+  <SimpleCard title="Team repository" icon="seti:org" link="/ai/scenarios/team-repository/">
+    Commit the three-file contract: PROJECT.md, ai.json, AGENTS.md.
+  </SimpleCard>
+  <SimpleCard title="Multiple harnesses" icon="puzzle" link="/ai/scenarios/multiple-harnesses/">
+    Several AI tools on one repository — one neutral scope record.
+  </SimpleCard>
+  <SimpleCard title="Cratis maintainer" icon="seti:folder" link="/ai/scenarios/cratis-maintainer/">
+    Working on Cratis' own repositories.
+  </SimpleCard>
+  <SimpleCard title="Updates and rollback" icon="seti:sync" link="/ai/scenarios/updates-and-rollback/">
+    How guidance changes under you, and how to get back.
+  </SimpleCard>
+  <SimpleCard title="Concepts" icon="seti:book" link="/ai/concepts/">
+    Profile, subscription, channel — mapped to words you know.
+  </SimpleCard>
+</CardGrid>
+
+## Narrow the scope (optional)
+
+The plugin carries everything. A repository that wants a narrower scope — one
+product, one language, one architecture — records that in a committed
+`.cratis/ai.json` naming a profile under the `cratis/` namespace:
+`cratis/chronicle/kotlin`, `cratis/arc/csharp`, `cratis/application`, and so
+on. See [Profiles](/ai/profiles/) for the full map and what each composition
+implies.
+
+## The operating tools (separate from the skills)
+
+The skills teach your assistant the Cratis *way*. Separately, Cratis ships
+documented **operating tools** an assistant can run against a live system:
 
 <Steps>
 
-1. **Install the Cratis CLI**
-
-   Follow the [CLI getting-started guide](/cli/getting-started/) for your
-   platform, then open a terminal in your Cratis project.
-
-2. **Generate the agent-facing CLI context**
-
-   ```bash
-   cratis init
-   ```
-
-   The command writes the CLI context and supported host instructions for the
-   project. Your assistant can now discover documented Chronicle inspection and
-   diagnosis commands instead of inventing shell syntax.
-
-3. **Refresh after a CLI upgrade**
-
-   ```bash
-   cratis init --refresh
-   ```
-
-   Refreshing keeps the assistant's command catalog aligned with the CLI version
-   you actually run.
-
-4. **Connect Chronicle MCP when your host supports MCP**
-
-   Use the [Chronicle MCP setup guide](/chronicle-mcp/) to connect an approved
-   host to a running Chronicle store. Review every requested capability before
-   enabling mutating operational tools.
+1. **Install the Cratis CLI** — see the
+   [CLI getting-started guide](/cli/getting-started/), then run `cratis init`
+   in your project so the assistant discovers documented Chronicle inspection
+   and diagnosis commands instead of inventing shell syntax.
+2. **Refresh after a CLI upgrade** with `cratis init --refresh`.
+3. **Connect Chronicle MCP** when your host supports MCP — see the
+   [Chronicle MCP setup guide](/chronicle-mcp/) — and review every requested
+   capability before enabling mutating operational tools.
 
 </Steps>
 
-You now have the operating side of Cratis AI: the assistant can use documented
-CLI or MCP surfaces to inspect Chronicle with the same vocabulary you use in the
-application.
+<Aside type="note" title="Status">
 
-## Use coding skills in a Cratis-owned repository
+- **Install today from `main`.** The versioned-release flow — exact-version
+  Pi packages, reviewed update pull requests — is designed but not published
+  yet. Until the first governed release, the marketplace installs straight
+  off the default branch, and the only published package is the unsupported
+  `@cratis/ai-fundamentals` `0.x` evaluation on npm.
+- **Vendor marketplace listing is pending.** Adding `Cratis/AI` as a
+  marketplace works now; being *listed* in a vendor's own marketplace UI — so
+  strangers can find "cratis" by search — is a separate manual submission
+  per host, tracked in
+  [Cratis/AI#147](https://github.com/Cratis/AI/issues/147).
+- Everything is an unsupported `0.x` evaluation until the governed release
+  gates pass.
 
-Cratis maintainers can use the repository-local AI setup already present in
-Cratis repositories. Start your agent from the repository root so it reads
-`AGENTS.md` and the repository's current host adapter. Ask for the outcome in
-plain language—for example, "add a projection," "model this workflow," or
-"review these changes"—and let the matching skill apply the repository profile
-and quality gates.
-
-See [Using AI as a Cratis maintainer](/ai/cratis-maintainers/) for the complete
-workflow and the rules for project context, verification, and shipping.
-
-## Install the coding skills in your repository
-
-Add `Cratis/AI` as a marketplace and install the `cratis` plugin. The manifests
-on the repository's default branch resolve the `skills/` directory directly, so
-what you install is exactly what is published there:
-
-```text
-/plugin marketplace add Cratis/AI
-/plugin install cratis@cratis
-```
-
-```bash
-codex plugin marketplace add Cratis/AI
-copilot plugin marketplace add Cratis/AI
-copilot plugin install cratis@cratis
-```
-
-Cursor resolves the same skills through its committed marketplace manifest. The
-plugin carries the whole public bundle; if your repository needs a narrower
-scope — one product, one language, one architecture — subscribe to
-[profiles](/ai/profiles/) instead of, or next to, the plugin.
-
-For a version-pinned install, use the published npm package through Pi:
-
-```bash
-pi install -l npm:@cratis/ai-fundamentals@0.10.0
-```
-
-In every case:
-
-- do not copy `.ai`, `.claude`, `.github`, or skill folders from another
-  repository;
-- keep your project-specific facts in your repository rather than in shared
-  skills;
-- use `cratis init` and Chronicle MCP for the currently documented operating
-  workflow.
-
-The [ecosystem support matrix](/ai/ecosystems/) shows the install status and
-current verification level for every host. The [trust and distribution model](/ai/trust-and-distribution/)
-explains why Cratis distributes skills from one canonical repository instead of
-copying one repository into another.
-
-## Choose your next step
-
-<CardGrid>
-  <SimpleCard title="Profiles" icon="seti:checkbox" link="/ai/profiles/">
-    Narrow the scope: per product, per language, pinned versions, reviewed updates.
-  </SimpleCard>
-  <SimpleCard title="Cratis maintainers" icon="seti:folder" link="/ai/cratis-maintainers/">
-    Work effectively with the repository-local rules and skills already used by the Cratis team.
-  </SimpleCard>
-  <SimpleCard title="Agent ecosystems" icon="puzzle" link="/ai/ecosystems/">
-    See Claude, Codex, Copilot, Cursor, Kiro, Junie, Gemini, Pi, and npm status in one place.
-  </SimpleCard>
-  <SimpleCard title="Trust and distribution" icon="approve-check" link="/ai/trust-and-distribution/">
-    Understand the single canonical source, release gates, canaries, and rollback.
-  </SimpleCard>
-</CardGrid>
+</Aside>
