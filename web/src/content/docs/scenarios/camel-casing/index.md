@@ -50,5 +50,5 @@ After your app runs and projections update read models, inspect the stored docum
 
 ## Related reference pages
 
-- [Chronicle camel casing](https://www.cratis.io/chronicle/configuration/camel-casing.html)
-- [Arc MongoDB naming policies](https://www.cratis.io/arc/backend/mongodb/naming-policies.html)
+- [Chronicle camel casing](/chronicle/configuration/camel-casing/)
+- [Arc MongoDB naming policies](/arc/backend/mongodb/naming-policies/)

@@ -271,7 +271,7 @@ jobs:
           else
             yarn install
           fi
-          (cd Source && ../node_modules/.bin/storybook build -o ../../Documentation/web/public/storybook)
+          node ../Documentation/web/scripts/build-components-storybook.mjs
 
       - name: Build Arc React Storybook
         working-directory: Arc/Source/JavaScript
@@ -289,11 +289,16 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Install DocFX
+        run: dotnet tool install -g docfx || dotnet tool update -g docfx
+
+      - name: Verify documentation build helpers
+        working-directory: Documentation/web
+        run: node --test scripts/*.test.mjs
+
       - name: Generate API reference (DocFX + TypeDoc)
         working-directory: Documentation/web
-        run: |
-          dotnet tool install -g docfx || dotnet tool update -g docfx
-          npm run build:api
+        run: npm run build:api
 
       - name: Lint docs
         working-directory: Documentation/web

@@ -5,11 +5,11 @@ description: Where to find the generated .NET and TypeScript API reference, and 
 
 The narrative documentation — guides, concepts, tutorials — is what you're reading here. The **API reference** is the exhaustive, generated description of every public type and member, produced directly from the source so it never drifts.
 
-## .NET / C#
+## .NET / C\#
 
 The .NET API reference is generated with **DocFX** from the XML documentation comments across the Chronicle client SDK, Arc, and Fundamentals assemblies.
 
-**[Browse the .NET API reference →](/api/)** — every public type and member, organized per library (Chronicle clients, Arc + MongoDB, Fundamentals).
+**[Browse the .NET API reference →](/api/)** — public types and members from the Chronicle clients, Arc (including Arc.Core and MongoDB), and Fundamentals, organized by namespace. Shared extension classes list their contributing assemblies; existing per-library type and member URLs redirect to the canonical pages.
 
 While you're coding, the same XML docs power **IntelliSense** in your IDE — so the reference is right there as you type. On NuGet:
 

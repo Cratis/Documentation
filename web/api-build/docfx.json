@@ -1,43 +1,24 @@
 {
   "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
-  "rules": {
-    "InvalidFileLink": "suggestion",
-    "InvalidBookmark": "suggestion",
-    "DuplicateUids": "suggestion",
-    "InvalidTocInclude": "suggestion"
-  },
   "metadata": [
     {
-      "comment": "Chronicle clients use pre-built Release DLLs for the same reason as Arc below: the Cratis.Traces [Span] source generator references a newer Roslyn than docfx bundles (ReferencesNewerCompiler), so the partial *Traces methods fail to compile from source (CS8795). build-api.mjs runs `dotnet build -c Release` first.",
-      "src": [{ "files": ["Cratis.Chronicle.dll"], "src": "../../../Chronicle/Source/Clients/DotNET/bin/Release/net10.0" }],
-      "output": "chronicle/clients/dotnet"
-    },
-    {
-      "src": [{ "files": ["Cratis.Chronicle.AspNetCore.dll"], "src": "../../../Chronicle/Source/Clients/AspNetCore/bin/Release/net10.0" }],
-      "output": "chronicle/clients/aspnetcore"
-    },
-    {
-      "src": [{ "files": ["Cratis.Chronicle.Testing.dll"], "src": "../../../Chronicle/Source/Clients/Testing/bin/Release/net10.0" }],
-      "output": "chronicle/clients/testing"
-    },
-    {
-      "comment": "Arc + MongoDB use the pre-built Release DLL: docfx's bundled Roslyn cannot run their source generators (ReferencesNewerCompiler), so the partial methods those generators implement fail to compile from source (CS8795). build-api.mjs runs `dotnet build -c Release` first.",
-      "src": [{ "files": ["Cratis.Arc.dll"], "src": "../../../Arc/Source/DotNET/Arc/bin/Release/net10.0" }],
-      "output": "arc/dotnet/arc"
-    },
-    {
-      "src": [{ "files": ["Cratis.Arc.MongoDB.dll"], "src": "../../../Arc/Source/DotNET/MongoDB/bin/Release/net10.0" }],
-      "output": "arc/dotnet/mongodb"
-    },
-    {
-      "src": [{ "files": ["Fundamentals/Fundamentals.csproj"], "exclude": ["**/obj/**", "**/bin/**"], "src": "../../../Fundamentals/Source/DotNET" }],
-      "properties": { "TargetFramework": "net10.0" },
-      "output": "fundamentals/dotnet/fundamentals"
+      "comment": "One native DocFX batch groups shared namespaces and extension classes. build-api.mjs first strictly builds these Release assemblies, extracts independent per-library audit baselines, then validates the grouped metadata and restores all assembly provenance before rendering. Compiled DLLs avoid the source generators' newer Roslyn requirement.",
+      "src": [
+        { "files": ["Cratis.Chronicle.dll"], "src": "../../../Chronicle/Source/Clients/DotNET/bin/Release/net10.0" },
+        { "files": ["Cratis.Chronicle.AspNetCore.dll"], "src": "../../../Chronicle/Source/Clients/AspNetCore/bin/Release/net10.0" },
+        { "files": ["Cratis.Chronicle.Testing.dll"], "src": "../../../Chronicle/Source/Clients/Testing/bin/Release/net10.0" },
+        { "files": ["Cratis.Arc.dll"], "src": "../../../Arc/Source/DotNET/Arc/bin/Release/net10.0" },
+        { "files": ["Cratis.Arc.Core.dll"], "src": "../../../Arc/Source/DotNET/Arc.Core/bin/Release/net10.0" },
+        { "files": ["Cratis.Arc.MongoDB.dll"], "src": "../../../Arc/Source/DotNET/MongoDB/bin/Release/net10.0" },
+        { "files": ["Cratis.Fundamentals.dll"], "src": "../../../Fundamentals/Source/DotNET/Fundamentals/bin/Release/net10.0" }
+      ],
+      "output": "dotnet",
+      "globalNamespaceId": "global"
     }
   ],
   "build": {
     "content": [
-      { "files": ["chronicle/**/*.{yml,md}", "arc/**/*.{yml,md}", "fundamentals/**/*.{yml,md}"] },
+      { "files": ["dotnet/**/*.{yml,md}"] },
       { "files": ["toc.yml", "index.md"] }
     ],
     "output": "_site",
