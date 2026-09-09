@@ -224,7 +224,7 @@ test('fenced and indented table examples and non-table pipe text remain byte-ide
 
 test('external checker explicitly limits lychee to HTTP(S), leaving internal checker separate', () => {
     const runner = stubRunner([success, success]);
-    assert.equal(checkExternalLinks(runner), 0);
+    assert.equal(checkExternalLinks({ ...runner, exists: () => true }), 0);
     assert.equal(runner.calls[1][0], 'lychee');
     assert.deepEqual(runner.calls[1][1], externalLinkArguments);
     assert.deepEqual(externalLinkArguments.slice(4, 11), ['--root-dir', 'dist', '--scheme', 'http', '--scheme', 'https', '--']);

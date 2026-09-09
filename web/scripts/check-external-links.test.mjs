@@ -11,6 +11,7 @@ function check(status) {
     const result = checkExternalLinks({
         run: () => ({ status: invocation++ === 0 ? 0 : status }),
         logger: { log: message => messages.push(message), error: message => messages.push(message) },
+        exists: () => true,
     });
     return { result, messages };
 }
@@ -32,5 +33,16 @@ describe('when lychee reports its execution outcome', () => {
         const outcome = check(3);
         assert.equal(outcome.result, 1);
         assert.ok(outcome.messages.every(message => !message.includes('advisory')));
+    });
+
+    it('fails when the built site is missing rather than checking against nothing', () => {
+        const messages = [];
+        const result = checkExternalLinks({
+            run: () => ({ status: 0 }),
+            logger: { log: message => messages.push(message), error: message => messages.push(message) },
+            exists: () => false,
+        });
+        assert.equal(result, 1);
+        assert.match(messages[0], /Built-site root is missing/);
     });
 });

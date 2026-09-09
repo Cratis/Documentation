@@ -20,7 +20,9 @@ export const externalLinkArguments = [
     'src/content/docs/**/*.md', 'src/content/docs/**/*.mdx',
 ];
 
-export function checkExternalLinks({ run = spawnSync, cwd = webRoot, logger = console } = {}) {
+// `exists` is injectable so the checker's own behavior can be verified without
+// depending on whether the site happens to have been built in this checkout.
+export function checkExternalLinks({ run = spawnSync, cwd = webRoot, logger = console, exists = existsSync } = {}) {
     const probe = run('lychee', ['--version'], { cwd, stdio: 'ignore' });
     if (probe.error?.code === 'ENOENT') {
         logger.log('[check:external] lychee not installed — skipping (install from https://lychee.cli.rs to enable).');
@@ -32,7 +34,7 @@ export function checkExternalLinks({ run = spawnSync, cwd = webRoot, logger = co
     }
     // Lychee resolves local references before applying its scheme filter. Supply
     // the built-site root so a local reference cannot become a spurious error.
-    if (!existsSync(path.join(cwd, 'dist'))) {
+    if (!exists(path.join(cwd, 'dist'))) {
         logger.error('[check:external] Built-site root is missing; build the site before checking external links.');
         return 1;
     }
