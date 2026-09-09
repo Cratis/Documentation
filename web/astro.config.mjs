@@ -139,6 +139,7 @@ const aiTopic = {
     icon: 'star',
     items: [
         { label: 'Getting started', slug: 'ai/getting-started' },
+        { label: 'Profiles', slug: 'ai/profiles' },
         { label: 'Ecosystem support', slug: 'ai/ecosystems' },
         { label: 'Cratis maintainers', slug: 'ai/cratis-maintainers' },
         { label: 'Trust and distribution', slug: 'ai/trust-and-distribution' },

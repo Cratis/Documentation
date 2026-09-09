@@ -14,26 +14,29 @@ A general-purpose assistant knows C# and TypeScript, but it does not automatical
 ## One behavior, several native packages
 
 Cratis authors canonical skills in [`Cratis/AI`](https://github.com/Cratis/AI).
-Approved exact bytes are projected into the generated
-[`Cratis/AI.Distribution`](https://github.com/Cratis/AI.Distribution) repository.
-Each target receives the manifest and discovery layout it expects, while the
-skill instructions, references, assets, and licenses remain byte-identical.
+Four committed marketplace manifests — for Claude Code, Codex, GitHub Copilot,
+and Cursor — point hosts straight at the `skills/` and `engineering/`
+directories on the repository's default branch, so what a host installs is
+exactly what a reviewer reads there.
 
 ```mermaid
 flowchart LR
-    A[Canonical Cratis skill] --> G[Generated and checksummed stage]
-    G --> C[Claude / Codex / Copilot / Cursor]
-    G --> K[Kiro / Junie / Gemini / Pi]
+    A[Cratis/AI<br/>canonical skills and profiles] --> C[Claude Code / Codex]
+    A --> K[Copilot / Cursor]
+    A --> N[npm and Pi packages]
+    C --> P[Your repository]
+    K --> P
+    N --> P
+    X[.cratis/PROJECT.md<br/>project-owned context] --> P
 ```
 
 This avoids behavior forks. A projection skill should not teach one architecture
 in Claude and another in Copilot merely because their package manifests differ.
 
-<Aside type="caution" title="Fixture-only distribution">
-The generated repository currently proves packaging, byte parity, lifecycle
-smoke, canary/rollback, and protected generation with a sanitized fixture. It is
-not a supported installation target and contains no approved real public skill.
-Do not install its `main` branch.
+<Aside type="note" title="Evaluation status">
+Marketplace installation and the published npm package are real, but Cratis AI
+remains an unsupported `0.x` evaluation distribution. Marketplace availability
+does not imply behavior support or a stable-support claim.
 </Aside>
 
 ## Public packages stay passive
@@ -85,22 +88,26 @@ The old all-to-all propagation model is frozen. Copying `.ai`, `.claude`,
 `.github`, `.agents`, or `.pi` trees creates mixed versions and lets a consuming
 repository become an accidental distributor.
 
-The replacement uses immutable generated releases and version pins. A consuming
-repository owns only its project context and minimal host bootstraps. Updating or
-rolling back changes the shared version without overwriting project facts.
+The replacement is ordinary versioned distribution: hosts install the plugin
+from the `Cratis/AI` marketplace, or repositories subscribe to profiles at exact
+versions. A consuming repository owns only its project context and minimal host
+bootstraps. Updating or rolling back changes the shared version without
+overwriting project facts.
 
-[Trust and distribution](/ai/trust-and-distribution/) explains the approval,
-generation, canary, rollback, and retirement gates in detail.
+[Profiles](/ai/profiles/) explains how to select a narrower scope than the whole
+bundle, and [Trust and distribution](/ai/trust-and-distribution/) explains the
+approval, release, and rollback gates in detail.
 
-## Get the operating tools today
+## Get the skills and the operating tools today
 
-Portable coding skills remain gated, but the documented operating workflow is
-available now:
+Everything is installable now, in two halves:
 
-1. follow the [CLI getting-started guide](/cli/getting-started/);
-2. run `cratis init` in your project to generate the supported CLI context;
-3. connect [Chronicle MCP](/chronicle-mcp/) when your host and authorization
-   policy allow it.
+1. **Coding skills** — add `Cratis/AI` as a marketplace and install the `cratis`
+   plugin ([commands per host](/ai/getting-started/)), or pin the published
+   [`@cratis/ai-fundamentals`](/ai/profiles/) package through Pi.
+2. **Operating tools** — run `cratis init` in your project to generate the
+   supported CLI context, then connect [Chronicle MCP](/chronicle-mcp/) when your
+   host and authorization policy allow it.
 
 Read [Start using AI with Cratis](/ai/getting-started/) for the guided setup and
 [AI ecosystem support](/ai/ecosystems/) for host-by-host status.
@@ -109,10 +116,13 @@ Read [Start using AI with Cratis](/ai/getting-started/) for the guided setup and
 
 <CardGrid>
   <SimpleCard title="Start using AI" icon="rocket" link="/ai/getting-started/">
-    Set up the available operating tools and choose the right coding-skills path.
+    Install the skills through your host's marketplace and set up the operating tools.
+  </SimpleCard>
+  <SimpleCard title="Profiles" icon="seti:checkbox" link="/ai/profiles/">
+    Subscribe a repository to exactly the products, languages, and architectures it needs.
   </SimpleCard>
   <SimpleCard title="Ecosystem support" icon="puzzle" link="/ai/ecosystems/">
-    Compare generated formats and release gates across supported hosts.
+    Compare host-by-host installation status and the gates behind support claims.
   </SimpleCard>
   <SimpleCard title="Cratis maintainers" icon="seti:folder" link="/ai/cratis-maintainers/">
     Use repository-local skills and gates without restarting propagation.

@@ -1,6 +1,6 @@
 ---
 title: AI-native development
-description: Cratis combines framework-aware AI workflows with documented CLI and MCP operating tools. Learn what maintainers can use today, what is still in distribution preview, and where each agent ecosystem fits.
+description: Cratis combines framework-aware AI workflows you can install today with documented CLI and MCP operating tools. Learn what is installable now, what stays gated, and where each agent ecosystem fits.
 slug: ai
 ---
 
@@ -9,14 +9,14 @@ import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
 <TopicHero icon="rocket" eyebrow="The Cratis Stack" title="Build and operate with AI agents">
-Cratis is designed to give an AI assistant the same domain vocabulary, framework boundaries, and verification gates your team uses. Cratis maintainers use framework-aware workflows in Cratis repositories today; external portable coding skills remain in distribution preview. The CLI and Chronicle MCP provide the documented operating side now.
+Cratis is designed to give an AI assistant the same domain vocabulary, framework boundaries, and verification gates your team uses. Install the framework-aware skills today from the Cratis AI marketplace or as version-pinned profile packages; the CLI and Chronicle MCP provide the documented operating side now.
 </TopicHero>
 
 ## Why "AI-native"
 
 An AI assistant is only as good as what it knows about your framework and your system. Drop a general-purpose agent into a Cratis codebase and it will *guess* — inventing handler classes, missing the vertical-slice conventions, hand-writing the API client you don't need. Point it at a running event store and it has no idea how to read the log or recover a stuck observer.
 
-Cratis closes the operating gap with documented CLI and MCP setup today. For coding workflows, it separates the repository-local setup used by Cratis maintainers from a generated portable distribution that remains gated until its first real target and release are approved.
+Cratis closes the operating gap with documented CLI and MCP setup today. For coding workflows, it separates what any developer installs — the marketplace plugin and published profile packages — from the repository-local setup used by Cratis maintainers, and from the supported tier that still has to pass its release gates.
 
 ## Build with AI: skills that know the Cratis way
 
@@ -24,12 +24,13 @@ The **Cratis AI configuration** teaches an assistant the conventions—vertical
 slices, `[Command]` with `Handle()` on the record, model-bound projections, and
 `ConceptAs<T>` instead of raw primitives.
 
-Cratis-owned repositories currently carry repository-local rules and host
-adapters, so maintainers can use these workflows today. The public portable
-skills are being generated for Agent Skills, Claude Code, Codex, GitHub Copilot,
-Cursor, Kiro, Junie, Gemini CLI, and Pi, but they are not released for external
-installation yet. The public distribution repository remains fixture-only until
-source, target, canary, and release gates pass.
+You can install it today: add `Cratis/AI` as a marketplace in Claude Code, Codex,
+GitHub Copilot, or Cursor and install the `cratis` plugin, or pin the published
+`@cratis/ai-fundamentals` npm package through Pi. Everything ships as an
+unsupported `0.x` evaluation distribution — the supported tier waits on release
+gates, not on packaging. Cratis-owned repositories additionally carry
+repository-local rules and host adapters, so maintainers can use these workflows
+in place.
 
 Among the workflows available to Cratis maintainers:
 
@@ -37,13 +38,13 @@ Among the workflows available to Cratis maintainers:
 - **`cratis-command`**, **`cratis-readmodel`**, **`add-projection`**, **`add-reactor`**, **`add-concept`** — build one artifact correctly, by convention.
 - **`scaffold-feature`**, **`write-specs`**, **`review-code`** — set up a feature folder, cover it with BDD specs, and review the result against the project's standards.
 
-Because the skills encode the conventions, an agent that uses them produces slices that look like the rest of your codebase — not a layered approximation of it. (The configuration is the canonical `.ai/` source in the Cratis AI repository, dropped into a project as its `.claude/` and `.github/` folders.)
+Because the skills encode the conventions, an agent that uses them produces slices that look like the rest of your codebase — not a layered approximation of it. (The canonical source is the `Cratis/AI` repository; a repository that needs a narrower scope subscribes to [profiles](/ai/profiles/) — per product, per language, pinned.)
 
 Start with [AI setup and current availability](/ai/getting-started/), then use
 the [ecosystem support matrix](/ai/ecosystems/) to see what is verified and what
-remains blocked. [Plugins](/plugins/) explains the shared skill model, while the
-[code-analysis gates](/code-analysis/) enforce framework contracts during the
-build.
+remains gated. [Profiles](/ai/profiles/) explains how to select exactly the
+guidance a repository needs, while the [code-analysis gates](/code-analysis/)
+enforce framework contracts during the build.
 
 <Aside type="tip" title="Model first, then generate">
 Pair this with [Studio](/studio/) or [Screenplay](/screenplay/): model the feature on the canvas or as a declarative `.play` script, generate the C# shapes, then let an agent flesh out the slices around them. Design → generate → build, with AI at each step.

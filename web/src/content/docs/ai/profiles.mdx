@@ -1,0 +1,137 @@
+---
+title: Choose Cratis AI profiles
+description: Pick exactly which Cratis AI guidance a repository gets — per product, per language, pinned to an exact version — with or without a host marketplace.
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+
+The Cratis AI marketplace plugins install the whole public skill set in one
+step. Many repositories need something narrower: a Kotlin Chronicle client that
+must not learn Arc conventions, an Arc-only backend with no event sourcing, a
+specifications library. **Profiles** are how you select that scope — and they
+work whether or not you use a marketplace.
+
+## Marketplace or profiles?
+
+The two paths answer different questions and compose cleanly:
+
+| | Marketplace plugin | Profile subscription |
+| --- | --- | --- |
+| Question it answers | "Give my assistant the Cratis skills" | "Give this repository exactly the skills its stack needs" |
+| Scope | The whole public bundle (or the maintainer bundle) | The profiles you name — products, languages, and compositions |
+| Selection granularity | One bundle | Per product, per language, per architecture |
+| Versioning | Follows the `Cratis/AI` default branch you already read | Pinned to exact package versions; updates arrive as reviewed pull requests |
+| Setup | One command per host | A committed `.cratis/ai.json` plus host packages |
+| Good for | Trying Cratis AI, broad developer machines | Repositories with a fixed stack, teams that review AI changes |
+
+You can start with the marketplace and narrow later: the subscription path uses
+the same skills, so nothing you learn changes.
+
+## Choose the profile
+
+Name the profile after the *narrowest* description of your repository:
+
+| Repository | Profile |
+| --- | --- |
+| Full Arc + Chronicle + React application | `public-application` |
+| Arc backend without Chronicle | `cratis/arc` |
+| Arc backend, C# only | `cratis/arc/csharp` |
+| Arc backend in Kotlin | `cratis/arc/kotlin` |
+| Chronicle client without Arc | `cratis/chronicle` |
+| Chronicle client in Kotlin (Java rides the Kotlin JVM interop) | `cratis/chronicle/kotlin` |
+| Chronicle client in TypeScript or Elixir | `cratis/chronicle/typescript`, `cratis/chronicle/elixir` |
+| Application in a language Arc does not support yet | `cratis/application/typescript`, `cratis/application/elixir` (Chronicle-only until Arc supports the language) |
+| Fundamentals library consumer | `public-fundamentals` |
+| Specifications library | `public-specifications-dotnet`, `public-specifications-typescript` |
+| Cratis framework or product repository (maintainers) | `engineering-chronicle`, `engineering-arc`, … |
+
+The language in `cratis/<product>/<language>` means the language you write that
+side of the stack in. Arc supports C# and Kotlin today; there is deliberately no
+`cratis/arc/typescript`.
+
+The full map — every profile, what it composes, and its current status — lives in
+the [profile reference](https://github.com/Cratis/AI/blob/main/Documentation/profile-reference.md)
+in the `Cratis/AI` repository. The generated
+[package and capability catalog](https://github.com/Cratis/AI/blob/main/catalog/generated/human-catalog/CATALOG.md)
+shows each profile's included skills and availability in plain language.
+
+## Subscribe in `.cratis/ai.json`
+
+<Steps>
+
+1. **Create the subscription file** in the consuming repository:
+
+   ```json
+   {
+     "schemaVersion": "1.0.0",
+     "version": "1.0.0",
+     "profiles": ["cratis/chronicle/kotlin"],
+     "harnesses": ["claude", "codex", "copilot", "pi"],
+     "updatePolicy": "reviewed-pull-request",
+     "projectContext": ".cratis/PROJECT.md"
+   }
+   ```
+
+2. **Pin an exact version.** `latest`, branches, and floating ranges are
+   rejected. Rollback means restoring the previous exact version — never a
+   floating one.
+
+3. **List your harnesses.** The `harnesses` array names the hosts this
+   repository expects the skills to reach.
+
+4. **Keep `updatePolicy: reviewed-pull-request`.** Updates arrive as ordinary
+   pull requests that change only the pin — you review them like any dependency.
+
+5. **Point `projectContext` at your project facts.** The shared profiles never
+   own your architecture, environment names, or commands; `.cratis/PROJECT.md`
+   does. Keep credentials out of it.
+
+</Steps>
+
+<Aside type="note" title="The cratis/ namespace derives its channel">
+Profiles under `cratis/` are public by construction — you do not declare a
+channel for them. `public-` and `engineering-` profiles declare one explicitly,
+and public and engineering profiles can never appear in the same subscription.
+</Aside>
+
+## Install the matching packages
+
+A subscription names what the repository *wants*; the matching packages deliver
+it per host:
+
+- **Pi/npm** — install the package for your profile at the exact pinned version:
+
+  ```bash
+  pi install -l npm:@cratis/ai-fundamentals@0.10.0
+  ```
+
+  Pi records the exact pin in `.pi/settings.json`; commit it after review.
+
+- **Marketplace hosts** — the Claude Code, Codex, GitHub Copilot, and Cursor
+  plugins resolve the same skills directly from the `Cratis/AI` repository, so a
+  machine can run the marketplace plugin while the repository's `.cratis/ai.json`
+  documents the profile it should behave as.
+
+Per-profile packages beyond Fundamentals release as each profile passes its
+preview gates. Until a profile's package exists, the marketplace plugin is the
+way to get its skills; the subscription still records the intended scope and
+starts receiving reviewed updates the moment the package publishes.
+
+## Update and roll back
+
+Update and rollback are the same operation at different versions: change the
+exact version in `.cratis/ai.json` (and `.pi/settings.json`), review the pull
+request, and rerun your repository gates. Shared skill bodies never change under
+your feet, and removing a package never touches `.cratis/PROJECT.md`,
+`AGENTS.md`, or your local skills.
+
+## What not to do
+
+- Do not copy `.ai`, `.claude`, `.github`, `.agents`, or `.pi` trees from another
+  repository — that is the frozen propagation model the profiles replace.
+- Do not mix public and engineering profiles in one subscription.
+- Do not point a subscription at a floating version.
+
+See [Trust and distribution](/ai/trust-and-distribution/) for why Cratis
+distributes skills this way, and [Start using AI with Cratis](/ai/getting-started/)
+for the marketplace install commands per host.
