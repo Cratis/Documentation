@@ -1,3 +1,6 @@
+// Copyright (c) Cratis. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 // Build-time Mermaid pre-rendering.
 //
 // astro-mermaid renders diagrams in the browser, so on diagram pages the page
@@ -136,13 +139,19 @@ async function ensureBrowser() {
  * width:100% to scale, max-width to cap at natural size, and aspect-ratio from
  * the viewBox so the browser knows the height before layout — no settle/reflow.
  */
-function makeResponsive(svg) {
-    const vb = svg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/);
-    if (!vb) return svg;
-    const [, w, h] = vb;
+export function makeResponsive(svg) {
+    const viewBox = svg.match(/\bviewBox=(['"])([^'"]+)\1/);
+    if (!viewBox) return svg;
+
+    const values = viewBox[2].trim().split(/[\s,]+/).map(Number);
+    if (values.length !== 4) return svg;
+
+    const [, , width, height] = values;
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return svg;
+
     return svg.replace(/<svg([^>]*?)>/, (_m, attrs) => {
         const cleaned = attrs.replace(/\s(?:width|height|style)="[^"]*"/g, '');
-        return `<svg${cleaned} width="100%" style="max-width:${Math.ceil(parseFloat(w))}px;height:auto;aspect-ratio:${w}/${h};">`;
+        return `<svg${cleaned} width="100%" style="max-width:${Math.ceil(width)}px;height:auto;aspect-ratio:${width}/${height};">`;
     });
 }
 
