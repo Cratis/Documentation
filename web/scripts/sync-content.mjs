@@ -36,7 +36,7 @@ function firstExisting(...candidates) {
 
 const chronicleClientDocsConfig = await loadChronicleClientDocsConfig();
 
-const PRODUCTS = [
+export const PRODUCTS = [
     {
         key: 'chronicle', label: 'Chronicle', icon: 'seti:db', sidebarMode: 'toc',
         src: chronicleClientDocsConfig.sharedDocsRoot,
@@ -94,12 +94,12 @@ const PRODUCTS = [
             {
                 label: 'Component library',
                 sections: [
-                    'Storybook', 'Canvas', 'CommandDialog', 'CommandForm', 'CommandStepper', 'StepperCommandDialog', 'DataPage',
-                    'DataTables', 'Dialogs', 'Filter', 'Dropdown', 'Toolbar', 'ObjectNavigationalBar',
+                    'Storybook', 'Canvas', 'Chat', 'CommandDialog', 'CommandForm', 'CommandStepper', 'StepperCommandDialog', 'DataPage',
+                    'DataTables', 'Dialogs', 'Filter', 'Dropdown', 'Display', 'Notifications', 'Toolbar', 'ObjectNavigationalBar',
                     'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common',
                 ],
             },
-            { label: 'Reference', sections: ['Types', 'Migration'] },
+            { label: 'Reference', sections: ['Architecture decisions', 'Renderer adapters', 'Types', 'Migration'] },
         ],
     },
     {
@@ -488,10 +488,19 @@ async function readClientSnippet(source, snippet) {
 }
 
 function isInsideFencedCode(body, index) {
-    const prefix = body.slice(0, index);
-    const backtickFences = prefix.match(/^```/gm)?.length ?? 0;
-    const tildeFences = prefix.match(/^~~~/gm)?.length ?? 0;
-    return backtickFences % 2 === 1 || tildeFences % 2 === 1;
+    let fence = null;
+    for (const line of body.slice(0, index).split('\n')) {
+        const match = line.match(/^\s*(`{3,}|~{3,})/);
+        if (!match) continue;
+        const marker = match[1][0];
+        const length = match[1].length;
+        if (!fence) {
+            fence = { marker, length };
+        } else if (marker === fence.marker && length >= fence.length && /^\s*[`~]+\s*$/.test(line)) {
+            fence = null;
+        }
+    }
+    return fence !== null;
 }
 
 function ensureTabsImport(body) {
@@ -528,6 +537,12 @@ async function expandChronicleClientTabs(body, ctx) {
             continue;
         }
 
+        if (path.extname(ctx.srcPath ?? ctx.basename).toLowerCase() !== '.mdx') {
+            throw new Error(
+                `[sync] Cannot expand ChronicleClientTabs in Markdown source ${ctx.srcPath ?? ctx.basename}; rename the source file to .mdx`
+            );
+        }
+
         const attrs = match[1];
         const snippet = getAttr(attrs, 'snippet');
         if (!snippet) {
@@ -537,7 +552,7 @@ async function expandChronicleClientTabs(body, ctx) {
         const syncKey = getAttr(attrs, 'syncKey') ?? 'chronicle-client';
 
         const tabs = [];
-        for (const source of CHRONICLE_CLIENT_SNIPPETS) {
+        for (const source of ctx.chronicleClientSnippets ?? CHRONICLE_CLIENT_SNIPPETS) {
             const content = await readClientSnippet(source, snippet);
             if (content === null) continue;
             tabs.push({ source, content });
@@ -750,20 +765,47 @@ export async function collectSlugs(dirAbs, slugBase, set) {
     }
 }
 
-export async function entryToItem(e, dirAbs, slugBase) {
+function resolvedTocSlug(href, slugBase) {
+    const clean = href.split('#')[0].split('?')[0];
+    if (!/\.mdx?$/i.test(clean)) return null;
+    const rel = clean.replace(/\.mdx?$/i, '').replace(/(^|\/)index$/i, '');
+    const joined = path.posix.normalize(rel ? path.posix.join(slugBase, rel) : slugBase);
+    const productSlug = slugBase.split('/').filter(Boolean)[0];
+    if (joined !== productSlug && !joined.startsWith(productSlug + '/')) {
+        throw new Error(`[sync] toc href "${href}" escapes the ${productSlug} documentation root`);
+    }
+    return slugify(joined);
+}
+
+function pageTocItem(label, href, slugBase, slugs) {
+    const pageSlug = resolvedTocSlug(href, slugBase);
+    if (!pageSlug) return null;
+    if (!slugs.has(pageSlug)) {
+        // Missing generated products are expected during a targeted local sync.
+        // Preserve the existing drop-and-count behavior for unresolved pages.
+        droppedSidebarEntries++;
+        return null;
+    }
+    return { label, slug: pageSlug };
+}
+
+export async function entryToItem(e, dirAbs, slugBase, slugs = validSlugs) {
     const label = e.name ?? 'Untitled';
     const href = e.href;
     if (href && isPrivateDocPath(href)) return null;
     // External links and the auto-generated API section are wired separately — skip.
-    if (href && (/^https?:/.test(href) || href.includes('/api/') || href.startsWith('../'))) {
+    if (href && (/^https?:/.test(href) || href.includes('/api/'))) {
         return null;
     }
-    // Group via a sub-folder's toc.yml
-    if (href && /toc\.yml$/.test(href)) {
-        const subRel = href.replace(/\/?toc\.yml$/, '');
+    // Group via a sub-folder's toc.yml.
+    if (href && /toc\.ya?ml$/i.test(href)) {
+        if (Array.isArray(e.items)) {
+            throw new Error(`[sync] toc entry "${label}" cannot combine a toc.yml href with inline items`);
+        }
+        const subRel = href.replace(/\/?toc\.ya?ml$/i, '');
         const subDirAbs = path.resolve(dirAbs, subRel);
         if (existsSync(subDirAbs)) await assertPublicDocSource(subDirAbs, dirAbs);
-        const children = await tocToSidebar(subDirAbs, slugify(path.posix.join(slugBase, subRel)));
+        const children = await tocToSidebar(subDirAbs, slugify(path.posix.join(slugBase, subRel)), slugs);
         if (!children.length) return null;
 
         const onlyChild = children.length === 1 ? children[0] : null;
@@ -773,42 +815,46 @@ export async function entryToItem(e, dirAbs, slugBase) {
 
         return { label, collapsed: true, items: children };
     }
-    // Inline nested items (e.g. storybook trees)
+    // DocFX permits a page href and nested items together. Starlight groups are
+    // not links, so retain the page as an explicit Overview child instead of
+    // silently discarding it. Relative ../ page targets are normalized against
+    // the current product slug and accepted only when the generated page exists.
     if (Array.isArray(e.items)) {
         const children = [];
+        if (href) {
+            const landing = pageTocItem('Overview', href, slugBase, slugs);
+            if (landing) children.push(landing);
+        }
         for (const c of e.items) {
-            const ci = await entryToItem(c, dirAbs, slugBase);
-            if (ci) children.push(ci);
+            const ci = await entryToItem(c, dirAbs, slugBase, slugs);
+            if (ci && !children.some((child) => child.slug && child.slug === ci.slug)) children.push(ci);
         }
         return children.length ? { label, collapsed: true, items: children } : null;
     }
     // Leaf page
     if (href) {
-        const clean = href.split('#')[0].split('?')[0];
-        if (!/\.mdx?$/.test(clean)) return null;
-        const rel = clean.replace(/\.mdx?$/, '').replace(/(^|\/)index$/, '');
-        const pageSlug = slugify(rel ? path.posix.join(slugBase, rel) : slugBase);
-        if (!validSlugs.has(pageSlug)) {
-            droppedSidebarEntries++;
-            return null;
-        }
-        return { label, slug: pageSlug };
+        return pageTocItem(label, href, slugBase, slugs);
     }
     return null;
 }
 
-export async function tocToSidebar(dirAbs, slugBase) {
+export async function tocToSidebar(dirAbs, slugBase, slugs = validSlugs) {
+    const tocPath = path.join(dirAbs, 'toc.yml');
     let entries;
     try {
-        await assertPublicDocSource(path.join(dirAbs, 'toc.yml'), dirAbs);
-        entries = yaml.load(await fs.readFile(path.join(dirAbs, 'toc.yml'), 'utf8'));
-    } catch {
-        return [];
+        await assertPublicDocSource(tocPath, dirAbs);
+        entries = yaml.load(await fs.readFile(tocPath, 'utf8'));
+    } catch (error) {
+        if (error?.code === 'ENOENT') return [];
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`[sync] Failed to read toc ${tocPath}: ${message}`, { cause: error });
     }
-    if (!Array.isArray(entries)) return [];
+    if (!Array.isArray(entries)) {
+        throw new Error(`[sync] toc ${tocPath} must contain a top-level array`);
+    }
     const items = [];
     for (const e of entries) {
-        const item = await entryToItem(e, dirAbs, slugBase);
+        const item = await entryToItem(e, dirAbs, slugBase, slugs);
         if (item) items.push(item);
     }
     return items;
@@ -818,7 +864,7 @@ export async function tocToSidebar(dirAbs, slugBase) {
 // (Get started / Understand / Guides / Reference) for navigation, without moving
 // any files. `buckets` maps section labels to a bucket; "Overview" stays loose at
 // the top and anything unmapped falls into a "More" group.
-function applyBuckets(items, buckets) {
+export function applyBuckets(items, buckets) {
     const used = new Set();
     const result = [];
     const overview = items.find((i) => i.label === 'Overview');

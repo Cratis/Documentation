@@ -9,12 +9,13 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { collectSlugs, convertFile, entryToItem, tocToSidebar, walk } from './sync-content.mjs';
+import { PRODUCTS, applyBuckets, collectSlugs, convertFile, entryToItem, tocToSidebar, walk } from './sync-content.mjs';
 import { emitDocArtifacts } from './emit-doc-artifacts.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 import { isPrivateDocPath } from './private-doc-paths.mjs';
 import { checkExternalLinks, externalLinkArguments } from './check-external-links.mjs';
 import { lintProse } from './lint-prose.mjs';
+import { findSiteSyntaxErrors } from './lint-docs.mjs';
 
 const webRoot = fileURLToPath(new URL('../', import.meta.url));
 const fixturesRoot = path.resolve(webRoot, '../.ai-work/docs-readiness');
@@ -34,8 +35,14 @@ async function put(root, relative, content) {
     return file;
 }
 
-function conversionContext(root) {
-    return { dir: root, basename: 'index.md', srcPath: path.join(root, 'index.md'), product: { key: 'fixture', src: root } };
+function conversionContext(root, overrides = {}) {
+    return {
+        dir: root,
+        basename: 'index.md',
+        srcPath: path.join(root, 'index.md'),
+        product: { key: 'fixture', src: root },
+        ...overrides,
+    };
 }
 
 function stubRunner(results) {
@@ -166,6 +173,129 @@ test('artifact exports preserve public Markdown and asset bytes and routes', asy
     assert.deepEqual(await emitDocArtifacts(source, output), { markdownMirrors: 1, staticFiles: 1 });
     assert.equal(await fs.readFile(path.join(output, 'product/guide.md'), 'utf8'), await fs.readFile(path.join(source, 'Product/Guide/index.mdx'), 'utf8'));
     assert.equal(await fs.readFile(path.join(output, 'product/guide/chart.svg'), 'utf8'), '<svg></svg>');
+});
+
+test('Components buckets classify library and reference sections explicitly', () => {
+    const product = PRODUCTS.find(({ key }) => key === 'components');
+    assert.ok(product);
+    const labels = ['Chat', 'Display', 'Notifications', 'Architecture decisions', 'Renderer adapters'];
+    const bucketed = applyBuckets(labels.map((label) => ({ label, slug: `components/${label}` })), product.buckets);
+    assert.deepEqual(
+        bucketed.find(({ label }) => label === 'Component library').items.map(({ label }) => label),
+        ['Chat', 'Display', 'Notifications']
+    );
+    assert.deepEqual(
+        bucketed.find(({ label }) => label === 'Reference').items.map(({ label }) => label),
+        ['Architecture decisions', 'Renderer adapters']
+    );
+});
+
+test('ChronicleClientTabs rejects Markdown sources with a source-path diagnostic', async (context) => {
+    const root = await fixture(context);
+    const srcPath = path.join(root, 'shared-page.md');
+    await assert.rejects(
+        convertFile(
+            '<ChronicleClientTabs snippet="example" />\n',
+            conversionContext(root, { basename: 'shared-page.md', srcPath, product: { key: 'chronicle', src: root } })
+        ),
+        (error) => {
+            assert.match(error.message, /Cannot expand ChronicleClientTabs in Markdown source/);
+            assert.match(error.message, /shared-page\.md/);
+            assert.match(error.message, /rename the source file to \.mdx/);
+            return true;
+        }
+    );
+});
+
+test('ChronicleClientTabs expands in MDX and ignores fenced examples', async (context) => {
+    const root = await fixture(context);
+    const snippets = path.join(root, 'snippets');
+    await put(snippets, 'example.md', '```csharp\nstore.Connect();\n```\n');
+    const chronicleContext = {
+        product: { key: 'chronicle', src: root },
+        chronicleClientSnippets: [{ key: 'csharp', label: 'C#', src: snippets }],
+    };
+    const expanded = await convertFile(
+        '<ChronicleClientTabs snippet="example" />\n',
+        conversionContext(root, { ...chronicleContext, basename: 'shared-page.mdx', srcPath: path.join(root, 'shared-page.mdx') })
+    );
+    assert.match(expanded, /import \{ Tabs, TabItem \} from '@astrojs\/starlight\/components';/);
+    assert.match(expanded, /<TabItem label="C#">/);
+    assert.match(expanded, /store\.Connect\(\);/);
+
+    const fencedSource = '````mdx\n```\n<ChronicleClientTabs snippet="missing" />\n```\n````\n';
+    const fenced = await convertFile(
+        fencedSource,
+        conversionContext(root, { ...chronicleContext, basename: 'fenced.md', srcPath: path.join(root, 'fenced.md') })
+    );
+    assert.match(fenced, /<ChronicleClientTabs snippet="missing" \/>/);
+    assert.doesNotMatch(fenced, /import \{ Tabs/);
+});
+
+test('toc conversion retains href-plus-items landings and resolves parent targets', async (context) => {
+    const root = await fixture(context);
+    const slugs = new Set([
+        'chronicle/reducers/filtering',
+        'chronicle/events/filtering/by-tag',
+    ]);
+    const item = await entryToItem({
+        name: 'Filtering',
+        href: 'filtering.mdx',
+        items: [{ name: 'By tag', href: '../events/filtering/by-tag.mdx' }],
+    }, root, 'chronicle/reducers', slugs);
+    assert.deepEqual(item, {
+        label: 'Filtering',
+        collapsed: true,
+        items: [
+            { label: 'Overview', slug: 'chronicle/reducers/filtering' },
+            { label: 'By tag', slug: 'chronicle/events/filtering/by-tag' },
+        ],
+    });
+    await assert.rejects(
+        entryToItem({ name: 'Escape', href: '../../../outside.md' }, root, 'chronicle/reducers', slugs),
+        /escapes the chronicle documentation root/
+    );
+});
+
+test('toc conversion fails fast for malformed or ambiguous structures', async (context) => {
+    const root = await fixture(context);
+    await put(root, 'toc.yml', 'name: not-an-array\n');
+    await assert.rejects(tocToSidebar(root, 'fixture', new Set()), /must contain a top-level array/);
+    await assert.rejects(
+        entryToItem({ name: 'Ambiguous group', href: 'nested/toc.yml', items: [] }, root, 'fixture', new Set()),
+        /cannot combine a toc\.yml href with inline items/
+    );
+    // A missing generated product is normal during a targeted local sync, so
+    // unresolved page leaves retain the established drop behavior.
+    assert.equal(await entryToItem({ name: 'Missing leaf', href: 'missing.md' }, root, 'fixture', new Set()), null);
+});
+
+test('site syntax lint rejects Markdown imports and unknown asides outside fences', () => {
+    const root = '/generated';
+    const markdown = [
+        "import { Tabs } from '@astrojs/starlight/components';",
+        '',
+        ':::warning',
+        'Not a supported Starlight aside.',
+        ':::',
+    ].join('\n');
+    assert.deepEqual(
+        findSiteSyntaxErrors(path.join(root, 'bad.md'), markdown, root).map(({ kind }) => kind),
+        ['starlight-import', 'aside-variant']
+    );
+    assert.deepEqual(findSiteSyntaxErrors(path.join(root, 'valid.mdx'), ':::note[Heads up]\nText\n:::\n', root), []);
+
+    const fenced = [
+        '````mdx',
+        "import { Tabs } from '@astrojs/starlight/components';",
+        ':::warning',
+        '```',
+        '````',
+        '~~~md',
+        ':::unknown',
+        '~~~',
+    ].join('\n');
+    assert.deepEqual(findSiteSyntaxErrors(path.join(root, 'example.md'), fenced, root), []);
 });
 
 test('link conversion normalizes table padding after rewrite, never the source file', async (context) => {

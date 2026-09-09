@@ -28,6 +28,7 @@ const docsRoot = path.resolve(here, '..', 'src', 'content', 'docs');
 const NONDESCRIPTIVE = [/\[\s*here\s*\]/i, /\[\s*click here\s*\]/i, /\[\s*see documentation\s*\]/i, /\[\s*link\s*\]/i];
 const DOCFX_LEFTOVERS = [/xref:/, /\[!INCLUDE/, /^>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/m];
 const AUTHORING_MARKERS = [/\bTODO\b/, /\bFIXME\b/, /\bTBD\b/, /lorem ipsum/i];
+const ASIDE_VARIANTS = new Set(['note', 'tip', 'caution', 'danger']);
 
 // --- Warning-level patterns (style guide; prose only) ---
 // Filler/weasel words: they promise ease but tell the reader nothing, and they sting
@@ -54,6 +55,52 @@ let warnings = 0;
 let apiWarnings = 0;
 let filesChecked = 0;
 
+function fenceRun(line) {
+    const match = line.match(/^\s*(`{3,}|~{3,})/);
+    return match ? { marker: match[1][0], length: match[1].length } : null;
+}
+
+function updateFence(line, fence) {
+    const run = fenceRun(line);
+    if (!run) return fence;
+    if (!fence) return run;
+    if (run.marker === fence.marker && run.length >= fence.length && /^\s*[`~]+\s*$/.test(line)) return null;
+    return fence;
+}
+
+// Generated Markdown must remain plain Markdown: Starlight component imports
+// require .mdx. Aside directives are parsed by Starlight in both extensions,
+// but only its documented variants are valid. Ignore authored examples inside
+// backtick or tilde fences, including longer outer fences.
+export function findSiteSyntaxErrors(file, raw, root = docsRoot) {
+    const rel = path.relative(root, file);
+    const findings = [];
+    const lines = raw.split('\n');
+    let fence = null;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const nextFence = updateFence(line, fence);
+        if (nextFence !== fence) {
+            fence = nextFence;
+            continue;
+        }
+        if (fence) continue;
+
+        const at = `${rel}:${i + 1}`;
+        if (/\.md$/i.test(file) && /^\s*import\b.*\bfrom\s+['"]@astrojs\/starlight(?:\/components)?['"]\s*;?\s*$/.test(line)) {
+            findings.push({ kind: 'starlight-import', at, line: line.trim(), message: 'Starlight imports require a .mdx source file' });
+        }
+
+        const aside = line.match(/^\s*:::([a-z][a-z0-9-]*)(?:\[|\s*$)/i);
+        if (aside && !ASIDE_VARIANTS.has(aside[1].toLowerCase())) {
+            findings.push({ kind: 'aside-variant', at, line: line.trim(), message: `unknown Starlight aside variant "${aside[1]}"` });
+        }
+    }
+
+    return findings;
+}
+
 async function walk(dir) {
     const entries = await fs.readdir(dir, { withFileTypes: true });
     for (const entry of entries) {
@@ -71,16 +118,22 @@ async function walk(dir) {
 
 function checkFile(file, raw) {
     const rel = path.relative(docsRoot, file);
+    for (const finding of findSiteSyntaxErrors(file, raw)) {
+        console.error(`  [${finding.kind}] ${finding.at}  ${finding.line}  — ${finding.message}`);
+        errors++;
+    }
+
     const lines = raw.split('\n');
-    let inCodeFence = false;
+    let fence = null;
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        if (/^\s*```/.test(line)) {
-            inCodeFence = !inCodeFence;
+        const nextFence = updateFence(line, fence);
+        if (nextFence !== fence) {
+            fence = nextFence;
             continue;
         }
         const at = `${rel}:${i + 1}`;
-        if (inCodeFence) {
+        if (fence) {
             // Regression guard: catch known-fabricated API shapes in code examples.
             for (const { re, unless, label, hint } of API_ANTIPATTERNS) {
                 if (re.test(line) && !(unless && unless.test(line))) {
@@ -141,4 +194,6 @@ async function main() {
     console.log(`\n0 error(s), ${warnings} warning(s).`);
 }
 
-await main();
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+    await main();
+}
