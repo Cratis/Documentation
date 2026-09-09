@@ -2,7 +2,7 @@
 title: State View — List Authors
 ---
 
-# State View — List Authors
+<a id="state-view--list-authors"></a>
 
 This tutorial builds the **List Authors** slice of the Library system. It is a **State View** — the read side of Event Modeling.
 
@@ -26,16 +26,16 @@ The shape is:
 2. The read model is a purpose-built view — not a generic table, but exactly the shape a specific UI needs
 3. The frontend queries the read model and renders it
 
-This is the read side of CQRS. The read model never writes to the event log — it only reads from it. You can have as many projections as you like from the same events, each optimised for a different query. If you change what data the UI needs, you change the projection and replay; the event log is untouched.
+This is the read side of CQRS. The read model never writes to the event log — it only reads from it. You can have as many projections as you like from the same events, each optimized for a different query. If you change what data the UI needs, you change the projection and replay; the event log is untouched.
 
-One of Chronicle's most powerful features is that projections are **rewindable**: drop the read model collection, replay the events, and the read model is reconstructed perfectly. Your data is always recoverable.
+Chronicle projections are **rewindable**: use Chronicle's replay tooling to rebuild a view from its event history. That lets you change how authors are presented without changing the registration facts. Rebuilding depends on retaining the required history and keeping the projection compatible with it; it is not a substitute for event-store backups.
 
 ---
 
 ## Folder Structure
 
-```
-Features/
+```text
+Source/
 └── Authors/
     ├── AuthorId.cs          ← Shared concept (from the State Change slice)
     ├── AuthorName.cs        ← Shared concept (from the State Change slice)
@@ -48,15 +48,14 @@ Features/
 
 ## Step 1 — The Backend Slice
 
-All backend artefacts for this slice live in `Listing.cs`.
+All backend artifacts for this slice live in `Listing.cs`. Reuse `AuthorId`, `AuthorName`, and `AuthorRegistered` from the registration slice, and reference `Cratis.Arc.MongoDB` for collection observation.
 
 ```csharp
-// Features/Authors/Listing/Listing.cs
-using Cratis.Chronicle.Events.Projections;
-using Cratis.Chronicle.Projections;
-using Cratis.Chronicle.Read;
+// Authors/Listing/Listing.cs
+using System.Reactive.Subjects;
+using Cratis.Arc.Queries.ModelBound;
+using Cratis.Chronicle.Projections.ModelBound;
 using MongoDB.Driver;
-using Cratis.Extensions.MongoDB;
 using Library.Authors.Registration;
 using Library.Authors;
 
@@ -67,7 +66,7 @@ namespace Library.Authors.Listing;
 [ReadModel]
 [FromEvent<AuthorRegistered>]
 public record Author(
-    [Key] AuthorId Id,
+    AuthorId Id,
     AuthorName FirstName,
     AuthorName LastName)
 {
@@ -79,15 +78,15 @@ public record Author(
 
 ### What is happening here?
 
-**[`[ReadModel]`](/chronicle/read-models/)** registers the record with [Chronicle](/chronicle/) as a MongoDB-backed projection target. Chronicle automatically creates and maintains the collection. You never write a MongoDB query to update it — Chronicle does that from the event stream.
+**[`[ReadModel]`](/arc/backend/queries/model-bound/)** marks the record for Arc's model-bound query discovery. The Chronicle projection annotations define how to build it. With the application's MongoDB read-model storage configured, Chronicle maintains the collection from the event stream — this slice never writes MongoDB updates itself.
 
 **[`[FromEvent<AuthorRegistered>]`](/chronicle/projections/)** is a projection shorthand: *“when an `AuthorRegistered` event is appended, map its properties to this read model using convention.”* Chronicle matches properties by name. `FirstName` on the event maps to `FirstName` on the read model, `LastName` to `LastName`. No explicit mapping code needed.
 
-**`[Key]`** on `AuthorId` tells Chronicle which property is the read model's primary key, and how to correlate events to read model instances. Because `RegisterAuthor.Handle()` returns an `AuthorId` as the event source identity, Chronicle stores the `AuthorRegistered` event under that ID — and the projection updates the `Author` document with the same ID.
+**`AuthorId Id`** is the read-model identity. `FromEvent` uses the event-source ID as its key by default, and Chronicle supplies the model's `Id` from that key. Registration returns an `AuthorId : EventSourceId<Guid>`, so its response and the event's source agree. No `[Key]` annotation or duplicated ID in `AuthorRegistered` is needed.
 
-**`AllAuthors`** is a static query method. Method parameters are automatically resolved from DI — `IMongoCollection<Author>` is provided because the type is a `[ReadModel]`. The return type `ISubject<IEnumerable<Author>>` is a reactive [observable query](/arc/backend/queries/): the frontend receives the current list immediately, and then receives a new emission whenever any document in the collection changes. No polling. No WebSockets to configure manually.
+**`AllAuthors`** is a static query method. Method parameters are automatically resolved from DI — `IMongoCollection<Author>` is provided because the type is a `[ReadModel]`. The return type `ISubject<IEnumerable<Author>>` is a reactive [observable query](/arc/backend/queries/): after the initial query, collection changes trigger updated results. Configure MongoDB change streams in the host; Arc handles the client subscription. The page updates as the projection processes registrations, rather than making a separate refresh request after every command.
 
-> **Run `dotnet build`** after saving `Listing.cs`. This generates the `AllAuthors.ts` query proxy and the `Author.ts` model type via [Arc's proxy generation](/arc/backend/proxy-generation/) used by the frontend component.
+> **Run `dotnet build -c Debug`** after saving `Listing.cs`. This generates the `AllAuthors.ts` query proxy and the `Author.ts` model type via [Arc's proxy generation](/arc/backend/proxy-generation/) used by the frontend component.
 
 ---
 
@@ -106,9 +105,15 @@ The example above uses attribute-based convention mapping, which works when even
 | `[RemovedWith<T>]` | Remove the read model document when this event occurs |
 | `[Join<T>]` | Join properties from a second event stream |
 
-For the most complex cases — conditional updates, aggregations, computed properties — use the fluent `IProjectionFor<T>` interface instead:
+Use the fluent `IProjectionFor<T>` interface when explicit mapping is easier to read. This is an **alternative** to `[FromEvent<AuthorRegistered>]`: remove that attribute from `Author` when using this projection, rather than defining it twice.
 
 ```csharp
+// Authors/Listing/AuthorProjection.cs
+using Cratis.Chronicle.Projections;
+using Library.Authors.Registration;
+
+namespace Library.Authors.Listing;
+
 public class AuthorProjection : IProjectionFor<Author>
 {
     public void Define(IProjectionBuilderFor<Author> builder) => builder
@@ -123,19 +128,16 @@ AutoMap is on by default. `.From<AuthorRegistered>()` alone is enough when names
 ## Step 3 — The React Component
 
 ```tsx
-// Features/Authors/Listing/Listing.tsx
-import { useState } from 'react';
-import { DialogResult, useDialog } from '@cratis/arc.react/dialogs';
-import { CommandResult } from '@cratis/arc/commands';
-import { Column } from 'primereact/column';
-import { DataPage, MenuItem, MenuItems, Columns } from '@cratis/components';
-import { AllAuthors } from './queries/AllAuthors';
-import { AddAuthor, type RegisterAuthorResponse } from '../Registration/AddAuthor';
-import type { Author } from './queries/Author';
+// Authors/Listing/Listing.tsx
+import { useDialog } from '@cratis/arc.react/dialogs';
+import { Column } from '@cratis/components/DataTables';
+import { DataPage, MenuItem } from '@cratis/components/DataPage';
+import { Guid } from '@cratis/fundamentals';
+import { AllAuthors } from './AllAuthors';
+import { AddAuthor } from '../Registration/AddAuthor';
 
 export const Listing = () => {
-    const [AddAuthorDialog, showAddAuthor] = useDialog<CommandResult<RegisterAuthorResponse>>(AddAuthor);
-    const [selected, setSelected] = useState<Author | undefined>(undefined);
+    const [AddAuthorDialog, showAddAuthor] = useDialog<Guid>(AddAuthor);
 
     return (
         <>
@@ -144,23 +146,21 @@ export const Listing = () => {
                 query={AllAuthors}
                 emptyMessage="No authors registered yet"
                 dataKey="id"
-                onSelectionChange={setSelected}
             >
-                <MenuItems>
+                <DataPage.MenuItems>
                     <MenuItem
                         label="Add Author"
-                        icon="pi pi-plus"
                         command={async () => {
-                            const [dialogResult] = await showAddAuthor();
+                            await showAddAuthor();
                             // DataPage auto-refreshes via the observable query
                         }}
                     />
-                </MenuItems>
+                </DataPage.MenuItems>
 
-                <Columns>
+                <DataPage.Columns>
                     <Column field="firstName" header="First Name" sortable />
                     <Column field="lastName" header="Last Name" sortable />
-                </Columns>
+                </DataPage.Columns>
             </DataPage>
 
             <AddAuthorDialog />
@@ -171,11 +171,11 @@ export const Listing = () => {
 
 ### What is happening here?
 
-**`AllAuthors`** is the generated query proxy — an `IObservableQueryFor<Author[]>` implementation. [`DataPage`](/components/datapage/) calls it once, subscribes to its observable, and re-renders whenever the backend pushes a new list. If another user registers an author in another browser tab, this list updates without any manual refresh.
+**`AllAuthors`** is the generated observable-query proxy for the author list. [`DataPage`](/components/datapage/) calls it once, subscribes to its observable, and re-renders whenever the backend pushes a new list. If another user registers an author in another browser tab, this list updates without any manual refresh.
 
-**[`DataPage`](/components/datapage/)** from `@cratis/components` provides the complete page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. You declare columns as children using PrimeReact's `Column` and the component does everything else.
+**[`DataPage`](/components/datapage/)** from `@cratis/components` provides the complete page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. Declare columns with the Cratis-owned `Column` marker inside `DataPage.Columns`, and actions inside `DataPage.MenuItems`. This example queries the whole author list; for a large catalog, add [server-side paging](/arc/backend/queries/) rather than treating table pagination as a limit on backend work.
 
-**`useDialog<CommandResult<RegisterAuthorResponse>>(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) returns a tuple: `AddAuthorDialog` is a wrapper component that you render in JSX, and `showAddAuthor` is an async function that opens the dialog and returns `[dialogResult, commandResult]` when it closes. The type parameter `CommandResult<RegisterAuthorResponse>` flows end-to-end — the dialog uses `useDialogContext` with the same type, so close-data is fully typed.
+**`useDialog<Guid>(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) supplies the wrapper component rendered in JSX and an async function that opens it. `showAddAuthor` resolves to `[dialogResult, authorId]` because `AddAuthor` closes with the `Guid` identity passed to its `onSuccess` callback. The listing does not need that ID to refresh: it already observes the author collection.
 
 **`MenuItem`** in the `MenuItems` slot adds an action to the toolbar. The `command` handler `await`s the dialog — you can inspect the result if needed, but since `DataPage` subscribes to the observable query, the list updates automatically after a successful registration.
 
@@ -188,7 +188,7 @@ The `AddAuthor` component is imported from the Registration slice — slices wit
 Each feature has a composition page that assembles its slices.
 
 ```tsx
-// Features/Authors/Authors.tsx
+// Authors/Authors.tsx
 import { Listing } from './Listing/Listing';
 
 export const Authors = () => <Listing />;
@@ -200,15 +200,20 @@ In larger features this page will host a navigation menu that switches between s
 
 ## Step 5 — Registering the Route
 
-Register `Authors` in your application's router:
+Register `Authors` in your application's router. This minimal route composition assumes the application's Arc and Components providers are already mounted above `App`; if it already has a router, add only the route to its existing `Routes`.
 
 ```tsx
-// App.tsx  (ASP.NET Core Vite integration)
-import { Route } from 'react-router-dom';
-import { Authors } from './Features/Authors/Authors';
+// App.tsx
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { Authors } from './Authors/Authors';
 
-// ...inside your <Routes>
-<Route path="/authors" element={<Authors />} />
+export const App = () => (
+    <BrowserRouter>
+        <Routes>
+            <Route path="/authors" element={<Authors />} />
+        </Routes>
+    </BrowserRouter>
+);
 ```
 
 ---
@@ -222,6 +227,6 @@ import { Authors } from './Features/Authors/Authors';
 | Generated proxy | `AllAuthors.ts` | [Arc proxy generation](/arc/backend/proxy-generation/) |
 | Listing page | `Listing.tsx` | [`@cratis/components`](/components/) [`DataPage`](/components/datapage/) |
 
-The read model and its query fit in one record. The projection is zero-configuration convention mapping. The frontend subscribes to a live stream, not a static snapshot. The UI automatically reflects every state change appended anywhere in the system — including changes from the [Register Author](../state-change) slice.
+The read model and its query fit in one record. The projection is zero-configuration convention mapping. The frontend subscribes to a live stream, not a static snapshot. The UI follows the events this projection handles — including `AuthorRegistered` from the [Register Author](../state-change) slice.
 
 **Next**: [Automation — Cancel Expired Reservations](../automation)

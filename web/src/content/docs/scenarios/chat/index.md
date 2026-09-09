@@ -16,6 +16,7 @@ These guides build a real-time multi-room chat application using Arc's [observab
 The simplest starting point. Message history is held in a `BehaviorSubject` inside a singleton `ChatService`. No external dependencies required.
 
 Covers:
+
 - `BehaviorSubject` as the backing store for live chat state
 - The relay pattern for per-client observable subscriptions
 - How Arc's **delta mode** works: the first emission delivers the full history; subsequent emissions deliver only the `ChangeSet` of new messages
@@ -25,6 +26,7 @@ Covers:
 Replaces the in-process state with two external systems: a persistence layer that loads message history on startup, and a RabbitMQ fanout exchange that delivers new messages to every server instance. The observable query and the React component are identical to the in-memory version.
 
 Covers:
+
 - Loading initial history from a persistence layer
 - A `BackgroundService` that consumes from RabbitMQ and routes messages to the correct `ChatRoom`
 - Publishing from `SendMessage` rather than writing directly to the room
@@ -35,6 +37,7 @@ Covers:
 The backend is unchanged from the in-memory guide. The React component switches from `ForRoom.use()` to `ForRoom.useChangeStream()` to receive the raw `ChangeSet` — `{ added, replaced, removed }` — and manages its own `useState` accumulator.
 
 Covers:
+
 - When to use `useChangeStream()` instead of `use()`
 - Appending `ChangeSet.added` items to local state
 - Deriving secondary state from the delta: scroll-to-bottom logic and an unread message counter
@@ -44,6 +47,7 @@ Covers:
 The backend changes fundamentally. `ChatRoom` becomes a pure pub/sub channel with no history — a plain `Subject` that fires only new messages. `ChatService` owns the history. The `ForRoom` query uses a `ReplaySubject(1)` to emit the full history once as the initial payload, then forwards each new message individually. The network payload per message stays constant regardless of conversation length.
 
 Covers:
+
 - Separating pub/sub (`ChatRoom`) from history (`ChatService`)
 - Why `ReplaySubject(1)` is needed when the first payload is emitted before Arc subscribes
 - Why `use()` — not `useChangeStream()` — is correct when the backend sends incremental payloads

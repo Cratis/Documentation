@@ -47,7 +47,7 @@ sequenceDiagram
 
 ## Folder Structure
 
-```
+```text
 Features/
 └── Chat/
     ├── ChatRoom.cs              ← ChatRoom + ChatService (persistence-backed)
@@ -326,7 +326,7 @@ public record SendMessage(string RoomName, string User, string Message)
 >     sp.GetRequiredService<IConnection>()
 >       .CreateChannelAsync().GetAwaiter().GetResult());
 > ```
-
+>
 > **Run `dotnet build`** after saving. The proxy generator produces the same `ForRoom.ts`, `SendMessage.ts`, and `ChatMessage.ts` as the in-memory version — the frontend does not change.
 
 ---

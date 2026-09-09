@@ -34,7 +34,7 @@ By the end you will have:
 
 ## Folder Structure
 
-```
+```text
 Features/
 └── Chat/
     ├── ChatRoom.cs           ← ChatRoom (Subject only) + ChatService (history + send)

@@ -18,7 +18,7 @@ By the end you will have:
 
 ## Folder Structure
 
-```
+```text
 Features/
 └── Chat/
     ├── ChatRoom.cs           ← ChatRoom state holder + ChatService singleton
@@ -98,6 +98,7 @@ public class ChatService
 ### What is happening here?
 
 **`BehaviorSubject<IEnumerable<ChatMessage>>`** is a reactive subject with two properties that make it ideal for this use case:
+
 - It always holds the most recently emitted value — the full accumulated history — so it acts as both the live stream and the current-state store.
 - It immediately emits that value to any new subscriber. A client joining mid-conversation receives all past messages in the first push, with no separate history call.
 
@@ -185,6 +186,7 @@ The method creates a **relay** `BehaviorSubject` initialised with `room.Messages
 > ```
 >
 > **Run `dotnet build`** after saving these files. The [Arc proxy generator](/arc/backend/proxy-generation/) produces:
+>
 > - `ChatMessage.ts` — the TypeScript model type
 > - `ForRoom.ts` — the observable query proxy with `use()` and `when()` hooks
 > - `SendMessage.ts` — the command proxy with a `use()` hook
