@@ -13,7 +13,7 @@ Cratis Architecture ships Roslyn analyzers that enforce architectural and coding
 ## Rules Overview
 
 | Rule ID | Title | Severity | Description |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | [CRARCH0001](/architecture/codeanalysis/rules/crarch0001-exception-type-naming/) | Exception type naming | Warning | Exception types must use domain terminology and avoid the generic Exception suffix |
 | [CRARCH0002](/architecture/codeanalysis/rules/crarch0002-no-built-in-exception-types/) | No built-in exception types | Warning | Throwing framework exceptions hides domain intent |
 | [CRARCH0003](/architecture/codeanalysis/rules/crarch0003-no-postfixes-on-class-names/) | No postfixes on class names | Warning | Class names must describe domain concepts, not technical roles |
