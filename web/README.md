@@ -103,13 +103,13 @@ Two QA scripts back this up:
 2. Add it to that folder's `toc.yml` so it appears in the navigation.
 3. Run `npm run dev` (or `npm run sync`) and check it locally.
 
-Follow the documentation conventions in `.ai/rules/documentation.md` (Diátaxis page types, why-first voice, descriptive link text, diagrams for concepts).
+Follow the documentation conventions (Diátaxis page types, why-first voice, descriptive link text, diagrams for concepts) — carried by the `cratis/documentation` profile of Cratis AI and the docs skills below.
 
 ## Working on the docs (AI assistants & contributors)
 
-Because the content is split across repos and the site has a few non-obvious build mechanisms, the operating knowledge is captured as **AI rules and skills** in the `Documentation` repo's `.ai/` folder. These are written once in `.ai/` and surfaced to GitHub Copilot (`.github/instructions/`, `.github/skills/`) and Claude Code (`.claude/rules/`, `.claude/skills/`) via symlinks. Product-doc rules are synced to the other Cratis repos; site-host rules are excluded by `.github/.copilot-sync-ignore` because only this repo owns `web/`. They're plain Markdown, so they double as human docs.
+Because the content is split across repos and the site has a few non-obvious build mechanisms, the operating knowledge lives in the shared Cratis AI skills (served through the marketplace plugins — see the [harness guide](https://www.cratis.io/ai/harnesses/)) and this repository's project context (`.cratis/PROJECT.md`). There is no synchronized local corpus: repository-specific material (for example the `chronicle-client-docs` workflow) lives under `.agents/skills/`.
 
-**Rules** (`.ai/rules/`):
+**Docs guidance** (from the `cratis/documentation` profile and the Cratis AI docs skills):
 
 - **`writing-cratis-docs.md`** — the content craft: the tour voice (Marten/Wolverine/Aspire style), Diátaxis page types, and how to use Starlight's authoring tools (`<Steps>`, `<Tabs>`, `<FullStackTabs>`, diagrams) to achieve it.
 - **`documentation-structure-and-formatting.md`** — the mechanical format so a page fits the site: frontmatter schema, heading/ToC structure, asides, code-fence languages, tables, links, file layout, trailing newline.
@@ -118,7 +118,7 @@ Because the content is split across repos and the site has a few non-obvious bui
 - **`documentation-rendering-and-qa.md`** — the rendering pipeline (build-time Mermaid pre-rendering, `font-display: optional` fonts, GFM tables) and how to do headless visual/layout-shift QA.
 - **`writing-correct-examples.md`** — verify every framework API against real source; the list of APIs the docs kept getting wrong.
 
-**Skills** (`.ai/skills/`):
+**Docs skills** (Cratis AI plugins; `chronicle-client-docs` is repository-local under `.agents/skills/`):
 
 - **`edit-cratis-docs`** — change/fix an existing page across the repos.
 - **`add-cratis-docs-page`** — create a new page and wire it into the nav.

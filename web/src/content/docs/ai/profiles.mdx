@@ -20,7 +20,7 @@ The two paths answer different questions and compose cleanly:
 | Question it answers | "Give my assistant the Cratis skills" | "Give this repository exactly the skills its stack needs" |
 | Scope | The whole public bundle (or the maintainer bundle) | The profiles you name — products, languages, and compositions |
 | Selection granularity | One bundle | Per product, per language, per architecture |
-| Versioning | Follows the `Cratis/AI` default branch you already read | Pinned to exact package versions; updates arrive as reviewed pull requests |
+| Versioning | Follows the `Cratis/AI` default branch you already read | Pinned to exact package versions; updates arrive as reviewed pull requests *(designed — not published yet; today only `@cratis/ai-fundamentals` exists on npm)* |
 | Setup | One command per host | A committed `.cratis/ai.json` plus host packages |
 | Good for | Trying Cratis AI, broad developer machines | Repositories with a fixed stack, teams that review AI changes |
 
@@ -33,7 +33,7 @@ Name the profile after the *narrowest* description of your repository:
 
 | Repository | Profile |
 | --- | --- |
-| Full Arc + Chronicle + React application | `public-application` |
+| Full Arc + Chronicle + React application | `cratis/application` |
 | Arc backend without Chronicle | `cratis/arc` |
 | Arc backend, C# only | `cratis/arc/csharp` |
 | Arc backend in Kotlin | `cratis/arc/kotlin` |
@@ -41,9 +41,9 @@ Name the profile after the *narrowest* description of your repository:
 | Chronicle client in Kotlin (Java rides the Kotlin JVM interop) | `cratis/chronicle/kotlin` |
 | Chronicle client in TypeScript or Elixir | `cratis/chronicle/typescript`, `cratis/chronicle/elixir` |
 | Application in a language Arc does not support yet | `cratis/application/typescript`, `cratis/application/elixir` (Chronicle-only until Arc supports the language) |
-| Fundamentals library consumer | `public-fundamentals` |
-| Specifications library | `public-specifications-dotnet`, `public-specifications-typescript` |
-| Cratis framework or product repository (maintainers) | `engineering-chronicle`, `engineering-arc`, … |
+| Fundamentals library consumer | `cratis/fundamentals` |
+| Specifications library | `cratis/specifications/dotnet`, `cratis/specifications/typescript` |
+| Cratis framework or product repository (maintainers) | `cratis/engineering` |
 
 The language in `cratis/<product>/<language>` means the language you write that
 side of the stack in. Arc supports C# and Kotlin today; there is deliberately no
@@ -88,10 +88,10 @@ shows each profile's included skills and availability in plain language.
 
 </Steps>
 
-<Aside type="note" title="The cratis/ namespace derives its channel">
-Profiles under `cratis/` are public by construction — you do not declare a
-channel for them. `public-` and `engineering-` profiles declare one explicitly,
-and public and engineering profiles can never appear in the same subscription.
+<Aside type="note" title="The namespace derives the channel">
+Every profile id lives under `cratis/`. `cratis/engineering` alone derives the
+maintainer channel; every other `cratis/*` id derives the public channel, and
+the two can never appear in the same subscription.
 </Aside>
 
 ## Install the matching packages
@@ -112,10 +112,11 @@ it per host:
   machine can run the marketplace plugin while the repository's `.cratis/ai.json`
   documents the profile it should behave as.
 
-Per-profile packages beyond Fundamentals release as each profile passes its
-preview gates. Until a profile's package exists, the marketplace plugin is the
-way to get its skills; the subscription still records the intended scope and
-starts receiving reviewed updates the moment the package publishes.
+No per-profile package beyond Fundamentals is published yet — the versioned
+flow is designed and tool-verified, but the first governed release has not
+been cut. Until it is, the marketplace plugin is the way to get the skills;
+the subscription still records the intended scope and starts receiving
+reviewed updates the moment the packages publish.
 
 ## Update and roll back
 
