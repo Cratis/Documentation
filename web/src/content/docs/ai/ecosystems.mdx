@@ -11,9 +11,9 @@ keeps a projection workflow or event-modeling workflow consistent when your team
 uses different assistants.
 
 <Aside type="note" title="Evaluation install, gated support">
-Marketplace installation is open today for the hosts marked installable below.
-Every artifact remains an unsupported `0.x` evaluation; the supported tier waits
-on the release gates at the bottom of this page.
+Marketplace installation is open today for the hosts marked installable below,
+and the npm package publishes supported stable releases. The versioned
+per-profile tier waits on the release gates at the bottom of this page.
 </Aside>
 
 ## Current matrix
@@ -29,7 +29,7 @@ on the release gates at the bottom of this page.
 | Junie | Skills-only Junie extension | Extension manifest and canonical-byte parity | Pending host review |
 | Gemini CLI | Skills-only extension | Isolated link/list/remove smoke | No repository-root manifest yet — no install today |
 | Pi | Passive `pi-package` npm layout | Install/list/remove smoke | Via published npm packages; no marketplace manifest yet |
-| npm | `@cratis/ai-fundamentals` passive tarball | Published `0.x` with trusted OIDC | **Published** — `latest` on npm, evaluation |
+| npm | `@cratis/ai-fundamentals` passive tarball | Stable releases with trusted OIDC | **Published** — `latest` on npm |
 
 ## What every adapter must preserve
 
@@ -69,7 +69,7 @@ The manual gates are tracked in:
 ## What to do now
 
 Install the [`cratis` plugin](/ai/harnesses/) from the `Cratis/AI`
-marketplace in Claude Code, Codex, GitHub Copilot, or Cursor, or pin
+marketplace in Claude Code, Codex, GitHub Copilot, or Cursor, or install
 `@cratis/ai-fundamentals` through Pi. Use [`cratis init`](/cli/getting-started/)
 and Chronicle MCP for documented operating workflows. To scope what a repository
 installs — per product, per language — subscribe to

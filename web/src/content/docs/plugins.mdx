@@ -33,10 +33,10 @@ flowchart LR
 This avoids behavior forks. A projection skill should not teach one architecture
 in Claude and another in Copilot merely because their package manifests differ.
 
-<Aside type="note" title="Evaluation status">
-Marketplace installation and the published npm package are real, but Cratis AI
-remains an unsupported `0.x` evaluation distribution. Marketplace availability
-does not imply behavior support or a stable-support claim.
+<Aside type="note" title="Status">
+Marketplace installation and the published npm package are real. The npm
+package is a supported stable release; marketplace installs follow the
+`Cratis/AI` default branch and do not carry a versioned support claim.
 </Aside>
 
 ## Public packages stay passive
@@ -103,7 +103,7 @@ approval, release, and rollback gates in detail.
 Everything is installable now, in two halves:
 
 1. **Coding skills** — add `Cratis/AI` as a marketplace and install the `cratis`
-   plugin ([commands per host](/ai/getting-started/)), or pin the published
+   plugin ([commands per host](/ai/getting-started/)), or install the published
    [`@cratis/ai-fundamentals`](/ai/profiles/) package through Pi.
 2. **Operating tools** — run `cratis init` in your project to generate the
    supported CLI context, then connect [Chronicle MCP](/chronicle-mcp/) when your
