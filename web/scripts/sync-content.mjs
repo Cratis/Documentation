@@ -252,6 +252,12 @@ const SKIP_DIRS = new Set([
     // the org GitHub landing page (duplicates our front door) — not site content
     'profile',
 ]);
+
+// Repository control files that live at the repo root for tooling/AI but are
+// not documentation. Checked case-insensitively at the product source root only.
+const REPO_BOOTSTRAP_FILES = new Set([
+    'agents.md', 'claude.md', 'gemini.md',
+]);
 const ALERT_MAP = { NOTE: 'note', TIP: 'tip', IMPORTANT: 'note', WARNING: 'caution', CAUTION: 'danger' };
 
 const only = process.argv[2];
@@ -637,11 +643,13 @@ export async function walk(srcDir, outDir, product, options = {}) {
     const entries = await fs.readdir(srcDir, { withFileTypes: true });
     await fs.mkdir(outDir, { recursive: true });
     const demoteIndex = await hasSiblingLanding(path.dirname(srcDir), path.basename(srcDir));
+    const contentRoot = options.contentRoot ?? product.src;
+    const isProductRoot = path.resolve(srcDir) === path.resolve(contentRoot);
     for (const entry of entries) {
         if (isPrivateDocPath(entry.name)) continue;
         if (entry.isSymbolicLink()) {
             const source = path.join(srcDir, entry.name);
-            await assertPublicDocSource(source, options.contentRoot ?? product.src);
+            await assertPublicDocSource(source, contentRoot);
             // Directory symlinks were never recursive inputs; public file aliases
             // remain supported without allowing aliases into private work.
             if (!(await fs.stat(source)).isFile()) continue;
@@ -654,6 +662,10 @@ export async function walk(srcDir, outDir, product, options = {}) {
         }
         // Skip repo READMEs (e.g. the .github org landing) — not site content.
         if (entry.name.toLowerCase() === 'readme.md') continue;
+        // Skip repository control bootstrap files at the product root only.
+        // Nested documentation pages named agents.md, claude.md, or gemini.md
+        // elsewhere in the tree remain valid authored content.
+        if (isProductRoot && REPO_BOOTSTRAP_FILES.has(entry.name.toLowerCase())) continue;
         const ext = path.extname(entry.name).toLowerCase();
         const srcPath = path.join(srcDir, entry.name);
         if (ext === '.md' || ext === '.mdx') {

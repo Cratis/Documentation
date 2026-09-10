@@ -142,6 +142,70 @@ test('public prose can explain private work policy and public file aliases still
     assert.ok((await fs.readFile(path.join(root, 'dist/policy.md'), 'utf8')).endsWith(prose));
 });
 
+test('repository bootstrap files are excluded from product root but normal docs remain', async (context) => {
+    const root = await fixture(context);
+    const source = path.join(root, 'contributing');
+    const output = path.join(root, 'generated');
+    
+    // Create bootstrap files at repository root — these should be skipped.
+    await put(source, 'AGENTS.md', '# Agents\n\nRead [`.cratis/PROJECT.md`](.cratis/PROJECT.md) before working.\n');
+    await put(source, 'CLAUDE.md', '@.cratis/PROJECT.md\n');
+    await put(source, 'GEMINI.md', '@.cratis/PROJECT.md\n');
+    await put(source, 'README.md', '# Contributing\n\nRepository landing.\n');
+    
+    // Create legitimate documentation that happens to mention these names.
+    await put(source, 'index.md', '# Contributing\n\nWelcome to the contributing guide.\n');
+    await put(source, 'guides/working-with-agents.md', '# Working with Agents\n\nThis guide explains agent workflows.\n');
+    
+    // Create a nested agents.md that IS legitimate documentation.
+    await put(source, 'tools/agents.md', '# Agent Tools\n\nDocumentation about agent tooling.\n');
+    
+    const product = { key: 'contributing', src: source };
+    await walk(source, output, product);
+    
+    // Bootstrap files should be excluded from output.
+    await assert.rejects(fs.access(path.join(output, 'AGENTS.md')), { code: 'ENOENT' });
+    await assert.rejects(fs.access(path.join(output, 'agents.md')), { code: 'ENOENT' });
+    await assert.rejects(fs.access(path.join(output, 'CLAUDE.md')), { code: 'ENOENT' });
+    await assert.rejects(fs.access(path.join(output, 'claude.md')), { code: 'ENOENT' });
+    await assert.rejects(fs.access(path.join(output, 'GEMINI.md')), { code: 'ENOENT' });
+    await assert.rejects(fs.access(path.join(output, 'gemini.md')), { code: 'ENOENT' });
+    await assert.rejects(fs.access(path.join(output, 'README.md')), { code: 'ENOENT' });
+    
+    // Normal documentation should remain.
+    assert.ok(await fs.access(path.join(output, 'index.md')).then(() => true, () => false));
+    assert.ok(await fs.access(path.join(output, 'guides/working-with-agents.md')).then(() => true, () => false));
+    
+    // Nested agents.md in subdirectory should remain — it's legitimate docs.
+    assert.ok(await fs.access(path.join(output, 'tools/agents.md')).then(() => true, () => false));
+    const nestedAgentsContent = await fs.readFile(path.join(output, 'tools/agents.md'), 'utf8');
+    assert.match(nestedAgentsContent, /Agent Tools/);
+    
+    // Bootstrap files at source should remain untouched.
+    assert.equal(await fs.readFile(path.join(source, 'AGENTS.md'), 'utf8'), '# Agents\n\nRead [`.cratis/PROJECT.md`](.cratis/PROJECT.md) before working.\n');
+});
+
+test('bootstrap file exclusion applies to family sources and contentRoot overrides', async (context) => {
+    const root = await fixture(context);
+    const familySource = path.join(root, 'stage-guides');
+    const output = path.join(root, 'generated');
+    
+    // Create bootstrap files in a family source root.
+    await put(familySource, 'AGENTS.md', '# Stage Agents\n\nStage-specific bootstrap.\n');
+    await put(familySource, 'claude.md', '@.cratis/PROJECT.md\n');
+    await put(familySource, 'getting-started.md', '# Getting Started\n\nLegitimate guide.\n');
+    
+    const product = { key: 'screenplay', src: path.join(root, 'screenplay') };
+    await walk(familySource, output, product, { contentRoot: familySource, slugBase: 'screenplay/stage/guides' });
+    
+    // Bootstrap files should be excluded from family source output.
+    await assert.rejects(fs.access(path.join(output, 'AGENTS.md')), { code: 'ENOENT' });
+    await assert.rejects(fs.access(path.join(output, 'claude.md')), { code: 'ENOENT' });
+    
+    // Normal docs should remain.
+    assert.ok(await fs.access(path.join(output, 'getting-started.md')).then(() => true, () => false));
+});
+
 test('artifact preflight rejects private inputs before emitting any public or private file', async (context) => {
     const root = await fixture(context);
     for (const [index, directory] of privateDirectories.entries()) {
