@@ -103,6 +103,18 @@ const PRODUCTS = [
         ],
     },
     {
+        // C# Templates — the `dotnet new` templates that scaffold Cratis applications,
+        // from a minimal Chronicle console app to the full-stack Arc web application.
+        key: 'templates', label: 'C# Templates', icon: 'layout-template', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Templates', 'Documentation'),
+            path.join(docRepoRoot, 'Templates', 'Documentation')),
+        buckets: [
+            { label: 'Start here', sections: ['Overview', 'Getting Started'] },
+            { label: 'The templates', sections: ['Cratis Web Application', 'Chronicle Console', 'Chronicle Web', 'Cratis Aspire'] },
+        ],
+    },
+    {
         // AuthProxy — the ASP.NET Core gateway that sits in front of a Cratis app's
         // backend and frontend services and owns the edge concerns (authentication,
         // tenancy, identity enrichment, invites/lobby).
