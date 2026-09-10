@@ -82,16 +82,16 @@ Cursor-specific fork of the content.
 
 ## Pi via npm
 
-Pi installs ordinary npm packages. Today the published package is the
-unsupported `@cratis/ai-fundamentals` `0.x` evaluation — the Fundamentals
-concept guidance, not the whole bundle:
+Pi installs ordinary npm packages. The published package is the stable
+`@cratis/ai-fundamentals` release — the whole public skills directory, the
+same content the marketplace installs above deliver:
 
 ```bash
-# Project-scoped, exact pin recorded in .pi/settings.json
-pi install -l npm:@cratis/ai-fundamentals@0.10.0
+# Project-scoped, installed version recorded in .pi/settings.json
+pi install -l npm:@cratis/ai-fundamentals
 
 # User-wide
-pi install npm:@cratis/ai-fundamentals@0.10.0
+pi install npm:@cratis/ai-fundamentals
 ```
 
 Commit `.pi/settings.json` after review; uninstalling removes the package and
@@ -109,12 +109,12 @@ touches nothing else.
 
 <Aside type="note" title="Status">
 
-All installs are an unsupported `0.x` evaluation until the governed release
-gates pass. The versioned per-profile package flow (exact pins arriving as
-reviewed pull requests) is designed but not published — today the marketplace
-follows the `Cratis/AI` default branch and npm carries only
-`@cratis/ai-fundamentals`. Being *listed* in a vendor's own marketplace UI is a
-separate, still-pending manual submission per host
+The npm package is a supported stable release; the marketplace installs follow
+the `Cratis/AI` default branch. The versioned per-profile package flow (exact
+pins arriving as reviewed pull requests) is designed but not published — until
+it ships, `@cratis/ai-fundamentals` carries the whole public bundle so every
+harness receives identical content. Being *listed* in a vendor's own
+marketplace UI is a separate, still-pending manual submission per host
 ([Cratis/AI#147](https://github.com/Cratis/AI/issues/147)).
 
 </Aside>
