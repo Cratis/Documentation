@@ -20,7 +20,7 @@ The two paths answer different questions and compose cleanly:
 | Question it answers | "Give my assistant the Cratis skills" | "Give this repository exactly the skills its stack needs" |
 | Scope | The whole public bundle (or the maintainer bundle) | The profiles you name — products, languages, and compositions |
 | Selection granularity | One bundle | Per product, per language, per architecture |
-| Versioning | Follows the `Cratis/AI` default branch you already read | Pinned to exact package versions; updates arrive as reviewed pull requests *(designed — not published yet; today only `@cratis/ai-fundamentals` exists on npm)* |
+| Versioning | Follows the `Cratis/AI` default branch you already read | Pinned to exact package versions; updates arrive as reviewed pull requests *(designed — not published yet; today only `@cratis/pi` exists on npm)* |
 | Setup | One command per host | A committed `.cratis/ai.json` plus host packages |
 | Good for | Trying Cratis AI, broad developer machines | Repositories with a fixed stack, teams that review AI changes |
 
@@ -102,7 +102,7 @@ it per host:
 - **Pi/npm** — install the package for your profile at the exact pinned version:
 
   ```bash
-  pi install -l npm:@cratis/ai-fundamentals
+  pi install -l npm:@cratis/pi
   ```
 
   Pi records the installed version in `.pi/settings.json`; commit it after
