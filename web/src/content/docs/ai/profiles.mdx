@@ -1,138 +1,93 @@
 ---
 title: Choose Cratis AI profiles
-description: Pick exactly which Cratis AI guidance a repository gets — per product, per language, pinned to an exact version — with or without a host marketplace.
+description: Select Cratis products and languages for a managed multi-harness repository or a native single-harness plugin.
 ---
 
 import { Aside, Steps } from '@astrojs/starlight/components';
 
-The Cratis AI marketplace plugins install the whole public skill set in one
-step. Many repositories need something narrower: a Kotlin Chronicle client that
-must not learn Arc conventions, an Arc-only backend with no event sourcing, a
-specifications library. **Profiles** are how you select that scope — and they
-work whether or not you use a marketplace.
-
-## Marketplace or profiles?
-
-The two paths answer different questions and compose cleanly:
-
-| | Marketplace plugin | Profile subscription |
-| --- | --- | --- |
-| Question it answers | "Give my assistant the Cratis skills" | "Give this repository exactly the skills its stack needs" |
-| Scope | The whole public bundle (or the maintainer bundle) | The profiles you name — products, languages, and compositions |
-| Selection granularity | One bundle | Per product, per language, per architecture |
-| Versioning | Follows the `Cratis/AI` default branch you already read | Pinned to exact package versions; updates arrive as reviewed pull requests *(designed — not published yet; today only `@cratis/pi` exists on npm)* |
-| Setup | One command per host | A committed `.cratis/ai.json` plus host packages |
-| Good for | Trying Cratis AI, broad developer machines | Repositories with a fixed stack, teams that review AI changes |
-
-You can start with the marketplace and narrow later: the subscription path uses
-the same skills, so nothing you learn changes.
+Profiles select the product guidance a repository needs. Languages narrow a
+composed profile so, for example, a TypeScript Chronicle client does not receive
+C#-only skills.
 
 ## Choose the profile
 
-Name the profile after the *narrowest* description of your repository:
-
 | Repository | Profile |
 | --- | --- |
-| Full Arc + Chronicle + React application | `cratis/application` |
-| Arc backend without Chronicle | `cratis/arc` |
-| Arc backend, C# only | `cratis/arc/csharp` |
-| Arc backend in Kotlin | `cratis/arc/kotlin` |
-| Chronicle client without Arc | `cratis/chronicle` |
-| Chronicle client in Kotlin (Java rides the Kotlin JVM interop) | `cratis/chronicle/kotlin` |
-| Chronicle client in TypeScript or Elixir | `cratis/chronicle/typescript`, `cratis/chronicle/elixir` |
-| Application in a language Arc does not support yet | `cratis/application/typescript`, `cratis/application/elixir` (Chronicle-only until Arc supports the language) |
-| Fundamentals library consumer | `cratis/fundamentals` |
-| Specifications library | `cratis/specifications/dotnet`, `cratis/specifications/typescript` |
-| Cratis framework or product repository (maintainers) | `cratis/engineering` |
+| Arc + Chronicle application | `cratis/application` |
+| Arc without Chronicle | `cratis/arc` |
+| Chronicle client or service | `cratis/chronicle` |
 
-The language in `cratis/<product>/<language>` means the language you write that
-side of the stack in. Arc supports C# and Kotlin today; there is deliberately no
-`cratis/arc/typescript`.
+The AI repository's `.cratis/ai/manifest.json` is authoritative for the profiles,
+languages, and harnesses currently offered by `cratis ai install`.
 
-The full map — every profile, what it composes, and its current status — lives in
-the [profile reference](https://github.com/Cratis/AI/blob/main/Documentation/profile-reference.md)
-in the `Cratis/AI` repository. The generated
-[package and capability catalog](https://github.com/Cratis/AI/blob/main/catalog/generated/human-catalog/CATALOG.md)
-shows each profile's included skills and availability in plain language.
-
-## Subscribe in `.cratis/ai.json`
+## Configure the repository
 
 <Steps>
 
-1. **Create the subscription file** in the consuming repository:
+1. Run the interactive installer:
+
+   ```bash
+   cratis ai install
+   ```
+
+2. Or provide every selection for automation:
+
+   ```bash
+   cratis ai install \
+     --harnesses claude,cursor,opencode,pi \
+     --profiles cratis/chronicle \
+     --languages typescript
+   ```
+
+3. Review and commit `.cratis/ai.json`:
 
    ```json
    {
-     "schemaVersion": "1.0.0",
-     "version": "1.0.0",
-     "profiles": ["cratis/chronicle/kotlin"],
-     "harnesses": ["claude", "codex", "copilot", "pi"],
-     "languages": ["kotlin"]
+     "schemaVersion": "1.0",
+     "harnesses": ["claude", "cursor", "opencode", "pi"],
+     "profiles": ["cratis/chronicle"],
+     "languages": ["typescript"]
    }
    ```
 
-2. **Pin an exact version.** `latest`, branches, and floating ranges are
-   rejected. Rollback means restoring the previous exact version — never a
-   floating one.
-
-3. **List your harnesses.** The `harnesses` array names the hosts this
-   repository expects the skills to reach.
-
-4. **List your languages.** The `languages` array prevents a profile from
-   loading guidance for languages the repository does not use.
-
-5. **Keep project facts in ordinary repository documentation.** The managed
-   corpus owns reusable guidance, not architecture, environment names, or
-   credentials.
-
 </Steps>
 
-<Aside type="note" title="The namespace derives the channel">
-Every profile id lives under `cratis/`. `cratis/engineering` alone derives the
-maintainer channel; every other `cratis/*` id derives the public channel, and
-the two can never appear in the same subscription.
+The CLI resolves composed profiles using the selected languages, installs the
+matching skills, installs shared rules and supporting assets, and creates the
+selected harness adapters.
+
+<Aside type="note" title="Configuration is not ownership">
+`.cratis/ai.json` records what your repository wants. `.cratis/ai.manifest.json`
+records exactly which installed files and integrations Cratis owns, including
+their hashes. User-created files are never claimed merely because they live in a
+managed or harness directory.
 </Aside>
 
-## Install the matching packages
+## Update or change a selection
 
-A subscription names what the repository *wants*; the matching packages deliver
-it per host:
+Edit `.cratis/ai.json` when the repository's products, languages, or harnesses
+change, then run:
 
-- **Pi/npm** — install the package for your profile at the exact pinned version:
+```bash
+cratis ai update
+```
 
-  ```bash
-  pi install -l npm:@cratis/pi
-  ```
+The update adds newly selected content, removes obsolete Cratis-owned content,
+and reconfigures harness links. It stops before making changes if a managed file
+or integration was modified locally. Review the conflict before using
+`cratis ai update --force`.
 
-  Pi records the installed version in `.pi/settings.json`; commit it after
-  review.
+## Use a native plugin instead
 
-- **Marketplace hosts** — the Claude Code, Codex, GitHub Copilot, and Cursor
-  plugins resolve the same skills directly from the `Cratis/AI` repository, so a
-  machine can run the marketplace plugin while the repository's `.cratis/ai.json`
-  documents the profile it should behave as.
+A native plugin is independent of the managed path. It is useful when one person
+uses one harness and wants to keep content in that harness's familiar folders.
+For Pi:
 
-No per-profile package beyond Fundamentals is published yet — the versioned
-flow is designed and tool-verified, but the first governed release has not
-been cut. Until it is, the marketplace plugin is the way to get the skills;
-the subscription still records the intended scope and starts receiving
-reviewed updates the moment the packages publish.
+```bash
+pi install -l npm:@cratis/pi
+```
 
-## Update and roll back
-
-Update and rollback are the same operation at different versions: change the
-exact version in `.cratis/ai.json` (and `.pi/settings.json`), review the pull
-request, and rerun your repository gates. Shared skill bodies never change under
-your feet, and removing a package never touches `.cratis/ai`,
-`AGENTS.md`, or your local skills.
-
-## What not to do
-
-- Do not copy `.ai`, `.claude`, `.github`, `.agents`, or `.pi` trees from another
-  repository — that is the frozen propagation model the profiles replace.
-- Do not mix public and engineering profiles in one subscription.
-- Do not point a subscription at a floating version.
-
-See [Trust and distribution](/ai/trust-and-distribution/) for why Cratis
-distributes skills this way, and [Start using AI with Cratis](/ai/getting-started/)
-for the marketplace install commands per host.
+The Pi package reads `.cratis/ai.json` when it exists and exposes the selected
+skills; without it, the package exposes all skills. Native plugins do not create
+the shared `.cratis/ai` corpus, configure other harnesses, or provide the CLI's
+hash-protected lifecycle.

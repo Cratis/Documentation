@@ -1,53 +1,38 @@
 ---
 title: "Scenario: multiple harnesses"
-description: Several AI tools on one repository — same plugin per host, .cratis/ai.json as the one neutral record, per-host locks in their own settings.
+description: Configure several AI tools from one managed Cratis AI corpus and one repository-owned selection.
 ---
 
-Several AI coding tools working on the same repository. This page is the
-multi-harness topic — per-harness getting started lives in the
-[agent harness guide](/ai/harnesses/).
+Use the managed path when several harnesses work in the same repository.
 
-## What you do
+## Configure the repository
 
-1. Each person installs the plugin in their own harness exactly as the
-   [harness guide](/ai/harnesses/) describes. Claude Code, Codex, Copilot,
-   and Cursor each resolve the same canonical skill bytes, so two tools never
-   see different guidance.
-2. Pi (and any npm-consuming host) installs the published package, with the
-   installed version recorded in `.pi/settings.json`:
+```bash
+cratis ai install \
+  --harnesses claude,codex,copilot,cursor,opencode,pi \
+  --profiles cratis/application \
+  --languages csharp,typescript
+```
 
-   ```bash
-   pi install -l npm:@cratis/pi
-   ```
-
-3. The repository commits `.cratis/ai.json` as the one neutral record of
-   intended scope and version — harness-neutral by construction, because it
-   names profiles (`cratis/chronicle/kotlin`), not host-specific things. The
-   `harnesses` array inside it lists which hosts this repository expects the
-   skills to reach.
-4. Per-host locks stay in their own settings files (`.pi/settings.json`, your
-   host's plugin list). No host reads another host's lock.
+Commit `.cratis/ai.json`, `.cratis/ai.manifest.json`, the managed `.cratis/ai`
+content, and the harness adapters your team wants to share.
 
 ## What you get
 
-- **One guidance corpus across every tool.** All marketplaces resolve the
-  same `skills/` directory on the `Cratis/AI` default branch; adapters change
-  packaging and discovery, never skill content.
-- **One reviewed scope.** A pull request changes `.cratis/ai.json` once, and
-  every harness's humans see the same diff.
-- **No cross-contamination.** Skills are passive; no harness writes into
-  another harness's configuration.
+- **One corpus.** Every adapter points to `.cratis/ai`; no harness receives a
+  separately maintained copy.
+- **One selection.** Profiles and languages are resolved once for all selected
+  harnesses.
+- **Native folders.** Team members still use `.claude`, `.cursor`, `.opencode`,
+  `.pi`, and the other folders they expect.
+- **Safe updates.** `cratis ai update` stops before overwriting a locally changed
+  managed file or integration. User-owned files remain untouched.
 
-## When you don't need this
+Run `cratis ai status` before an update and `cratis ai uninstall` when removing
+the managed integration.
 
-If everyone on the repository uses the same single harness, this page adds
-nothing — the [team repository](/ai/scenarios/team-repository/) contract alone
-is enough.
+## Native plugins remain optional
 
-## Status
-
-Per-host package availability differs today: marketplace hosts follow
-`Cratis/AI` `main`; npm/Pi publishes the stable whole-bundle
-`@cratis/pi`; Kiro, Junie, and Gemini CLI are
-pending (see the harness guide). The versioned flow that would pin every
-harness to one reviewed release is designed but not published yet.
+A developer can still install a native marketplace plugin or `@cratis/pi`
+without the CLI. That single-harness path does not create the shared corpus,
+configure the other harnesses, or provide hash-protected lifecycle management.

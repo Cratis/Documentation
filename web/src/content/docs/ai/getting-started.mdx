@@ -26,7 +26,7 @@ For automation, provide the selections explicitly:
 
 ```bash
 cratis ai install \
-  --harnesses claude,codex,pi \
+  --harnesses claude,cursor,opencode,pi \
   --profiles cratis/chronicle,cratis/arc \
   --languages csharp,typescript
 ```
@@ -35,8 +35,10 @@ The command reads the AI repository's `.cratis/ai/manifest.json` first, so the
 interactive choices always reflect the harnesses, profiles, and languages that
 the corpus currently offers. It then records the selection in `.cratis/ai.json`,
 resolves the matching corpus, installs only Cratis-managed files under `.cratis/ai`, and
-configures each selected harness. Pi receives only the resolved skill paths; it
-does not decide which profiles or languages apply.
+configures each selected harness. Pi receives native `.pi` agents, prompts, skills,
+and extensions in addition to the shared repository instructions; Cursor and
+OpenCode receive their native project folders. No harness decides which profiles
+or languages apply.
 
 <Aside type="note" title="Your files remain yours">
 Every installed text file carries a `cratis-ai-managed` marker and is recorded
@@ -85,12 +87,13 @@ packaged Cratis rules and prompts through Pi's extension APIs. Without a
 configuration file it exposes the complete packaged skill set. This path is
 intentionally independent of the CLI.
 
-A plugin gives one harness the same configuration-aware Cratis content, but not
-the complete **multi-harness managed lifecycle**. It does **not** create a shared
-local corpus, configure other harnesses, or provide managed update/uninstall hash
-protection. In a single-harness repository, add your own rules, prompts, and
-skills directly in that harness's normal folder exactly as you do today;
-`.cratis/ai` is optional unless you choose the managed multi-harness path.
+A plugin gives one harness configuration-aware packaged content, but not the
+complete **multi-harness managed lifecycle**. It does **not** create a shared
+local corpus, configure other harnesses, install every harness-specific artifact,
+or provide managed update/uninstall hash protection. In a single-harness
+repository, add your own rules, agents, prompts, and skills directly in that
+harness's normal folder exactly as you do today; `.cratis/ai` is optional unless
+you choose the managed path.
 
 ## Contribute and verify skills
 

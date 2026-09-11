@@ -1,79 +1,41 @@
 ---
 title: AI ecosystem support
-description: See how Cratis AI skills reach Agent Skills, Claude Code, Codex, GitHub Copilot, Cursor, Kiro, Junie, Gemini CLI, Pi, and npm—which hosts install today, and which gates remain before a supported release.
+description: See how the managed Cratis AI corpus and native plugins reach Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, and Pi.
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+Cratis authors one corpus and exposes it through native harness adapters. The
+adapter changes discovery, not the rule or skill body.
 
-Cratis authors one passive skill tree and generates the wrapper each host expects.
-A wrapper changes packaging and discovery—not the behavior of the skill. This
-keeps a projection workflow or event-modeling workflow consistent when your team
-uses different assistants.
+## Managed support
 
-<Aside type="note" title="Evaluation install, gated support">
-Marketplace installation is open today for the hosts marked installable below,
-and the npm package publishes supported stable releases. The versioned
-per-profile tier waits on the release gates at the bottom of this page.
-</Aside>
+`cratis ai install` supports these harness values:
 
-## Current matrix
+| Harness | Project resources |
+| --- | --- |
+| Claude Code | `.claude` |
+| OpenAI Codex | `AGENTS.md`, `.agents/skills` |
+| GitHub Copilot | `.github` |
+| Cursor | `.cursor` |
+| OpenCode | `AGENTS.md`, `.opencode` |
+| Pi | `AGENTS.md`, `.pi` |
 
-| Ecosystem | Delivery form | Current evidence | Install status |
-| --- | --- | --- | --- |
-| Agent Skills | `skills/<name>/SKILL.md` | Format and name/frontmatter validation | Installable through the marketplace plugins |
-| Claude Code | Marketplace manifest on `Cratis/AI` main | Install/list/remove smoke against the canonical repository | **Installable today** — evaluation, unsupported |
-| OpenAI Codex / ChatGPT | Codex marketplace manifest | Marketplace add and install smoke | **Installable today** — evaluation, unsupported |
-| GitHub Copilot / VS Code | Copilot marketplace manifest around the portable plugin | Install/list/remove smoke | **Installable today** — evaluation, unsupported |
-| Cursor | Cursor marketplace manifest | Manifest and canonical-byte parity | **Installable today** — evaluation, unsupported |
-| Kiro | Agent Plugins 1.0 skills-only power | Agent Plugin manifest and canonical-byte parity | Pending manifest delivery and host review |
-| Junie | Skills-only Junie extension | Extension manifest and canonical-byte parity | Pending host review |
-| Gemini CLI | Skills-only extension | Isolated link/list/remove smoke | No repository-root manifest yet — no install today |
-| Pi | Passive `pi-package` npm layout | Install/list/remove smoke | Via published npm packages; no marketplace manifest yet |
-| npm | `@cratis/pi` passive tarball | Stable releases with trusted OIDC | **Published** — `latest` on npm |
+The CLI resolves profiles and languages once, installs the result in
+`.cratis/ai`, and points every selected harness there. This is the recommended
+multi-harness path.
 
-## What every adapter must preserve
+## Native distribution
 
-Every generated target must contain the same approved `SKILL.md`, references,
-assets, and required licenses. Target-native manifests may add names, versions,
-and discovery roots, but they may not redefine workflow behavior.
+Claude Code, Codex, GitHub Copilot, and Cursor can install the `cratis` plugin
+from the `Cratis/AI` marketplace manifests. Pi can install `@cratis/pi` from npm.
+OpenCode can consume standard project folders directly.
 
-The passive package excludes:
+Native installation is intentionally independent of the CLI. It is convenient
+for one harness, but it does not create a shared corpus or provide managed,
+hash-protected updates and uninstall.
 
-- lifecycle scripts and executable extensions;
-- MCP implementations and credentials;
-- engineering rules, agents, hooks, prompts, evals, and authoring tooling;
-- project-specific context;
-- private product or Strategy content.
+## Quality
 
-## Why the supported tier stays gated
-
-Packaging and evaluation installation are open, but packaging is not support. A
-supported release opens only after one Cratis product owner approves exact source
-bytes and claims, the target passes behavior and collision evidence, an
-immutable release is reviewed, and a real consuming repository proves install,
-update, rollback, and emergency disable.
-
-The manual gates are tracked in:
-
-- [`Cratis/AI#148`](https://github.com/Cratis/AI/issues/148) — first approved
-  public target and source contract;
-- [`Cratis/Workflows#72`](https://github.com/Cratis/Workflows/issues/72) —
-  PR/release-capable distribution bot;
-- [`Cratis/Workflows#70`](https://github.com/Cratis/Workflows/issues/70) — npm
-  package ownership and stage-only trusted publishing;
-- [`Cratis/Workflows#71`](https://github.com/Cratis/Workflows/issues/71) — first
-  real consumer canary and rollback;
-- [`Cratis/AI#147`](https://github.com/Cratis/AI/issues/147) — vendor marketplace
-  submissions after release approval.
-
-## What to do now
-
-Install the [`cratis` plugin](/ai/harnesses/) from the `Cratis/AI`
-marketplace in Claude Code, Codex, GitHub Copilot, or Cursor, or install
-`@cratis/pi` through Pi. Use [`cratis init`](/cli/getting-started/)
-and Chronicle MCP for documented operating workflows. To scope what a repository
-installs — per product, per language — subscribe to
-[profiles](/ai/profiles/). Cratis maintainers can use the existing repository-
-local AI setup as described in [Using AI as a Cratis maintainer](/ai/cratis-maintainers/).
-External teams should install through the marketplace or pinned packages rather
-than copying internal repository trees.
+The repository verifies corpus structure, profile composition, skill scenarios,
+harness adapters, and the Pi package from `Source/Verification`. It does not use
+provenance ledgers, generated inventories, or evidence chains as substitutes for
+behavior checks.

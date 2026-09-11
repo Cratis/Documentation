@@ -24,15 +24,16 @@ A repository can select several harnesses, profiles, and languages:
 
 ```json
 {
-  "harnesses": ["claude", "codex", "pi"],
+  "harnesses": ["claude", "cursor", "opencode", "pi"],
   "profiles": ["cratis/chronicle", "cratis/arc"],
   "languages": ["csharp", "typescript"]
 }
 ```
 
-The selection is enough to determine the installed content. The Pi plugin is a
-formal TypeScript package used for native discovery, but profile and language
-selection remains in the CLI so Pi sees only applicable skills.
+The selection is enough to determine the installed content. The CLI resolves it
+for the managed path. The native Pi package reads the same file and applies the
+same profile and language selection; when the file is absent, it exposes all
+packaged skills.
 
 ## Ownership and synchronization
 
@@ -62,8 +63,8 @@ approval chains that do not test behavior. A skill can provide a verification
 scenario with the representative task, required fixture, and observable
 assertions. The runner discovers scenarios, executes deterministic assertions,
 and reports useful failures locally and in CI. Harness/model execution may add
-coverage where practical, but a passing verification remains evidence of skill
-behavior—not provenance.
+coverage where practical. These checks establish behavior and consistency, not
+traceability.
 
 ## Plugins and marketplaces
 
