@@ -35,9 +35,11 @@ The command reads the AI repository's `.cratis/ai/manifest.json` first, so the
 interactive choices always reflect the harnesses, profiles, and languages that
 the corpus currently offers. It then records the selection in `.cratis/ai.json`,
 resolves the matching corpus, installs only Cratis-managed files under `.cratis/ai`, and
-configures each selected harness. Pi receives native `.pi` agents, prompts, skills,
-and extensions in addition to the shared repository instructions; Cursor and
-OpenCode receive their native project folders. No harness decides which profiles
+configures each selected harness. Pi receives native `.pi` agents, prompts,
+skills, and extensions. `AGENTS.md` supplies the general rule, while the managed
+`cratis-rules` extension loads every task-specific rule directly from
+`.cratis/ai/rules`; no Pi package is required. Cursor and OpenCode receive their
+native project folders. No harness decides which profiles
 or languages apply.
 
 <Aside type="note" title="Your files remain yours">
