@@ -1,124 +1,105 @@
 ---
 title: Start using Cratis AI
-description: Cratis AI is a plugin for your AI coding tool — one command installs ~50 verified Cratis skills. Install matrix per host, what you get, and where to go next.
+description: Configure selected Cratis rules and skills for one or more AI coding harnesses.
 ---
 
-import { Steps, Aside, CardGrid } from '@astrojs/starlight/components';
-import SimpleCard from '@components/SimpleCard.astro';
+import { Aside, Steps } from '@astrojs/starlight/components';
 
-**Cratis AI is a plugin for your AI coding tool.** It bundles roughly fifty
-skills — step-by-step, verified guidance for building event-sourced and CQRS
-applications on the Cratis ecosystem. Install it and you're done: the skills
-are passive markdown that your assistant loads when a task matches one. No
-hooks, no tools, no MCP server, no executable code.
+Cratis AI has a canonical corpus of reusable **rules** and **skills**. Rules are
+always-on repository guidance; skills are focused task workflows. Your repository
+selects the Cratis profiles, languages, and harnesses it needs.
 
-## Install it
+## Complete repository setup
 
-One command block per host. The marketplace source is the `Cratis/AI`
-repository's default branch, so what you install is exactly what a reviewer
-reads there ([Cratis/AI#264](https://github.com/Cratis/AI/issues/264)):
-
-```text
-Claude Code:    /plugin marketplace add Cratis/AI
-                /plugin install cratis@cratis
-
-Codex:          codex plugin marketplace add Cratis/AI
-                codex plugin install cratis@cratis
-
-GitHub Copilot: copilot plugin marketplace add Cratis/AI
-                copilot plugin install cratis@cratis
-
-Cursor:         resolves the same skills through its committed
-                marketplace manifest — no extra install step.
-
-Pi (npm):       pi install -l npm:@cratis/pi
-```
-
-The same marketplace also carries a separate maintainer plugin,
-`cratis-engineering`, for people contributing to Cratis' own repositories.
-
-The [agent harness guide](/ai/harnesses/) walks **every harness type** —
-Claude Code, Codex, GitHub Copilot, Cursor, Pi and npm, plus the pending
-hosts (Kiro, Junie, Gemini CLI) — with exact install, verify, and uninstall
-steps for each.
-
-## What you get
-
-- **Passive skills only.** Each skill is a `SKILL.md` (plus references and
-  assets). Your assistant auto-loads the matching skill from the task
-  description, or you can invoke one explicitly by name.
-- **Verified guidance.** Skills are authored against pinned product versions
-  in one canonical repository and reviewed there.
-- **No lock-in.** Skills never write into your project, never mutate your
-  settings, and removing the plugin removes everything they added.
-
-That's all you need. The rest of this page is for when you come back later
-and want more than the whole bundle.
-
-## Coming back later? Pick your scenario
-
-<CardGrid>
-  <SimpleCard title="Solo developer" icon="seti:account" link="/ai/scenarios/solo-developer/">
-    One person, one tool. Plugin only — nothing else to set up.
-  </SimpleCard>
-  <SimpleCard title="Team repository" icon="seti:org" link="/ai/scenarios/team-repository/">
-    Commit the three-file contract: PROJECT.md, ai.json, AGENTS.md.
-  </SimpleCard>
-  <SimpleCard title="Multiple harnesses" icon="puzzle" link="/ai/scenarios/multiple-harnesses/">
-    Several AI tools on one repository — one neutral scope record.
-  </SimpleCard>
-  <SimpleCard title="Cratis maintainer" icon="seti:folder" link="/ai/scenarios/cratis-maintainer/">
-    Working on Cratis' own repositories.
-  </SimpleCard>
-  <SimpleCard title="Updates and rollback" icon="seti:sync" link="/ai/scenarios/updates-and-rollback/">
-    How guidance changes under you, and how to get back.
-  </SimpleCard>
-  <SimpleCard title="Concepts" icon="seti:book" link="/ai/concepts/">
-    Profile, subscription, channel — mapped to words you know.
-  </SimpleCard>
-</CardGrid>
-
-## Narrow the scope (optional)
-
-The plugin carries everything. A repository that wants a narrower scope — one
-product, one language, one architecture — records that in a committed
-`.cratis/ai.json` naming a profile under the `cratis/` namespace:
-`cratis/chronicle/kotlin`, `cratis/arc/csharp`, `cratis/application`, and so
-on. See [Profiles](/ai/profiles/) for the full map and what each composition
-implies.
-
-## The operating tools (separate from the skills)
-
-The skills teach your assistant the Cratis *way*. Separately, Cratis ships
-documented **operating tools** an assistant can run against a live system:
+Install the Cratis CLI, then run this from the repository root:
 
 <Steps>
 
-1. **Install the Cratis CLI** — see the
-   [CLI getting-started guide](/cli/getting-started/), then run `cratis init`
-   in your project so the assistant discovers documented Chronicle inspection
-   and diagnosis commands instead of inventing shell syntax.
-2. **Refresh after a CLI upgrade** with `cratis init --refresh`.
-3. **Connect Chronicle MCP** when your host supports MCP — see the
-   [Chronicle MCP setup guide](/chronicle-mcp/) — and review every requested
-   capability before enabling mutating operational tools.
+1. Run `cratis ai install`.
+2. Select one or more harnesses, profiles, and languages when prompted.
+3. Commit `.cratis/ai.json`, review the generated `.cratis/ai` content, and run your
+   normal repository checks.
 
 </Steps>
 
-<Aside type="note" title="Status">
+For automation, provide the selections explicitly:
 
-- **Install today from `main`.** The versioned-release flow — exact-version
-  Pi packages, reviewed update pull requests — is designed but not published
-  yet. The marketplace installs follow the default branch, and the published
-  `@cratis/pi` npm package is a supported stable release
-  carrying the whole public skill set.
-- **Vendor marketplace listing is pending.** Adding `Cratis/AI` as a
-  marketplace works now; being *listed* in a vendor's own marketplace UI — so
-  strangers can find "cratis" by search — is a separate manual submission
-  per host, tracked in
-  [Cratis/AI#147](https://github.com/Cratis/AI/issues/147).
-- Marketplace installs follow the `Cratis/AI` default branch; the npm package
-  is a supported stable release until the governed per-profile release gates
-  pass.
+```bash
+cratis ai install \
+  --harnesses claude,cursor,opencode,pi \
+  --profiles cratis/chronicle,cratis/arc \
+  --languages csharp,typescript
+```
 
+The command reads the AI repository's `.cratis/ai/manifest.json` first, so the
+interactive choices always reflect the harnesses, profiles, and languages that
+the corpus currently offers. It then records the selection in `.cratis/ai.json`,
+resolves the matching corpus, installs only Cratis-managed files under `.cratis/ai`, and
+configures each selected harness. Pi receives native `.pi` agents, prompts,
+skills, and extensions. `AGENTS.md` supplies the general rule, while the managed
+`cratis-rules` extension loads every task-specific rule directly from
+`.cratis/ai/rules`; no Pi package is required. Cursor and OpenCode receive their
+native project folders. No harness decides which profiles
+or languages apply.
+
+<Aside type="note" title="Your files remain yours">
+Every installed text file carries a `cratis-ai-managed` marker and is recorded
+with its installed hash. Add your own rules and skills anywhere under `.cratis/ai`.
+An update or uninstall stops before changing anything when a managed file hash no
+longer matches. Review the reported paths, or explicitly use `--force` to replace
+or remove the modified managed files.
 </Aside>
+
+## Maintain the installation
+
+```bash
+cratis ai status
+cratis ai update
+cratis ai uninstall
+cratis ai update --force
+```
+
+`status` shows selections, installed corpus information, and local conflicts.
+`update` adds, changes, moves, and removes only unchanged Cratis-owned content;
+both commands stop before any change when they find a modified managed file.
+Use `--force` only after reviewing the conflict; it deliberately replaces or
+removes modified managed content. `uninstall` otherwise preserves it and all
+user-owned files.
+
+## Choose the integration that fits your repository
+
+### Managed by Cratis
+
+Use `cratis ai install` when a repository uses multiple harnesses or wants one
+reviewable source for shared guidance. The CLI resolves the selection, writes
+managed rules and skills into `.cratis/ai`, creates harness links, and records
+hashes in `.cratis/ai.manifest.json`. Pi is configured directly by the CLI; it
+does not require the Pi package. Update and uninstall stop on local changes
+unless you explicitly pass `--force`.
+
+You keep full control: add, edit, or delete your own content under
+`.cratis/ai`. Only paths recorded in the manifest are Cratis-managed.
+
+### Native plugin or marketplace
+
+Use a harness plugin when you want the familiar, harness-specific path instead.
+For example, `pi install -l npm:@cratis/pi` installs the Pi integration. It reads
+`.cratis/ai.json`, resolves only the selected Pi skills, and contributes the
+packaged Cratis rules and prompts through Pi's extension APIs. Without a
+configuration file it exposes the complete packaged skill set. This path is
+intentionally independent of the CLI.
+
+A plugin gives one harness configuration-aware packaged content, but not the
+complete **multi-harness managed lifecycle**. It does **not** create a shared
+local corpus, configure other harnesses, install every harness-specific artifact,
+or provide managed update/uninstall hash protection. In a single-harness
+repository, add your own rules, agents, prompts, and skills directly in that
+harness's normal folder exactly as you do today; `.cratis/ai` is optional unless
+you choose the managed path.
+
+## Contribute and verify skills
+
+Skills may include executable verification scenarios. The verification runner
+discovers them, applies deterministic assertions, and emits a pass/fail report
+locally and in CI. Verification answers whether a skill behaves as intended;
+it is not an authorship or provenance gate.

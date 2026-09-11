@@ -1,33 +1,26 @@
 ---
 title: Cratis AI concepts
-description: The Cratis AI vocabulary mapped to the plugin concepts you already know — profiles, skills, subscriptions, project context, and channels.
+description: Understand the corpus, configuration, profiles, managed ownership, harness adapters, and native plugins.
 ---
 
-Cratis AI is a plugin bundle for your AI coding tool. Most of its vocabulary is
-just a careful name for something you already know from plugin ecosystems.
+| Concept | Meaning |
+| --- | --- |
+| **Corpus** | The reusable rules, agents, prompts, skills, hooks, and harness assets under `.cratis/ai`. |
+| **Configuration** | `.cratis/ai.json`, the repository-owned selection of harnesses, profiles, and languages. |
+| **Profile** | A product-oriented selection such as `cratis/application`, `cratis/arc`, or `cratis/chronicle`. |
+| **Skill** | An Agent Skills package containing `SKILL.md` and optional references, scripts, and assets. |
+| **Rule** | Persistent repository guidance that the selected harness loads through its native adapter. |
+| **Managed manifest** | `.cratis/ai.manifest.json`, which records every Cratis-owned installed file, harness integration, and hash. |
+| **Harness adapter** | A native `.claude`, `.cursor`, `.opencode`, `.pi`, `.github`, or `.agents` path that points to the shared corpus. |
+| **Native plugin** | A single-harness installation independent of the managed CLI lifecycle. |
 
-| Thing you know | Cratis word | What it is here |
-| --- | --- | --- |
-| A plugin | **profile** | A named selection of skills under the `cratis/` namespace — `cratis/chronicle`, `cratis/arc/csharp`. The marketplace plugin `cratis` carries every public profile; a profile is how a repository narrows that to exactly what its stack needs. |
-| A skill | **skill** | The same thing: a passive `SKILL.md` (plus references and assets) your assistant loads when a task matches. No hooks, no executable code. |
-| Your dependency manifest | **subscription** (`.cratis/ai.json`) | The committed, project-owned record of which profiles the repository expects, at which exact version, for which harnesses. |
-| Your project README section | **project context** (`.cratis/PROJECT.md`) | Your project facts — what it is, environments, commands, conventions. The shared profiles never own these; your repository does. |
-| A release channel | **channel** | Derived, not declared: `cratis/engineering` is the maintainer channel, every other `cratis/*` id is the public channel. A subscription may deliberately mix the two (documentation plus an engineering cell); a mixed selection derives no channel. |
-| The plugin marketplace | **marketplace** | The `Cratis/AI` repository itself, added as a marketplace source. Its manifests resolve the real `skills/` and `engineering/` directories on the default branch. |
+The repository owns its configuration and every file it adds. The installer owns
+only paths listed in the managed manifest. An unknown path is never claimed or
+overwritten, even with `--force`.
 
-One paragraph each, in the order you meet them:
+Profiles and languages decide which skills are installed. Shared rules, agents,
+prompts, and supporting assets remain available through each selected harness's
+native integration.
 
-- A **profile** is just a bundle declaration. Install the plugin and you get
-  every public one; subscribe in `.cratis/ai.json` when a repository needs a
-  narrower, reviewable scope — see [Profiles](/ai/profiles/).
-- A **skill** never executes anything. It is guidance your model reads — the
-  same bytes in every harness.
-- A **subscription** belongs to the consuming repository, never to a package.
-  Packages may read it; nothing may write it for you.
-- **Project context** is where your facts live so shared skills can stay
-  generic. Keep credentials out of it, always.
-- A **channel** answers "who is this guidance for": everyone (`public`) or
-  Cratis maintainers (`cratis-engineering`). The namespace tells you which.
-
-For install commands per host, see the
-[agent harness guide](/ai/harnesses/).
+Use [Start using Cratis AI](/ai/getting-started/) for the managed workflow and
+the [agent harness guide](/ai/harnesses/) to compare native plugins.

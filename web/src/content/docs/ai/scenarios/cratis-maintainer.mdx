@@ -1,55 +1,41 @@
 ---
 title: "Scenario: Cratis maintainer"
-description: "Contribute to Cratis own repositories - the cratis-engineering plugin for general conventions, product-local skills for product depth."
+description: Configure a Cratis repository with shared framework guidance and its native agent harness folders.
 ---
 
-You contribute to Cratis' own repositories (Chronicle, Arc, Fundamentals,
-Components, …) rather than building an application on them.
+You contribute to a Cratis framework or product repository rather than building
+an application on it.
 
-## What you do
+## Configure the repository
 
-1. Install the maintainer plugin from the same marketplace — for Claude Code:
+Use the managed installer and select the products, languages, and harnesses that
+the repository actually uses:
 
-   ```text
-   /plugin marketplace add Cratis/AI
-   /plugin install cratis-engineering@cratis
-   ```
+```bash
+cratis ai install \
+  --harnesses claude,codex,copilot,cursor,opencode,pi \
+  --profiles cratis/arc \
+  --languages csharp,typescript
+```
 
-   Other hosts follow the same pattern (see the
-   [agent harness guide](/ai/harnesses/)). The `cratis-engineering` plugin
-   carries the general engineering skills: C# house conventions, the
-   decision-record procedure, the effect-boundary failure contract, and shared
-   documentation authoring guidance. The profile side is split by language —
-   subscribe to the cell for the language your repository writes
-   (`cratis/engineering/csharp`, `cratis/engineering/typescript`, …) so you
-   load that language's conventions and the shared procedures rather than
-   every language at once.
+Start the agent from the repository root so it reads `AGENTS.md`, the selected
+Cratis corpus, and product-local guidance.
 
-2. Start your agent from the repository root so it reads that repository's
-   `AGENTS.md` and its own local rules first. Cratis repositories carry their
-   own repository-local skills for product-specific contributor guidance —
-   for example the Chronicle repository carries its kernel-tracing procedure
-   locally, because that guidance only makes sense inside Chronicle.
+## Keep repository guidance local
 
-3. Keep private overlays local. Confidential or repository-specific behavior
-   lives in the product repository (`.agents/skills/`, `.cratis/PROJECT.md`),
-   never in the shared profile.
+Put product-specific or confidential guidance in the owning repository. You can
+add rules and skills under `.cratis/ai` or directly in one harness's native
+folder. The managed manifest records only files installed by Cratis, so these
+additions survive update and uninstall.
 
-## What you get
+Generalize reusable guidance before proposing it to `Cratis/AI`; do not move
+private product facts into the shared corpus.
 
-- The general Cratis engineering conventions in every harness you use.
-- A clean upstream path: generalize and remove private facts before proposing
-  a change to `Cratis/AI`; improvements flow one way through issues or pull
-  requests.
+## Use a native plugin for one harness
 
-## When you don't need this
+A maintainer who uses one harness can install the `cratis` marketplace plugin or
+`@cratis/pi` instead. That path provides packaged guidance but not the shared
+multi-harness corpus or managed lifecycle.
 
-If you only build applications *on* Cratis, you want the public `cratis`
-plugin, not this one. The single `cratis/engineering` profile replaced the
-former per-product engineering profiles: product-specific contributor guidance
-now belongs to the owning product repository.
-
-See [Using AI as a Cratis maintainer](/ai/cratis-maintainers/) for the full
-maintainer workflow. The `@cratis/ai-engineering` package is not published
-yet — today the maintainer skills arrive via the marketplace plugin that
-follows the `Cratis/AI` default branch.
+See [Using AI as a Cratis maintainer](/ai/cratis-maintainers/) for the complete
+workflow.

@@ -1,121 +1,102 @@
 ---
 title: Agent harness guide
-description: Install Cratis AI in every agent harness — Claude Code, Codex, GitHub Copilot, Cursor, Pi and npm — with exact commands, verification, and uninstall for each, plus the pending hosts.
+description: Configure Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, and Pi through the managed Cratis AI corpus or a native plugin.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-Every agent harness type gets the same passive Cratis skills; only the install
-mechanics differ. This page walks each harness with the exact commands. Running
-several harnesses against the *same repository* is a separate topic:
-[Multiple harnesses](/ai/scenarios/multiple-harnesses/).
+Cratis AI supports two independent installation paths:
 
-What every harness receives is identical in content: roughly fifty skills — a
-`SKILL.md` plus references and assets per skill, no hooks, no executable code,
-no MCP server. Skills are passive markdown; your assistant loads the matching
-one from the task, or you invoke it by name.
+- **Managed repository setup** — `cratis ai install` resolves the repository's
+  selected profiles and languages, installs the shared corpus in `.cratis/ai`,
+  and configures every selected harness.
+- **Native plugin setup** — install one harness's plugin or package for convenient
+  access without the Cratis CLI. You do not get the shared corpus, multi-harness
+  configuration, or hash-protected update and uninstall lifecycle.
 
-| Harness | Install status |
+Use the managed path when a team wants consistent guidance across tools. Use a
+native plugin when one developer wants Cratis guidance in one harness.
+
+## Managed harness support
+
+```bash
+cratis ai install \
+  --harnesses claude,codex,copilot,cursor,opencode,pi \
+  --profiles cratis/application \
+  --languages csharp,typescript
+```
+
+The available values come from the AI repository's
+`.cratis/ai/manifest.json`. The CLI creates only the native adapters selected by
+the repository:
+
+| Harness | Managed project integration |
 | --- | --- |
-| [Claude Code](#claude-code) | Installable today |
-| [OpenAI Codex](#openai-codex) | Installable today |
-| [GitHub Copilot](#github-copilot--vs-code) | Installable today |
-| [Cursor](#cursor) | Installable today |
-| [Pi via npm](#pi-via-npm) | Published package today |
-| [Kiro, Junie, Gemini CLI](#pending-kiro-junie-gemini-cli) | Pending per-host review |
+| Claude Code | `.claude` rules, agents, commands, skills, and hook settings |
+| OpenAI Codex | `AGENTS.md` and `.agents/skills` |
+| GitHub Copilot | `.github` instructions, agents, prompts, and skills |
+| Cursor | `.cursor` rules, agents, commands, and skills |
+| OpenCode | `AGENTS.md` plus `.opencode` agents, commands, and skills |
+| Pi | `AGENTS.md` plus `.pi` rules extension, agents, prompts, skills, subagents, and quality hooks |
 
-All marketplace installs resolve the real `skills/` directory on the
-`Cratis/AI` default branch — what you install is exactly what a reviewer reads
-([Cratis/AI#264](https://github.com/Cratis/AI/issues/264)).
+All adapters point back to `.cratis/ai`; they do not create divergent copies of
+the corpus. Run `cratis ai status` to inspect local modifications and
+`cratis ai uninstall` to remove only integrations the CLI created.
 
-## Claude Code
+## Claude Code plugin
 
-1. Add the Cratis marketplace:
+```text
+/plugin marketplace add Cratis/AI
+/plugin install cratis@cratis
+```
 
-   ```text
-   /plugin marketplace add Cratis/AI
-   ```
+Remove it with `/plugin uninstall cratis@cratis`.
 
-2. Install the public plugin:
-
-   ```text
-   /plugin install cratis@cratis
-   ```
-
-3. Verify: list installed plugins and confirm `cratis` appears, then ask your
-   assistant something Cratis-shaped ("add a projection for order events") and
-   watch it load the matching skill.
-
-4. Uninstall with `/plugin uninstall cratis@cratis`. Skills are passive —
-   nothing is left in your project.
-
-Cratis maintainers install the maintainer bundle the same way:
-`/plugin install cratis-engineering@cratis`. Grok and Junie read the same
-Claude-compatible manifests.
-
-## OpenAI Codex
+## OpenAI Codex plugin
 
 ```bash
 codex plugin marketplace add Cratis/AI
 codex plugin install cratis@cratis
 ```
 
-The plugin carries the whole public bundle. Uninstall reverses it.
-
-## GitHub Copilot / VS Code
+## GitHub Copilot plugin
 
 ```bash
 copilot plugin marketplace add Cratis/AI
 copilot plugin install cratis@cratis
 ```
 
-List and remove work the same way (`copilot plugin list`,
-`copilot plugin uninstall cratis@cratis`).
+## Cursor plugin
 
-## Cursor
+Add `Cratis/AI` in Cursor's plugin settings. Cursor reads the committed
+`.cursor-plugin/marketplace.json` and installs the canonical Cratis skills.
 
-Cursor resolves the same skills through its committed marketplace manifest
-(`.cursor-plugin/marketplace.json` at the repository root) — add the
-marketplace source in Cursor's plugin settings and the skills appear. The
-manifest carries the identical canonical skill bytes; there is no
-Cursor-specific fork of the content.
-
-## Pi via npm
-
-Pi installs ordinary npm packages. The published package is the stable
-`@cratis/pi` release — the whole public skills directory, the
-same content the marketplace installs above deliver:
+## Pi package
 
 ```bash
-# Project-scoped, installed version recorded in .pi/settings.json
+# Project-scoped
 pi install -l npm:@cratis/pi
 
 # User-wide
 pi install npm:@cratis/pi
 ```
 
-Commit `.pi/settings.json` after review; uninstalling removes the package and
-touches nothing else. The package was previously published as
-`@cratis/ai-fundamentals`; that name is deprecated in favor of `@cratis/pi`.
+The package reads `.cratis/ai.json` when present and exposes the selected skills.
+Without that file, it exposes every packaged skill. It also contributes packaged
+rules, prompts, agents, the subagent tool, and Cratis quality hooks. It does not
+create `.cratis/ai`, configure other harnesses, or provide managed hash
+protection. When a managed CLI installation is present, the package yields to it
+to prevent duplicate resources and hooks.
 
-## Pending: Kiro, Junie, Gemini CLI
+## OpenCode without the CLI
 
-- **Kiro** — skills-only Agent Plugins 1.0 packaging is prepared and
-  byte-identical; manifest delivery and host review are pending.
-- **Junie** — the skills-only Junie extension is prepared; host review is
-  pending.
-- **Gemini CLI** — an isolated install/list/remove smoke has passed, but the
-  host wants a manifest at the repository root and this repository's root
-  carries none, so there is no working install today.
+OpenCode consumes standard project resources directly. Add your own content to
+`.opencode/agents`, `.opencode/commands`, and `.opencode/skills`, and use
+`AGENTS.md` for repository instructions. There is no separate Cratis OpenCode
+plugin required for this path.
 
-<Aside type="note" title="Status">
-
-The npm package is a supported stable release; the marketplace installs follow
-the `Cratis/AI` default branch. The versioned per-profile package flow (exact
-pins arriving as reviewed pull requests) is designed but not published — until
-it ships, `@cratis/pi` carries the whole public bundle so every
-harness receives identical content. Being *listed* in a vendor's own
-marketplace UI is a separate, still-pending manual submission per host
-([Cratis/AI#147](https://github.com/Cratis/AI/issues/147)).
-
+<Aside type="note" title="Your harness folders remain yours">
+The managed installer refuses to overwrite an existing user-owned adapter. You
+can also add files beside Cratis-created links in any harness folder. Force only
+replaces or removes files and links already recorded as Cratis-managed.
 </Aside>
