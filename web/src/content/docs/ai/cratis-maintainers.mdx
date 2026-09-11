@@ -1,6 +1,6 @@
 ---
 title: Use AI as a Cratis maintainer
-description: Follow the Cratis repository profile, project context, skill, verification, review, and shipping workflow without copying the shared AI corpus between repositories.
+description: Follow the Cratis repository profile, managed AI corpus, skill, verification, review, and shipping workflow without copying the shared AI corpus between repositories.
 ---
 
 import { Steps, Aside } from '@astrojs/starlight/components';
@@ -24,9 +24,9 @@ state the outcome, and require fresh verification before shipping.
 2. **Read project-owned context**
 
    If the repository has project-specific context, preserve it. Current
-   repositories may still use `.agents/PROJECT.md`; the controlled migration
-   design uses `.cratis/PROJECT.md` with small host bootstraps. Never replace,
-   concatenate, or copy another repository's project context.
+   repositories may still use `.cratis/ai`; the controlled migration
+   design uses `.cratis/ai` with small host bootstraps. Never replace,
+   concatenate, or copy another repository's managed AI corpus.
 
 3. **Ask for the outcome, not an implementation pattern**
 

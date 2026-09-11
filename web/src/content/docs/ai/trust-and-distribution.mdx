@@ -13,9 +13,9 @@ skills for its profiles, languages, and agent harnesses.
 flowchart LR
     C[Cratis/AI corpus] --> R[cratis ai resolve]
     J[.cratis/ai.json] --> R
-    R --> A[managed .ai content]
-    R --> H[selected harness integration]
-    U[user-owned .ai content] --> A
+    R --> A[managed .cratis/ai content]
+    R --> H[selected harness symlinks]
+    U[user-owned .cratis/ai content] --> A
 ```
 
 ## Selection, not a universal copy
@@ -37,14 +37,17 @@ selection remains in the CLI so Pi sees only applicable skills.
 ## Ownership and synchronization
 
 Cratis marks managed text with a stable `cratis-ai-managed` source identity and
-records source identities and installed hashes in metadata. This makes updates
-predictable without claiming user files:
+records source identities and installed hashes in `.cratis/ai.manifest.json`.
+The canonical local corpus is `.cratis/ai`; every harness adapter is a symlink
+or configuration reference to that location. This makes updates predictable
+without claiming user files:
 
 - additions and changed upstream files are synchronized;
 - moved or removed upstream files are removed only when their installed hash is
   unchanged;
-- a locally changed managed file is reported as a conflict, never replaced; and
-- unrecognized files and user-created `.ai` content are left intact.
+- a locally changed managed file stops update or uninstall before any change;
+- `--force` explicitly replaces or removes a modified managed file; and
+- unrecognized files and user-created `.cratis/ai` content are left intact.
 
 <Aside type="tip" title="Use the lifecycle commands">
 Run `cratis ai status` before updating. It identifies local changes that need a

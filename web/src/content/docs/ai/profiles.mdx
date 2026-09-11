@@ -67,8 +67,7 @@ shows each profile's included skills and availability in plain language.
      "version": "1.0.0",
      "profiles": ["cratis/chronicle/kotlin"],
      "harnesses": ["claude", "codex", "copilot", "pi"],
-     "updatePolicy": "reviewed-pull-request",
-     "projectContext": ".cratis/PROJECT.md"
+     "languages": ["kotlin"]
    }
    ```
 
@@ -79,12 +78,12 @@ shows each profile's included skills and availability in plain language.
 3. **List your harnesses.** The `harnesses` array names the hosts this
    repository expects the skills to reach.
 
-4. **Keep `updatePolicy: reviewed-pull-request`.** Updates arrive as ordinary
-   pull requests that change only the pin — you review them like any dependency.
+4. **List your languages.** The `languages` array prevents a profile from
+   loading guidance for languages the repository does not use.
 
-5. **Point `projectContext` at your project facts.** The shared profiles never
-   own your architecture, environment names, or commands; `.cratis/PROJECT.md`
-   does. Keep credentials out of it.
+5. **Keep project facts in ordinary repository documentation.** The managed
+   corpus owns reusable guidance, not architecture, environment names, or
+   credentials.
 
 </Steps>
 
@@ -124,7 +123,7 @@ reviewed updates the moment the packages publish.
 Update and rollback are the same operation at different versions: change the
 exact version in `.cratis/ai.json` (and `.pi/settings.json`), review the pull
 request, and rerun your repository gates. Shared skill bodies never change under
-your feet, and removing a package never touches `.cratis/PROJECT.md`,
+your feet, and removing a package never touches `.cratis/ai`,
 `AGENTS.md`, or your local skills.
 
 ## What not to do

@@ -17,7 +17,7 @@ Install the Cratis CLI, then run this from the repository root:
 
 1. Run `cratis ai install`.
 2. Select one or more harnesses, profiles, and languages when prompted.
-3. Commit `.cratis/ai.json`, review the generated `.ai` content, and run your
+3. Commit `.cratis/ai.json`, review the generated `.cratis/ai` content, and run your
    normal repository checks.
 
 </Steps>
@@ -31,18 +31,19 @@ cratis ai install \
   --languages csharp,typescript
 ```
 
-The command reads the AI repository's `.ai/manifest.json` first, so the
+The command reads the AI repository's `.cratis/ai/manifest.json` first, so the
 interactive choices always reflect the harnesses, profiles, and languages that
 the corpus currently offers. It then records the selection in `.cratis/ai.json`,
-resolves the matching corpus, installs only Cratis-managed files under `.ai`, and
+resolves the matching corpus, installs only Cratis-managed files under `.cratis/ai`, and
 configures each selected harness. Pi receives only the resolved skill paths; it
 does not decide which profiles or languages apply.
 
 <Aside type="note" title="Your files remain yours">
 Every installed text file carries a `cratis-ai-managed` marker and is recorded
-with its installed hash. Add your own rules and skills anywhere under `.ai`.
-Updates and uninstall never remove unknown files, and report a locally modified
-managed file instead of overwriting it.
+with its installed hash. Add your own rules and skills anywhere under `.cratis/ai`.
+An update or uninstall stops before changing anything when a managed file hash no
+longer matches. Review the reported paths, or explicitly use `--force` to replace
+or remove the modified managed files.
 </Aside>
 
 ## Maintain the installation
@@ -51,19 +52,44 @@ managed file instead of overwriting it.
 cratis ai status
 cratis ai update
 cratis ai uninstall
+cratis ai update --force
 ```
 
 `status` shows selections, installed corpus information, and local conflicts.
 `update` adds, changes, moves, and removes only unchanged Cratis-owned content;
-review conflicts before choosing how to resolve them. `uninstall` removes only
-unchanged managed content and Cratis-created integrations.
+both commands stop before any change when they find a modified managed file.
+Use `--force` only after reviewing the conflict; it deliberately replaces or
+removes modified managed content. `uninstall` otherwise preserves it and all
+user-owned files.
 
-## Plugin installation is complementary
+## Choose the integration that fits your repository
 
-A marketplace or native plugin is a convenient way to discover supported Cratis
-skills in one harness. It is not the complete repository integration: it does
-not compose repository rules, select profiles and languages for a project, or
-manage multi-harness updates. Use `cratis ai install` for that complete setup.
+### Managed by Cratis
+
+Use `cratis ai install` when a repository uses multiple harnesses or wants one
+reviewable source for shared guidance. The CLI resolves the selection, writes
+managed rules and skills into `.cratis/ai`, creates harness links, and records
+hashes in `.cratis/ai.manifest.json`. Pi is configured directly by the CLI; it
+does not require the Pi package. Update and uninstall stop on local changes
+unless you explicitly pass `--force`.
+
+You keep full control: add, edit, or delete your own content under
+`.cratis/ai`. Only paths recorded in the manifest are Cratis-managed.
+
+### Native plugin or marketplace
+
+Use a harness plugin when you want the familiar, harness-specific path instead.
+For example, the standalone Pi package is installed with `pi install -l
+npm:@cratis/pi` and exposes packaged Cratis skills through Pi's normal package
+discovery. This path is intentionally independent of the CLI.
+
+A plugin gives convenient skill discovery, but not the complete managed
+integration. It does **not** install Cratis rules or instructions, select a
+repository profile/language combination, create a shared multi-harness corpus,
+or provide managed update/uninstall hash protection. In a single-harness
+repository, add your own rules, prompts, and skills directly in that harness's
+normal folder exactly as you do today; `.cratis/ai` is optional unless you choose
+the managed multi-harness path.
 
 ## Contribute and verify skills
 
