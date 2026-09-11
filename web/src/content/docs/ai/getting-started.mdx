@@ -36,9 +36,9 @@ interactive choices always reflect the harnesses, profiles, and languages that
 the corpus currently offers. It then records the selection in `.cratis/ai.json`,
 resolves the matching corpus, installs only Cratis-managed files under `.cratis/ai`, and
 configures each selected harness. Pi receives native `.pi` agents, prompts,
-skills, and extensions. `AGENTS.md` supplies the general rule, while the managed
-`cratis-rules` extension loads every task-specific rule directly from
-`.cratis/ai/rules`; no Pi package is required. Cursor and OpenCode receive their
+skills, and extensions. The managed `cratis-rules` extension loads general,
+profile-specific, and project-owned rules directly from `.cratis/ai/rules`; no
+Pi package is required. Cursor and OpenCode receive their
 native project folders. No harness decides which profiles
 or languages apply.
 
@@ -49,6 +49,34 @@ An update or uninstall stops before changing anything when a managed file hash n
 longer matches. Review the reported paths, or explicitly use `--force` to replace
 or remove the modified managed files.
 </Aside>
+
+## Share project-specific guidance
+
+Put project-owned guidance in `.cratis/ai/rules/project.md`. When the guidance
+covers several concerns, keep the index short and place each concern in its own
+file:
+
+```text
+.cratis/ai/rules/
+├── project.md
+└── project/
+    ├── build-and-test.md
+    ├── architecture.md
+    ├── security.md
+    └── deployment.md
+```
+
+`project.md` tells context-file harnesses to read every concern. Native rule
+adapters and Pi's managed rules extension discover the concern files directly.
+The CLI points new `AGENTS.md`, `CLAUDE.md`, and Copilot instruction adapters at
+the shared project index.
+
+During installation, the CLI detects `.cratis/PROJECT.md`, `.ai/PROJECT.md`, and
+`.agents/PROJECT.md`. It copies and splits their headings into the shared project
+index and concern files without deleting or claiming the legacy source. Review
+the split, remove the legacy file and any bootstrap that points to it, then run
+`cratis ai update` once more to create the shared adapters. Existing user-owned
+instruction files are never overwritten.
 
 ## Maintain the installation
 
@@ -84,9 +112,9 @@ You keep full control: add, edit, or delete your own content under
 
 Use a harness plugin when you want the familiar, harness-specific path instead.
 For example, `pi install -l npm:@cratis/pi` installs the Pi integration. It reads
-`.cratis/ai.json`, resolves only the selected Pi skills, and contributes the
-packaged Cratis rules and prompts through Pi's extension APIs. Without a
-configuration file it exposes the complete packaged skill set. This path is
+`.cratis/ai.json`, resolves the selected Pi skills and rules, and contributes
+packaged prompts, agents, subagent support, and quality hooks. Without a
+configuration file it exposes the complete packaged corpus. This path is
 intentionally independent of the CLI.
 
 A plugin gives one harness configuration-aware packaged content, but not the
