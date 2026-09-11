@@ -125,6 +125,15 @@ jobs:
           persist-credentials: false
           path: Components
 
+      - name: Checkout Templates
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Templates
+          ref: main
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          path: Templates
+
       - name: Checkout AuthProxy
         uses: actions/checkout@v4
         with:
