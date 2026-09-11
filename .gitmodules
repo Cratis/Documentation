@@ -16,6 +16,9 @@
 [submodule "Components"]
 	path = Components
 	url = https://github.com/Cratis/Components
+[submodule "Templates"]
+	path = Templates
+	url = https://github.com/Cratis/Templates
 [submodule "CLI"]
 	path = CLI
 	url = https://github.com/cratis/cli
