@@ -79,17 +79,17 @@ You keep full control: add, edit, or delete your own content under
 ### Native plugin or marketplace
 
 Use a harness plugin when you want the familiar, harness-specific path instead.
-For example, the standalone Pi package is installed with `pi install -l
-npm:@cratis/pi` and exposes packaged Cratis skills through Pi's normal package
-discovery. This path is intentionally independent of the CLI.
+For example, `pi install -l npm:@cratis/pi` installs the Pi integration. It reads
+`.cratis/ai.json`, resolves only the selected Pi skills, and contributes the
+packaged Cratis rules and prompts through Pi's extension APIs. This path is
+intentionally independent of the CLI.
 
-A plugin gives convenient skill discovery, but not the complete managed
-integration. It does **not** install Cratis rules or instructions, select a
-repository profile/language combination, create a shared multi-harness corpus,
-or provide managed update/uninstall hash protection. In a single-harness
-repository, add your own rules, prompts, and skills directly in that harness's
-normal folder exactly as you do today; `.cratis/ai` is optional unless you choose
-the managed multi-harness path.
+A plugin gives one harness the same configuration-aware Cratis content, but not
+the complete **multi-harness managed lifecycle**. It does **not** create a shared
+local corpus, configure other harnesses, or provide managed update/uninstall hash
+protection. In a single-harness repository, add your own rules, prompts, and
+skills directly in that harness's normal folder exactly as you do today;
+`.cratis/ai` is optional unless you choose the managed multi-harness path.
 
 ## Contribute and verify skills
 
