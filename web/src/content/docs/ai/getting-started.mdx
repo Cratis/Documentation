@@ -81,7 +81,8 @@ You keep full control: add, edit, or delete your own content under
 Use a harness plugin when you want the familiar, harness-specific path instead.
 For example, `pi install -l npm:@cratis/pi` installs the Pi integration. It reads
 `.cratis/ai.json`, resolves only the selected Pi skills, and contributes the
-packaged Cratis rules and prompts through Pi's extension APIs. This path is
+packaged Cratis rules and prompts through Pi's extension APIs. Without a
+configuration file it exposes the complete packaged skill set. This path is
 intentionally independent of the CLI.
 
 A plugin gives one harness the same configuration-aware Cratis content, but not
