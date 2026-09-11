@@ -8,7 +8,7 @@ the model-first layer, the AI offering, Chronicle MCP, and Prompter.
 
 Read every concern below before working in this repository. Together they are the project-owned instructions and override conflicting shared guidance.
 
-- [Layout](project/layout.md)
-- [Chronicle client documentation](project/chronicle-client-documentation.md)
-- [Commands](project/commands.md)
-- [AI-assisted development](project/ai-assisted-development.md)
+- [Layout](.cratis/ai/rules/project/layout.md)
+- [Chronicle client documentation](.cratis/ai/rules/project/chronicle-client-documentation.md)
+- [Commands](.cratis/ai/rules/project/commands.md)
+- [AI-assisted development](.cratis/ai/rules/project/ai-assisted-development.md)
