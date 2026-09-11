@@ -1,108 +1,71 @@
 ---
-title: Trust and distribution for Cratis AI
-description: Understand why Cratis generates host-native AI packages from one approved source, how project context stays local, and which approval, canary, rollback, and publication gates protect users.
+title: Cratis AI distribution
+description: How Cratis AI resolves a selected corpus safely while preserving repository-owned guidance.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-An AI skill can influence every file an assistant reads or writes. Treating it
-like a copied snippet makes updates hard to audit and rollback. Cratis therefore
-separates authoring, distribution, and project-owned context.
-
-## One source, many delivery shapes
+Cratis AI is authored in one canonical corpus. A consuming repository declares
+what it wants in `.cratis/ai.json`; the CLI resolves the relevant rules and
+skills for its profiles, languages, and agent harnesses.
 
 ```mermaid
 flowchart LR
-    A[Cratis/AI<br/>canonical skills, profiles, catalogs] --> M[Marketplace manifests<br/>Claude / Codex / Copilot / Cursor]
-    A --> N[npm and Pi packages<br/>pinned profiles]
-    A --> S[.cratis/ai.json<br/>profile subscriptions]
-    M --> P[version-pinned or<br/>branch-resolved project]
-    N --> P
-    S --> P
-    X[project-owned context] --> P
+    C[Cratis/AI corpus] --> R[cratis ai resolve]
+    J[.cratis/ai.json] --> R
+    R --> A[managed .ai content]
+    R --> H[selected harness integration]
+    U[user-owned .ai content] --> A
 ```
 
-`Cratis/AI` is the canonical authoring and approval repository. Committed
-marketplace manifests resolve the `skills/` and `engineering/` directories
-directly from its default branch — what a host installs is exactly what a
-reviewer reads. Versioned packages (npm, consumed through Pi) and `.cratis/ai.json`
-profile subscriptions carry the same skills at pinned versions for repositories
-that need a narrower scope or reviewed updates.
+## Selection, not a universal copy
 
-The former generated distribution repository, `Cratis/AI.Distribution`, is
-**retired**: its published tags keep resolving and are never deleted, but it
-receives no further releases. There is no second repository to keep in sync, no
-release branch, and no generated tree to maintain.
+A repository can select several harnesses, profiles, and languages:
 
-## Why Cratis does not propagate folders
+```json
+{
+  "harnesses": ["claude", "codex", "pi"],
+  "profiles": ["cratis/chronicle", "cratis/arc"],
+  "languages": ["csharp", "typescript"]
+}
+```
 
-The previous model copied shared AI folders across repositories. That creates
-three problems:
+The selection is enough to determine the installed content. The Pi plugin is a
+formal TypeScript package used for native discovery, but profile and language
+selection remains in the CLI so Pi sees only applicable skills.
 
-1. repositories silently drift to different corpus versions;
-2. a target can accidentally become another distribution source;
-3. rollback means reconstructing overwritten files instead of changing a pin.
+## Ownership and synchronization
 
-The replacement is ordinary versioned distribution. One canonical repository
-feeds marketplace manifests, pinned packages, and profile subscriptions.
-Consumers install or pin a version through their host. Workflows can canary,
-update, disable, and roll it back without rewriting the project's own facts.
+Cratis marks managed text with a stable `cratis-ai-managed` source identity and
+records source identities and installed hashes in metadata. This makes updates
+predictable without claiming user files:
 
-## Project context remains project-owned
+- additions and changed upstream files are synchronized;
+- moved or removed upstream files are removed only when their installed hash is
+  unchanged;
+- a locally changed managed file is reported as a conflict, never replaced; and
+- unrecognized files and user-created `.ai` content are left intact.
 
-Shared packages teach reusable Cratis concepts and workflows. They do not own a
-project's architecture, environment names, commands, credentials, test fixtures,
-or product decisions.
-
-The controlled context design uses `.cratis/PROJECT.md` as canonical project
-content, with minimal host bootstraps where a host cannot discover it directly.
-Some current repositories still use `.agents/PROJECT.md` during migration. A
-resolver chooses one; it never merges, overwrites, or deletes either file.
-
-<Aside type="note" title="Uninstall must leave the project intact">
-Removing a shared AI package must remove shared capabilities only. It must not
-delete `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `.cratis/PROJECT.md`, legacy project
-context, or repository-local overrides.
+<Aside type="tip" title="Use the lifecycle commands">
+Run `cratis ai status` before updating. It identifies local changes that need a
+human decision. Run `cratis ai uninstall` when removing the integration; it
+removes only unchanged Cratis-owned content and its own harness configuration.
 </Aside>
 
-## The release gates
+## Quality is verification
 
-Installing Cratis AI is open; *supporting* it is earned gate by gate. A public
-capability moves through separate gates on the way from evaluation to a
-supported release:
+Cratis does not gate corpus content on author identity, provenance records, or
+approval chains that do not test behavior. A skill can provide a verification
+scenario with the representative task, required fixture, and observable
+assertions. The runner discovers scenarios, executes deterministic assertions,
+and reports useful failures locally and in CI. Harness/model execution may add
+coverage where practical, but a passing verification remains evidence of skill
+behavior—not provenance.
 
-| Gate | Evidence required |
-| --- | --- |
-| Source authority | Owning product repository, immutable revision, owner, permission, claims, digest, and expiry |
-| Target approval | Behavior, trigger, negative trigger, collision, security, originality, and portability evidence |
-| Materialization | Exact file closure, native manifests, byte parity, checksums, and provenance |
-| Package lifecycle | Pack, install, discovery, smoke, update, uninstall, and rollback |
-| Canary | One approved consuming repository with observable version-bound results |
-| Publication | Protected environment, machine identity, reviewer, immutable release, and vendor/npm approval |
-| Retirement | Fleet visibility, rollback evidence, emergency disable, and proof the old topology cannot restart |
+## Plugins and marketplaces
 
-A green build at one gate never implies the next gate passed — and marketplace
-availability at the evaluation tier does not skip any of them.
-
-## Current state
-
-Marketplace installation works today for Claude Code, Codex, GitHub Copilot, and
-Cursor, and `@cratis/pi` is published to npm as a stable release
-carrying the whole public skill set. Profile subscriptions (`.cratis/ai.json`)
-record a repository's exact scope and receive reviewed update pull requests as
-per-profile packages pass their preview gates.
-
-Still gated on the way to a supported release:
-
-- the versioned per-profile package flow is not published yet;
-- the governed S9/S10 lane — real consumer lifecycle canaries, release
-  evidence, and explicit support approval — has not run;
-- vendor marketplace listings beyond the self-published manifests are pending
-  review; and
-- Kiro, Junie, Gemini CLI, and Pi have no working marketplace install until
-  their manifests or packages land.
-
-That boundary is deliberate. Follow the [ecosystem support matrix](/ai/ecosystems/)
-for status, [Profiles](/ai/profiles/) to scope what a repository installs, and
-[Using AI as a Cratis maintainer](/ai/cratis-maintainers/) for the current
-internal workflow.
+Plugins remain valuable for native skill discovery and marketplace visibility.
+They are intentionally narrower than repository installation. A plugin does not
+safely manage persistent rules, repository-specific composition, ownership
+metadata, or a multi-harness lifecycle. Use plugins for convenient skill access;
+use `cratis ai install` to configure a repository.
