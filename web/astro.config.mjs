@@ -296,6 +296,7 @@ export default defineConfig({
                         components: ['/components', '/components/**'],
                         authproxy: ['/authproxy', '/authproxy/**'],
                         cli: ['/cli', '/cli/**'],
+                        templates: ['/templates', '/templates/**'],
                         ai: ['/ai', '/ai/**', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
                         fundamentals: ['/fundamentals', '/fundamentals/**'],
                         contributing: ['/contributing', '/contributing/**'],

@@ -201,6 +201,14 @@ export const PRODUCTS = [
         ],
     },
     {
+        // The `dotnet new` creation templates for scaffolding a new Cratis application
+        // (Cratis.Templates on NuGet).
+        key: 'templates', label: 'Templates', icon: 'seti:app', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Templates', 'Documentation'),
+            path.join(docRepoRoot, 'Templates', 'Documentation')),
+    },
+    {
         // The Chronicle MCP server — connects an AI agent to a running store over the Model Context
         // Protocol, for both operating the store and design-time, schema-grounded artifact generation.
         key: 'chronicle-mcp', label: 'Chronicle MCP', icon: 'node', sidebarMode: 'toc',
