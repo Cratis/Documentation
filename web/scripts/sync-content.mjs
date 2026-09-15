@@ -279,6 +279,14 @@ const SKIP_DIRS = new Set([
     'client-snippets', 'client-snippets-java',
     // the org GitHub landing page (duplicates our front door) — not site content
     'profile',
+    // synced separately by syncReleaseDigests() into site-level release-digests/ pages
+    'release-digests',
+    // the managed Cratis AI corpus (project rules for AI coding assistants) — tooling
+    // config, not documentation content. `.cratis` is unambiguous as a directory
+    // basename; unlike `isPrivateDocPath`, this only affects the content-sync walk
+    // and never touches link-target validation, so real `/.cratis/...` Arc runtime
+    // routes referenced in doc prose (e.g. `/.cratis/logout`) stay valid links.
+    '.cratis',
 ]);
 
 // Repository control files that live at the repo root for tooling/AI but are
