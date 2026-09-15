@@ -201,6 +201,14 @@ export const PRODUCTS = [
         ],
     },
     {
+        // The `dotnet new` creation templates for scaffolding a new Cratis application
+        // (Cratis.Templates on NuGet).
+        key: 'templates', label: 'Templates', icon: 'seti:app', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Templates', 'Documentation'),
+            path.join(docRepoRoot, 'Templates', 'Documentation')),
+    },
+    {
         // The Chronicle MCP server — connects an AI agent to a running store over the Model Context
         // Protocol, for both operating the store and design-time, schema-grounded artifact generation.
         key: 'chronicle-mcp', label: 'Chronicle MCP', icon: 'node', sidebarMode: 'toc',
@@ -249,6 +257,14 @@ export const PRODUCTS = [
     },
 ];
 
+// The Cratis/.github org repo also carries a `release-digests/` folder of
+// weekly cross-repo digests (one file per week, named `<start>-to-<end>.md`).
+// These are site-level pages surfaced from the "Cratis Stack" nav rather than
+// their own product topic, so they are synced separately from PRODUCTS below.
+const RELEASE_DIGESTS_SRC = firstExisting(
+    path.join(reposRoot, '.github', 'release-digests'),
+    path.join(docRepoRoot, 'GitHubLanding', 'release-digests'));
+
 const CHRONICLE_CLIENT_SNIPPETS = chronicleClientDocsConfig.snippetClients;
 const CHRONICLE_CLIENT_DOCS = chronicleClientDocsConfig.publicDocsClients;
 const CHRONICLE_SHARED_TOPICS = chronicleClientDocsConfig.sharedTopics;
@@ -263,6 +279,14 @@ const SKIP_DIRS = new Set([
     'client-snippets', 'client-snippets-java',
     // the org GitHub landing page (duplicates our front door) — not site content
     'profile',
+    // synced separately by syncReleaseDigests() into site-level release-digests/ pages
+    'release-digests',
+    // the managed Cratis AI corpus (project rules for AI coding assistants) — tooling
+    // config, not documentation content. `.cratis` is unambiguous as a directory
+    // basename; unlike `isPrivateDocPath`, this only affects the content-sync walk
+    // and never touches link-target validation, so real `/.cratis/...` Arc runtime
+    // routes referenced in doc prose (e.g. `/.cratis/logout`) stay valid links.
+    '.cratis',
 ]);
 
 // Repository control files that live at the repo root for tooling/AI but are
@@ -1014,6 +1038,111 @@ async function familySourceSidebarItems(product) {
     return items;
 }
 
+// ISO-8601 week number (and the year that week belongs to, which can differ
+// from the calendar year for the last/first days of December/January).
+function isoWeekInfo(date) {
+    const target = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    const dayNumber = (target.getUTCDay() + 6) % 7; // Monday = 0 .. Sunday = 6
+    target.setUTCDate(target.getUTCDate() - dayNumber + 3); // nearest Thursday
+    const firstThursday = new Date(Date.UTC(target.getUTCFullYear(), 0, 4));
+    const firstDayNumber = (firstThursday.getUTCDay() + 6) % 7;
+    firstThursday.setUTCDate(firstThursday.getUTCDate() - firstDayNumber + 3);
+    const week = 1 + Math.round((target - firstThursday) / (7 * 86400000));
+    return { week, year: target.getUTCFullYear() };
+}
+
+const SHORT_MONTH = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' });
+const LONG_MONTH = new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' });
+
+// Turns a `<start>-to-<end>.md` release-digest filename into a human-readable
+// date range plus its ISO week number, so the sidebar and page title read as
+// "May 18 - 25, 2026 (Week 21)" instead of the raw ISO filename.
+function formatReleaseDigestRange(startIso, endIso) {
+    const start = new Date(`${startIso}T00:00:00Z`);
+    const end = new Date(`${endIso}T00:00:00Z`);
+    const startYear = start.getUTCFullYear();
+    const endYear = end.getUTCFullYear();
+    const startDay = start.getUTCDate();
+    const endDay = end.getUTCDate();
+
+    let shortRange;
+    let longRange;
+    if (startYear !== endYear) {
+        shortRange = `${SHORT_MONTH.format(start)} ${startDay}, ${startYear} - ${SHORT_MONTH.format(end)} ${endDay}, ${endYear}`;
+        longRange = `${LONG_MONTH.format(start)} ${startDay}, ${startYear} - ${LONG_MONTH.format(end)} ${endDay}, ${endYear}`;
+    } else if (start.getUTCMonth() !== end.getUTCMonth()) {
+        shortRange = `${SHORT_MONTH.format(start)} ${startDay} - ${SHORT_MONTH.format(end)} ${endDay}, ${endYear}`;
+        longRange = `${LONG_MONTH.format(start)} ${startDay} - ${LONG_MONTH.format(end)} ${endDay}, ${endYear}`;
+    } else {
+        shortRange = `${SHORT_MONTH.format(start)} ${startDay} - ${endDay}, ${endYear}`;
+        longRange = `${LONG_MONTH.format(start)} ${startDay} - ${endDay}, ${endYear}`;
+    }
+
+    const { week, year: isoYear } = isoWeekInfo(start);
+    return { shortRange, longRange, week, isoYear };
+}
+
+// Syncs the Cratis/.github `release-digests/` folder into site-level pages
+// under `release-digests/`, and writes the sidebar entries (sorted descending
+// by filename, which is the week's start date) to src/generated/. Unlike the
+// PRODUCTS loop this isn't a product topic: it's a plain nav group hung off
+// the "Cratis Stack" topic in astro.config.mjs.
+async function syncReleaseDigests() {
+    const outDir = path.join(webRoot, 'src', 'content', 'docs', 'release-digests');
+    await fs.rm(outDir, { recursive: true, force: true });
+
+    const genDir = path.join(webRoot, 'src', 'generated');
+    await fs.mkdir(genDir, { recursive: true });
+    const genPath = path.join(genDir, 'release-digests.json');
+
+    let entries;
+    try {
+        entries = await fs.readdir(RELEASE_DIGESTS_SRC, { withFileTypes: true });
+    } catch {
+        console.warn(`[sync] SKIP release-digests: source not found at ${RELEASE_DIGESTS_SRC}`);
+        await fs.writeFile(genPath, '[]\n');
+        return;
+    }
+
+    const pattern = /^(\d{4}-\d{2}-\d{2})-to-(\d{4}-\d{2}-\d{2})\.md$/;
+    const digests = entries
+        .filter((e) => e.isFile() && pattern.test(e.name))
+        .map((e) => {
+            const [, start, end] = e.name.match(pattern);
+            return { file: e.name, slug: e.name.replace(/\.md$/, ''), start, end };
+        })
+        // Descending by filename == descending by start date (ISO dates sort lexicographically).
+        .sort((a, b) => (a.file < b.file ? 1 : a.file > b.file ? -1 : 0));
+
+    if (digests.length === 0) {
+        await fs.writeFile(genPath, '[]\n');
+        console.log('[sync] release-digests: 0 pages (none found)');
+        return;
+    }
+
+    await fs.mkdir(outDir, { recursive: true });
+    const sidebarEntries = [];
+    for (const digest of digests) {
+        const raw = await fs.readFile(path.join(RELEASE_DIGESTS_SRC, digest.file), 'utf8');
+        const { shortRange, longRange, week, isoYear } = formatReleaseDigestRange(digest.start, digest.end);
+        const title = `Release digest: ${longRange} (Week ${week})`;
+        const description = `Cross-repository release digest for the week of ${longRange}, ISO week ${week} of ${isoYear}.`;
+        const body = stripLeadingH1(convertAlerts(raw));
+        const frontmatter = [
+            '---',
+            `title: ${quoteYaml(title)}`,
+            `description: ${quoteYaml(description)}`,
+            '---',
+            '',
+        ].join('\n');
+        await fs.writeFile(path.join(outDir, `${digest.slug}.md`), frontmatter + body);
+        sidebarEntries.push({ slug: digest.slug, label: `${shortRange} · Week ${week}` });
+    }
+
+    await fs.writeFile(genPath, JSON.stringify(sidebarEntries, null, 2) + '\n');
+    console.log(`[sync] release-digests: ${digests.length} pages -> ${path.relative(webRoot, outDir)}`);
+}
+
 // Emit one Diataxis-bucketed sidebar per product as a `starlight-sidebar-topics`
 // topic ({ label, link, icon, items }). The plugin renders the product icons as a
 // switchable rail at the top of the sidebar and shows the matching product's nav
@@ -1086,6 +1215,7 @@ async function main() {
         const count = await countFiles(outDir);
         console.log(`[sync] ${product.key}: ${count} pages -> ${path.relative(webRoot, outDir)}`);
     }
+    if (!only) await syncReleaseDigests();
     await generateSidebar();
     await clearStaleAstroContentCache();
 }

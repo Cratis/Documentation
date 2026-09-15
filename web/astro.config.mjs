@@ -28,6 +28,25 @@ try {
     ];
 }
 
+// Weekly cross-repo release digests, synced from the Cratis/.github repo's
+// `release-digests/` folder by scripts/sync-content.mjs. Sorted descending by
+// week (newest first) at sync time.
+/** @typedef {{ slug: string, label: string }} ReleaseDigestEntry */
+/** @type {ReleaseDigestEntry[]} */
+let releaseDigests;
+try {
+    releaseDigests = JSON.parse(readFileSync(new URL('./src/generated/release-digests.json', import.meta.url), 'utf8'));
+} catch {
+    releaseDigests = [];
+}
+const releaseDigestsNavItem = releaseDigests.length
+    ? {
+        label: 'Release Digests',
+        collapsed: true,
+        items: releaseDigests.map((digest) => ({ label: digest.label, slug: `release-digests/${digest.slug}` })),
+    }
+    : null;
+
 // Chronicle MCP and Prompter each ship a full toc.yml-driven sidebar of their own
 // (generated like any other product topic), but in the nav they surface as
 // sub-sections of the hand-authored "AI" topic below rather than getting their
@@ -141,6 +160,7 @@ const overviewTopic = {
         { label: "What's new", slug: 'whats-new' },
         { label: 'Glossary', slug: 'glossary' },
         { label: 'API reference', slug: 'api-reference' },
+        ...(releaseDigestsNavItem ? [releaseDigestsNavItem] : []),
     ],
 };
 
@@ -296,6 +316,7 @@ export default defineConfig({
                         components: ['/components', '/components/**'],
                         authproxy: ['/authproxy', '/authproxy/**'],
                         cli: ['/cli', '/cli/**'],
+                        templates: ['/templates', '/templates/**'],
                         ai: ['/ai', '/ai/**', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
                         fundamentals: ['/fundamentals', '/fundamentals/**'],
                         contributing: ['/contributing', '/contributing/**'],
