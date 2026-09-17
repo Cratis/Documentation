@@ -80,7 +80,10 @@ publicDocsAudit:
     #   - spring-boot.md: documents the Kotlin/Java Spring Boot starter, request
     #     filters, artifact discovery, tenancy, and blocking facade — client SDK
     #     mechanics with no shared or non-JVM equivalent page.
-    kotlin: 9
+    #   - migrate-append-routing.md: a Kotlin/Java-client-only breaking-change
+    #     migration guide for the next major client's routing defaults — no
+    #     shared or other per-client equivalent page exists for this migration.
+    kotlin: 10
     elixir: 0
     typescript: 0
 
