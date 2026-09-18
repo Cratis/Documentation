@@ -132,7 +132,7 @@ const titleOf = (id: string) => id.charAt(0).toUpperCase() + id.slice(1);
                 count.textContent =
                     to <= from
                         ? 'Choose a target major higher than the one you are on.'
-                        : `${shown} boundary${shown === 1 ? '' : 's'} between ${from} and ${to}.`;
+                        : `${shown} ${shown === 1 ? 'boundary' : 'boundaries'} between ${from} and ${to}.`;
             }
         };
 
