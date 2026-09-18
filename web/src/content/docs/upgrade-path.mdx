@@ -1,0 +1,30 @@
+---
+title: Plan an upgrade
+description: Pick the version you are on and the one you are going to, and see every major boundary in between.
+---
+
+import UpgradePath from '@components/UpgradePath.astro';
+
+Upgrading across one major is usually small. Upgrading across several is the union of every
+boundary between them — and the part you cannot defer is the boundaries that touch data you
+have already written.
+
+Pick where you are and where you are going.
+
+<UpgradePath />
+
+## How to read this
+
+**Compile-time** boundaries accumulate without interacting. However many you cross, you fix
+them once against the version you land on.
+
+**Stored state** boundaries are ordered. They concern data already written, and skipping past
+one does not skip its consequence. Where your path crosses one, take a backup you have
+restored from at least once before, and rehearse against a copy.
+
+**Wire** boundaries mean the kernel and its clients must move together. Chronicle verifies
+compatibility across every released minor of a major; that guarantee stops at a major
+boundary, which is what a major means.
+
+Each entry links to the full account in the product's own upgrade guide, which is where this
+list comes from — nothing here is maintained separately from the prose it summarizes.

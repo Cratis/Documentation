@@ -1,0 +1,234 @@
+---
+// Computes what upgrading from one major to another actually involves.
+//
+// The boundaries come from each product's own major-version guide, parsed at build time by
+// scripts/sync-upgrade-paths.mjs - the guide stays the single source of truth, and this can
+// never disagree with it.
+//
+// Progressive enhancement, deliberately: every boundary is rendered server-side and the page
+// is complete and readable with no JavaScript at all. The selects only hide rows that fall
+// outside the chosen range. That matters beyond no-JS browsers - these pages get pasted into
+// assistants and printed mid-upgrade, and a picker that renders nothing without scripting
+// would take the content with it.
+import data from '../generated/upgrade-paths.json';
+
+type Boundary = {
+    from: number;
+    to: number;
+    title: string;
+    released: string;
+    action: string;
+    touches: string;
+    summary: string;
+};
+
+type Product = { product: string; href: string; boundaries: Boundary[] };
+
+const products = (data.products ?? []) as Product[];
+const titleOf = (id: string) => id.charAt(0).toUpperCase() + id.slice(1);
+---
+
+{
+    products.length === 0 ? (
+        <p>No product publishes a major-version guide yet.</p>
+    ) : (
+        <div class="upgrade-path" data-upgrade-path>
+            {products.map((product, index) => {
+                const majors = [
+                    ...product.boundaries.map((boundary) => boundary.from),
+                    ...product.boundaries.map((boundary) => boundary.to),
+                ];
+                const lowest = Math.min(...majors);
+                const highest = Math.max(...majors);
+
+                return (
+                    <section
+                        class="upgrade-path__product"
+                        data-product={product.product}
+                        hidden={products.length > 1 && index > 0}
+                    >
+                        <div class="upgrade-path__controls">
+                            {products.length > 1 && (
+                                <label>
+                                    Product
+                                    <select data-select="product">
+                                        {products.map((option) => (
+                                            <option value={option.product} selected={option.product === product.product}>
+                                                {titleOf(option.product)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                            )}
+                            <label>
+                                From
+                                <select data-select="from">
+                                    {[...new Set(product.boundaries.map((boundary) => boundary.from))].map((major) => (
+                                        <option value={major} selected={major === lowest}>
+                                            {major}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label>
+                                To
+                                <select data-select="to">
+                                    {[...new Set(product.boundaries.map((boundary) => boundary.to))].map((major) => (
+                                        <option value={major} selected={major === highest}>
+                                            {major}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
+
+                        <p class="upgrade-path__count" data-count>
+                            Showing every boundary from {lowest} to {highest}.
+                        </p>
+
+                        <ol class="upgrade-path__list">
+                            {product.boundaries.map((boundary) => (
+                                <li class="upgrade-path__item" data-from={boundary.from} data-to={boundary.to}>
+                                    <div class="upgrade-path__heading">
+                                        <a href={`${product.href}#${boundary.from}-to-${boundary.to}`}>
+                                            {boundary.from} → {boundary.to}
+                                        </a>
+                                        {boundary.touches && <span class="upgrade-path__touches">{boundary.touches}</span>}
+                                        {boundary.released && <span class="upgrade-path__date">{boundary.released}</span>}
+                                    </div>
+                                    <p class="upgrade-path__title">{boundary.title}</p>
+                                    <p class="upgrade-path__action">{boundary.action}</p>
+                                </li>
+                            ))}
+                        </ol>
+                    </section>
+                );
+            })}
+        </div>
+    )
+}
+
+<script>
+    // Filtering only. Nothing here creates content, so a failure leaves the full list standing.
+    for (const root of document.querySelectorAll('[data-upgrade-path]')) {
+        const sections = [...root.querySelectorAll('[data-product]')] as HTMLElement[];
+
+        const apply = (section: HTMLElement) => {
+            const from = Number((section.querySelector('[data-select="from"]') as HTMLSelectElement)?.value);
+            const to = Number((section.querySelector('[data-select="to"]') as HTMLSelectElement)?.value);
+            let shown = 0;
+
+            for (const item of section.querySelectorAll('.upgrade-path__item')) {
+                const element = item as HTMLElement;
+                const start = Number(element.dataset.from);
+                const end = Number(element.dataset.to);
+                const inRange = start >= from && end <= to;
+                element.hidden = !inRange;
+                if (inRange) shown += 1;
+            }
+
+            const count = section.querySelector('[data-count]');
+            if (count) {
+                count.textContent =
+                    to <= from
+                        ? 'Choose a target major higher than the one you are on.'
+                        : `${shown} boundary${shown === 1 ? '' : 's'} between ${from} and ${to}.`;
+            }
+        };
+
+        for (const section of sections) {
+            for (const select of section.querySelectorAll('select')) {
+                select.addEventListener('change', (event) => {
+                    const target = event.target as HTMLSelectElement;
+                    if (target.dataset.select === 'product') {
+                        for (const other of sections) other.hidden = other.dataset.product !== target.value;
+                        const shownSection = sections.find((candidate) => !candidate.hidden);
+                        if (shownSection) {
+                            const selector = shownSection.querySelector('[data-select="product"]') as HTMLSelectElement;
+                            if (selector) selector.value = target.value;
+                            apply(shownSection);
+                        }
+                        return;
+                    }
+                    apply(section);
+                });
+            }
+        }
+    }
+</script>
+
+<style>
+    .upgrade-path__controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-block-end: 1rem;
+    }
+
+    .upgrade-path__controls label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        font-size: var(--sl-text-sm);
+        font-weight: 600;
+    }
+
+    .upgrade-path__controls select {
+        padding: 0.35rem 0.5rem;
+        border: 1px solid var(--sl-color-gray-5);
+        border-radius: 0.375rem;
+        background: var(--sl-color-black);
+        color: var(--sl-color-white);
+    }
+
+    .upgrade-path__count {
+        font-size: var(--sl-text-sm);
+        color: var(--sl-color-gray-3);
+    }
+
+    .upgrade-path__list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .upgrade-path__item {
+        border: 1px solid var(--sl-color-gray-5);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .upgrade-path__heading {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        font-weight: 600;
+    }
+
+    .upgrade-path__touches {
+        font-size: var(--sl-text-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--sl-color-accent-high);
+    }
+
+    .upgrade-path__date {
+        font-size: var(--sl-text-xs);
+        color: var(--sl-color-gray-3);
+    }
+
+    .upgrade-path__title {
+        margin: 0.35rem 0 0;
+        font-size: var(--sl-text-sm);
+    }
+
+    .upgrade-path__action {
+        margin: 0.35rem 0 0;
+        font-size: var(--sl-text-sm);
+        color: var(--sl-color-gray-2);
+    }
+</style>
