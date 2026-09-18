@@ -196,6 +196,7 @@ export const PRODUCTS = [
             path.join(docRepoRoot, 'cli', 'Documentation')),
         buckets: [
             { label: 'Start here', sections: ['Getting Started', 'Context'] },
+            { label: 'Creating Projects', sections: ['Creating Projects'] },
             { label: 'Commands', sections: ['Chronicle', 'Arc'] },
             { label: 'Reference', sections: ['Reference'] },
         ],
