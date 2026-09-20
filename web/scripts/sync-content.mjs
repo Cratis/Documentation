@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 
 import { existsSync } from 'node:fs';
-import { loadChronicleClientDocsConfig } from './chronicle-client-docs-config.mjs';
+import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { assertPublicDocPath, assertPublicDocSource, isPrivateDocPath } from './private-doc-paths.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 
@@ -34,12 +34,21 @@ function firstExisting(...candidates) {
     return candidates.find((c) => existsSync(c)) ?? candidates[candidates.length - 1];
 }
 
-const chronicleClientDocsConfig = await loadChronicleClientDocsConfig();
+// Products that document interchangeable implementations along one or more
+// axes (Chronicle's client SDK languages today). Everything variant-specific in
+// this script is driven from this manifest rather than from product name checks.
+const variantDocsConfig = await loadVariantDocsConfig();
+
+function variantAxesFor(productKey) {
+    return variantDocsConfig.axesFor(productKey);
+}
 
 export const PRODUCTS = [
     {
         key: 'chronicle', label: 'Chronicle', icon: 'seti:db', sidebarMode: 'toc',
-        src: chronicleClientDocsConfig.sharedDocsRoot,
+        src: variantDocsConfig.getProduct('chronicle')?.sharedDocsRoot ?? firstExisting(
+            path.join(reposRoot, 'Chronicle', 'Documentation'),
+            path.join(docRepoRoot, 'Chronicle', 'Documentation')),
         buckets: [
             { label: 'Start here', sections: ['Getting started', 'Tutorial', 'Scenarios'] },
             {
@@ -266,18 +275,15 @@ const RELEASE_DIGESTS_SRC = firstExisting(
     path.join(reposRoot, '.github', 'release-digests'),
     path.join(docRepoRoot, 'GitHubLanding', 'release-digests'));
 
-const CHRONICLE_CLIENT_SNIPPETS = chronicleClientDocsConfig.snippetClients;
-const CHRONICLE_CLIENT_DOCS = chronicleClientDocsConfig.publicDocsClients;
-const CHRONICLE_SHARED_TOPICS = chronicleClientDocsConfig.sharedTopics;
-
 const ASSET_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.html', '.js', '.css', '.json']);
 const SKIP_DIRS = new Set([
     'node_modules', 'obj', 'bin', '.git', 'storybook-static', '.vitepress',
     // Shared Markdown snippets are included into pages but should not become pages.
     '_includes', '_shared', '_snippets',
-    // Client-owned snippets are expanded into shared Chronicle pages through
-    // <ChronicleClientTabs />; they are not standalone public docs pages.
-    'client-snippets', 'client-snippets-java',
+    // Variant-owned snippets are expanded into a product's shared pages through
+    // its axis macro; they are not standalone public docs pages. Derived from
+    // the configured snippet roots so a new axis needs no change here.
+    ...variantDocsConfig.snippetRootBasenames,
     // the org GitHub landing page (duplicates our front door) — not site content
     'profile',
     // synced separately by syncReleaseDigests() into site-level release-digests/ pages
@@ -513,10 +519,10 @@ async function fileExists(filePath) {
     }
 }
 
-// Returns null when the client repo has no snippet for this id — that just
-// means the tab is omitted, not an error. Chronicle shared docs don't track
-// which clients apply to a given example; that's discovered from disk.
-async function readClientSnippet(source, snippet) {
+// Returns null when the variant repo has no snippet for this id — that just
+// means the tab is omitted, not an error. A product's shared docs don't track
+// which variants apply to a given example; that's discovered from disk.
+async function readVariantSnippet(source, snippet) {
     assertPublicDocPath(snippet);
     for (const ext of ['.mdx', '.md']) {
         const candidate = path.join(source.src, snippet + ext);
@@ -564,12 +570,14 @@ function ensureTabsImport(body) {
     return body.replace(importRe, `import { ${names.join(', ')} } from '@astrojs/starlight/components';`);
 }
 
-async function expandChronicleClientTabs(body, ctx) {
-    if (ctx.product.key !== 'chronicle' || !body.includes('<ChronicleClientTabs')) {
+// Expands one axis's macro (`<Macro snippet="..." />`) into a Starlight <Tabs>
+// block built from the variant-owned snippets that actually exist on disk.
+async function expandAxisMacro(body, ctx, axis) {
+    if (!body.includes(`<${axis.macro}`)) {
         return { body, used: false };
     }
 
-    const componentRe = /^[ \t]*<ChronicleClientTabs\s+([^>]*)\/>[ \t]*$/gm;
+    const componentRe = new RegExp(`^[ \\t]*<${axis.macro}\\s+([^>]*)\\/>[ \\t]*$`, 'gm');
     const parts = [];
     let expandedAny = false;
     let lastIndex = 0;
@@ -582,28 +590,31 @@ async function expandChronicleClientTabs(body, ctx) {
 
         if (path.extname(ctx.srcPath ?? ctx.basename).toLowerCase() !== '.mdx') {
             throw new Error(
-                `[sync] Cannot expand ChronicleClientTabs in Markdown source ${ctx.srcPath ?? ctx.basename}; rename the source file to .mdx`
+                `[sync] Cannot expand ${axis.macro} in Markdown source ${ctx.srcPath ?? ctx.basename}; rename the source file to .mdx`
             );
         }
 
         const attrs = match[1];
         const snippet = getAttr(attrs, 'snippet');
         if (!snippet) {
-            throw new Error(`[sync] ChronicleClientTabs in ${ctx.srcPath} is missing snippet="..."`);
+            throw new Error(`[sync] ${axis.macro} in ${ctx.srcPath} is missing snippet="..."`);
         }
 
-        const syncKey = getAttr(attrs, 'syncKey') ?? 'chronicle-client';
+        // Every axis carries its own syncKey: Starlight syncs tab selection by
+        // label in one flat localStorage namespace, so a shared key would make
+        // one axis's tab choice drive an unrelated axis's tabs.
+        const syncKey = getAttr(attrs, 'syncKey') ?? axis.syncKey;
 
         const tabs = [];
-        for (const source of ctx.chronicleClientSnippets ?? CHRONICLE_CLIENT_SNIPPETS) {
-            const content = await readClientSnippet(source, snippet);
+        for (const source of axis.snippetVariants) {
+            const content = await readVariantSnippet(source, snippet);
             if (content === null) continue;
             tabs.push({ source, content });
         }
 
         if (!tabs.length) {
             throw new Error(
-                `[sync] ChronicleClientTabs snippet "${snippet}" in ${ctx.srcPath} has no matching snippet in any client repo`
+                `[sync] ${axis.macro} snippet "${snippet}" in ${ctx.srcPath} has no matching snippet in any ${axis.key} repo`
             );
         }
 
@@ -629,8 +640,30 @@ async function expandChronicleClientTabs(body, ctx) {
     }
 
     parts.push(body.slice(lastIndex));
-    const result = parts.join('');
-    return { body: expandedAny ? ensureTabsImport(result) : result, used: expandedAny };
+    return { body: parts.join(''), used: true };
+}
+
+// Expands every axis configured for the page's product. `ctx.variantAxes` lets
+// a caller (tests) supply axes directly instead of going through the manifest.
+async function expandVariantTabs(body, ctx) {
+    const axes = ctx.variantAxes ?? variantAxesFor(ctx.product.key);
+    if (!axes.length) {
+        return { body, used: false };
+    }
+
+    let current = body;
+    let expandedAny = false;
+    for (const axis of axes) {
+        const result = await expandAxisMacro(current, ctx, axis);
+        current = result.body;
+        expandedAny = expandedAny || result.used;
+    }
+
+    if (!expandedAny) {
+        return { body, used: false };
+    }
+
+    return { body: ensureTabsImport(current), used: true };
 }
 
 export async function convertFile(raw, ctx) {
@@ -650,7 +683,7 @@ export async function convertFile(raw, ctx) {
 
     let out = stripLeadingH1(body);
     out = await inlineIncludes(out, ctx.dir, ctx.srcPath ?? path.join(ctx.dir, ctx.basename), ctx.contentRoot ?? ctx.product.src ?? ctx.dir);
-    ({ body: out } = await expandChronicleClientTabs(out, ctx));
+    ({ body: out } = await expandVariantTabs(out, ctx));
     out = convertAlerts(out);
     out = convertXref(out);
     out = normalizeMarkdownTables(fixLinks(out, ctx));
@@ -693,7 +726,11 @@ export async function walk(srcDir, outDir, product, options = {}) {
         }
         if (entry.isDirectory()) {
             if (SKIP_DIRS.has(entry.name)) continue;
-            if (product.key === 'chronicle' && !options.slugBase && path.resolve(srcDir) === path.resolve(product.src) && entry.name === 'clients') continue;
+            // A variant-docs mount route under the product root is walked
+            // separately by syncVariantDocs(); don't double-walk it here.
+            if (!options.slugBase
+                && path.resolve(srcDir) === path.resolve(contentRoot)
+                && variantDocsConfig.mountRoutesFor(product.key).has(entry.name)) continue;
             await walk(path.join(srcDir, entry.name), path.join(outDir, entry.name), product, options);
             continue;
         }
@@ -730,50 +767,57 @@ export async function walk(srcDir, outDir, product, options = {}) {
     }
 }
 
-async function availableChronicleClientDocs() {
+async function availableVariantDocs(axis) {
     const available = [];
-    for (const client of CHRONICLE_CLIENT_DOCS) {
+    for (const variant of axis.publicDocsVariants) {
         try {
-            await fs.access(client.src);
-            available.push(client);
+            await fs.access(variant.src);
+            available.push(variant);
         } catch {
-            // Client repositories are optional for local partial builds.
+            // Variant repositories are optional for local partial builds.
         }
     }
     return available;
 }
 
-async function writeChronicleClientsLanding(outDir, clients) {
-    if (!clients.length) return;
-
-    const clientsDir = path.join(outDir, 'clients');
-    await fs.mkdir(clientsDir, { recursive: true });
-    const topicLinks = CHRONICLE_SHARED_TOPICS
-        .map((topic) => `- [${topic.label}](${topic.href})`)
-        .join('\n');
-    const clientLinks = clients
-        .map((client) => `- [${client.label}](/chronicle/clients/${client.key}/)`)
-        .join('\n');
-
-    const body = `---\ntitle: Client SDKs\n---\n\nChronicle concepts, guides, and feature workflows live in the shared Chronicle docs and use language tabs when the client APIs differ. Use the client SDK sections for installation, connection setup, runtime integration, language idioms, and API reference details.\n\n## Shared Chronicle topics\n\n${topicLinks}\n\n## Client SDK details\n\n${clientLinks}\n`;
-
-    await fs.writeFile(path.join(clientsDir, 'index.md'), body, 'utf8');
+function variantDocsSlugBase(axis, variantKey) {
+    return `${axis.productKey}/${axis.mount.route}/${variantKey}`;
 }
 
-async function syncChronicleClientDocs(outDir, product) {
-    const clients = await availableChronicleClientDocs();
-    await writeChronicleClientsLanding(outDir, clients);
+async function writeVariantDocsLanding(outDir, axis, variants) {
+    if (!variants.length) return;
 
-    for (const client of clients) {
-        await walk(
-            client.src,
-            path.join(outDir, 'clients', client.key),
-            product,
-            {
-                contentRoot: client.src,
-                slugBase: `chronicle/clients/${client.key}`,
-            }
-        );
+    const mountDir = path.join(outDir, axis.mount.route);
+    await fs.mkdir(mountDir, { recursive: true });
+    const { title, intro, sharedHeading, variantHeading } = axis.mount.landing;
+    const topicLinks = axis.sharedTopics
+        .map((topic) => `- [${topic.label}](${topic.href})`)
+        .join('\n');
+    const variantLinks = variants
+        .map((variant) => `- [${variant.label}](/${variantDocsSlugBase(axis, variant.key)}/)`)
+        .join('\n');
+
+    const body = `---\ntitle: ${title}\n---\n\n${intro}\n\n## ${sharedHeading}\n\n${topicLinks}\n\n## ${variantHeading}\n\n${variantLinks}\n`;
+
+    await fs.writeFile(path.join(mountDir, 'index.md'), body, 'utf8');
+}
+
+async function syncVariantDocs(outDir, product) {
+    for (const axis of variantAxesFor(product.key)) {
+        const variants = await availableVariantDocs(axis);
+        await writeVariantDocsLanding(outDir, axis, variants);
+
+        for (const variant of variants) {
+            await walk(
+                variant.src,
+                path.join(outDir, axis.mount.route, variant.key),
+                product,
+                {
+                    contentRoot: variant.src,
+                    slugBase: variantDocsSlugBase(axis, variant.key),
+                }
+            );
+        }
     }
 }
 
@@ -971,18 +1015,18 @@ function applyBadges(items) {
     return items;
 }
 
-async function chronicleClientSidebarItems() {
-    const clients = await availableChronicleClientDocs();
+async function variantSidebarItems(axis) {
+    const variants = await availableVariantDocs(axis);
     const items = [];
 
-    for (const client of clients) {
-        const slugBase = `chronicle/clients/${client.key}`;
-        const clientItems = await tocToSidebar(client.src, slugBase);
+    for (const variant of variants) {
+        const slugBase = variantDocsSlugBase(axis, variant.key);
+        const variantItems = await tocToSidebar(variant.src, slugBase);
         items.push({
-            label: client.label,
+            label: variant.label,
             collapsed: true,
-            items: clientItems.length
-                ? clientItems
+            items: variantItems.length
+                ? variantItems
                 : [{ autogenerate: { directory: slugBase } }],
         });
     }
@@ -990,29 +1034,58 @@ async function chronicleClientSidebarItems() {
     return items;
 }
 
-async function addChronicleClientSidebar(items) {
-    const clientItems = await chronicleClientSidebarItems();
-    if (!clientItems.length) return items;
+// One sidebar group per axis, split by when it has to be injected:
+//   - `into-bucket` groups go in BEFORE applyBuckets, so normal bucketing
+//     absorbs them as a child of the target bucket;
+//   - `after-bucket` groups go in AFTER applyBuckets, so they stay a peer of
+//     the buckets, positioned right after the anchor bucket.
+export async function variantSidebarInjections(product) {
+    const before = [];
+    const after = [];
 
-    const group = {
-        label: 'Client SDKs',
-        collapsed: true,
-        items: [
-            { label: 'Overview', slug: 'chronicle/clients' },
-            ...clientItems,
-        ],
-    };
+    for (const axis of variantAxesFor(product.key)) {
+        const axisItems = await variantSidebarItems(axis);
+        if (!axisItems.length) continue;
 
-    const startHereIndex = items.findIndex((item) => item.label === 'Start here');
-    if (startHereIndex >= 0) {
-        return [
-            ...items.slice(0, startHereIndex + 1),
-            group,
-            ...items.slice(startHereIndex + 1),
-        ];
+        const group = {
+            label: axis.sidebar.groupLabel,
+            collapsed: true,
+            items: [
+                { label: 'Overview', slug: `${axis.productKey}/${axis.mount.route}` },
+                ...axisItems,
+            ],
+        };
+
+        (axis.sidebar.injectMode === 'into-bucket' ? before : after).push({ axis, group });
     }
 
-    return [group, ...items];
+    return { before, after };
+}
+
+// `into-bucket` is declarative: the injected group is a normal top-level item
+// and the target bucket simply learns to claim its label, so the existing
+// bucketing logic places it without a second positioning mechanism.
+export function bucketsWithInjectedSections(buckets, injections) {
+    if (!buckets || !injections.length) return buckets;
+
+    return buckets.map((bucket) => {
+        const claimed = injections
+            .filter(({ axis }) => axis.sidebar.targetBucket === bucket.label)
+            .map(({ group }) => group.label)
+            .filter((label) => !bucket.sections.includes(label));
+        return claimed.length ? { ...bucket, sections: [...bucket.sections, ...claimed] } : bucket;
+    });
+}
+
+export function applyAfterBucketInjections(items, injections) {
+    let result = items;
+    for (const { axis, group } of injections) {
+        const anchorIndex = result.findIndex((item) => item.label === axis.sidebar.anchorBucket);
+        result = anchorIndex >= 0
+            ? [...result.slice(0, anchorIndex + 1), group, ...result.slice(anchorIndex + 1)]
+            : [group, ...result];
+    }
+    return result;
 }
 
 async function familySourceSidebarItems(product) {
@@ -1177,9 +1250,13 @@ async function generateSidebar() {
             currentSidebarProduct = product.key;
             await collectSlugs(path.join(webRoot, 'src', 'content', 'docs', product.key), product.key, validSlugs);
             items = await tocToSidebar(product.src, product.key);
+            const injections = await variantSidebarInjections(product);
             if (items.length === 0) items = [{ autogenerate: { directory: product.key } }];
-            else if (product.buckets) items = applyBuckets(items, product.buckets);
-            if (product.key === 'chronicle') items = await addChronicleClientSidebar(items);
+            else {
+                if (injections.before.length) items = [...injections.before.map(({ group }) => group), ...items];
+                if (product.buckets) items = applyBuckets(items, bucketsWithInjectedSections(product.buckets, injections.before));
+            }
+            items = applyAfterBucketInjections(items, injections.after);
         } else {
             items = [{ autogenerate: { directory: product.key } }];
         }
@@ -1233,9 +1310,7 @@ async function main() {
         }
         await fs.rm(outDir, { recursive: true, force: true });
         await walk(product.src, outDir, product);
-        if (product.key === 'chronicle') {
-            await syncChronicleClientDocs(outDir, product);
-        }
+        await syncVariantDocs(outDir, product);
         for (const source of product.familySources ?? []) {
             const sourceOutDir = path.join(outDir, source.path);
             try {

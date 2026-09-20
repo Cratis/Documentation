@@ -324,7 +324,7 @@ jobs:
 
       - name: Check Chronicle client docs
         working-directory: Documentation/web
-        run: npm run chronicle-client-docs:check:ci
+        run: npm run variant-docs:check:ci
 
       - name: Build site
         working-directory: Documentation/web
