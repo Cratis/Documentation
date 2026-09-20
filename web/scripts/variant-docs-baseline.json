@@ -28,18 +28,6 @@
         "frontend/react/queries/usage.md": {
           "csharp": 1
         },
-        "scenarios/provide-data-to-a-command.md": {
-          "csharp": 6
-        },
-        "scenarios/query-related-data.md": {
-          "csharp": 1
-        },
-        "scenarios/return-a-result-or-error.md": {
-          "csharp": 1
-        },
-        "scenarios/test-a-command.md": {
-          "csharp": 2
-        },
         "scenarios/use-current-state-in-a-command.md": {
           "csharp": 7
         },
@@ -50,9 +38,6 @@
           "csharp": 2
         },
         "tutorial/first-slice.mdx": {
-          "csharp": 2
-        },
-        "tutorial/real-time.mdx": {
           "csharp": 2
         },
         "tutorial/validation.mdx": {
