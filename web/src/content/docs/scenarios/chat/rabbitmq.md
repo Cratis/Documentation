@@ -340,7 +340,7 @@ Delta mode works identically here. The server still emits the full list on each 
 
 The `use()` hook applies each `ChangeSet` transparently, so `messagesResult.data` always holds the complete current collection.
 
-See [Delta Mode](/arc/backend/queries/change-stream/) and the [in-memory guide](../in-memory#step-3--delta-mode) for a full explanation of how the ChangeSet is computed and when to consider adding a `ChatMessageId` property.
+See [Delta Mode](/arc/backend/csharp/queries/change-stream/) and the [in-memory guide](../in-memory#step-3--delta-mode) for a full explanation of how the ChangeSet is computed and when to consider adding a `ChatMessageId` property.
 
 ---
 

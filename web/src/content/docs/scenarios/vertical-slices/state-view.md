@@ -78,15 +78,15 @@ public record Author(
 
 ### What is happening here?
 
-**[`[ReadModel]`](/arc/backend/queries/model-bound/)** marks the record for Arc's model-bound query discovery. The Chronicle projection annotations define how to build it. With the application's MongoDB read-model storage configured, Chronicle maintains the collection from the event stream — this slice never writes MongoDB updates itself.
+**[`[ReadModel]`](/arc/backend/csharp/queries/model-bound/)** marks the record for Arc's model-bound query discovery. The Chronicle projection annotations define how to build it. With the application's MongoDB read-model storage configured, Chronicle maintains the collection from the event stream — this slice never writes MongoDB updates itself.
 
 **[`[FromEvent<AuthorRegistered>]`](/chronicle/projections/)** is a projection shorthand: *“when an `AuthorRegistered` event is appended, map its properties to this read model using convention.”* Chronicle matches properties by name. `FirstName` on the event maps to `FirstName` on the read model, `LastName` to `LastName`. No explicit mapping code needed.
 
 **`AuthorId Id`** is the read-model identity. `FromEvent` uses the event-source ID as its key by default, and Chronicle supplies the model's `Id` from that key. Registration returns an `AuthorId : EventSourceId<Guid>`, so its response and the event's source agree. No `[Key]` annotation or duplicated ID in `AuthorRegistered` is needed.
 
-**`AllAuthors`** is a static query method. Method parameters are automatically resolved from DI — `IMongoCollection<Author>` is provided because the type is a `[ReadModel]`. The return type `ISubject<IEnumerable<Author>>` is a reactive [observable query](/arc/backend/queries/): after the initial query, collection changes trigger updated results. Configure MongoDB change streams in the host; Arc handles the client subscription. The page updates as the projection processes registrations, rather than making a separate refresh request after every command.
+**`AllAuthors`** is a static query method. Method parameters are automatically resolved from DI — `IMongoCollection<Author>` is provided because the type is a `[ReadModel]`. The return type `ISubject<IEnumerable<Author>>` is a reactive [observable query](/arc/backend/csharp/queries/): after the initial query, collection changes trigger updated results. Configure MongoDB change streams in the host; Arc handles the client subscription. The page updates as the projection processes registrations, rather than making a separate refresh request after every command.
 
-> **Run `dotnet build -c Debug`** after saving `Listing.cs`. This generates the `AllAuthors.ts` query proxy and the `Author.ts` model type via [Arc's proxy generation](/arc/backend/proxy-generation/) used by the frontend component.
+> **Run `dotnet build -c Debug`** after saving `Listing.cs`. This generates the `AllAuthors.ts` query proxy and the `Author.ts` model type via [Arc's proxy generation](/arc/backend/csharp/proxy-generation/) used by the frontend component.
 
 ---
 
@@ -173,7 +173,7 @@ export const Listing = () => {
 
 **`AllAuthors`** is the generated observable-query proxy for the author list. [`DataPage`](/components/datapage/) calls it once, subscribes to its observable, and re-renders whenever the backend pushes a new list. If another user registers an author in another browser tab, this list updates without any manual refresh.
 
-**[`DataPage`](/components/datapage/)** from `@cratis/components` provides the complete page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. Declare columns with the Cratis-owned `Column` marker inside `DataPage.Columns`, and actions inside `DataPage.MenuItems`. This example queries the whole author list; for a large catalog, add [server-side paging](/arc/backend/queries/) rather than treating table pagination as a limit on backend work.
+**[`DataPage`](/components/datapage/)** from `@cratis/components` provides the complete page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. Declare columns with the Cratis-owned `Column` marker inside `DataPage.Columns`, and actions inside `DataPage.MenuItems`. This example queries the whole author list; for a large catalog, add [server-side paging](/arc/backend/csharp/queries/) rather than treating table pagination as a limit on backend work.
 
 **`useDialog<Guid>(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) supplies the wrapper component rendered in JSX and an async function that opens it. `showAddAuthor` resolves to `[dialogResult, authorId]` because `AddAuthor` closes with the `Guid` identity passed to its `onSuccess` callback. The listing does not need that ID to refresh: it already observes the author collection.
 
@@ -224,7 +224,7 @@ export const App = () => (
 | ----- | -------- | ---------- |
 | Read model | `Author` record | [Chronicle](/chronicle/) [`[ReadModel]`](/chronicle/read-models/) + [`[FromEvent<T>]`](/chronicle/projections/) |
 | Query | `AllAuthors` static method | [Chronicle](/chronicle/) `ISubject<IEnumerable<T>>` |
-| Generated proxy | `AllAuthors.ts` | [Arc proxy generation](/arc/backend/proxy-generation/) |
+| Generated proxy | `AllAuthors.ts` | [Arc proxy generation](/arc/backend/csharp/proxy-generation/) |
 | Listing page | `Listing.tsx` | [`@cratis/components`](/components/) [`DataPage`](/components/datapage/) |
 
 The read model and its query fit in one record. The projection is zero-configuration convention mapping. The frontend subscribes to a live stream, not a static snapshot. The UI follows the events this projection handles — including `AuthorRegistered` from the [Register Author](../state-change) slice.

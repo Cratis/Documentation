@@ -247,3 +247,63 @@ products:
         kotlin: 10
         elixir: 0
         typescript: 0
+
+  arc:
+    sharedDocs:
+      paths:
+        - ../../Arc/Documentation
+        - ../Arc/Documentation
+
+    axes:
+      backend:
+        macro: ArcBackendTabs
+        # Distinct from any frontend-framework axis added later: Starlight syncs
+        # tabs by label in one flat namespace, so a shared key would make picking
+        # a backend language silently switch an unrelated framework tab set.
+        syncKey: arc-backend-language
+        mount:
+          route: backend
+          landing:
+            title: Backend
+            intro: >-
+              Arc's backend concepts, guides, and workflows are the same whichever
+              language you write them in, and the shared pages use language tabs
+              where the APIs differ. Use a language section for its host, build
+              setup, persistence integrations, and API reference details.
+            sharedHeading: Shared Arc topics
+            variantHeading: Backend languages
+        sidebar:
+          # Unlike Chronicle's client SDKs, the backend languages belong beside
+          # each other *inside* the Backend bucket rather than as a peer of it,
+          # so this injects before bucketing and lets bucketing absorb the group.
+          groupLabel: Kotlin and Java
+          injectMode: into-bucket
+          targetBucket: Backend
+
+        ratchetLanguages:
+          - name: csharp
+            aliases: [cs]
+          - name: kotlin
+          - name: java
+
+        variants:
+          # C# needs no mount: its pages live in Arc/Documentation/backend/csharp
+          # and the ordinary shared walk already emits them at that route.
+          csharp:
+            label: C#
+            snippets:
+              paths:
+                - ../../Arc/Documentation/client-snippets
+                - ../Arc/Documentation/client-snippets
+          kotlin:
+            label: Kotlin
+            snippets:
+              paths:
+                - ../../Arc.Kotlin/Documentation/client-snippets
+                - ../Arc.Kotlin/Documentation/client-snippets
+            publicDocs:
+              key: kotlin
+              label: Kotlin and Java
+              paths:
+                - ../../Arc.Kotlin/Documentation
+                - ../Arc.Kotlin/Documentation

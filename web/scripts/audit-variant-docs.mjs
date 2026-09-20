@@ -31,7 +31,9 @@ function skipDirsFor(product) {
     return new Set([
         ...GENERIC_SKIP_DIRS,
         // Variant-owned snippet folders are inputs to the macro, not shared pages.
-        ...product.axes.flatMap((axis) => axis.variants.map((variant) => path.basename(variant.snippetRoot))),
+        ...product.axes.flatMap((axis) => axis.variants
+            .filter((variant) => variant.snippetRoot)
+            .map((variant) => path.basename(variant.snippetRoot))),
     ]);
 }
 
@@ -105,6 +107,7 @@ function getAttr(attrs, name) {
 async function snippetExists(variant, snippet) {
     for (const ext of ['.mdx', '.md']) {
         try {
+            if (!variant.snippetRoot) continue;
             await fs.access(path.join(variant.snippetRoot, snippet + ext));
             return true;
         } catch {
@@ -123,7 +126,7 @@ async function collectAxisAudit(product, axis) {
     const mountRoutes = mountRoutesFor(product);
 
     for (const variant of axis.variants) {
-        if (!existsSync(variant.snippetRoot)) {
+        if (variant.snippetRoot && !existsSync(variant.snippetRoot)) {
             missingRoots.push(`${variant.label} snippet root: ${variant.snippetRoot}`);
         }
         if (variant.publicDocs && !existsSync(variant.publicDocs.root)) {
@@ -259,14 +262,25 @@ for (const product of config.products) {
         failures.push(...audit.missingRoots.map((message) => `${scope}: missing root: ${message}`));
         failures.push(...audit.missingSnippets.map((message) => `${scope}: ${message}`));
 
+        let baselinedFenceCount = 0;
         if (baselinePath) {
             const baseline = await readBaseline(baselinePath);
             const axisBaseline = baseline[product.key]?.[axis.key] ?? {};
+            baselinedFenceCount = Object.values(axisBaseline)
+                .reduce((total, languages) => total + Object.values(languages).reduce((s, n) => s + n, 0), 0);
             failures.push(...compareBaseline(current, axisBaseline).map((message) => `${scope}: ${message}`));
         }
 
-        if (strict && directFenceCount > 0) {
+        // Strict mode means "nothing above the recorded baseline", not "nothing at
+        // all". An axis whose migration is finished records an empty baseline, so
+        // any fence at all is an increase and still fails. An axis part-way
+        // through records what it has left, which may then only go down — without
+        // that, a product could never adopt the ratchet until it was already done.
+        if (strict && directFenceCount > 0 && !baselinePath) {
             failures.push(`${scope}: strict mode failed: ${directFenceCount} direct variant-language fences remain in shared docs`);
+        }
+        if (strict && baselinePath && baselinedFenceCount > 0) {
+            console.warn(`${MESSAGE_PREFIX} ${scope}: ${baselinedFenceCount} baselined fences still to migrate; this number may only go down`);
         }
     }
 }

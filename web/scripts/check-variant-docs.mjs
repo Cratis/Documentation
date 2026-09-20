@@ -145,6 +145,7 @@ for (const product of config.products) {
 
         console.log(`${MESSAGE_PREFIX} ${scope}: checking legacy snippet baselines`);
         for (const variant of axis.variants) {
+            if (!variant.snippetRoot) continue;
             const count = await countSnippetFiles(path.join(variant.snippetRoot, 'legacy'));
             const baseline = variant.legacySnippetBaseline;
             if (count > baseline) {

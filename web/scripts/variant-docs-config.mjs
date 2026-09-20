@@ -179,14 +179,23 @@ function normalizeSidebar(r, sidebar, name) {
 
 function normalizeVariant(r, key, value, name) {
     const variant = r.object(value, name);
-    const snippets = r.object(variant.snippets, `${name}.snippets`);
+    // `snippets` is optional so a variant can be mounted before it owns any
+    // shared-page snippets. The inverse is already legitimate — Chronicle's
+    // `java` contributes snippets and mounts no docs of its own — and a variant
+    // that publishes its own docs but has not yet been folded into the shared
+    // pages is the same situation from the other side. A variant with neither
+    // contributes nothing at all, which is a configuration mistake.
+    const snippets = variant.snippets ? r.object(variant.snippets, `${name}.snippets`) : null;
     const publicDocs = variant.publicDocs ? r.object(variant.publicDocs, `${name}.publicDocs`) : null;
+    if (!snippets && !publicDocs) {
+        r.fail(`${name} declares neither snippets nor publicDocs, so it contributes nothing`);
+    }
 
     return {
         key,
         label: variant.label ?? key,
-        snippetRoot: firstExistingPath(r, snippets.paths, `${name}.snippets.paths`),
-        legacySnippetBaseline: Number(snippets.legacyBaseline ?? 0),
+        snippetRoot: snippets ? firstExistingPath(r, snippets.paths, `${name}.snippets.paths`) : null,
+        legacySnippetBaseline: Number(snippets?.legacyBaseline ?? 0),
         publicDocs: publicDocs
             ? {
                 key: publicDocs.key ?? key,
@@ -226,11 +235,15 @@ function normalizeAxis(r, productKey, axisKey, value, name) {
         ratchetLanguageAliases: aliases,
         sharedTopics: normalizeSharedTopics(r, node.sharedTopics, `${name}.sharedTopics`),
         variants,
-        snippetVariants: variants.map((variant) => ({
-            key: variant.key,
-            label: variant.label,
-            src: variant.snippetRoot,
-        })),
+        // Only variants that own a snippet root can contribute a tab. A
+        // mount-only variant is skipped here rather than producing an empty tab.
+        snippetVariants: variants
+            .filter((variant) => variant.snippetRoot)
+            .map((variant) => ({
+                key: variant.key,
+                label: variant.label,
+                src: variant.snippetRoot,
+            })),
         publicDocsVariants: variants
             .filter((variant) => variant.publicDocs)
             .map((variant) => ({
@@ -336,10 +349,35 @@ export async function loadVariantDocsConfig(options = {}) {
         // Every configured snippet folder basename, so the content sync and the
         // audits can skip snippet roots without hard-coding their names.
         snippetRootBasenames: new Set(
-            axes.flatMap((axis) => axis.variants.map((variant) => path.basename(variant.snippetRoot)))
+            axes.flatMap((axis) => axis.variants
+                .filter((variant) => variant.snippetRoot)
+                .map((variant) => path.basename(variant.snippetRoot)))
         ),
         mountRoutesFor(productKey) {
             return new Set((productsByKey.get(productKey)?.axes ?? []).map((axis) => axis.mount.route));
+        },
+        // The public-docs source folders that live *inside* the product's own
+        // shared docs tree. Those are mounted by the variant pass, so the shared
+        // walk must not also emit them.
+        //
+        // This is deliberately keyed on the source folder rather than the mount
+        // route. A route can name a folder the product authors itself: Chronicle's
+        // `clients/` holds nothing but the mounted `dotnet/`, but a product whose
+        // route is `backend/` keeps its own pages there, and skipping the whole
+        // route would silently drop every one of them.
+        nestedPublicDocRootsFor(productKey) {
+            const product = productsByKey.get(productKey);
+            if (!product) return new Set();
+            const sharedRoot = path.resolve(product.sharedDocsRoot);
+            const nested = new Set();
+            for (const axis of product.axes) {
+                for (const variant of axis.variants) {
+                    if (!variant.publicDocs) continue;
+                    const root = path.resolve(variant.publicDocs.root);
+                    if (root !== sharedRoot && root.startsWith(sharedRoot + path.sep)) nested.add(root);
+                }
+            }
+            return nested;
         },
     };
 }

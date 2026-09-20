@@ -8,7 +8,7 @@ This tutorial builds the **Register Author** slice of the Library system. It is 
 
 A user fills in a form, Arc validates the command, Chronicle records the registration, and the UI confirms the result. This series uses Arc with its optional Chronicle integration. Arc also supports commands and queries without event sourcing.
 
-Start with an application configured for [Arc and Chronicle](/arc/backend/chronicle/), [proxy generation](/arc/backend/proxy-generation/), and [Components](/components/). The examples below add the Library behavior to that application.
+Start with an application configured for [Arc and Chronicle](/arc/backend/csharp/chronicle/), [proxy generation](/arc/backend/csharp/proxy-generation/), and [Components](/components/). The examples below add the Library behavior to that application.
 
 By the end you will have:
 
@@ -156,15 +156,15 @@ public record RegisterAuthor(AuthorName FirstName, AuthorName LastName)
 
 **[`[EventType]`](/chronicle/events/)** marks the record as a [Chronicle](/chronicle/) event. The framework uses the type name as the event identifier — no GUID argument, no string argument. Every property records a fact; there are no nullable fields. The validators enforce the required names before this command constructs the event.
 
-**[`CommandValidator<T>`](/arc/backend/commands/command-validation/)** extends FluentValidation. It runs automatically before `Handle()` is ever called. If any rule fails the [command pipeline](/arc/backend/commands/command-pipeline/) short-circuits and returns validation errors to the caller — no exception throwing required.
+**[`CommandValidator<T>`](/arc/backend/csharp/commands/command-validation/)** extends FluentValidation. It runs automatically before `Handle()` is ever called. If any rule fails the [command pipeline](/arc/backend/csharp/commands/command-pipeline/) short-circuits and returns validation errors to the caller — no exception throwing required.
 
 **[`IConstraint`](/chronicle/constraints/)** guards the combination of `FirstName` and `LastName` across authors in the event store namespace. `On` selects two properties, rather than computing a concatenated string. This tutorial keeps the Library's rule that an exact name combination may be registered only once; it does not treat names as a universal way to identify people.
 
 Chronicle checks uniqueness **when the returned event is committed, after `Handle()` has run**. A duplicate produces a constraint violation in the command result and the attempted registration is not appended. That is different from input validation, which short-circuits before the handler.
 
-**[`[Command]` with `Handle()`](/arc/backend/commands/model-bound/)** is the [Arc](/arc/) model-bound command pattern. The return value is a tuple: the first element (`AuthorId`) becomes the `CommandResult.Response` value that the frontend receives; the second element (`AuthorRegistered`) is the [Chronicle](/chronicle/) event to append. Because `AuthorId` derives from `EventSourceId<Guid>`, the integration uses the returned identity for the append as well as the response. A `ConceptAs<Guid>` alone would only be an ordinary response. `Provide()` creates the identity before `Handle()`, keeping the event-construction decision deterministic for a supplied ID.
+**[`[Command]` with `Handle()`](/arc/backend/csharp/commands/model-bound/)** is the [Arc](/arc/) model-bound command pattern. The return value is a tuple: the first element (`AuthorId`) becomes the `CommandResult.Response` value that the frontend receives; the second element (`AuthorRegistered`) is the [Chronicle](/chronicle/) event to append. Because `AuthorId` derives from `EventSourceId<Guid>`, the integration uses the returned identity for the append as well as the response. A `ConceptAs<Guid>` alone would only be an ordinary response. `Provide()` creates the identity before `Handle()`, keeping the event-construction decision deterministic for a supplied ID.
 
-> **Build before writing frontend code.** Run `dotnet build -c Debug` after saving `Registration.cs`. This generates a TypeScript proxy (`RegisterAuthor.ts`) via [Arc's proxy generation](/arc/backend/proxy-generation/) in your frontend project — without it, the React component has nothing to import.
+> **Build before writing frontend code.** Run `dotnet build -c Debug` after saving `Registration.cs`. This generates a TypeScript proxy (`RegisterAuthor.ts`) via [Arc's proxy generation](/arc/backend/csharp/proxy-generation/) in your frontend project — without it, the React component has nothing to import.
 
 ---
 
@@ -211,7 +211,7 @@ The dialog component uses `useDialogContext` from [`@cratis/arc.react/dialogs`](
 - It creates and executes the `RegisterAuthor` proxy
 - [`InputTextField`](/components/commandform/) renders typed form fields bound to command properties
 - It runs the frontend-side validation defined in the proxy
-- It calls the [Arc command pipeline](/arc/backend/commands/command-pipeline/) when the user confirms
+- It calls the [Arc command pipeline](/arc/backend/csharp/commands/command-pipeline/) when the user confirms
 - `onSuccess` receives the response payload only after command execution succeeds
 - It surfaces any backend validation errors directly in the form
 - It gives the user a success or error response without you writing any `fetch` calls
@@ -252,7 +252,7 @@ export const RegisterAuthorButton = () => {
 
 ## Step 4 — Integration Specs
 
-Use an in-process command scenario to prove that the response identity and appended event agree. In a separate spec project referencing the Library project, add `Cratis.Specifications.XUnit`, `Cratis.Arc.Chronicle.Testing`, and `Cratis.Arc`, alongside the xUnit test runner. The [event-sourced testing guide](/arc/backend/testing/event-sourced-commands/) explains this setup and how direct decision specs complement it.
+Use an in-process command scenario to prove that the response identity and appended event agree. In a separate spec project referencing the Library project, add `Cratis.Specifications.XUnit`, `Cratis.Arc.Chronicle.Testing`, and `Cratis.Arc`, alongside the xUnit test runner. The [event-sourced testing guide](/arc/backend/csharp/testing/event-sourced-commands/) explains this setup and how direct decision specs complement it.
 
 ```text
 Library.Specs/Authors/Registration/when_registering/
@@ -347,8 +347,8 @@ Run `dotnet test Library.Specs`. These scenarios use the in-process Chronicle ke
 | Layer | Artifact | Technology |
 | ----- | -------- | ---------- |
 | Domain event | `AuthorRegistered` | [Chronicle](/chronicle/) [`[EventType]`](/chronicle/events/) |
-| Command + handler | `RegisterAuthor` with `Handle()` | [Arc](/arc/) [`[Command]`](/arc/backend/commands/model-bound/) model-bound |
-| Input validation | `RegisterAuthorValidator` | [Arc](/arc/) [`CommandValidator<T>`](/arc/backend/commands/command-validation/) + FluentValidation |
+| Command + handler | `RegisterAuthor` with `Handle()` | [Arc](/arc/) [`[Command]`](/arc/backend/csharp/commands/model-bound/) model-bound |
+| Input validation | `RegisterAuthorValidator` | [Arc](/arc/) [`CommandValidator<T>`](/arc/backend/csharp/commands/command-validation/) + FluentValidation |
 | Uniqueness constraint | `UniqueAuthorName` | [Chronicle](/chronicle/) [`IConstraint`](/chronicle/constraints/) |
 | React form | `AddAuthor.tsx` | [`@cratis/components`](/components/) [`CommandDialog`](/components/commanddialog/) |
 

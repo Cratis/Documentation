@@ -120,8 +120,8 @@ event payload must be removed, combine key deletion with [event redaction](/chro
 | --- | --- | --- |
 | Identity provider | Where do browser users and API clients authenticate? | [AuthProxy authentication](/authproxy/configuration/authentication/) |
 | Tenant resolution | Which host, claim, route, or configured value selects the tenant? | [AuthProxy tenancy](/authproxy/configuration/tenancy/) |
-| Operation access | Which roles or policies can run each command or query? | [Arc authorization](/arc/backend/core/authorization/) |
-| Compliance subject | Whose personal data does this event contain? | [Arc Chronicle subject](/arc/backend/chronicle/compliance/subject/) |
+| Operation access | Which roles or policies can run each command or query? | [Arc authorization](/arc/backend/csharp/core/authorization/) |
+| Compliance subject | Whose personal data does this event contain? | [Arc Chronicle subject](/arc/backend/csharp/chronicle/compliance/subject/) |
 | PII modeling | Which event properties or concepts are personal data? | [Chronicle compliance](/chronicle/compliance/) |
 | Erasure | What must be key-deleted, re-projected, or redacted? | [Chronicle read models and PII](/chronicle/compliance/read-models/) |
 
@@ -129,9 +129,9 @@ event payload must be removed, combine key deletion with [event redaction](/chro
 
 <CardGrid>
   <LinkCard title="AuthProxy" description="Authenticate users, resolve tenants, enrich identity, and route requests at the edge." href="/authproxy/" />
-  <LinkCard title="Arc identity" description="Expose /.cratis/me and compose the identity details AuthProxy and the frontend consume." href="/arc/backend/identity/" />
-  <LinkCard title="Arc authorization" description="Authorize commands and queries with attributes, roles, and policies before behavior runs." href="/arc/backend/core/authorization/" />
-  <LinkCard title="Chronicle subject" description="Set the compliance subject so PII is encrypted under the correct identity." href="/arc/backend/chronicle/compliance/subject/" />
+  <LinkCard title="Arc identity" description="Expose /.cratis/me and compose the identity details AuthProxy and the frontend consume." href="/arc/backend/csharp/identity/" />
+  <LinkCard title="Arc authorization" description="Authorize commands and queries with attributes, roles, and policies before behavior runs." href="/arc/backend/csharp/core/authorization/" />
+  <LinkCard title="Chronicle subject" description="Set the compliance subject so PII is encrypted under the correct identity." href="/arc/backend/csharp/chronicle/compliance/subject/" />
   <LinkCard title="Chronicle compliance" description="Understand PII annotations, per-subject encryption keys, read models, and erasure." href="/chronicle/compliance/" />
   <LinkCard title="Production readiness" description="Review the operational checklist for TLS, secrets, storage, observability, and deployment." href="/production-readiness/" />
 </CardGrid>

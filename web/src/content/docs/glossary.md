@@ -27,7 +27,7 @@ explains how they fit together.
 | **Correlation** | Links events that belong to the same logical operation. |
 | **Causation** | Links an event to the event that caused it. |
 | [Tags](/chronicle/concepts/tagging/) | Labels on events for filtering and correlation — see also [event metadata tags](/chronicle/concepts/event-metadata-tags/). |
-| [Aggregate](/arc/backend/chronicle/aggregates/) | A consistency boundary that encapsulates behavior and produces events. |
+| [Aggregate](/arc/backend/csharp/chronicle/aggregates/) | A consistency boundary that encapsulates behavior and produces events. |
 
 ## Turning events into state
 
@@ -50,11 +50,11 @@ The terms [Arc](/arc/) and [Components](/components/) add on top of Chronicle.
 
 | Term | Definition |
 | --- | --- |
-| [Command](/arc/backend/commands/) | An intent to change state — a record with a `Handle()` method that appends events. |
-| [Query](/arc/backend/queries/) | A read of data, exposed to the frontend as a typed proxy. |
+| [Command](/arc/backend/csharp/commands/) | An intent to change state — a record with a `Handle()` method that appends events. |
+| [Query](/arc/backend/csharp/queries/) | A read of data, exposed to the frontend as a typed proxy. |
 | **Observable query** | A query that holds a live connection and pushes new results when the data changes. |
 | **CQRS** | Command Query Responsibility Segregation — separating the write side (commands) from the read side (queries). |
-| [Proxy generation](/arc/backend/proxy-generation/) | Arc emitting a typed TypeScript client from your C# commands and queries at build time. |
+| [Proxy generation](/arc/backend/csharp/proxy-generation/) | Arc emitting a typed TypeScript client from your C# commands and queries at build time. |
 | [Concept](/fundamentals/csharp/concepts/) | A strongly-typed wrapper around a primitive (`AccountId` over `Guid`) so the compiler catches mix-ups. |
 | [Vertical slice](/arc/vertical-slices/) | Everything for one behavior — command, events, projection, UI, specs — kept together in one folder. |
 

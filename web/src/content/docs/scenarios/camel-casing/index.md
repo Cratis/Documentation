@@ -51,4 +51,4 @@ After your app runs and projections update read models, inspect the stored docum
 ## Related reference pages
 
 - [Chronicle camel casing](/chronicle/configuration/camel-casing/)
-- [Arc MongoDB naming policies](/arc/backend/mongodb/naming-policies/)
+- [Arc MongoDB naming policies](/arc/backend/csharp/mongodb/naming-policies/)

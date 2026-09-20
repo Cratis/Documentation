@@ -37,7 +37,7 @@ flowchart TD
 
 A new project is the easy case — nothing to migrate, no constraints. For an information system, start with the whole loop unless you have a clear reason not to:
 
-- **Default to the full experience.** Scaffold the stack and follow [getting started](/chronicle/get-started/), then the [full-stack capstone](/build-a-full-app/). You'll have the command → event → projection → query → React loop running, with history available from the event log. Scaffolding wires Arc and Chronicle into one host through the [Cratis package](/arc/backend/chronicle/cratis-package/)'s `AddCratis`/`UseCratis`.
+- **Default to the full experience.** Scaffold the stack and follow [getting started](/chronicle/get-started/), then the [full-stack capstone](/build-a-full-app/). You'll have the command → event → projection → query → React loop running, with history available from the event log. Scaffolding wires Arc and Chronicle into one host through the [Cratis package](/arc/backend/csharp/chronicle/cratis-package/)'s `AddCratis`/`UseCratis`.
 - **Use Arc-only for deliberate current-state slices.** If a bounded part of the app is just reference data, settings, or an adoption step, [Arc over a database](/arc/arc-without-event-sourcing/) still gives you CQRS, generated proxies, and live queries. Because adopting Chronicle is a write-side change, that slice can move to events later without touching your queries or frontend.
 
 <Aside type="tip" title="CQRS and event sourcing are independent">
@@ -52,7 +52,7 @@ You rarely get to start clean. Cratis is built to be adopted a slice at a time, 
 
 If your pain is the **frontend-to-backend boundary** — hand-written controllers, DTOs duplicated in TypeScript, fetch wrappers that drift out of sync — Arc slots into an app you already have. Register it on your existing host and start expressing *new* endpoints as commands and queries; Arc generates their typed proxies while your existing controllers keep running untouched.
 
-Arc's persistence meets your data where it already lives: its [MongoDB](/arc/backend/mongodb/) and [Entity Framework](/arc/backend/entity-framework/) integrations read and write the database you already use — EF Core even has a [direct-registration path](/arc/backend/entity-framework/getting-started/) designed for slotting into an existing application without taking over the whole framework. For controllers and MediatR handlers, the [MediatR, MVC, and Arc](/arc/coming-from-mediatr-and-mvc/) bridge maps familiar concepts onto Arc's model.
+Arc's persistence meets your data where it already lives: its [MongoDB](/arc/backend/csharp/mongodb/) and [Entity Framework](/arc/backend/csharp/entity-framework/) integrations read and write the database you already use — EF Core even has a [direct-registration path](/arc/backend/csharp/entity-framework/getting-started/) designed for slotting into an existing application without taking over the whole framework. For controllers and MediatR handlers, the [MediatR, MVC, and Arc](/arc/backend/csharp/coming-from-mediatr-and-mvc/) bridge maps familiar concepts onto Arc's model.
 
 ### Introduce Chronicle into an existing domain
 

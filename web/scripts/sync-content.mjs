@@ -84,9 +84,10 @@ export const PRODUCTS = [
             path.join(docRepoRoot, 'Arc', 'Documentation')),
         buckets: [
             { label: 'Start here', sections: ['Tutorial', 'Scenarios'] },
-            { label: 'Concepts and architecture', sections: ['Why Arc', 'CQRS without event sourcing', 'MediatR, MVC, and Arc', 'Vertical slices', 'Understanding the proxy boundary', 'Understanding identity and access'] },
-            { label: 'Backend', sections: ['Backend'] },
-            { label: 'Integrations', sections: ['Integrations'] },
+            { label: 'Concepts and architecture', sections: ['Why Arc', 'CQRS without event sourcing', 'Vertical slices', 'Understanding the proxy boundary', 'Understanding identity and access'] },
+            // The backend languages sit beside each other here. 'Kotlin and Java'
+            // is appended to these sections by the variant-docs sidebar injection.
+            { label: 'Backend', sections: ['Backend overview', 'C#'] },
             { label: 'Frontend', sections: ['Frontend'] },
             { label: 'Operations and reference', sections: ['General', 'Troubleshooting'] },
         ],
@@ -726,11 +727,11 @@ export async function walk(srcDir, outDir, product, options = {}) {
         }
         if (entry.isDirectory()) {
             if (SKIP_DIRS.has(entry.name)) continue;
-            // A variant-docs mount route under the product root is walked
-            // separately by syncVariantDocs(); don't double-walk it here.
+            // A variant's public docs that live inside this product's own tree are
+            // mounted separately by syncVariantDocs(); don't double-walk them.
             if (!options.slugBase
-                && path.resolve(srcDir) === path.resolve(contentRoot)
-                && variantDocsConfig.mountRoutesFor(product.key).has(entry.name)) continue;
+                && variantDocsConfig.nestedPublicDocRootsFor(product.key)
+                    .has(path.resolve(srcDir, entry.name))) continue;
             await walk(path.join(srcDir, entry.name), path.join(outDir, entry.name), product, options);
             continue;
         }

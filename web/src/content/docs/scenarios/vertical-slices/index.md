@@ -39,7 +39,7 @@ A user submits a command. It gets validated. An event is recorded.
 
 `RegisterAuthor` fires → `AuthorRegistered` is stored. The intent is explicit, the outcome is captured. This is the most common pattern — the write side of your system.
 
-In Cratis this is: a [`[Command]`](/arc/backend/commands/model-bound/) record with a `Handle()` method that returns a Chronicle [`[EventType]`](/chronicle/events/), optionally enforced by a [`CommandValidator<T>`](/arc/backend/commands/command-validation/) or an [`IConstraint`](/chronicle/constraints/).
+In Cratis this is: a [`[Command]`](/arc/backend/csharp/commands/model-bound/) record with a `Handle()` method that returns a Chronicle [`[EventType]`](/chronicle/events/), optionally enforced by a [`CommandValidator<T>`](/arc/backend/csharp/commands/command-validation/) or an [`IConstraint`](/chronicle/constraints/).
 
 #### State View
 
@@ -55,7 +55,7 @@ A processor watches a read model (think: a to-do list), picks up items, and fire
 
 Sending an overdue notice when a loan passes its return date. Cancelling a reservation that was never collected. Triggering a payment. No human involved; the same building blocks, automated.
 
-In Cratis this is: an [`IReactor`](/chronicle/reactors/) that observes a Chronicle event stream and calls [`ICommandPipeline`](/arc/backend/commands/command-pipeline/) to fire commands back into your own system.
+In Cratis this is: an [`IReactor`](/chronicle/reactors/) that observes a Chronicle event stream and calls [`ICommandPipeline`](/arc/backend/csharp/commands/command-pipeline/) to fire commands back into your own system.
 
 #### Translation
 
@@ -69,10 +69,10 @@ In Cratis this is: an [`IReactor`](/chronicle/reactors/) that listens for extern
 
 | Pattern | Chronicle | Arc | Components |
 | ------- | --------- | --- | ---------- |
-| **State Change** | [`[EventType]`](/chronicle/events/) records stored in the event log | [`[Command]`](/arc/backend/commands/model-bound/) + `Handle()`, [`CommandValidator<T>`](/arc/backend/commands/command-validation/), [`IConstraint`](/chronicle/constraints/) | [`CommandDialog`](/components/commanddialog/) for the form UI |
+| **State Change** | [`[EventType]`](/chronicle/events/) records stored in the event log | [`[Command]`](/arc/backend/csharp/commands/model-bound/) + `Handle()`, [`CommandValidator<T>`](/arc/backend/csharp/commands/command-validation/), [`IConstraint`](/chronicle/constraints/) | [`CommandDialog`](/components/commanddialog/) for the form UI |
 | **State View** | [Projections](/chronicle/projections/) (`[FromEvent<T>]`, `IProjectionFor<T>`) building [`[ReadModel]`](/chronicle/read-models/) | `IQueryFor<T>` / `IObservableQueryFor<T>` generated proxies | [`DataPage`](/components/datapage/) for the listing UI |
-| **Automation** | [`IReactor`](/chronicle/reactors/) observing the event log | [`ICommandPipeline`](/arc/backend/commands/command-pipeline/) to fire commands | No UI — runs in the background |
-| **Translation** | [`IReactor`](/chronicle/reactors/) on external event streams | [`ICommandPipeline`](/arc/backend/commands/command-pipeline/) bridging to domain commands | No UI — integration layer |
+| **Automation** | [`IReactor`](/chronicle/reactors/) observing the event log | [`ICommandPipeline`](/arc/backend/csharp/commands/command-pipeline/) to fire commands | No UI — runs in the background |
+| **Translation** | [`IReactor`](/chronicle/reactors/) on external event streams | [`ICommandPipeline`](/arc/backend/csharp/commands/command-pipeline/) bridging to domain commands | No UI — integration layer |
 
 The key insight: [Chronicle](/chronicle/) stores the facts (events), [Arc](/arc/) wires up the intent (commands) and the queries, [Components](/components/) renders the result. Each layer has one job and they compose cleanly.
 
