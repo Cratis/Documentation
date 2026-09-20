@@ -1,0 +1,29 @@
+# Copyright (c) Cratis. All rights reserved.
+# Licensed under the MIT license. See LICENSE file in the project root for full license information.
+#
+# Permanent content-route redirects for the published documentation site.
+#
+# GitHub Pages serves this site statically and has no rule engine, so a moved
+# page is a permanent 404 unless it is listed here. `scripts/content-redirects.mjs`
+# runs after `astro build` and writes a stub page at every `from` route whose
+# canonical link and deferred client-side shim forward the visitor to `to`,
+# preserving the incoming query string and fragment.
+#
+# Format — a list of route pairs, both site-absolute:
+#
+#   - from: /arc/backend/commands/         # the old route, must end with "/"
+#     to: /arc/backend/csharp/commands/    # the new route, must already exist in dist/
+#
+# Rules enforced by the build (each one fails the build, never silently):
+#   - `to` must resolve to a real generated page in dist/
+#   - a `from` must not collide with a real generated page
+#   - a `from` must be unique, must differ from its `to`, and must not point at
+#     another entry's `from` (no chains, no cycles)
+#   - both routes must be site-absolute (no scheme, no host, no "..")
+#
+# Entries are PERMANENT once published: external sites, search engines and
+# bookmarks keep pointing at the old URL forever. Add entries when a page moves;
+# never remove one to tidy the list up.
+#
+# No content redirects are configured yet.
+[]
