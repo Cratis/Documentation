@@ -801,6 +801,22 @@ async function writeVariantDocsLanding(outDir, axis, variants) {
 
     const mountDir = path.join(outDir, axis.mount.route);
     await fs.mkdir(mountDir, { recursive: true });
+
+    // A product may author its own page at the mount route — Arc's backend route
+    // is a real folder with a hand-written overview, unlike Chronicle's clients/
+    // which exists only as a mount point. The walk runs first, so if a page is
+    // already there it is the product's, and generating over it would silently
+    // replace prose someone wrote with a generated stub.
+    const landingPath = path.join(mountDir, 'index.md');
+    for (const existing of ['index.md', 'index.mdx']) {
+        try {
+            await fs.access(path.join(mountDir, existing));
+            console.log(`[sync] ${axis.productKey}/${axis.key}: keeping the authored ${axis.mount.route}/${existing}; not generating a mount landing over it`);
+            return;
+        } catch {
+            // Nothing authored here, so the generated landing is the only page.
+        }
+    }
     const { title, intro, sharedHeading, variantHeading } = axis.mount.landing;
     const topicLinks = axis.sharedTopics
         .map((topic) => `- [${topic.label}](${topic.href})`)
@@ -811,7 +827,7 @@ async function writeVariantDocsLanding(outDir, axis, variants) {
 
     const body = `---\ntitle: ${title}\n---\n\n${intro}\n\n## ${sharedHeading}\n\n${topicLinks}\n\n## ${variantHeading}\n\n${variantLinks}\n`;
 
-    await fs.writeFile(path.join(mountDir, 'index.md'), body, 'utf8');
+    await fs.writeFile(landingPath, body, 'utf8');
 }
 
 async function syncVariantDocs(outDir, product) {
@@ -1027,6 +1043,22 @@ function applyBadges(items) {
     return items;
 }
 
+// True when the product's own documentation supplies the page at the mount route,
+// rather than the mount generating one. Mirrors the check in writeVariantDocsLanding.
+async function productAuthorsMountLanding(axis) {
+    const product = PRODUCTS.find((candidate) => candidate.key === axis.productKey);
+    if (!product) return false;
+    for (const name of ['index.md', 'index.mdx']) {
+        try {
+            await fs.access(path.join(product.src, axis.mount.route, name));
+            return true;
+        } catch {
+            // Not authored under this name.
+        }
+    }
+    return false;
+}
+
 async function variantSidebarItems(axis) {
     const variants = await availableVariantDocs(axis);
     const items = [];
@@ -1034,12 +1066,22 @@ async function variantSidebarItems(axis) {
     for (const variant of variants) {
         const slugBase = variantDocsSlugBase(axis, variant.key);
         const variantItems = await tocToSidebar(variant.src, slugBase);
+        const resolved = variantItems.length
+            ? variantItems
+            : [{ autogenerate: { directory: slugBase } }];
+
+        // With several variants each needs its own group to tell them apart. With
+        // one, that group sits inside the axis group and repeats its label, so the
+        // reader opens "Kotlin and Java" to find "Kotlin and Java". Hoist it.
+        if (variants.length === 1) {
+            items.push(...resolved);
+            continue;
+        }
+
         items.push({
             label: variant.label,
             collapsed: true,
-            items: variantItems.length
-                ? variantItems
-                : [{ autogenerate: { directory: slugBase } }],
+            items: resolved,
         });
     }
 
@@ -1059,13 +1101,17 @@ export async function variantSidebarInjections(product) {
         const axisItems = await variantSidebarItems(axis);
         if (!axisItems.length) continue;
 
+        // The mount route's landing is only this group's overview when the mount
+        // generated it. Where the product authors that page itself it belongs to
+        // the product, is already reachable from its own toc, and repeating it
+        // here gives the group two overviews — one of them somebody else's page.
+        const mountLanding = { label: 'Overview', slug: `${axis.productKey}/${axis.mount.route}` };
+        const ownsLanding = !(await productAuthorsMountLanding(axis));
+
         const group = {
             label: axis.sidebar.groupLabel,
             collapsed: true,
-            items: [
-                { label: 'Overview', slug: `${axis.productKey}/${axis.mount.route}` },
-                ...axisItems,
-            ],
+            items: ownsLanding ? [mountLanding, ...axisItems] : axisItems,
         };
 
         (axis.sidebar.injectMode === 'into-bucket' ? before : after).push({ axis, group });

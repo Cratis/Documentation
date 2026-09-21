@@ -422,3 +422,5 @@
   to: /arc/backend/csharp/development/generating-principal/
 - from: /arc/general/generating-principal/
   to: /arc/backend/csharp/development/generating-principal/
+- from: /arc/backend/kotlin/guides/
+  to: /arc/backend/kotlin/
