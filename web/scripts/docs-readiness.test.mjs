@@ -9,7 +9,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { PRODUCTS, applyAfterBucketInjections, applyBuckets, bucketsWithInjectedSections, collectSlugs, convertFile, entryToItem, tocToSidebar, walk } from './sync-content.mjs';
+import { PRODUCTS, applyAfterBucketInjections, variantSidebarInjections, applyBuckets, bucketsWithInjectedSections, collectSlugs, convertFile, entryToItem, tocToSidebar, walk } from './sync-content.mjs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { emitDocArtifacts } from './emit-doc-artifacts.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
@@ -701,4 +701,69 @@ test('external checking requires the built root rather than treating missing set
     assert.equal(checkExternalLinks({ ...runner, cwd: root }), 1);
     assert.equal(runner.calls.length, 1);
     assert.match(runner.messages[0], /Built-site root is missing/);
+});
+
+// A registered variant that has no snippet for a macro loses its tab, and the
+// page then reads as though that language never supported the thing. Coverage
+// is deliberately uneven on some axes, so this is reported per axis.
+test('a missing variant snippet is reported only when the axis asks for it', async (context) => {
+    const root = await fixture(context);
+    const snippets = path.join(root, 'snippets');
+    await put(snippets, 'example.md', '```csharp\nvar x = 1;\n```\n');
+
+    const variants = [
+        { key: 'csharp', label: 'C#', src: snippets },
+        { key: 'kotlin', label: 'Kotlin', src: path.join(root, 'absent') },
+    ];
+    const render = (axis) => convertFile(
+        '<ChronicleClientTabs snippet="example" />\n',
+        conversionContext(root, {
+            product: { key: 'chronicle', src: root },
+            variantAxes: [axis],
+            basename: 'shared-page.mdx',
+            srcPath: path.join(root, 'shared-page.mdx'),
+        })
+    );
+
+    const warnings = [];
+    const warn = console.warn;
+    console.warn = (message) => warnings.push(message);
+    try {
+        const quiet = await render(variantAxis({ snippetVariants: variants }));
+        assert.match(quiet, /<TabItem label="C#">/);
+        assert.doesNotMatch(quiet, /<TabItem label="Kotlin">/);
+        assert.equal(warnings.length, 0, 'an axis that has not opted in stays quiet');
+
+        await render(variantAxis({ snippetVariants: variants, warnOnMissingSnippet: true }));
+        assert.equal(warnings.length, 1);
+        assert.match(warnings[0], /no Kotlin version/);
+        assert.match(warnings[0], /example/);
+    } finally {
+        console.warn = warn;
+    }
+});
+
+// With several variants each needs its own group to tell them apart. With one,
+// that group sits inside the axis group and repeats its label, so the reader
+// opens "Kotlin and Java" to find "Kotlin and Java".
+test('a single-variant axis does not nest a group inside its own group', async () => {
+    const arc = PRODUCTS.find((product) => product.key === 'arc');
+    assert.ok(arc, 'the arc product must be configured for this to mean anything');
+
+    const { before, after } = await variantSidebarInjections(arc);
+    const injections = [...before, ...after];
+
+    // Non-vacuity: this asserts a shape, so an empty set would pass for free.
+    // Arc's backend axis mounts exactly one variant and the site checks it out.
+    assert.equal(injections.length, 1, 'expected exactly one injected Arc variant group');
+
+    const [{ group }] = injections;
+    const nestedWithSameLabel = (group.items ?? []).filter(
+        (item) => item.items && item.label === group.label);
+    assert.deepEqual(nestedWithSameLabel, [],
+        `"${group.label}" contains a group of the same name`);
+    // Outside a full sync there are no valid slugs, so the variant's toc
+    // collapses to an autogenerate stub. That is enough to tell hoisted from
+    // nested: nested would put that stub inside a same-named group.
+    assert.ok((group.items ?? []).length >= 1, 'the variant contributed nothing at all');
 });
