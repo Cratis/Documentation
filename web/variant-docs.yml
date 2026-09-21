@@ -295,6 +295,16 @@ products:
               paths:
                 - ../../Arc/Documentation/client-snippets
                 - ../Arc/Documentation/client-snippets
+            validator:
+              cwd:
+                - ../../Arc
+                - ../Arc
+              command: python3
+              args:
+                - Documentation/validate-client-snippets.py
+              blockedOutput:
+                - "command not found: dotnet"
+                - "No .NET SDKs were found"
           kotlin:
             label: Kotlin
             snippets:
@@ -307,3 +317,10 @@ products:
               paths:
                 - ../../Arc.Kotlin/Documentation
                 - ../Arc.Kotlin/Documentation
+            validator:
+              cwd:
+                - ../../Arc.Kotlin
+                - ../Arc.Kotlin
+              command: python3
+              args:
+                - Documentation/validate-doc-snippets.py
