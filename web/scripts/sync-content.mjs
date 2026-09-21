@@ -84,7 +84,7 @@ export const PRODUCTS = [
             path.join(docRepoRoot, 'Arc', 'Documentation')),
         buckets: [
             { label: 'Start here', sections: ['Tutorial', 'Scenarios'] },
-            { label: 'Concepts and architecture', sections: ['Why Arc', 'CQRS without event sourcing', 'Vertical slices', 'Understanding the proxy boundary', 'Understanding identity and access', 'Glossary'] },
+            { label: 'Concepts and architecture', sections: ['Why Arc', 'CQRS without event sourcing', 'Vertical slices', 'Understanding the proxy boundary', 'Understanding identity and access', 'HTTP contract', 'Glossary'] },
             // The backend languages sit beside each other here. 'Kotlin and Java'
             // is appended to these sections by the variant-docs sidebar injection.
             { label: 'Backend', sections: ['Backend overview', 'C#'] },
