@@ -286,6 +286,11 @@ products:
           - name: kotlin
           - name: java
 
+        # Every backend here is expected to answer every shared snippet, so a
+        # missing one is an oversight worth hearing about rather than a language
+        # that quietly has no tab.
+        warnOnMissingSnippet: true
+
         variants:
           # C# needs no mount: its pages live in Arc/Documentation/backend/csharp
           # and the ordinary shared walk already emits them at that route.

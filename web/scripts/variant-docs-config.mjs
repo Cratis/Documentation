@@ -233,6 +233,13 @@ function normalizeAxis(r, productKey, axisKey, value, name) {
         sidebar: normalizeSidebar(r, node.sidebar, `${name}.sidebar`),
         ratchetLanguages: languages,
         ratchetLanguageAliases: aliases,
+        // Whether a registered variant with no snippet for a given macro should be
+        // reported. An axis that has genuinely uneven coverage — Chronicle's, where
+        // most snippets are C#-only — leaves this off and relies on the tab simply
+        // not appearing. An axis that intends every variant to answer every snippet
+        // turns it on, so a forgotten translation is visible instead of looking
+        // like a language that was never supported.
+        warnOnMissingSnippet: node.warnOnMissingSnippet === true,
         sharedTopics: normalizeSharedTopics(r, node.sharedTopics, `${name}.sharedTopics`),
         variants,
         // Only variants that own a snippet root can contribute a tab. A

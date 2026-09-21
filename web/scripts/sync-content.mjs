@@ -607,10 +607,25 @@ async function expandAxisMacro(body, ctx, axis) {
         const syncKey = getAttr(attrs, 'syncKey') ?? axis.syncKey;
 
         const tabs = [];
+        const absent = [];
         for (const source of axis.snippetVariants) {
             const content = await readVariantSnippet(source, snippet);
-            if (content === null) continue;
+            if (content === null) {
+                absent.push(source.label);
+                continue;
+            }
             tabs.push({ source, content });
+        }
+
+        // A registered variant with no snippet loses its tab, and the page then
+        // quietly reads as if that language were never supported. Genuine absence
+        // has its own spelling — a snippet saying so outright — so a missing file
+        // is an oversight, and the only sign of it was a tab nobody saw.
+        if (absent.length && axis.warnOnMissingSnippet) {
+            console.warn(
+                `[sync] WARNING: ${ctx.srcPath}: snippet "${snippet}" has no ${absent.join(', ')} version, `
+                + `so that tab is missing. Add it, or add a snippet stating the language does not support this.`
+            );
         }
 
         if (!tabs.length) {
