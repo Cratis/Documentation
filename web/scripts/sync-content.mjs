@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 
 import { existsSync } from 'node:fs';
-import { loadChronicleClientDocsConfig } from './chronicle-client-docs-config.mjs';
+import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { assertPublicDocPath, assertPublicDocSource, isPrivateDocPath } from './private-doc-paths.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 
@@ -34,12 +34,21 @@ function firstExisting(...candidates) {
     return candidates.find((c) => existsSync(c)) ?? candidates[candidates.length - 1];
 }
 
-const chronicleClientDocsConfig = await loadChronicleClientDocsConfig();
+// Products that document interchangeable implementations along one or more
+// axes (Chronicle's client SDK languages today). Everything variant-specific in
+// this script is driven from this manifest rather than from product name checks.
+const variantDocsConfig = await loadVariantDocsConfig();
+
+function variantAxesFor(productKey) {
+    return variantDocsConfig.axesFor(productKey);
+}
 
 export const PRODUCTS = [
     {
         key: 'chronicle', label: 'Chronicle', icon: 'seti:db', sidebarMode: 'toc',
-        src: chronicleClientDocsConfig.sharedDocsRoot,
+        src: variantDocsConfig.getProduct('chronicle')?.sharedDocsRoot ?? firstExisting(
+            path.join(reposRoot, 'Chronicle', 'Documentation'),
+            path.join(docRepoRoot, 'Chronicle', 'Documentation')),
         buckets: [
             { label: 'Start here', sections: ['Getting started', 'Tutorial', 'Scenarios'] },
             {
@@ -75,11 +84,12 @@ export const PRODUCTS = [
             path.join(docRepoRoot, 'Arc', 'Documentation')),
         buckets: [
             { label: 'Start here', sections: ['Tutorial', 'Scenarios'] },
-            { label: 'Concepts and architecture', sections: ['Why Arc', 'CQRS without event sourcing', 'MediatR, MVC, and Arc', 'Vertical slices', 'Understanding the proxy boundary', 'Understanding identity and access'] },
-            { label: 'Backend', sections: ['Backend'] },
-            { label: 'Integrations', sections: ['Integrations'] },
+            { label: 'Concepts and architecture', sections: ['Why Arc', 'CQRS without event sourcing', 'Vertical slices', 'Understanding the proxy boundary', 'Understanding identity and access', 'HTTP contract', 'Glossary'] },
+            // The backend languages sit beside each other here. 'Kotlin and Java'
+            // is appended to these sections by the variant-docs sidebar injection.
+            { label: 'Backend', sections: ['Backend overview', 'C#'] },
             { label: 'Frontend', sections: ['Frontend'] },
-            { label: 'Operations and reference', sections: ['General', 'Troubleshooting'] },
+            { label: 'Operations and reference', sections: ['Troubleshooting'] },
         ],
     },
     {
@@ -266,18 +276,15 @@ const RELEASE_DIGESTS_SRC = firstExisting(
     path.join(reposRoot, '.github', 'release-digests'),
     path.join(docRepoRoot, 'GitHubLanding', 'release-digests'));
 
-const CHRONICLE_CLIENT_SNIPPETS = chronicleClientDocsConfig.snippetClients;
-const CHRONICLE_CLIENT_DOCS = chronicleClientDocsConfig.publicDocsClients;
-const CHRONICLE_SHARED_TOPICS = chronicleClientDocsConfig.sharedTopics;
-
 const ASSET_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.html', '.js', '.css', '.json']);
 const SKIP_DIRS = new Set([
     'node_modules', 'obj', 'bin', '.git', 'storybook-static', '.vitepress',
     // Shared Markdown snippets are included into pages but should not become pages.
     '_includes', '_shared', '_snippets',
-    // Client-owned snippets are expanded into shared Chronicle pages through
-    // <ChronicleClientTabs />; they are not standalone public docs pages.
-    'client-snippets', 'client-snippets-java',
+    // Variant-owned snippets are expanded into a product's shared pages through
+    // its axis macro; they are not standalone public docs pages. Derived from
+    // the configured snippet roots so a new axis needs no change here.
+    ...variantDocsConfig.snippetRootBasenames,
     // the org GitHub landing page (duplicates our front door) — not site content
     'profile',
     // synced separately by syncReleaseDigests() into site-level release-digests/ pages
@@ -513,10 +520,10 @@ async function fileExists(filePath) {
     }
 }
 
-// Returns null when the client repo has no snippet for this id — that just
-// means the tab is omitted, not an error. Chronicle shared docs don't track
-// which clients apply to a given example; that's discovered from disk.
-async function readClientSnippet(source, snippet) {
+// Returns null when the variant repo has no snippet for this id — that just
+// means the tab is omitted, not an error. A product's shared docs don't track
+// which variants apply to a given example; that's discovered from disk.
+async function readVariantSnippet(source, snippet) {
     assertPublicDocPath(snippet);
     for (const ext of ['.mdx', '.md']) {
         const candidate = path.join(source.src, snippet + ext);
@@ -564,12 +571,14 @@ function ensureTabsImport(body) {
     return body.replace(importRe, `import { ${names.join(', ')} } from '@astrojs/starlight/components';`);
 }
 
-async function expandChronicleClientTabs(body, ctx) {
-    if (ctx.product.key !== 'chronicle' || !body.includes('<ChronicleClientTabs')) {
+// Expands one axis's macro (`<Macro snippet="..." />`) into a Starlight <Tabs>
+// block built from the variant-owned snippets that actually exist on disk.
+async function expandAxisMacro(body, ctx, axis) {
+    if (!body.includes(`<${axis.macro}`)) {
         return { body, used: false };
     }
 
-    const componentRe = /^[ \t]*<ChronicleClientTabs\s+([^>]*)\/>[ \t]*$/gm;
+    const componentRe = new RegExp(`^[ \\t]*<${axis.macro}\\s+([^>]*)\\/>[ \\t]*$`, 'gm');
     const parts = [];
     let expandedAny = false;
     let lastIndex = 0;
@@ -582,28 +591,46 @@ async function expandChronicleClientTabs(body, ctx) {
 
         if (path.extname(ctx.srcPath ?? ctx.basename).toLowerCase() !== '.mdx') {
             throw new Error(
-                `[sync] Cannot expand ChronicleClientTabs in Markdown source ${ctx.srcPath ?? ctx.basename}; rename the source file to .mdx`
+                `[sync] Cannot expand ${axis.macro} in Markdown source ${ctx.srcPath ?? ctx.basename}; rename the source file to .mdx`
             );
         }
 
         const attrs = match[1];
         const snippet = getAttr(attrs, 'snippet');
         if (!snippet) {
-            throw new Error(`[sync] ChronicleClientTabs in ${ctx.srcPath} is missing snippet="..."`);
+            throw new Error(`[sync] ${axis.macro} in ${ctx.srcPath} is missing snippet="..."`);
         }
 
-        const syncKey = getAttr(attrs, 'syncKey') ?? 'chronicle-client';
+        // Every axis carries its own syncKey: Starlight syncs tab selection by
+        // label in one flat localStorage namespace, so a shared key would make
+        // one axis's tab choice drive an unrelated axis's tabs.
+        const syncKey = getAttr(attrs, 'syncKey') ?? axis.syncKey;
 
         const tabs = [];
-        for (const source of ctx.chronicleClientSnippets ?? CHRONICLE_CLIENT_SNIPPETS) {
-            const content = await readClientSnippet(source, snippet);
-            if (content === null) continue;
+        const absent = [];
+        for (const source of axis.snippetVariants) {
+            const content = await readVariantSnippet(source, snippet);
+            if (content === null) {
+                absent.push(source.label);
+                continue;
+            }
             tabs.push({ source, content });
+        }
+
+        // A registered variant with no snippet loses its tab, and the page then
+        // quietly reads as if that language were never supported. Genuine absence
+        // has its own spelling — a snippet saying so outright — so a missing file
+        // is an oversight, and the only sign of it was a tab nobody saw.
+        if (absent.length && axis.warnOnMissingSnippet) {
+            console.warn(
+                `[sync] WARNING: ${ctx.srcPath}: snippet "${snippet}" has no ${absent.join(', ')} version, `
+                + `so that tab is missing. Add it, or add a snippet stating the language does not support this.`
+            );
         }
 
         if (!tabs.length) {
             throw new Error(
-                `[sync] ChronicleClientTabs snippet "${snippet}" in ${ctx.srcPath} has no matching snippet in any client repo`
+                `[sync] ${axis.macro} snippet "${snippet}" in ${ctx.srcPath} has no matching snippet in any ${axis.key} repo`
             );
         }
 
@@ -629,8 +656,30 @@ async function expandChronicleClientTabs(body, ctx) {
     }
 
     parts.push(body.slice(lastIndex));
-    const result = parts.join('');
-    return { body: expandedAny ? ensureTabsImport(result) : result, used: expandedAny };
+    return { body: parts.join(''), used: true };
+}
+
+// Expands every axis configured for the page's product. `ctx.variantAxes` lets
+// a caller (tests) supply axes directly instead of going through the manifest.
+async function expandVariantTabs(body, ctx) {
+    const axes = ctx.variantAxes ?? variantAxesFor(ctx.product.key);
+    if (!axes.length) {
+        return { body, used: false };
+    }
+
+    let current = body;
+    let expandedAny = false;
+    for (const axis of axes) {
+        const result = await expandAxisMacro(current, ctx, axis);
+        current = result.body;
+        expandedAny = expandedAny || result.used;
+    }
+
+    if (!expandedAny) {
+        return { body, used: false };
+    }
+
+    return { body: ensureTabsImport(current), used: true };
 }
 
 export async function convertFile(raw, ctx) {
@@ -650,7 +699,7 @@ export async function convertFile(raw, ctx) {
 
     let out = stripLeadingH1(body);
     out = await inlineIncludes(out, ctx.dir, ctx.srcPath ?? path.join(ctx.dir, ctx.basename), ctx.contentRoot ?? ctx.product.src ?? ctx.dir);
-    ({ body: out } = await expandChronicleClientTabs(out, ctx));
+    ({ body: out } = await expandVariantTabs(out, ctx));
     out = convertAlerts(out);
     out = convertXref(out);
     out = normalizeMarkdownTables(fixLinks(out, ctx));
@@ -693,7 +742,11 @@ export async function walk(srcDir, outDir, product, options = {}) {
         }
         if (entry.isDirectory()) {
             if (SKIP_DIRS.has(entry.name)) continue;
-            if (product.key === 'chronicle' && !options.slugBase && path.resolve(srcDir) === path.resolve(product.src) && entry.name === 'clients') continue;
+            // A variant's public docs that live inside this product's own tree are
+            // mounted separately by syncVariantDocs(); don't double-walk them.
+            if (!options.slugBase
+                && variantDocsConfig.nestedPublicDocRootsFor(product.key)
+                    .has(path.resolve(srcDir, entry.name))) continue;
             await walk(path.join(srcDir, entry.name), path.join(outDir, entry.name), product, options);
             continue;
         }
@@ -730,50 +783,84 @@ export async function walk(srcDir, outDir, product, options = {}) {
     }
 }
 
-async function availableChronicleClientDocs() {
+async function availableVariantDocs(axis) {
     const available = [];
-    for (const client of CHRONICLE_CLIENT_DOCS) {
+    const missing = [];
+    for (const variant of axis.publicDocsVariants) {
         try {
-            await fs.access(client.src);
-            available.push(client);
+            await fs.access(variant.src);
+            available.push(variant);
         } catch {
-            // Client repositories are optional for local partial builds.
+            // Variant repositories are optional so a local partial build still works.
+            missing.push(variant);
         }
+    }
+    // Say so. A configured variant that is simply absent used to vanish in
+    // silence: its pages, its sidebar group and its side of every language tab
+    // all disappeared from a build that otherwise looked completely healthy,
+    // which is exactly how a variant ships missing from production.
+    for (const variant of missing) {
+        console.warn(
+            `[sync] WARNING: ${axis.productKey}/${axis.key}: variant "${variant.key}" is configured but its docs were not found at ${variant.src} — its pages, sidebar group and language tabs will be absent from this build.`
+        );
     }
     return available;
 }
 
-async function writeChronicleClientsLanding(outDir, clients) {
-    if (!clients.length) return;
-
-    const clientsDir = path.join(outDir, 'clients');
-    await fs.mkdir(clientsDir, { recursive: true });
-    const topicLinks = CHRONICLE_SHARED_TOPICS
-        .map((topic) => `- [${topic.label}](${topic.href})`)
-        .join('\n');
-    const clientLinks = clients
-        .map((client) => `- [${client.label}](/chronicle/clients/${client.key}/)`)
-        .join('\n');
-
-    const body = `---\ntitle: Client SDKs\n---\n\nChronicle concepts, guides, and feature workflows live in the shared Chronicle docs and use language tabs when the client APIs differ. Use the client SDK sections for installation, connection setup, runtime integration, language idioms, and API reference details.\n\n## Shared Chronicle topics\n\n${topicLinks}\n\n## Client SDK details\n\n${clientLinks}\n`;
-
-    await fs.writeFile(path.join(clientsDir, 'index.md'), body, 'utf8');
+function variantDocsSlugBase(axis, variantKey) {
+    return `${axis.productKey}/${axis.mount.route}/${variantKey}`;
 }
 
-async function syncChronicleClientDocs(outDir, product) {
-    const clients = await availableChronicleClientDocs();
-    await writeChronicleClientsLanding(outDir, clients);
+async function writeVariantDocsLanding(outDir, axis, variants) {
+    if (!variants.length) return;
 
-    for (const client of clients) {
-        await walk(
-            client.src,
-            path.join(outDir, 'clients', client.key),
-            product,
-            {
-                contentRoot: client.src,
-                slugBase: `chronicle/clients/${client.key}`,
-            }
-        );
+    const mountDir = path.join(outDir, axis.mount.route);
+    await fs.mkdir(mountDir, { recursive: true });
+
+    // A product may author its own page at the mount route — Arc's backend route
+    // is a real folder with a hand-written overview, unlike Chronicle's clients/
+    // which exists only as a mount point. The walk runs first, so if a page is
+    // already there it is the product's, and generating over it would silently
+    // replace prose someone wrote with a generated stub.
+    const landingPath = path.join(mountDir, 'index.md');
+    for (const existing of ['index.md', 'index.mdx']) {
+        try {
+            await fs.access(path.join(mountDir, existing));
+            console.log(`[sync] ${axis.productKey}/${axis.key}: keeping the authored ${axis.mount.route}/${existing}; not generating a mount landing over it`);
+            return;
+        } catch {
+            // Nothing authored here, so the generated landing is the only page.
+        }
+    }
+    const { title, intro, sharedHeading, variantHeading } = axis.mount.landing;
+    const topicLinks = axis.sharedTopics
+        .map((topic) => `- [${topic.label}](${topic.href})`)
+        .join('\n');
+    const variantLinks = variants
+        .map((variant) => `- [${variant.label}](/${variantDocsSlugBase(axis, variant.key)}/)`)
+        .join('\n');
+
+    const body = `---\ntitle: ${title}\n---\n\n${intro}\n\n## ${sharedHeading}\n\n${topicLinks}\n\n## ${variantHeading}\n\n${variantLinks}\n`;
+
+    await fs.writeFile(landingPath, body, 'utf8');
+}
+
+async function syncVariantDocs(outDir, product) {
+    for (const axis of variantAxesFor(product.key)) {
+        const variants = await availableVariantDocs(axis);
+        await writeVariantDocsLanding(outDir, axis, variants);
+
+        for (const variant of variants) {
+            await walk(
+                variant.src,
+                path.join(outDir, axis.mount.route, variant.key),
+                product,
+                {
+                    contentRoot: variant.src,
+                    slugBase: variantDocsSlugBase(axis, variant.key),
+                }
+            );
+        }
     }
 }
 
@@ -792,7 +879,16 @@ function slugify(p) {
 }
 
 let validSlugs = new Set();
-let droppedSidebarEntries = 0;
+// Every toc entry whose target page was not generated. A renamed file whose
+// toc.yml was never updated vanishes from the sidebar, and a silent drop makes
+// that look like a clean build — so the drops are collected (not just counted)
+// and `main` fails the sync when there are any.
+const droppedSidebarEntries = [];
+// The product whose sidebar is currently being built, so a dropped entry can be
+// attributed to it. A targeted sync (`sync-content.mjs <product>`) only
+// generates one product's pages, so every other product legitimately has no
+// slugs and must not fail the gate.
+let currentSidebarProduct = null;
 
 // Collect the slugs of every page actually written for a product, so the
 // sidebar can drop entries that point to missing pages (broken toc links).
@@ -826,13 +922,19 @@ function resolvedTocSlug(href, slugBase) {
     return slugify(joined);
 }
 
-function pageTocItem(label, href, slugBase, slugs) {
+function pageTocItem(label, href, slugBase, slugs, dirAbs) {
     const pageSlug = resolvedTocSlug(href, slugBase);
     if (!pageSlug) return null;
     if (!slugs.has(pageSlug)) {
-        // Missing generated products are expected during a targeted local sync.
-        // Preserve the existing drop-and-count behavior for unresolved pages.
-        droppedSidebarEntries++;
+        // Record what was dropped and where it was declared, so the failure the
+        // gate raises in `main` names a toc entry someone can go and fix.
+        droppedSidebarEntries.push({
+            label,
+            href,
+            slug: pageSlug,
+            product: currentSidebarProduct,
+            toc: dirAbs ? path.relative(webRoot, path.join(dirAbs, 'toc.yml')) : '(unknown toc.yml)',
+        });
         return null;
     }
     return { label, slug: pageSlug };
@@ -871,7 +973,7 @@ export async function entryToItem(e, dirAbs, slugBase, slugs = validSlugs) {
     if (Array.isArray(e.items)) {
         const children = [];
         if (href) {
-            const landing = pageTocItem('Overview', href, slugBase, slugs);
+            const landing = pageTocItem('Overview', href, slugBase, slugs, dirAbs);
             if (landing) children.push(landing);
         }
         for (const c of e.items) {
@@ -882,7 +984,7 @@ export async function entryToItem(e, dirAbs, slugBase, slugs = validSlugs) {
     }
     // Leaf page
     if (href) {
-        return pageTocItem(label, href, slugBase, slugs);
+        return pageTocItem(label, href, slugBase, slugs, dirAbs);
     }
     return null;
 }
@@ -956,48 +1058,107 @@ function applyBadges(items) {
     return items;
 }
 
-async function chronicleClientSidebarItems() {
-    const clients = await availableChronicleClientDocs();
+// True when the product's own documentation supplies the page at the mount route,
+// rather than the mount generating one. Mirrors the check in writeVariantDocsLanding.
+async function productAuthorsMountLanding(axis) {
+    const product = PRODUCTS.find((candidate) => candidate.key === axis.productKey);
+    if (!product) return false;
+    for (const name of ['index.md', 'index.mdx']) {
+        try {
+            await fs.access(path.join(product.src, axis.mount.route, name));
+            return true;
+        } catch {
+            // Not authored under this name.
+        }
+    }
+    return false;
+}
+
+async function variantSidebarItems(axis) {
+    const variants = await availableVariantDocs(axis);
     const items = [];
 
-    for (const client of clients) {
-        const slugBase = `chronicle/clients/${client.key}`;
-        const clientItems = await tocToSidebar(client.src, slugBase);
+    for (const variant of variants) {
+        const slugBase = variantDocsSlugBase(axis, variant.key);
+        const variantItems = await tocToSidebar(variant.src, slugBase);
+        const resolved = variantItems.length
+            ? variantItems
+            : [{ autogenerate: { directory: slugBase } }];
+
+        // With several variants each needs its own group to tell them apart. With
+        // one, that group sits inside the axis group and repeats its label, so the
+        // reader opens "Kotlin and Java" to find "Kotlin and Java". Hoist it.
+        if (variants.length === 1) {
+            items.push(...resolved);
+            continue;
+        }
+
         items.push({
-            label: client.label,
+            label: variant.label,
             collapsed: true,
-            items: clientItems.length
-                ? clientItems
-                : [{ autogenerate: { directory: slugBase } }],
+            items: resolved,
         });
     }
 
     return items;
 }
 
-async function addChronicleClientSidebar(items) {
-    const clientItems = await chronicleClientSidebarItems();
-    if (!clientItems.length) return items;
+// One sidebar group per axis, split by when it has to be injected:
+//   - `into-bucket` groups go in BEFORE applyBuckets, so normal bucketing
+//     absorbs them as a child of the target bucket;
+//   - `after-bucket` groups go in AFTER applyBuckets, so they stay a peer of
+//     the buckets, positioned right after the anchor bucket.
+export async function variantSidebarInjections(product) {
+    const before = [];
+    const after = [];
 
-    const group = {
-        label: 'Client SDKs',
-        collapsed: true,
-        items: [
-            { label: 'Overview', slug: 'chronicle/clients' },
-            ...clientItems,
-        ],
-    };
+    for (const axis of variantAxesFor(product.key)) {
+        const axisItems = await variantSidebarItems(axis);
+        if (!axisItems.length) continue;
 
-    const startHereIndex = items.findIndex((item) => item.label === 'Start here');
-    if (startHereIndex >= 0) {
-        return [
-            ...items.slice(0, startHereIndex + 1),
-            group,
-            ...items.slice(startHereIndex + 1),
-        ];
+        // The mount route's landing is only this group's overview when the mount
+        // generated it. Where the product authors that page itself it belongs to
+        // the product, is already reachable from its own toc, and repeating it
+        // here gives the group two overviews — one of them somebody else's page.
+        const mountLanding = { label: 'Overview', slug: `${axis.productKey}/${axis.mount.route}` };
+        const ownsLanding = !(await productAuthorsMountLanding(axis));
+
+        const group = {
+            label: axis.sidebar.groupLabel,
+            collapsed: true,
+            items: ownsLanding ? [mountLanding, ...axisItems] : axisItems,
+        };
+
+        (axis.sidebar.injectMode === 'into-bucket' ? before : after).push({ axis, group });
     }
 
-    return [group, ...items];
+    return { before, after };
+}
+
+// `into-bucket` is declarative: the injected group is a normal top-level item
+// and the target bucket simply learns to claim its label, so the existing
+// bucketing logic places it without a second positioning mechanism.
+export function bucketsWithInjectedSections(buckets, injections) {
+    if (!buckets || !injections.length) return buckets;
+
+    return buckets.map((bucket) => {
+        const claimed = injections
+            .filter(({ axis }) => axis.sidebar.targetBucket === bucket.label)
+            .map(({ group }) => group.label)
+            .filter((label) => !bucket.sections.includes(label));
+        return claimed.length ? { ...bucket, sections: [...bucket.sections, ...claimed] } : bucket;
+    });
+}
+
+export function applyAfterBucketInjections(items, injections) {
+    let result = items;
+    for (const { axis, group } of injections) {
+        const anchorIndex = result.findIndex((item) => item.label === axis.sidebar.anchorBucket);
+        result = anchorIndex >= 0
+            ? [...result.slice(0, anchorIndex + 1), group, ...result.slice(anchorIndex + 1)]
+            : [group, ...result];
+    }
+    return result;
 }
 
 async function familySourceSidebarItems(product) {
@@ -1159,11 +1320,16 @@ async function generateSidebar() {
         let items;
         if (product.sidebarMode === 'toc') {
             validSlugs = new Set();
+            currentSidebarProduct = product.key;
             await collectSlugs(path.join(webRoot, 'src', 'content', 'docs', product.key), product.key, validSlugs);
             items = await tocToSidebar(product.src, product.key);
+            const injections = await variantSidebarInjections(product);
             if (items.length === 0) items = [{ autogenerate: { directory: product.key } }];
-            else if (product.buckets) items = applyBuckets(items, product.buckets);
-            if (product.key === 'chronicle') items = await addChronicleClientSidebar(items);
+            else {
+                if (injections.before.length) items = [...injections.before.map(({ group }) => group), ...items];
+                if (product.buckets) items = applyBuckets(items, bucketsWithInjectedSections(product.buckets, injections.before));
+            }
+            items = applyAfterBucketInjections(items, injections.after);
         } else {
             items = [{ autogenerate: { directory: product.key } }];
         }
@@ -1175,8 +1341,30 @@ async function generateSidebar() {
     await fs.mkdir(genDir, { recursive: true });
     await fs.writeFile(path.join(genDir, 'topics.json'), JSON.stringify(topics, null, 2) + '\n');
     console.log(
-        `[sync] topics -> src/generated/topics.json (${topics.length} product topics, ${droppedSidebarEntries} broken toc entries dropped)`
+        `[sync] topics -> src/generated/topics.json (${topics.length} product topics, ${droppedSidebarEntries.length} broken toc entries dropped)`
     );
+}
+
+// A dropped toc entry is a page that silently disappeared from the sidebar:
+// the file was renamed, moved or deleted and its toc.yml was not updated. The
+// build stays green and nobody notices, so this is a gate, not a warning.
+function assertNoDroppedSidebarEntries() {
+    // A targeted sync regenerates one product, so drops belonging to products
+    // that were never generated in this run are expected and not a defect.
+    const relevant = only
+        ? droppedSidebarEntries.filter((entry) => entry.product === only)
+        : droppedSidebarEntries;
+    const skipped = droppedSidebarEntries.length - relevant.length;
+    if (skipped > 0) {
+        console.log(`[sync] ignoring ${skipped} dropped toc entries from products not generated by this targeted sync`);
+    }
+    if (!relevant.length) return;
+    console.error(`[sync] ${relevant.length} toc ${relevant.length === 1 ? 'entry points' : 'entries point'} at pages that were not generated:`);
+    for (const entry of relevant) {
+        console.error(`  ${entry.toc}: "${entry.label}" -> ${entry.href} (expected page slug "${entry.slug}")`);
+    }
+    console.error('[sync] Fix the toc.yml href, or restore/rename the page it points at. Do not delete the entry to make this pass unless the page is really gone.');
+    process.exit(1);
 }
 
 async function main() {
@@ -1195,9 +1383,7 @@ async function main() {
         }
         await fs.rm(outDir, { recursive: true, force: true });
         await walk(product.src, outDir, product);
-        if (product.key === 'chronicle') {
-            await syncChronicleClientDocs(outDir, product);
-        }
+        await syncVariantDocs(outDir, product);
         for (const source of product.familySources ?? []) {
             const sourceOutDir = path.join(outDir, source.path);
             try {
@@ -1219,6 +1405,7 @@ async function main() {
     if (!only) await syncReleaseDigests();
     await generateSidebar();
     await clearStaleAstroContentCache();
+    assertNoDroppedSidebarEntries();
 }
 
 async function countFiles(dir) {

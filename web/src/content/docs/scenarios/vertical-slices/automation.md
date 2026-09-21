@@ -208,11 +208,11 @@ public class ReservationExpiryFailed(ReservationId reservationId)
 
 **`CancelExpiredReservation.Handle`** asks for `PendingReservation?` using the command's `ReservationId`. The Arc–Chronicle integration resolves that projection on demand. `Provide()` supplies the current time, so you can also test the decision directly with a fixed timestamp. A missing, collected, canceled, or already expired reservation produces no new event; a reservation whose deadline has passed produces `ReservationExpired`.
 
-The sweep list can lag behind the event log. That is why it nominates candidates rather than deciding whether they may expire. The command rechecks the reservation instead of trusting the earlier collection query. Read-model injection alone is not a blanket guarantee against a concurrent collection or cancellation; a production lifecycle needs append-time rules or the applicable [consistency controls](/arc/backend/chronicle/commands/transactional-commands/) for competing terminal transitions.
+The sweep list can lag behind the event log. That is why it nominates candidates rather than deciding whether they may expire. The command rechecks the reservation instead of trusting the earlier collection query. Read-model injection alone is not a blanket guarantee against a concurrent collection or cancellation; a production lifecycle needs append-time rules or the applicable [consistency controls](/arc/backend/csharp/chronicle/commands/transactional-commands/) for competing terminal transitions.
 
 **[`IReactor`](/chronicle/reactors/)** marks an observer whose handlers Chronicle discovers from supported signatures and event parameter types. `HandleDailyTick` runs when Chronicle delivers a `DailyTick`. Configure a scheduler or background service to append that event to the application's event log; the reactor does not create its own timer. If the to-do projection has not caught up at a sweep, a later tick can pick up the remaining reservation.
 
-**[`ICommandPipeline`](/arc/backend/commands/command-pipeline/)** is constructor-injected. Each cancellation goes through Arc's command pipeline. Inspect `IsSuccess`: a failed command returns a result rather than necessarily throwing. The named exception makes a failure visible to Chronicle instead of acknowledging the tick as successfully handled. The reactor has no original HTTP principal; configure a deliberate execution context if these commands require authorization.
+**[`ICommandPipeline`](/arc/backend/csharp/commands/command-pipeline/)** is constructor-injected. Each cancellation goes through Arc's command pipeline. Inspect `IsSuccess`: a failed command returns a result rather than necessarily throwing. The named exception makes a failure visible to Chronicle instead of acknowledging the tick as successfully handled. The reactor has no original HTTP principal; configure a deliberate execution context if these commands require authorization.
 
 ---
 
@@ -243,9 +243,9 @@ Design your reactor methods to be safe:
 | ----- | -------- | ---------- |
 | Read model (internal) | Active `ReservationDueForExpiry` and passive `PendingReservation` | [Chronicle](/chronicle/) [projection](/chronicle/projections/) |
 | Cancellation event | `ReservationExpired` | [Chronicle](/chronicle/) [`[EventType]`](/chronicle/events/) |
-| Cancellation decision | `CancelExpiredReservation` | [Arc](/arc/) [`[Command]`](/arc/backend/commands/model-bound/) + `Handle(ReadModel?)` |
+| Cancellation decision | `CancelExpiredReservation` | [Arc](/arc/) [`[Command]`](/arc/backend/csharp/commands/model-bound/) + `Handle(ReadModel?)` |
 | Automation driver | `ReservationExpiryReactor` | [Chronicle](/chronicle/) [`IReactor`](/chronicle/reactors/) |
-| Command execution | `ICommandPipeline.Execute(...)` | [Arc](/arc/) [command pipeline](/arc/backend/commands/command-pipeline/) |
+| Command execution | `ICommandPipeline.Execute(...)` | [Arc](/arc/) [command pipeline](/arc/backend/csharp/commands/command-pipeline/) |
 
 The scheduler supplies the clock; the active projection supplies candidates; the command decides whether to expire each reservation. Every expiry is recorded as an event, so later views and automations can follow the outcome without repeating the deadline logic.
 

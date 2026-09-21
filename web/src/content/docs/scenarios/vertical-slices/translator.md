@@ -197,7 +197,7 @@ public class MemberImportFailed() : Exception("Library member registration faile
 
 **Status filtering** shows how the translator makes decisions. This import accepts only records whose status is `"ACTIVE"`; it makes no further distinction between employment categories. That filter lives here, at the integration boundary. The `RegisterMember` command never needs to know that the Library has an HR integration; it just registers members.
 
-**[`ICommandPipeline.Execute`](/arc/backend/commands/command-pipeline/)** runs the Library command's validation and Chronicle append, including `UniqueMemberName`. An unsuccessful result throws the named `MemberImportFailed` exception so Chronicle records an observer failure instead of acknowledging an import that did not happen. These background calls do not inherit a user's HTTP principal; configure an execution context if registration requires authorization.
+**[`ICommandPipeline.Execute`](/arc/backend/csharp/commands/command-pipeline/)** runs the Library command's validation and Chronicle append, including `UniqueMemberName`. An unsuccessful result throws the named `MemberImportFailed` exception so Chronicle records an observer failure instead of acknowledging an import that did not happen. These background calls do not inherit a user's HTTP principal; configure an execution context if registration requires authorization.
 
 A repeated name causes a visible rejection, not a successful deduplication. If registration succeeds but the reactor fails before acknowledging the HR event, retrying can encounter that rejection. A production import needs a durable mapping from HR's employee identity to `MemberId`, and a policy for repeated messages and name conflicts. `EmployeeId` is available at this boundary for that work; do not parse values such as `"EMP-00247"` as GUIDs or substitute name equality for employee identity.
 
@@ -224,7 +224,7 @@ The transport adapter and translator have separate jobs. The adapter receives HR
 
 Wire the boundary in this order:
 
-1. Configure Arc's [Chronicle integration](/arc/backend/chronicle/) and include the integration event and reactor assemblies in application discovery.
+1. Configure Arc's [Chronicle integration](/arc/backend/csharp/chronicle/) and include the integration event and reactor assemblies in application discovery.
 2. Implement the inbound adapter for HR's actual transport — for example, an authenticated webhook or a broker consumer. Validate the sender and payload before accepting it.
 3. Use the configured Chronicle [event log](/chronicle/events/) to append `HRMemberCreated` under a stable integration-event source identity. Check the append result before acknowledging the upstream message.
 4. Keep transport message deduplication and the employee-to-member mapping durable. Test redelivery and a failure after registration succeeds, not just the first successful message.
@@ -240,10 +240,10 @@ To check the translator itself, substitute `ICommandPipeline` in a direct handle
 | Layer | Artifact | Technology |
 | ----- | -------- | ---------- |
 | External event (HR mirror) | `HRMemberCreated` | [Chronicle](/chronicle/) [`[EventType]`](/chronicle/events/) (integration type) |
-| Domain command | `RegisterMember` | [Arc](/arc/) [`[Command]`](/arc/backend/commands/model-bound/) |
+| Domain command | `RegisterMember` | [Arc](/arc/) [`[Command]`](/arc/backend/csharp/commands/model-bound/) |
 | Domain event | `MemberRegistered` | [Chronicle](/chronicle/) [`[EventType]`](/chronicle/events/) |
 | Translator | `MemberImportReactor` | [Chronicle](/chronicle/) [`IReactor`](/chronicle/reactors/) + `[OnceOnly]` |
-| Bridge | `ICommandPipeline.Execute(...)` | [Arc](/arc/) [command pipeline](/arc/backend/commands/command-pipeline/) |
+| Bridge | `ICommandPipeline.Execute(...)` | [Arc](/arc/) [command pipeline](/arc/backend/csharp/commands/command-pipeline/) |
 
 The HR system's vocabulary stops at the edge of `HRIntegration/`. Everything inside `Registration/` is pure Library domain, ignorant of HR entirely. Swap the HR system for a different one and you only touch `HRIntegration.cs`.
 

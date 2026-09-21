@@ -343,7 +343,7 @@ export default defineConfig({
                         'Key facts:',
                         '',
                         '- Chronicle exposes a language-agnostic gRPC/protobuf boundary; its kernel runs on Microsoft Orleans.',
-                        '- Arc is an opinionated CQRS application framework for ASP.NET Core — commands, queries, validation, authorization, and TypeScript proxy generation. It works without event sourcing; Chronicle integration is optional.',
+                        '- Arc is an opinionated CQRS application framework — commands, queries, validation, authorization, and TypeScript proxy generation. It is implemented for ASP.NET Core and for Spring Boot on the JVM, and both generate against the same TypeScript packages. It works without event sourcing; Chronicle integration is optional.',
                         '- Components is a React component library aligned with Arc patterns: command dialogs, typed forms, and query-backed data tables.',
                         '- The CLI and Workbench are the inspection and diagnosis surfaces for Chronicle: events, observers, projections, read models, and failed partitions.',
                         '- The model-first layer — Studio, Screenplay, Stage, Scene, Prologue — is experimental and in early development.',

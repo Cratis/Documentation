@@ -9,7 +9,8 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { PRODUCTS, applyBuckets, collectSlugs, convertFile, entryToItem, tocToSidebar, walk } from './sync-content.mjs';
+import { PRODUCTS, applyAfterBucketInjections, variantSidebarInjections, applyBuckets, bucketsWithInjectedSections, collectSlugs, convertFile, entryToItem, tocToSidebar, walk } from './sync-content.mjs';
+import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { emitDocArtifacts } from './emit-doc-artifacts.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 import { isPrivateDocPath } from './private-doc-paths.mjs';
@@ -254,13 +255,31 @@ test('Components buckets classify library and reference sections explicitly', ()
     );
 });
 
-test('ChronicleClientTabs rejects Markdown sources with a source-path diagnostic', async (context) => {
+function variantAxis(overrides = {}) {
+    return {
+        key: 'client',
+        productKey: 'chronicle',
+        macro: 'ChronicleClientTabs',
+        syncKey: 'chronicle-client',
+        mount: { route: 'clients', landing: {} },
+        sidebar: { groupLabel: 'Client SDKs', injectMode: 'after-bucket', anchorBucket: 'Start here', targetBucket: null },
+        snippetVariants: [],
+        ...overrides,
+    };
+}
+
+test('a variant macro rejects Markdown sources with a source-path diagnostic', async (context) => {
     const root = await fixture(context);
     const srcPath = path.join(root, 'shared-page.md');
     await assert.rejects(
         convertFile(
             '<ChronicleClientTabs snippet="example" />\n',
-            conversionContext(root, { basename: 'shared-page.md', srcPath, product: { key: 'chronicle', src: root } })
+            conversionContext(root, {
+                basename: 'shared-page.md',
+                srcPath,
+                product: { key: 'chronicle', src: root },
+                variantAxes: [variantAxis({ snippetVariants: [{ key: 'csharp', label: 'C#', src: root }] })],
+            })
         ),
         (error) => {
             assert.match(error.message, /Cannot expand ChronicleClientTabs in Markdown source/);
@@ -271,19 +290,20 @@ test('ChronicleClientTabs rejects Markdown sources with a source-path diagnostic
     );
 });
 
-test('ChronicleClientTabs expands in MDX and ignores fenced examples', async (context) => {
+test('a variant macro expands in MDX and ignores fenced examples', async (context) => {
     const root = await fixture(context);
     const snippets = path.join(root, 'snippets');
     await put(snippets, 'example.md', '```csharp\nstore.Connect();\n```\n');
     const chronicleContext = {
         product: { key: 'chronicle', src: root },
-        chronicleClientSnippets: [{ key: 'csharp', label: 'C#', src: snippets }],
+        variantAxes: [variantAxis({ snippetVariants: [{ key: 'csharp', label: 'C#', src: snippets }] })],
     };
     const expanded = await convertFile(
         '<ChronicleClientTabs snippet="example" />\n',
         conversionContext(root, { ...chronicleContext, basename: 'shared-page.mdx', srcPath: path.join(root, 'shared-page.mdx') })
     );
     assert.match(expanded, /import \{ Tabs, TabItem \} from '@astrojs\/starlight\/components';/);
+    assert.match(expanded, /<Tabs syncKey="chronicle-client">/);
     assert.match(expanded, /<TabItem label="C#">/);
     assert.match(expanded, /store\.Connect\(\);/);
 
@@ -294,6 +314,188 @@ test('ChronicleClientTabs expands in MDX and ignores fenced examples', async (co
     );
     assert.match(fenced, /<ChronicleClientTabs snippet="missing" \/>/);
     assert.doesNotMatch(fenced, /import \{ Tabs/);
+});
+
+test('a missing snippet omits only that tab, while no snippet at all is a hard error', async (context) => {
+    const root = await fixture(context);
+    const csharp = path.join(root, 'csharp');
+    const kotlin = path.join(root, 'kotlin');
+    await put(csharp, 'partial.mdx', '```csharp\nstore.Connect();\n```\n');
+    await fs.mkdir(kotlin, { recursive: true });
+    const ctx = conversionContext(root, {
+        basename: 'page.mdx',
+        srcPath: path.join(root, 'page.mdx'),
+        product: { key: 'chronicle', src: root },
+        variantAxes: [variantAxis({
+            snippetVariants: [
+                { key: 'csharp', label: 'C#', src: csharp },
+                { key: 'kotlin', label: 'Kotlin', src: kotlin },
+            ],
+        })],
+    });
+
+    const expanded = await convertFile('<ChronicleClientTabs snippet="partial" />\n', ctx);
+    assert.match(expanded, /<TabItem label="C#">/);
+    assert.doesNotMatch(expanded, /<TabItem label="Kotlin">/);
+
+    await assert.rejects(
+        convertFile('<ChronicleClientTabs snippet="nowhere" />\n', ctx),
+        /has no matching snippet in any client repo/
+    );
+});
+
+test('a second product expands two axes independently, each with its own syncKey', async (context) => {
+    const root = await fixture(context);
+    const backend = path.join(root, 'backend-snippets');
+    const frontend = path.join(root, 'frontend-snippets');
+    await put(backend, 'connect.md', '```csharp\nvar store = Connect();\n```\n');
+    await put(frontend, 'connect.md', '```tsx\nconst store = useStore();\n```\n');
+
+    const axes = [
+        variantAxis({
+            key: 'language', productKey: 'arc', macro: 'ArcLanguageTabs', syncKey: 'arc-language',
+            mount: { route: 'languages', landing: {} },
+            snippetVariants: [{ key: 'csharp', label: 'C#', src: backend }],
+        }),
+        variantAxis({
+            key: 'framework', productKey: 'arc', macro: 'ArcFrameworkTabs', syncKey: 'arc-framework',
+            mount: { route: 'frameworks', landing: {} },
+            snippetVariants: [{ key: 'react', label: 'React', src: frontend }],
+        }),
+    ];
+
+    const expanded = await convertFile(
+        '<ArcLanguageTabs snippet="connect" />\n\n<ArcFrameworkTabs snippet="connect" />\n',
+        conversionContext(root, {
+            basename: 'page.mdx',
+            srcPath: path.join(root, 'page.mdx'),
+            product: { key: 'arc', src: root },
+            variantAxes: axes,
+        })
+    );
+
+    // One shared Tabs import, two independently synced tab sets.
+    assert.equal(expanded.match(/import \{ Tabs, TabItem \}/g).length, 1);
+    assert.match(expanded, /<Tabs syncKey="arc-language">/);
+    assert.match(expanded, /<Tabs syncKey="arc-framework">/);
+    assert.match(expanded, /<TabItem label="C#">/);
+    assert.match(expanded, /<TabItem label="React">/);
+    assert.doesNotMatch(expanded, /<ArcLanguageTabs|<ArcFrameworkTabs/);
+});
+
+test('the variant manifest loads multiple products and axes and rejects malformed axes', async (context) => {
+    const root = await fixture(context);
+    const snippets = path.join(root, 'snippets');
+    await put(snippets, 'connect.md', 'snippet\n');
+    const relativeSnippets = path.relative(webRoot, snippets);
+    const axis = (macro, syncKey, route, extraSidebar) => [
+        `      ${macro.axisKey}:`,
+        `        macro: ${macro.name}`,
+        `        syncKey: ${syncKey}`,
+        `        mount:`,
+        `          route: ${route}`,
+        `          landing:`,
+        `            title: Title`,
+        `            intro: Intro`,
+        `            sharedHeading: Shared`,
+        `            variantHeading: Variant`,
+        `        sidebar:`,
+        `          groupLabel: Group`,
+        ...extraSidebar,
+        `        ratchetLanguages:`,
+        `          - name: csharp`,
+        `            aliases: [cs]`,
+        `        variants:`,
+        `          csharp:`,
+        `            label: 'C#'`,
+        `            snippets:`,
+        `              paths: ['${relativeSnippets}']`,
+    ].join('\n');
+
+    const manifest = (axes) => [
+        'version: 2',
+        'products:',
+        '  chronicle:',
+        '    sharedDocs:',
+        `      paths: ['${path.relative(webRoot, root)}']`,
+        '    axes:',
+        axes,
+    ].join('\n');
+
+    const twoAxes = [
+        axis({ axisKey: 'language', name: 'ProductLanguageTabs' }, 'product-language', 'languages', ['          injectMode: after-bucket', '          anchorBucket: Start here']),
+        axis({ axisKey: 'framework', name: 'ProductFrameworkTabs' }, 'product-framework', 'frameworks', ['          injectMode: into-bucket', '          targetBucket: Frontend']),
+    ].join('\n');
+
+    const goodPath = await put(root, 'good.yml', manifest(twoAxes) + '\n');
+    const config = await loadVariantDocsConfig({ manifestPath: goodPath });
+    assert.deepEqual(config.products.map(({ key }) => key), ['chronicle']);
+    assert.deepEqual(config.axesFor('chronicle').map(({ key }) => key), ['language', 'framework']);
+    assert.equal(config.getAxis('chronicle', 'framework').sidebar.targetBucket, 'Frontend');
+    assert.equal(config.getAxis('chronicle', 'language').ratchetLanguageAliases.get('cs'), 'csharp');
+    assert.deepEqual([...config.mountRoutesFor('chronicle')], ['languages', 'frameworks']);
+    assert.equal(config.getProduct('arc'), null);
+
+    // Two axes sharing one syncKey would cross-drive each other's Starlight tabs.
+    const clashingPath = await put(root, 'clashing.yml', manifest([
+        axis({ axisKey: 'language', name: 'ProductLanguageTabs' }, 'shared-key', 'languages', ['          injectMode: after-bucket', '          anchorBucket: Start here']),
+        axis({ axisKey: 'framework', name: 'ProductFrameworkTabs' }, 'shared-key', 'frameworks', ['          injectMode: after-bucket', '          anchorBucket: Start here']),
+    ].join('\n')) + '\n');
+    await assert.rejects(loadVariantDocsConfig({ manifestPath: clashingPath }), /each axis needs its own syncKey/);
+
+    // Axis-level validation is strict: unknown inject modes and missing anchors fail loudly.
+    const badModePath = await put(root, 'bad-mode.yml', manifest(
+        axis({ axisKey: 'language', name: 'ProductLanguageTabs' }, 'product-language', 'languages', ['          injectMode: sideways'])
+    ) + '\n');
+    await assert.rejects(loadVariantDocsConfig({ manifestPath: badModePath }), /injectMode must be one of/);
+
+    const missingAnchorPath = await put(root, 'missing-anchor.yml', manifest(
+        axis({ axisKey: 'language', name: 'ProductLanguageTabs' }, 'product-language', 'languages', ['          injectMode: after-bucket'])
+    ) + '\n');
+    await assert.rejects(loadVariantDocsConfig({ manifestPath: missingAnchorPath }), /anchorBucket must be a string/);
+
+    // The prefix is parameterized rather than hard-coded to one product.
+    await assert.rejects(
+        loadVariantDocsConfig({ manifestPath: badModePath, messagePrefix: 'fixture-docs' }),
+        /^Error: \[fixture-docs\]/
+    );
+});
+
+test('sidebar injection is declarative: after-bucket stays a peer, into-bucket is absorbed', () => {
+    const items = [
+        { label: 'Start here', collapsed: true, items: [{ label: 'Getting started', slug: 'p/start' }] },
+        { label: 'Frontend', collapsed: true, items: [{ label: 'Views', slug: 'p/views' }] },
+    ];
+    const group = { label: 'Client SDKs', collapsed: true, items: [{ label: 'Overview', slug: 'p/clients' }] };
+
+    const after = applyAfterBucketInjections(items, [
+        { axis: { sidebar: { anchorBucket: 'Start here' } }, group },
+    ]);
+    assert.deepEqual(after.map(({ label }) => label), ['Start here', 'Client SDKs', 'Frontend']);
+    // A missing anchor still places the group rather than dropping it.
+    assert.equal(applyAfterBucketInjections(items, [{ axis: { sidebar: { anchorBucket: 'Absent' } }, group }])[0].label, 'Client SDKs');
+    // No injections must leave the array untouched.
+    assert.equal(applyAfterBucketInjections(items, []), items);
+
+    const buckets = [
+        { label: 'Start here', sections: ['Getting started'] },
+        { label: 'Frontend', sections: ['Views'] },
+    ];
+    const frameworks = { label: 'Frameworks', collapsed: true, items: [{ label: 'Overview', slug: 'p/frameworks' }] };
+    const injections = [{ axis: { sidebar: { injectMode: 'into-bucket', targetBucket: 'Frontend' } }, group: frameworks }];
+    const augmented = bucketsWithInjectedSections(buckets, injections);
+    assert.deepEqual(augmented[1].sections, ['Views', 'Frameworks']);
+    assert.deepEqual(buckets[1].sections, ['Views'], 'the product bucket definition must not be mutated');
+
+    const bucketed = applyBuckets(
+        [frameworks, { label: 'Getting started', slug: 'p/start' }, { label: 'Views', slug: 'p/views' }],
+        augmented
+    );
+    assert.deepEqual(
+        bucketed.find(({ label }) => label === 'Frontend').items.map(({ label }) => label),
+        ['Views', 'Frameworks']
+    );
+    assert.equal(bucketsWithInjectedSections(buckets, []), buckets);
 });
 
 test('toc conversion retains href-plus-items landings and resolves parent targets', async (context) => {
@@ -499,4 +701,69 @@ test('external checking requires the built root rather than treating missing set
     assert.equal(checkExternalLinks({ ...runner, cwd: root }), 1);
     assert.equal(runner.calls.length, 1);
     assert.match(runner.messages[0], /Built-site root is missing/);
+});
+
+// A registered variant that has no snippet for a macro loses its tab, and the
+// page then reads as though that language never supported the thing. Coverage
+// is deliberately uneven on some axes, so this is reported per axis.
+test('a missing variant snippet is reported only when the axis asks for it', async (context) => {
+    const root = await fixture(context);
+    const snippets = path.join(root, 'snippets');
+    await put(snippets, 'example.md', '```csharp\nvar x = 1;\n```\n');
+
+    const variants = [
+        { key: 'csharp', label: 'C#', src: snippets },
+        { key: 'kotlin', label: 'Kotlin', src: path.join(root, 'absent') },
+    ];
+    const render = (axis) => convertFile(
+        '<ChronicleClientTabs snippet="example" />\n',
+        conversionContext(root, {
+            product: { key: 'chronicle', src: root },
+            variantAxes: [axis],
+            basename: 'shared-page.mdx',
+            srcPath: path.join(root, 'shared-page.mdx'),
+        })
+    );
+
+    const warnings = [];
+    const warn = console.warn;
+    console.warn = (message) => warnings.push(message);
+    try {
+        const quiet = await render(variantAxis({ snippetVariants: variants }));
+        assert.match(quiet, /<TabItem label="C#">/);
+        assert.doesNotMatch(quiet, /<TabItem label="Kotlin">/);
+        assert.equal(warnings.length, 0, 'an axis that has not opted in stays quiet');
+
+        await render(variantAxis({ snippetVariants: variants, warnOnMissingSnippet: true }));
+        assert.equal(warnings.length, 1);
+        assert.match(warnings[0], /no Kotlin version/);
+        assert.match(warnings[0], /example/);
+    } finally {
+        console.warn = warn;
+    }
+});
+
+// With several variants each needs its own group to tell them apart. With one,
+// that group sits inside the axis group and repeats its label, so the reader
+// opens "Kotlin and Java" to find "Kotlin and Java".
+test('a single-variant axis does not nest a group inside its own group', async () => {
+    const arc = PRODUCTS.find((product) => product.key === 'arc');
+    assert.ok(arc, 'the arc product must be configured for this to mean anything');
+
+    const { before, after } = await variantSidebarInjections(arc);
+    const injections = [...before, ...after];
+
+    // Non-vacuity: this asserts a shape, so an empty set would pass for free.
+    // Arc's backend axis mounts exactly one variant and the site checks it out.
+    assert.equal(injections.length, 1, 'expected exactly one injected Arc variant group');
+
+    const [{ group }] = injections;
+    const nestedWithSameLabel = (group.items ?? []).filter(
+        (item) => item.items && item.label === group.label);
+    assert.deepEqual(nestedWithSameLabel, [],
+        `"${group.label}" contains a group of the same name`);
+    // Outside a full sync there are no valid slugs, so the variant's toc
+    // collapses to an autogenerate stub. That is enough to tell hoisted from
+    // nested: nested would put that stub inside a same-named group.
+    assert.ok((group.items ?? []).length >= 1, 'the variant contributed nothing at all');
 });

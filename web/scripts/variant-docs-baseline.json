@@ -1,0 +1,49 @@
+{
+  "version": 2,
+  "description": "Known direct variant-language fences in shared product docs, per product and axis. Lower counts are allowed; increases fail the audit.",
+  "directVariantLanguageFences": {
+    "chronicle": {
+      "client": {}
+    },
+    "arc": {
+      "backend": {
+        "arc-without-event-sourcing.md": {
+          "csharp": 4
+        },
+        "frontend/index.mdx": {
+          "csharp": 1
+        },
+        "frontend/react/command-form/auto-server-validation.md": {
+          "csharp": 1
+        },
+        "frontend/react/command-form/validation.md": {
+          "csharp": 1
+        },
+        "frontend/react/commands/index.md": {
+          "csharp": 1
+        },
+        "frontend/react/proxy-generation.md": {
+          "csharp": 1
+        },
+        "frontend/react/queries/usage.md": {
+          "csharp": 1
+        },
+        "scenarios/use-current-state-in-a-command.md": {
+          "csharp": 7
+        },
+        "tutorial/authorization.mdx": {
+          "csharp": 3
+        },
+        "tutorial/books-and-relationships.mdx": {
+          "csharp": 2
+        },
+        "tutorial/first-slice.mdx": {
+          "csharp": 2
+        },
+        "tutorial/validation.mdx": {
+          "csharp": 2
+        }
+      }
+    }
+  }
+}

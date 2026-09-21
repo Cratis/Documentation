@@ -185,7 +185,7 @@ The method creates a **relay** `BehaviorSubject` initialised with `room.Messages
 > builder.Services.AddSingleton<ChatService>();
 > ```
 >
-> **Run `dotnet build`** after saving these files. The [Arc proxy generator](/arc/backend/proxy-generation/) produces:
+> **Run `dotnet build`** after saving these files. The [Arc proxy generator](/arc/backend/csharp/proxy-generation/) produces:
 >
 > - `ChatMessage.ts` — the TypeScript model type
 > - `ForRoom.ts` — the observable query proxy with `use()` and `when()` hooks
@@ -202,7 +202,7 @@ Arc observable queries use **delta mode by default**. Understanding this helps y
 | Emission | What is sent |
 | -------- | ------------ |
 | First | The complete collection — the room's full history as the initial payload |
-| Subsequent | A [`ChangeSet`](/arc/backend/queries/change-stream/) with only the `added`, `replaced`, and `removed` arrays |
+| Subsequent | A [`ChangeSet`](/arc/backend/csharp/queries/change-stream/) with only the `added`, `replaced`, and `removed` arrays |
 
 The `use()` hook applies each `ChangeSet` transparently. `messagesResult.data` always holds the full current collection — the React component never sees raw deltas.
 
