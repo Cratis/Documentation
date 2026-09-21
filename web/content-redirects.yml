@@ -418,3 +418,7 @@
   to: /arc/frontend/react/mvvm/using-view-model/
 - from: /arc/generating-a-screenplay/
   to: /arc/backend/csharp/generating-a-screenplay/
+- from: /arc/general/
+  to: /arc/backend/csharp/development/generating-principal/
+- from: /arc/general/generating-principal/
+  to: /arc/backend/csharp/development/generating-principal/

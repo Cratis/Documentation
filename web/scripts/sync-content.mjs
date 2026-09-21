@@ -89,7 +89,7 @@ export const PRODUCTS = [
             // is appended to these sections by the variant-docs sidebar injection.
             { label: 'Backend', sections: ['Backend overview', 'C#'] },
             { label: 'Frontend', sections: ['Frontend'] },
-            { label: 'Operations and reference', sections: ['General', 'Troubleshooting'] },
+            { label: 'Operations and reference', sections: ['Troubleshooting'] },
         ],
     },
     {
