@@ -116,6 +116,15 @@ jobs:
           persist-credentials: false
           path: Arc
 
+      - name: Checkout Arc.Kotlin
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Arc.Kotlin
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          path: Arc.Kotlin
+
       - name: Checkout Components
         uses: actions/checkout@v4
         with:

@@ -770,13 +770,24 @@ export async function walk(srcDir, outDir, product, options = {}) {
 
 async function availableVariantDocs(axis) {
     const available = [];
+    const missing = [];
     for (const variant of axis.publicDocsVariants) {
         try {
             await fs.access(variant.src);
             available.push(variant);
         } catch {
-            // Variant repositories are optional for local partial builds.
+            // Variant repositories are optional so a local partial build still works.
+            missing.push(variant);
         }
+    }
+    // Say so. A configured variant that is simply absent used to vanish in
+    // silence: its pages, its sidebar group and its side of every language tab
+    // all disappeared from a build that otherwise looked completely healthy,
+    // which is exactly how a variant ships missing from production.
+    for (const variant of missing) {
+        console.warn(
+            `[sync] WARNING: ${axis.productKey}/${axis.key}: variant "${variant.key}" is configured but its docs were not found at ${variant.src} — its pages, sidebar group and language tabs will be absent from this build.`
+        );
     }
     return available;
 }
