@@ -26,9 +26,12 @@ async function exists(file) {
 
 async function* markdownFiles(directory) {
     for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
+        // Astro's docs loader excludes dot-prefixed files and directories.
+        // Contributing sources can include editor commands beside public pages.
+        if (entry.name.startsWith('.')) continue;
         const file = path.join(directory, entry.name);
         if (entry.isDirectory()) yield* markdownFiles(file);
-        else if (entry.isFile() && /\.mdx?$/.test(file)) yield file;
+        else if (entry.isFile() && !entry.name.startsWith('_') && /\.mdx?$/.test(file)) yield file;
     }
 }
 

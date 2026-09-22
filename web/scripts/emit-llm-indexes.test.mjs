@@ -66,6 +66,14 @@ it('refuses to advertise a page without a matching HTML route', async () => {
     assert.equal(existsSync(path.join(dist, 'chronicle/llms.txt')), false);
 });
 
+it('does not index dotfiles excluded by the Astro docs loader', async () => {
+    source('chronicle/.cursor/commands/private.md', '# Editor command');
+    source('chronicle/.hidden.md', '# Hidden page');
+    source('chronicle/_partial.md', '# Partial');
+    assert.deepEqual(await emitLlmIndexes(dist, products, sets, docsRoot), { indexedPages: 3, products: 1, areas: 1 });
+    assert.doesNotMatch(readFileSync(path.join(dist, 'chronicle/llms.txt'), 'utf8'), /cursor|hidden/);
+});
+
 it('rejects two sources that resolve to the same public route', async () => {
     source('chronicle/events/append.mdx', '---\ntitle: Duplicate\n---\n');
     await assert.rejects(emitLlmIndexes(dist, products, sets, docsRoot), /Duplicate published page route: \/chronicle\/events\/append\//);
