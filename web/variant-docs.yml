@@ -310,6 +310,25 @@ products:
               blockedOutput:
                 - "command not found: dotnet"
                 - "No .NET SDKs were found"
+          # Java shares the JVM repository with Kotlin: one implementation, two
+          # languages a reader might write it in. It contributes snippets and
+          # mounts no docs of its own, the same shape Chronicle's java client uses.
+          java:
+            label: Java
+            snippets:
+              paths:
+                - ../../Arc.Kotlin/Documentation/client-snippets-java
+                - ../Arc.Kotlin/Documentation/client-snippets-java
+            validator:
+              cwd:
+                - ../../Arc.Kotlin
+                - ../Arc.Kotlin
+              command: python3
+              args:
+                - Documentation/validate-client-snippets.py
+              blockedOutput:
+                - Unable to locate a Java Runtime
+
           kotlin:
             label: Kotlin
             snippets:
