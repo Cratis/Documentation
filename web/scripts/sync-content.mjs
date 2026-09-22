@@ -621,9 +621,29 @@ async function expandAxisMacro(body, ctx, axis) {
         // one axis's tab choice drive an unrelated axis's tabs.
         const syncKey = getAttr(attrs, 'syncKey') ?? axis.syncKey;
 
+        // A page that belongs to one variant's own docs still wants tabs, just not
+        // across every variant of the axis: the JVM backend's pages offer Kotlin and
+        // Java and have no business offering C#. Naming a subset keeps the axis's
+        // syncKey, so a reader's language choice still follows them onto shared pages.
+        const requestedVariants = getAttr(attrs, 'variants');
+        let snippetVariants = axis.snippetVariants;
+        if (requestedVariants) {
+            const keys = requestedVariants.split(',').map(_ => _.trim()).filter(Boolean);
+            const unknown = keys.filter(key => !axis.snippetVariants.some(variant => variant.key === key));
+            if (unknown.length) {
+                throw new Error(
+                    `[sync] ${axis.macro} in ${ctx.srcPath} names ${axis.key} variant(s) that do not exist: `
+                    + `${unknown.join(', ')}. Known variants: ${axis.snippetVariants.map(_ => _.key).join(', ')}`
+                );
+            }
+            // Axis order, not the order they were written in, so tab order is the same
+            // on every page whatever the author typed.
+            snippetVariants = axis.snippetVariants.filter(variant => keys.includes(variant.key));
+        }
+
         const tabs = [];
         const absent = [];
-        for (const source of axis.snippetVariants) {
+        for (const source of snippetVariants) {
             const content = await readVariantSnippet(source, snippet);
             if (content === null) {
                 absent.push(source.label);
