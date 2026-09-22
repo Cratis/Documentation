@@ -344,6 +344,50 @@ test('a missing snippet omits only that tab, while no snippet at all is a hard e
     );
 });
 
+test('a variant macro can name a subset of the axis, and rejects a variant that does not exist', async (context) => {
+    const root = await fixture(context);
+    const csharp = path.join(root, 'csharp');
+    const kotlin = path.join(root, 'kotlin');
+    const java = path.join(root, 'java');
+    await put(csharp, 'example.md', '```csharp\nstore.Connect();\n```\n');
+    await put(kotlin, 'example.md', '```kotlin\nstore.connect()\n```\n');
+    await put(java, 'example.md', '```java\nstore.connect();\n```\n');
+    const ctx = conversionContext(root, {
+        basename: 'page.mdx',
+        srcPath: path.join(root, 'page.mdx'),
+        product: { key: 'chronicle', src: root },
+        variantAxes: [variantAxis({
+            snippetVariants: [
+                { key: 'csharp', label: 'C#', src: csharp },
+                { key: 'kotlin', label: 'Kotlin', src: kotlin },
+                { key: 'java', label: 'Java', src: java },
+            ],
+        })],
+    });
+
+    // The JVM's own pages offer the two JVM languages and not C#, on the axis syncKey
+    // so the choice still follows the reader onto the shared pages.
+    const subset = await convertFile('<ChronicleClientTabs snippet="example" variants="java,kotlin" />\n', ctx);
+    assert.match(subset, /<Tabs syncKey="chronicle-client">/);
+    assert.match(subset, /<TabItem label="Kotlin">/);
+    assert.match(subset, /<TabItem label="Java">/);
+    assert.doesNotMatch(subset, /<TabItem label="C#">/);
+    // Axis order wins over the order the author wrote, so tab order is stable site-wide.
+    assert.ok(subset.indexOf('label="Kotlin"') < subset.indexOf('label="Java"'));
+
+    const all = await convertFile('<ChronicleClientTabs snippet="example" />\n', ctx);
+    assert.match(all, /<TabItem label="C#">/);
+
+    await assert.rejects(
+        convertFile('<ChronicleClientTabs snippet="example" variants="kotlin,rust" />\n', ctx),
+        (error) => {
+            assert.match(error.message, /variant\(s\) that do not exist: rust/);
+            assert.match(error.message, /Known variants: csharp, kotlin, java/);
+            return true;
+        }
+    );
+});
+
 test('a second product expands two axes independently, each with its own syncKey', async (context) => {
     const root = await fixture(context);
     const backend = path.join(root, 'backend-snippets');
