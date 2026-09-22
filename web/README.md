@@ -79,14 +79,16 @@ A successful build:
 - converts all products (`[sync] chronicle: N pages ...` etc.),
 - reports `0 broken toc entries dropped`,
 - ends with `[build] N page(s) built` and `[build] Complete!`,
-- generates `/llms.txt` and `/llms-full.txt`, and builds the Pagefind search index.
+- generates the site-wide `/llms.txt` and bulk `/llms-full.txt`, product and area indexes (such as `/chronicle/llms.txt` and `/chronicle/events/llms.txt`), bounded rendered-text sets under `/_llms-txt/`, and the Pagefind search index.
+
+The product indexes come from the synchronized pages in this build; they link to canonical HTML and offer rendered-text sets for a few focused areas. Add or adjust those sets in `scripts/llm-sets.mjs`. The postbuild step rejects missing pages, empty sets, and sets larger than 600 KB. The site-wide full export is a bulk archive, not a useful default context for a question. Product indexes are generated **after a production build**, not by `npm run dev`.
 
 Two QA scripts back this up:
 
 - `npm run lint:docs` — fails on non-descriptive link text (`[here]`, `[see documentation]`) and any leftover DocFX-isms (`<xref:>`, `[!INCLUDE]`, unconverted alerts). **Gates the build (0 errors required).**
-- `npm run check:links` — verifies every internal Markdown link resolves to a real built page (Starlight does not). Run after a build. The site is currently at **zero broken internal links**, and this **gates the CI build** to keep it that way.
+- `npm run check:links` — verifies internal links against built pages (Starlight does not). Run after a build; missing sibling product sources can leave local links unresolved, so check the named targets before attributing a failure to your change.
 
-`npm run check` runs build + lint + link-check together. Preview the production build locally with `npm run preview`.
+`npm run check` runs the build, variant-docs checks, lint, and link checks. Preview the production build locally with `npm run preview`.
 
 ## Verify it works locally — checklist
 
@@ -95,7 +97,7 @@ Two QA scripts back this up:
 3. **Navigation:** the sidebar starts with *Why Cratis · Build a full-stack feature · Samples · API reference*, then each product (Chronicle, Arc, Components, CLI, Fundamentals, Contributing) with its sections.
 4. **Search:** the top-bar search returns results (try "projection").
 5. **Diagrams render:** open *Chronicle → Architecture* — the Mermaid diagrams display.
-6. **AI export:** http://localhost:4321/llms.txt lists the docs.
+6. **AI export:** after `npm run build`, inspect `dist/llms.txt`, `dist/chronicle/llms.txt`, and `dist/_llms-txt/chronicle-events.txt`. `npm run dev` does not run postbuild.
 
 ## Adding or editing a page
 

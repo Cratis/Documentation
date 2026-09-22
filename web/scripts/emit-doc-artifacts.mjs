@@ -8,6 +8,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertPublicDocPath, assertPublicDocSource } from './private-doc-paths.mjs';
+import { emitLlmIndexes } from './emit-llm-indexes.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..');
@@ -69,5 +70,7 @@ export async function emitDocArtifacts(docsRoot, distRoot) {
 }
 
 if (process.argv[1] && await fs.realpath(process.argv[1]) === await fs.realpath(fileURLToPath(import.meta.url))) {
-    await emitDocArtifacts(path.join(webRoot, 'src', 'content', 'docs'), path.join(webRoot, 'dist'));
+    const dist = path.join(webRoot, 'dist');
+    await emitDocArtifacts(path.join(webRoot, 'src', 'content', 'docs'), dist);
+    await emitLlmIndexes(dist);
 }

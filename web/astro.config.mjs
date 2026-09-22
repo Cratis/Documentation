@@ -6,6 +6,7 @@ import mermaid from 'astro-mermaid';
 import remarkGfm from 'remark-gfm';
 import { remarkMermaidPrerender, closeBrowser } from './scripts/mermaid-prerender.mjs';
 import { rehypeFocusableTables } from './scripts/rehype-focusable-tables.mjs';
+import { LLM_SETS } from './scripts/llm-sets.mjs';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightPageActions from 'starlight-page-actions';
 import starlightScrollToTop from 'starlight-scroll-to-top';
@@ -356,6 +357,14 @@ export default defineConfig({
                 // an assistant reading only /llms.txt still gets the whole picture.
                 starlightLlmsTxt({
                     projectName: 'Cratis',
+                    minify: { note: false, tip: false, details: false, whitespace: false },
+                    customSets: LLM_SETS.map(({ label, paths, product, area }) => ({
+                        label,
+                        paths,
+                        description: `For canonical page URLs and citations see https://www.cratis.io/${product}/${area}/llms.txt`,
+                    })),
+                    // The postbuild index adds product and area links for the
+                    // sources actually present in this build.
                     description:
                         'Cratis is an open-source, MIT-licensed platform for building event-sourced and CQRS applications. At its center is Chronicle, an event-sourcing database and processing runtime with a first-class .NET SDK and additional TypeScript, Kotlin/Java (JVM), and Elixir clients — with a Python client coming soon — plus pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite.',
                     details: [
