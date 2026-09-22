@@ -56,6 +56,15 @@ const chronicleMcpTopic = productTopics.find((topic) => topic.id === 'chronicle-
 const prompterTopic = productTopics.find((topic) => topic.id === 'prompter');
 productTopics = productTopics.filter((topic) => topic.id !== 'chronicle-mcp' && topic.id !== 'prompter');
 
+// The three EventModelers.ai build kits (one per language) are generated like any
+// other product topic, but in the nav they surface nested under the hand-authored
+// "EventModelers.ai" group in the "Cratis Stack" topic below, not as their own
+// icon-rail entries — the same pattern chronicle-mcp/prompter use under "AI".
+const eventModelersCSharpTopic = productTopics.find((topic) => topic.id === 'eventmodelers-ai/csharp');
+const eventModelersKotlinTopic = productTopics.find((topic) => topic.id === 'eventmodelers-ai/kotlin');
+const eventModelersJavaTopic = productTopics.find((topic) => topic.id === 'eventmodelers-ai/java');
+productTopics = productTopics.filter((topic) => !topic.id?.startsWith('eventmodelers-ai/'));
+
 // The first topic gathers the site-level, cross-product pages (hand-authored in
 // web/, not owned by any product): the "why", the capstone, samples, tools.
 const overviewTopic = {
@@ -156,6 +165,16 @@ const overviewTopic = {
             ],
         },
         { label: 'Auth and compliance', slug: 'auth-and-compliance' },
+        {
+            label: 'EventModelers.ai',
+            collapsed: true,
+            items: [
+                { label: 'Overview', slug: 'eventmodelers-ai' },
+                ...(eventModelersCSharpTopic ? [{ label: eventModelersCSharpTopic.label, collapsed: true, items: eventModelersCSharpTopic.items }] : []),
+                ...(eventModelersKotlinTopic ? [{ label: eventModelersKotlinTopic.label, collapsed: true, items: eventModelersKotlinTopic.items }] : []),
+                ...(eventModelersJavaTopic ? [{ label: eventModelersJavaTopic.label, collapsed: true, items: eventModelersJavaTopic.items }] : []),
+            ],
+        },
         { label: 'Samples', slug: 'samples' },
         { label: 'Showcase and architectures', slug: 'showcase' },
         { label: "What's new", slug: 'whats-new' },
@@ -311,7 +330,7 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/compare-event-sourcing-dotnet', '/compare-event-sourcing-jvm', '/adopting-cratis', '/chronicle-clients', '/event-sourcing/**', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/upgrade-path', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/compare-event-sourcing-dotnet', '/compare-event-sourcing-jvm', '/adopting-cratis', '/chronicle-clients', '/event-sourcing/**', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/upgrade-path', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/eventmodelers-ai', '/eventmodelers-ai/**', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],

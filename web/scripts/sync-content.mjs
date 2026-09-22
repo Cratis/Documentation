@@ -113,18 +113,6 @@ export const PRODUCTS = [
         ],
     },
     {
-        // C# Templates — the `dotnet new` templates that scaffold Cratis applications,
-        // from a minimal Chronicle console app to the full-stack Arc web application.
-        key: 'templates', label: 'C# Templates', icon: 'layout-template', sidebarMode: 'toc',
-        src: firstExisting(
-            path.join(reposRoot, 'Templates', 'Documentation'),
-            path.join(docRepoRoot, 'Templates', 'Documentation')),
-        buckets: [
-            { label: 'Start here', sections: ['Overview', 'Getting Started'] },
-            { label: 'The templates', sections: ['Cratis Web Application', 'Chronicle Console', 'Chronicle Web', 'Cratis Aspire'] },
-        ],
-    },
-    {
         // AuthProxy — the ASP.NET Core gateway that sits in front of a Cratis app's
         // backend and frontend services and owns the edge concerns (authentication,
         // tenancy, identity enrichment, invites/lobby).
@@ -213,11 +201,16 @@ export const PRODUCTS = [
     },
     {
         // The `dotnet new` creation templates for scaffolding a new Cratis application
-        // (Cratis.Templates on NuGet).
-        key: 'templates', label: 'Templates', icon: 'seti:app', sidebarMode: 'toc',
+        // (Cratis.Templates on NuGet), from a minimal Chronicle console app to the
+        // full-stack Arc web application.
+        key: 'templates', label: 'Templates', icon: 'add-document', sidebarMode: 'toc',
         src: firstExisting(
             path.join(reposRoot, 'Templates', 'Documentation'),
             path.join(docRepoRoot, 'Templates', 'Documentation')),
+        buckets: [
+            { label: 'Start here', sections: ['Overview', 'Getting Started'] },
+            { label: 'The templates', sections: ['Cratis Web Application', 'Chronicle Console', 'Chronicle Web', 'Cratis Aspire'] },
+        ],
     },
     {
         // The Chronicle MCP server — connects an AI agent to a running store over the Model Context
@@ -265,6 +258,28 @@ export const PRODUCTS = [
         src: firstExisting(
             path.join(reposRoot, 'Prompter', 'Documentation'),
             path.join(docRepoRoot, 'Prompter', 'Documentation')),
+    },
+    {
+        // EventModelers.ai build kits — one per language, each a real-time agent that turns
+        // Eventmodelers board slices into Cratis (Arc + Chronicle) vertical slices. These three
+        // get pulled out of the icon rail in astro.config.mjs and nested under the "Cratis Stack"
+        // topic's "EventModelers.ai" group, the same way chronicle-mcp/prompter nest under "AI".
+        key: 'eventmodelers-ai/csharp', label: 'C#', icon: 'code-branch', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Eventmodelers-Build-Kit-CSharp', 'Documentation'),
+            path.join(docRepoRoot, 'Eventmodelers-Build-Kit-CSharp', 'Documentation')),
+    },
+    {
+        key: 'eventmodelers-ai/kotlin', label: 'Kotlin', icon: 'code-branch', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Eventmodelers-Build-Kit-Kotlin', 'Documentation'),
+            path.join(docRepoRoot, 'Eventmodelers-Build-Kit-Kotlin', 'Documentation')),
+    },
+    {
+        key: 'eventmodelers-ai/java', label: 'Java', icon: 'code-branch', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Eventmodelers-Build-Kit-Java', 'Documentation'),
+            path.join(docRepoRoot, 'Eventmodelers-Build-Kit-Java', 'Documentation')),
     },
 ];
 

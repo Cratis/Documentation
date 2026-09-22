@@ -15,6 +15,9 @@ src/content/docs/contributing/
 src/content/docs/screenplay/
 src/content/docs/prologue/
 src/content/docs/prompter/
+src/content/docs/eventmodelers-ai/csharp/
+src/content/docs/eventmodelers-ai/kotlin/
+src/content/docs/eventmodelers-ai/java/
 src/content/docs/release-digests/
 # generated API reference + Storybook (built into public/ by CI or `npm run build:storybook` / `build:api`)
 public/storybook/

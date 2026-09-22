@@ -1,0 +1,70 @@
+---
+title: EventModelers.ai
+description: What EventModelers.ai is, how its Build Kits turn a slice marked Planned into a tested Cratis vertical slice, and where to find the C#, Kotlin, and Java kits.
+slug: eventmodelers-ai
+---
+
+import { CardGrid, Aside } from '@astrojs/starlight/components';
+import SimpleCard from '@components/SimpleCard.astro';
+import TopicHero from '@components/TopicHero.astro';
+
+<TopicHero icon="list-format" eyebrow="The Cratis Stack" title="From a modeled slice to running Cratis code">
+[EventModelers.ai](https://eventmodelers.ai) is a visual [event modeling](/event-modeling/) platform where business, engineering, and AI agents design a system on one shared timeline — and mark a slice `Planned` to have an AI coding agent implement it. The **Cratis Build Kits** are the language-specific agents that pick those slices up and turn them into real Cratis (Arc + Chronicle) vertical slices, built, tested, and committed.
+</TopicHero>
+
+## What EventModelers.ai is
+
+Requirements written as tickets lose the reasoning behind them the moment they're written down, and an AI coding agent handed a vague ticket guesses — confidently, and often wrong. [EventModelers.ai](https://eventmodelers.ai) closes that gap by making the **event model itself** the shared artifact: a visual timeline of screens, commands, events, and read models that business and engineering read the same way, and that's precise enough for an AI agent to build from directly.
+
+The platform's own loop:
+
+1. **Discover & model** — map commands, events, and read models onto a shared timeline, in a workshop or an AI-assisted session.
+2. **Slice the work** — break the model into vertical slices, each a self-contained, buildable unit of business value.
+3. **Generate & build** — mark a slice `Planned` on the board; an AI coding agent implements it, runs the tests, and commits.
+4. **Stay in sync** — change the model and the code catches up, so the board and the codebase never drift apart.
+
+This is the same vocabulary [Event Modeling](/event-modeling/) already uses in the rest of the Cratis documentation — commands, events, read models, processors — because EventModelers.ai's slice types map directly onto Cratis's own vertical-slice patterns (State Change, State View, Automation, Translation).
+
+<Aside type="note" title="Not a Cratis product">
+EventModelers.ai is built by [Nebulit](https://github.com/Nebulit-GmbH), independent of Cratis. The **Build Kits** below are what Cratis maintains: the language-specific agents that consume an EventModelers.ai board and generate Cratis code from it. See [eventmodelers.ai](https://eventmodelers.ai) for the platform itself — workshops, pricing, and the modeling UI live there, not here.
+</Aside>
+
+## What a Build Kit does
+
+Each Build Kit is a real-time Claude agent you install into a Cratis project. Once connected to a board, it runs a loop that:
+
+1. **Connects** to the Eventmodelers Platform in real time
+2. **Fetches** a slice's definition the moment it's marked `Planned`
+3. **Routes** it to the right build skill by slice type — a command/event pair, a projection/read model, or a reactor
+4. **Generates** the vertical slice following Cratis conventions for that language
+5. **Builds and tests** it, then **updates the board to `Done`**
+
+All without you opening an editor. See [The Loop and Triggers](#pick-your-language) in each kit's documentation for the exact mechanics, and [Event Modeling](/event-modeling/) for why the four slice types map onto Cratis so directly.
+
+## Pick your language
+
+Three Build Kits exist today, one per Cratis client stack. Each is a separate, independently versioned repository — pick the one that matches your project:
+
+<CardGrid>
+  <SimpleCard title="C#" icon="code-branch" link="/eventmodelers-ai/csharp/">
+    For .NET projects on Cratis Arc + Chronicle.
+  </SimpleCard>
+  <SimpleCard title="Kotlin" icon="code-branch" link="/eventmodelers-ai/kotlin/">
+    For Kotlin projects on Arc.Kotlin + Chronicle.Kotlin.
+  </SimpleCard>
+  <SimpleCard title="Java" icon="code-branch" link="/eventmodelers-ai/java/">
+    For Java projects on Arc.Kotlin + Chronicle.Kotlin.
+  </SimpleCard>
+</CardGrid>
+
+Every kit follows the same install → connect → run shape:
+
+1. **Install** — `npx github:Cratis/Eventmodelers-Build-Kit-<language> install` scaffolds a Cratis starter app and the agent loop into your project.
+2. **Connect a board** — give the kit your EventModelers.ai organization, board, and API token (from [app.eventmodelers.ai/account](https://app.eventmodelers.ai/account)).
+3. **Run the loop** — `node .build-kit/ralph-claude.js`, then mark a slice `Planned` on your board and watch it land as tested code.
+
+## See also
+
+- [Event Modeling](/event-modeling/) — the notation and the four slice patterns the kits generate from
+- [eventmodelers.ai](https://eventmodelers.ai) — the platform: workshops, the modeling UI, and the [FAQ](https://eventmodelers.ai/docs/eventmodeling-faq)
+- [Build a full-stack feature](/build-a-full-app/) — the same command/event/read-model shapes, built by hand

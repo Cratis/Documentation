@@ -251,6 +251,33 @@ jobs:
           persist-credentials: false
           path: Prompter
 
+      - name: Checkout Eventmodelers-Build-Kit-CSharp
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Eventmodelers-Build-Kit-CSharp
+          ref: main
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          path: Eventmodelers-Build-Kit-CSharp
+
+      - name: Checkout Eventmodelers-Build-Kit-Kotlin
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Eventmodelers-Build-Kit-Kotlin
+          ref: main
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          path: Eventmodelers-Build-Kit-Kotlin
+
+      - name: Checkout Eventmodelers-Build-Kit-Java
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Eventmodelers-Build-Kit-Java
+          ref: main
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          path: Eventmodelers-Build-Kit-Java
+
       - uses: actions/setup-node@v4
         with:
           node-version: 23   # Components (Storybook build) requires node >=23
