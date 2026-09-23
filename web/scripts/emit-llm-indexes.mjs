@@ -109,6 +109,9 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
         }
         const productRoute = `/${key}/llms.txt`;
         const overview = [`# ${label} documentation`, '', `> Choose a focused area or a page. HTML is canonical; the linked full-text sets contain rendered Markdown.`, ''];
+        const entryArea = ['get-started', 'getting-started', 'tutorial'].find(area => areas.has(area));
+        const entryPage = entryArea && areas.get(entryArea).find(page => page.route === `/${key}/${entryArea}/`);
+        if (entryPage) overview.push('## Start here', '', link(entryPage.title, entryPage.route), '');
         const roots = areas.get('') ?? [];
         if (roots.length) overview.push('## Overview', '', ...roots.sort((a, b) => a.route.localeCompare(b.route)).map(page => link(page.title, page.route)), '');
         for (const [area, pages] of [...areas].filter(([name]) => name).sort(([a], [b]) => a.localeCompare(b))) {
