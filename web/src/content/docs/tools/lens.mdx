@@ -32,6 +32,18 @@ Lens opens as a popup with four tabs. When the current tab is a running Arc appl
 
 Under the hood it's a Manifest V3 extension built with React, Vite, and PrimeReact — the same UI stack as [Components](/components/) — and it talks to the Arc backend's introspection endpoints to discover the command and query catalog.
 
+## Where the tenant and user roster comes from
+
+The **Settings** tab's "sync straight from the connected Arc app" roster is not
+configuration Lens invents on its own — it reads two anonymous, development-only
+endpoints every Arc application already exposes: `GET /.cratis/tenants` and
+`GET /.cratis/users`. A backend answers them by implementing `ICanProvideTenants`
+and `ICanProvideUsers` in C#, or the equivalent `TenantsProvider`/`UsersProvider`
+in Kotlin and Java. See [Development users and tenants (C#)](/arc/backend/csharp/identity/development-and-topologies/)
+or [Development users and tenants (Kotlin and Java)](/arc/backend/kotlin/guides/development-users-and-tenants/)
+for how to implement a provider, and [Lens: Tenants and Users](https://github.com/Cratis/Lens/blob/main/Documentation/GettingStarted/TenantsAndUsers/index.md)
+for screenshots of the extension working against seeded demo data.
+
 ## Install from the Chrome Web Store
 
 The easiest way to install Lens is directly from the [Chrome Web Store](https://chromewebstore.google.com/detail/cratis-lens/hfdpoljbaknodcgejjohafbfjejijklj). Click **Add to Chrome** and the extension is ready to use.
@@ -65,6 +77,9 @@ For an active edit loop, run `yarn dev` to rebuild on change, and reload the ext
 <CardGrid>
   <SimpleCard title="Queries in Arc" icon="puzzle" link="/arc/backend/csharp/queries/">
     What Lens is browsing — how Arc exposes queries and observable queries over your read models.
+  </SimpleCard>
+  <SimpleCard title="Tenants and users, with screenshots" icon="seti:image" link="https://github.com/Cratis/Lens/blob/main/Documentation/GettingStarted/TenantsAndUsers/index.md">
+    See the Context and Settings tabs against real seeded demo data, and how the roster is sourced from your Arc backend.
   </SimpleCard>
   <SimpleCard title="VS Code extension (Narrator)" icon="laptop" link="/tools/vscode-extension/">
     The editor-side companion — explore the Chronicle event store from VS Code.
