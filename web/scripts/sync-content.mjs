@@ -20,6 +20,7 @@ import { existsSync } from 'node:fs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { assertPublicDocPath, assertPublicDocSource, isPrivateDocPath } from './private-doc-paths.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
+import { sourceEditUrl } from './source-edit-url.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..'); // Documentation/web
@@ -739,7 +740,7 @@ export async function convertFile(raw, ctx) {
     out = convertXref(out);
     out = normalizeMarkdownTables(fixLinks(out, ctx));
 
-    const fm = { title };
+    const fm = { title, editUrl: sourceEditUrl(ctx.srcPath, reposRoot, docRepoRoot) };
     if (src.description) fm.description = src.description;
     if (src.sidebar) fm.sidebar = src.sidebar; // order/label/badge, when authors set it
     if (src.tableOfContents !== undefined) fm.tableOfContents = src.tableOfContents;
@@ -875,7 +876,9 @@ async function writeVariantDocsLanding(outDir, axis, variants) {
         .map((variant) => `- [${variant.label}](/${variantDocsSlugBase(axis, variant.key)}/)`)
         .join('\n');
 
-    const body = `---\ntitle: ${title}\n---\n\n${intro}\n\n## ${sharedHeading}\n\n${topicLinks}\n\n## ${variantHeading}\n\n${variantLinks}\n`;
+    // The landing is generated from configuration and has no authored source
+    // file, so disable the site-wide edit link rather than pointing at this copy.
+    const body = `---\ntitle: ${title}\neditUrl: false\n---\n\n${intro}\n\n## ${sharedHeading}\n\n${topicLinks}\n\n## ${variantHeading}\n\n${variantLinks}\n`;
 
     await fs.writeFile(landingPath, body, 'utf8');
 }
@@ -1325,10 +1328,12 @@ async function syncReleaseDigests() {
         const title = `Release digest: ${longRange} (Week ${week})`;
         const description = `Cross-repository release digest for the week of ${longRange}, ISO week ${week} of ${isoYear}.`;
         const body = stripLeadingH1(convertAlerts(raw));
+        const editUrl = sourceEditUrl(path.join(RELEASE_DIGESTS_SRC, digest.file), reposRoot, docRepoRoot);
         const frontmatter = [
             '---',
             `title: ${quoteYaml(title)}`,
             `description: ${quoteYaml(description)}`,
+            `editUrl: ${editUrl ? quoteYaml(editUrl) : 'false'}`,
             '---',
             '',
         ].join('\n');
