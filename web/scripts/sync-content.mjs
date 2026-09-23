@@ -419,14 +419,17 @@ function isExternalOrSpecial(url) {
 }
 
 function stripDocTarget(pathPart) {
-    let out = pathPart;
-    if (/\/?toc\.ya?ml$/i.test(out)) {
-        out = out.replace(/\/?toc\.ya?ml$/i, '');
-    } else if (/\.mdx?$/i.test(out)) {
-        out = out.replace(/\.mdx?$/i, '');
-        out = out.replace(/\/index$/i, '/').replace(/(^|\/)index$/i, '$1');
+    if (/\/?toc\.ya?ml$/i.test(pathPart)) {
+        return pathPart.replace(/\/?toc\.ya?ml$/i, '');
     }
-    return out;
+    // A link with no .md/.mdx extension is content-page shorthand exactly like
+    // an explicit one (e.g. `[Security](index)` alongside `[Security](index.mdx)`
+    // both mean the section landing page), so a bare "index" or trailing
+    // "/index" segment must collapse here too — Astro's slug generator drops a
+    // trailing "index" segment when it builds routes, so an unresolved "index"
+    // would link to a route that was never generated.
+    const out = pathPart.replace(/\.mdx?$/i, '');
+    return out.replace(/\/index$/i, '/').replace(/(^|\/)index$/i, '$1');
 }
 
 function slugifyPath(urlPath) {

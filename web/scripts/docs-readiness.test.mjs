@@ -696,6 +696,17 @@ test('link conversion normalizes table padding after rewrite, never the source f
     assert.equal(await fs.readFile(file, 'utf8'), source);
 });
 
+test('a bare extensionless relative link to "index" collapses the same way an explicit .md target does', async (context) => {
+    const root = await fixture(context);
+    const file = await put(root, 'security/encrypted-values.md', '[Security](index) and [Security](index.md) and [Security](../security/index)\n');
+    const converted = await convertFile(await fs.readFile(file, 'utf8'), conversionContext(root, {
+        dir: path.dirname(file),
+        basename: path.basename(file),
+        srcPath: file,
+    }));
+    assert.match(converted, /\[Security\]\(\/fixture\/security\/\) and \[Security\]\(\/fixture\/security\/\) and \[Security\]\(\/fixture\/security\/\)/);
+});
+
 test('table normalization preserves escaped pipes, code spans, alignment and cell interiors', () => {
     const source = '| Left| Center |Right|\n|:---|:---:|---:|\n|a\\|b|`` a|`b ``|two  spaces|\n|`a|b`|x\\\\|` c `|\n';
     const output = normalizeMarkdownTables(source);
