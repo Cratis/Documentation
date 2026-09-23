@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { PRODUCTS } from './sync-content.mjs';
 import { LLM_SETS, llmSetSlug } from './llm-sets.mjs';
-import { citeRenderedSet } from './llm-set-sources.mjs';
+import { citeRenderedSet, withoutSnippetSourceLinks } from './llm-set-sources.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const site = 'https://www.cratis.io';
@@ -132,11 +132,12 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
         productLinks.push(link(`${label} documentation`, productRoute));
     }
     if (!productLinks.length || !indexedPages) throw new Error('No product pages indexed');
+    const areaIndexes = output.size - productLinks.length;
     for (const set of sets) {
         if (!output.has(`/${set.product}/${set.area}/llms.txt`)) throw new Error(`Set without a published area index: ${set.label}`);
         const route = fullSets.get(`${set.product}/${set.area}`);
         const content = await fs.readFile(path.join(dist, route.slice(1)), 'utf8');
-        output.set(route, citeRenderedSet(content, selectedPages.get(set), set.label));
+        output.set(route, citeRenderedSet(withoutSnippetSourceLinks(content), selectedPages.get(set), set.label));
     }
     const root = path.join(dist, 'llms.txt');
     if (!await exists(root)) throw new Error('Missing site-wide llms.txt');
@@ -160,14 +161,18 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
         if (!await exists(path.join(dist, route.slice(1), 'index.html'))) throw new Error(`Missing cross-product guide: ${route}`);
     }
     const rootIndex = original.replace('## Documentation Sets\n', `${introduction}\n\n## Documentation Sets\n`);
+    for (const bulk of ['llms-full.txt', 'llms-small.txt']) {
+        const file = path.join(dist, bulk);
+        if (await exists(file)) output.set(`/${bulk}`, withoutSnippetSourceLinks(await fs.readFile(file, 'utf8')));
+    }
     for (const [route, content] of output) {
         const file = path.join(dist, route.slice(1));
         await fs.mkdir(path.dirname(file), { recursive: true });
         await fs.writeFile(file, `${content.trimEnd()}\n`);
     }
     await fs.writeFile(root, rootIndex);
-    console.log(`[postbuild] indexed ${indexedPages} product pages in ${productLinks.length} products and ${output.size - productLinks.length - sets.length} areas; ${sets.length} bounded rendered sets`);
-    return { indexedPages, products: productLinks.length, areas: output.size - productLinks.length - sets.length };
+    console.log(`[postbuild] indexed ${indexedPages} product pages in ${productLinks.length} products and ${areaIndexes} areas; ${sets.length} bounded rendered sets`);
+    return { indexedPages, products: productLinks.length, areas: areaIndexes };
 }
 
 if (process.argv[1] && await fs.realpath(process.argv[1]) === await fs.realpath(fileURLToPath(import.meta.url))) {
