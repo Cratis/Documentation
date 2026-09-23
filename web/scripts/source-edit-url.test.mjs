@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { it } from 'node:test';
-import { sourceEditUrl } from './source-edit-url.mjs';
+import { sourceEditUrl, sourceViewUrl } from './source-edit-url.mjs';
 
 const repos = '/checkout/cratis';
 const site = path.join(repos, 'Documentation');
@@ -26,6 +26,13 @@ it('links fallback submodules and the organization contributing source', () => {
         'https://github.com/Cratis/.github/edit/main/contributing.md');
     assert.equal(edit(path.join(site, 'CLI/Documentation/new.md')),
         'https://github.com/Cratis/cli/edit/main/Documentation/new.md');
+});
+
+it('views a snippet file in its owning repository with the same allowlist as editing', () => {
+    assert.equal(sourceViewUrl(path.join(repos, 'Chronicle.Kotlin/Documentation/client-snippets-java/events/append.md'), repos, site),
+        'https://github.com/Cratis/Chronicle.Kotlin/blob/main/Documentation/client-snippets-java/events/append.md');
+    assert.equal(sourceViewUrl(path.join(repos, 'Unrelated/Documentation/snippet.md'), repos, site), false);
+    assert.equal(sourceViewUrl(path.join(site, '.ai-work/snippet.md'), repos, site), false);
 });
 
 it('does not send local fixtures or generated site files to an invented repo', () => {
