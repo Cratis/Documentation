@@ -102,6 +102,17 @@ it('rejects a full-text set with pages outside the index it cites', async () => 
     ], docsRoot), /Documentation set spans pages outside its area index/);
 });
 
+it('drops per-tab snippet source links from rendered sets and bulk exports', async () => {
+    const sourceLink = '[View Kotlin snippet source on GitHub](https://github.com/Cratis/Chronicle.Kotlin/blob/main/Documentation/client-snippets/events/append.md)\n';
+    file('_llms-txt/chronicle-events.txt', `# Events\n${'A working event example. '.repeat(10)}\n${sourceLink}# Append an event\n${'Append the event. '.repeat(10)}\n`);
+    file('llms-full.txt', `# Events\nText\n${sourceLink}`);
+    await emitLlmIndexes(dist, products, sets, docsRoot);
+    for (const exported of ['_llms-txt/chronicle-events.txt', 'llms-full.txt']) {
+        assert.doesNotMatch(readFileSync(path.join(dist, exported), 'utf8'), /snippet source on GitHub/, exported);
+    }
+    assert.match(readFileSync(path.join(dist, '_llms-txt/chronicle-events.txt'), 'utf8'), /Source: https:\/\/www\.cratis\.io\/chronicle\/events\/append\//);
+});
+
 it('rejects a valid-sized set missing an expected page', async () => {
     file('_llms-txt/chronicle-events.txt', `# Events\n${'Content. '.repeat(30)}`);
     await assert.rejects(emitLlmIndexes(dist, products, sets, docsRoot), /Missing rendered pages in Chronicle events: Append an event/);

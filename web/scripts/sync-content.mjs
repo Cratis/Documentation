@@ -20,7 +20,7 @@ import { existsSync } from 'node:fs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { assertPublicDocPath, assertPublicDocSource, isPrivateDocPath } from './private-doc-paths.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
-import { sourceEditUrl } from './source-edit-url.mjs';
+import { sourceEditUrl, sourceViewUrl } from './source-edit-url.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..'); // Documentation/web
@@ -547,7 +547,7 @@ async function readVariantSnippet(source, snippet) {
             await assertPublicDocSource(candidate, source.src);
             const raw = await fs.readFile(candidate, 'utf8');
             const { body } = splitFrontmatter(raw);
-            return body.trim();
+            return { content: body.trim(), filePath: candidate };
         }
     }
     return null;
@@ -645,12 +645,12 @@ async function expandAxisMacro(body, ctx, axis) {
         const tabs = [];
         const absent = [];
         for (const source of snippetVariants) {
-            const content = await readVariantSnippet(source, snippet);
-            if (content === null) {
+            const matched = await readVariantSnippet(source, snippet);
+            if (matched === null) {
                 absent.push(source.label);
                 continue;
             }
-            tabs.push({ source, content });
+            tabs.push({ source, ...matched });
         }
 
         // A registered variant with no snippet loses its tab, and the page then
@@ -672,13 +672,20 @@ async function expandAxisMacro(body, ctx, axis) {
 
         const expanded = [
             `<Tabs syncKey="${syncKey}">`,
-            ...tabs.flatMap(({ source, content }) => [
-                `<TabItem label="${source.label}">`,
-                '',
-                content,
-                '',
-                `</TabItem>`,
-            ]),
+            ...tabs.flatMap(({ source, content, filePath }) => {
+                // Each tab's code is owned by its client repository. Link the exact
+                // authored snippet file so a reader can find and fix the real code;
+                // omit the link rather than invent one for an unowned path.
+                const sourceUrl = sourceViewUrl(filePath, reposRoot, docRepoRoot);
+                return [
+                    `<TabItem label="${source.label}">`,
+                    '',
+                    content,
+                    ...(sourceUrl ? ['', `[View ${source.label} snippet source on GitHub](${sourceUrl})`] : []),
+                    '',
+                    `</TabItem>`,
+                ];
+            }),
             `</Tabs>`,
         ].join('\n');
 

@@ -27,8 +27,7 @@ function within(root, file) {
         : null;
 }
 
-/** Return the original Cratis repository's edit URL, never a generated-site edit URL. */
-export function sourceEditUrl(sourcePath, reposRoot, docRepoRoot) {
+function sourceUrl(action, sourcePath, reposRoot, docRepoRoot) {
     if (!sourcePath) return false;
     const resolved = path.resolve(sourcePath);
     const segments = within(docRepoRoot, resolved) ?? within(reposRoot, resolved);
@@ -37,5 +36,15 @@ export function sourceEditUrl(sourcePath, reposRoot, docRepoRoot) {
     if (!publicCheckouts.has(checkout)) return false;
     const repository = checkoutAliases.get(checkout) ?? checkout;
     if (!/^[a-z0-9._-]+$/i.test(repository)) return false;
-    return `https://github.com/Cratis/${repository}/edit/main/${sourceSegments.map(encodeURIComponent).join('/')}`;
+    return `https://github.com/Cratis/${repository}/${action}/main/${sourceSegments.map(encodeURIComponent).join('/')}`;
+}
+
+/** Return the original Cratis repository's edit URL, never a generated-site edit URL. */
+export function sourceEditUrl(sourcePath, reposRoot, docRepoRoot) {
+    return sourceUrl('edit', sourcePath, reposRoot, docRepoRoot);
+}
+
+/** Return the original Cratis repository's view URL for a source file, or false when it has no public owner. */
+export function sourceViewUrl(sourcePath, reposRoot, docRepoRoot) {
+    return sourceUrl('blob', sourcePath, reposRoot, docRepoRoot);
 }

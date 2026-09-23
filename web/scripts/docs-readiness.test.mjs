@@ -348,6 +348,49 @@ test('a variant macro expands in MDX and ignores fenced examples', async (contex
     assert.doesNotMatch(fenced, /import \{ Tabs/);
 });
 
+test('a snippet outside an owned public repository gets no invented source link', async (context) => {
+    const root = await fixture(context);
+    const snippets = path.join(root, 'snippets');
+    await put(snippets, 'example.md', '```csharp\nstore.Connect();\n```\n');
+    const expanded = await convertFile(
+        '<ChronicleClientTabs snippet="example" />\n',
+        conversionContext(root, {
+            basename: 'shared-page.mdx',
+            srcPath: path.join(root, 'shared-page.mdx'),
+            product: { key: 'chronicle', src: root },
+            variantAxes: [variantAxis({ snippetVariants: [{ key: 'csharp', label: 'C#', src: snippets }] })],
+        })
+    );
+    assert.match(expanded, /store\.Connect\(\);/);
+    assert.doesNotMatch(expanded, /snippet source on GitHub/);
+});
+
+test('each configured client tab links its exact snippet file in the owning repository', async (context) => {
+    const root = await fixture(context);
+    const config = await loadVariantDocsConfig();
+    const axis = config.getAxis('chronicle', 'client');
+    const expanded = await convertFile(
+        '<ChronicleClientTabs snippet="get-started/test-event" />\n',
+        conversionContext(root, {
+            basename: 'shared-page.mdx',
+            srcPath: path.join(root, 'shared-page.mdx'),
+            product: { key: 'chronicle', src: root },
+            variantAxes: [axis],
+        })
+    );
+    const tabs = expanded.split('<TabItem label=').slice(1);
+    assert.ok(tabs.length >= 5, `Expected every Chronicle client tab, got ${tabs.length}`);
+    for (const tab of tabs) {
+        const label = tab.slice(1, tab.indexOf('"', 1));
+        const link = tab.match(/\[View (.+) snippet source on GitHub\]\((https:\/\/github\.com\/Cratis\/[^/]+\/blob\/main\/[^)]+)\)\n\n<\/TabItem>/);
+        assert.ok(link, `${label} tab has no trailing source link`);
+        assert.equal(link[1], label);
+        assert.match(link[2], /\/get-started\/test-event\.mdx?$/);
+    }
+    assert.match(expanded, /\[View C# snippet source on GitHub\]\(https:\/\/github\.com\/Cratis\/Chronicle\/blob\/main\/Documentation\/client-snippets\/get-started\/test-event\.md\)/);
+    assert.match(expanded, /\[View Java snippet source on GitHub\]\(https:\/\/github\.com\/Cratis\/Chronicle\.Kotlin\/blob\/main\/Documentation\/client-snippets-java\/get-started\/test-event\.md\)/);
+});
+
 test('a missing snippet omits only that tab, while no snippet at all is a hard error', async (context) => {
     const root = await fixture(context);
     const csharp = path.join(root, 'csharp');
