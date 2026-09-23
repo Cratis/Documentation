@@ -28,6 +28,7 @@ products:
         # sharing one key would make selecting a backend language silently
         # switch an unrelated frontend framework tab set.
         syncKey: chronicle-client
+        warnOnMissingSnippet: true
         mount:
           route: clients
           landing:
