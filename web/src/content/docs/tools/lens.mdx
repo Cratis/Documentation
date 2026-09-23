@@ -39,10 +39,52 @@ configuration Lens invents on its own — it reads two anonymous, development-on
 endpoints every Arc application already exposes: `GET /.cratis/tenants` and
 `GET /.cratis/users`. A backend answers them by implementing `ICanProvideTenants`
 and `ICanProvideUsers` in C#, or the equivalent `TenantsProvider`/`UsersProvider`
-in Kotlin and Java. See [Development users and tenants (C#)](/arc/backend/csharp/identity/development-and-topologies/)
+in Kotlin and Java. Multiple providers can be registered at once; Arc merges
+their results. Without a provider registered, both endpoints return an empty
+array — Lens simply shows no `Arc`-tagged entries until you add one or switch
+on a custom entry of your own.
+
+When you open the Lens popup on a page it recognizes as a running Arc
+application, it fetches both endpoints and merges the result into its own
+roster (each entry tagged `Arc`). You can also add entries by hand from Lens
+itself — those are tagged `Custom` and survive even when the backend's own
+list changes or is temporarily unreachable.
+
+The screenshots below are the real extension, popped open against demo data:
+three users and two tenants, sourced from an Arc backend's providers exactly
+as `/.cratis/users` and `/.cratis/tenants` returned them.
+
+### Context — the active user and tenant
+
+![Lens Context tab showing the active user, Alice Developer, and the active tenant, ACME Corporation](lens-context.png)
+
+The **Context** tab is what you land on. It shows the currently active user
+and tenant for this browser profile, and lets you switch either one from a
+dropdown built from the merged roster. Selecting a different user or tenant
+takes effect immediately: every subsequent request the inspected page makes
+carries the matching tenant header and identity headers, so the backend's
+tenant resolution and identity provider see the switch exactly as they would
+from a real caller.
+
+### Settings — the roster, tagged by source
+
+![Lens Settings tab, Users pane, listing Alice Developer, Bob Tester and Priya Singh, each tagged Arc](lens-settings-users.png)
+
+![Lens Settings tab, Tenants pane, listing ACME Corporation and Widget Inc, each tagged Arc](lens-settings-tenants.png)
+
+The **Settings** tab lists every known user and tenant, each carrying an
+`Arc` or `Custom` badge so you can tell at a glance whether an entry came
+from the backend's providers or was added locally. The green `Active` badge
+marks the selection currently in effect. Use the eye icon to inspect the
+full identity or tenant payload the backend returned, the `+` to add a
+custom entry, and the refresh icon to re-fetch from the backend without
+reopening the popup.
+
+See [Development users and tenants (C#)](/arc/backend/csharp/identity/development-and-topologies/)
 or [Development users and tenants (Kotlin and Java)](/arc/backend/kotlin/guides/development-users-and-tenants/)
-for how to implement a provider, and [Lens: Tenants and Users](https://github.com/Cratis/Lens/blob/main/Documentation/GettingStarted/TenantsAndUsers/index.md)
-for screenshots of the extension working against seeded demo data.
+for how to implement a provider, and [Tenancy in Arc](/arc/backend/csharp/tenancy/)
+for how this development-only discovery seam relates to actual tenant
+resolution at request time.
 
 ## Install from the Chrome Web Store
 
@@ -78,8 +120,14 @@ For an active edit loop, run `yarn dev` to rebuild on change, and reload the ext
   <SimpleCard title="Queries in Arc" icon="puzzle" link="/arc/backend/csharp/queries/">
     What Lens is browsing — how Arc exposes queries and observable queries over your read models.
   </SimpleCard>
-  <SimpleCard title="Tenants and users, with screenshots" icon="seti:image" link="https://github.com/Cratis/Lens/blob/main/Documentation/GettingStarted/TenantsAndUsers/index.md">
-    See the Context and Settings tabs against real seeded demo data, and how the roster is sourced from your Arc backend.
+  <SimpleCard title="Provide tenants & users (C#)" icon="seti:c-sharp" link="/arc/backend/csharp/identity/development-and-topologies/">
+    Implement `ICanProvideTenants` and `ICanProvideUsers` so Lens can discover and switch between them on your running app.
+  </SimpleCard>
+  <SimpleCard title="Provide tenants & users (Kotlin/Java)" icon="seti:kotlin" link="/arc/backend/kotlin/guides/development-users-and-tenants/">
+    Implement `TenantsProvider`/`UsersProvider`, or the async Java variants, for the same discovery contract.
+  </SimpleCard>
+  <SimpleCard title="Tenancy in Arc" icon="seti:lock" link="/arc/backend/csharp/tenancy/">
+    How this development-only discovery seam relates to actual tenant resolution and isolation at request time.
   </SimpleCard>
   <SimpleCard title="VS Code extension (Narrator)" icon="laptop" link="/tools/vscode-extension/">
     The editor-side companion — explore the Chronicle event store from VS Code.
