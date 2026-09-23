@@ -43,7 +43,8 @@ Documentation **lives in each product repository's `Documentation/` folder** —
 
 - `scripts/sync-content.mjs` reads the product `Documentation/` folders (resolved as siblings of this repo, e.g. `../Chronicle/Documentation`), converts them, and writes the result into `src/content/docs/<product>/`.
 - `scripts/sync-samples.mjs` reads `Samples/samples.json` and writes `src/generated/samples.json`, which powers the cards and comparison table on `/samples/`.
-- Those generated folders are **git-ignored** — never edit them by hand. Edit the source in the product repo and re-sync.
+- Synchronized product pages are generated output even if Git tracks a legacy file in one of those folders. Never edit the copy by hand; edit the owning product repository and re-sync.
+- Sync adds a per-page `editUrl` pointing to the authored file (including client-variant and family-source pages). Add a new public checkout to `scripts/source-edit-url.mjs` when registering its product, so its edit link cannot point to an invented repository.
 - Product sidebars are generated from each product's `toc.yml`; the topic model is written to `src/generated/topics.json` (also git-ignored) and imported by `astro.config.mjs`.
 - Site-level pages that don't belong to a single product (the landing page, `why-cratis.mdx`, compatibility, community, feedback, and comparison pages) are authored directly in `src/content/docs/` and are tracked in git.
 

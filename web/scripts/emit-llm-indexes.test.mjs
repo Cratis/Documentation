@@ -60,6 +60,16 @@ it('links a single-page area directly without an unnecessary index', async () =>
     assert.equal(existsSync(path.join(dist, 'chronicle/architecture/llms.txt')), false);
 });
 
+it('puts a published getting-started landing ahead of alphabetized topics', async () => {
+    source('chronicle/get-started/index.md', '---\ntitle: Get started\n---\nStart here.\n');
+    file('chronicle/get-started.md', '---\ntitle: Get started\n---\nStart here.\n');
+    file('chronicle/get-started/index.html', '<h1>Get started</h1>');
+    assert.deepEqual(await emitLlmIndexes(dist, products, sets, docsRoot), { indexedPages: 4, products: 1, areas: 1 });
+    const index = readFileSync(path.join(dist, 'chronicle/llms.txt'), 'utf8');
+    assert.match(index, /## Start here\n\n- \[Get started\]\(https:\/\/www\.cratis\.io\/chronicle\/get-started\/\)/);
+    assert.ok(index.indexOf('## Start here') < index.indexOf('## Overview'));
+});
+
 it('refuses to advertise a page without a matching HTML route', async () => {
     rmSync(path.join(dist, 'chronicle/events/append/index.html'));
     await assert.rejects(emitLlmIndexes(dist, products, sets, docsRoot), /Missing HTML for chronicle\/events\/append\.md/);

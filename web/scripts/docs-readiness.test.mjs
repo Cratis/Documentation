@@ -14,6 +14,7 @@ import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { emitDocArtifacts } from './emit-doc-artifacts.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 import { isPrivateDocPath } from './private-doc-paths.mjs';
+import { sourceEditUrl } from './source-edit-url.mjs';
 import { checkExternalLinks, externalLinkArguments } from './check-external-links.mjs';
 import { lintProse } from './lint-prose.mjs';
 import { findSiteSyntaxErrors } from './lint-docs.mjs';
@@ -57,6 +58,37 @@ function stubRunner(results) {
 }
 
 const success = { status: 0 };
+
+test('converted product pages link editing to their authored repository, not the synchronized copy', async () => {
+    const source = path.resolve(webRoot, '../../Chronicle/Documentation/get-started/index.mdx');
+    const converted = await convertFile('---\ntitle: Get started\n---\n\nStart here.\n', {
+        dir: path.dirname(source),
+        basename: path.basename(source),
+        srcPath: source,
+        product: { key: 'chronicle', src: path.dirname(source) },
+    });
+    assert.match(converted, /editUrl: https:\/\/github\.com\/Cratis\/Chronicle\/edit\/main\/Documentation\/get-started\/index\.mdx/);
+});
+
+test('every configured product, family, and variant source has a real repository edit route', async () => {
+    const reposRoot = path.resolve(webRoot, '../..');
+    const docRepoRoot = path.resolve(webRoot, '..');
+    const variants = await loadVariantDocsConfig();
+    const variantSources = PRODUCTS.flatMap(product => variants.axesFor(product.key))
+        .flatMap(axis => axis.publicDocsVariants ?? [])
+        .map(variant => variant.src);
+    assert.ok(variantSources.length >= 5, `Expected at least 5 variant public-doc sources, got ${variantSources.length}`);
+    const sources = [
+        ...PRODUCTS.flatMap(product => [product.src, ...(product.familySources ?? []).map(source => source.src)]),
+        ...variantSources,
+    ];
+    assert.ok(sources.length >= 23, `Expected at least 23 configured product, family, and variant sources, got ${sources.length}`);
+    for (const source of sources) {
+        assert.match(sourceEditUrl(path.join(source, 'index.md'), reposRoot, docRepoRoot),
+            /^https:\/\/github\.com\/Cratis\/[^/]+\/edit\/main\//,
+            source);
+    }
+});
 
 test('private paths are recognized before URL decoding, normalization, and slugification', () => {
     for (const directory of privateDirectories) {
