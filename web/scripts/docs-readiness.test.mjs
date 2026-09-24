@@ -863,9 +863,10 @@ test('a missing variant snippet is reported only when the axis asks for it', asy
 });
 
 // With several variants each needs its own group to tell them apart. With one,
-// that group sits inside the axis group and repeats its label, so the reader
-// opens "Kotlin and Java" to find "Kotlin and Java".
-test('a single-variant axis does not nest a group inside its own group', async () => {
+// that group would sit inside the axis group and repeat its label, so the
+// reader would open "Kotlin and Java" to find "Kotlin and Java"; a single
+// variant is hoisted instead. Either way no group may contain its namesake.
+test('the Arc backend group does not nest a group inside its own group', async () => {
     const arc = PRODUCTS.find((product) => product.key === 'arc');
     assert.ok(arc, 'the arc product must be configured for this to mean anything');
 
@@ -873,8 +874,9 @@ test('a single-variant axis does not nest a group inside its own group', async (
     const injections = [...before, ...after];
 
     // Non-vacuity: this asserts a shape, so an empty set would pass for free.
-    // Arc's backend axis mounts exactly one variant and the site checks it out.
-    assert.equal(injections.length, 1, 'expected exactly one injected Arc variant group');
+    // Arc's backend axis injects one group; each mounted implementation it
+    // finds checked out (Kotlin and Java, TypeScript) is a labeled group inside it.
+    assert.equal(injections.length, 1, 'expected exactly one injected Arc backend group');
 
     const [{ group }] = injections;
     const nestedWithSameLabel = (group.items ?? []).filter(
