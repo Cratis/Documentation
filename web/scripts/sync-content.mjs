@@ -210,7 +210,7 @@ export const PRODUCTS = [
             path.join(docRepoRoot, 'Templates', 'Documentation')),
         buckets: [
             { label: 'Start here', sections: ['Overview', 'Getting Started'] },
-            { label: 'The templates', sections: ['Cratis Web Application', 'Chronicle Console', 'Chronicle Web', 'Cratis Aspire'] },
+            { label: 'The templates', sections: ['Cratis Web Application', 'Cratis Kotlin Application', 'Cratis Java Application', 'Chronicle Console', 'Chronicle Web', 'Cratis Aspire'] },
         ],
     },
     {
