@@ -86,8 +86,9 @@ export const PRODUCTS = [
         buckets: [
             { label: 'Start here', sections: ['Tutorial', 'Scenarios'] },
             { label: 'Concepts and architecture', sections: ['Why Arc', 'CQRS without event sourcing', 'Vertical slices', 'Understanding the proxy boundary', 'Understanding identity and access', 'HTTP contract', 'Glossary'] },
-            // The backend languages sit beside each other here. 'Kotlin and Java'
-            // is appended to these sections by the variant-docs sidebar injection.
+            // The backend languages sit beside each other here. The variant-docs
+            // sidebar injection appends the group holding the mounted
+            // implementations (Kotlin and Java, TypeScript) to these sections.
             { label: 'Backend', sections: ['Backend overview', 'C#'] },
             { label: 'Frontend', sections: ['Frontend'] },
             { label: 'Operations and reference', sections: ['Troubleshooting'] },

@@ -125,6 +125,15 @@ jobs:
           persist-credentials: false
           path: Arc.Kotlin
 
+      - name: Checkout Arc.TypeScript
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Arc.TypeScript
+          ref: main
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          path: Arc.TypeScript
+
       - name: Checkout Components
         uses: actions/checkout@v4
         with:
@@ -308,6 +317,14 @@ jobs:
         run: |
           corepack enable
           yarn install --immutable
+
+      # The Arc TypeScript snippet validator compiles against the built packages.
+      - name: Install and build Arc TypeScript
+        working-directory: Arc.TypeScript
+        run: |
+          corepack enable
+          yarn install --immutable
+          yarn build
 
       - name: Install Chronicle Elixir dependencies
         working-directory: Chronicle.Elixir/Source/chronicle

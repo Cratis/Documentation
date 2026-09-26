@@ -277,7 +277,9 @@ products:
           # Unlike Chronicle's client SDKs, the backend languages belong beside
           # each other *inside* the Backend bucket rather than as a peer of it,
           # so this injects before bucketing and lets bucketing absorb the group.
-          groupLabel: Kotlin and Java
+          # C# lives in Arc's own toc; every mounted implementation (Kotlin and
+          # Java, TypeScript) is a labeled group inside this one.
+          groupLabel: Other backend implementations
           injectMode: into-bucket
           targetBucket: Backend
 
@@ -349,3 +351,29 @@ products:
               command: python3
               args:
                 - Documentation/validate-doc-snippets.py
+
+          # Arc for TypeScript is a Node.js implementation in source preview. Its
+          # validator compiles each snippet against the checkout's own packages,
+          # so the checkout needs `yarn install --immutable && yarn build` first;
+          # without them it exits 2 and prints the blocked marker below.
+          typescript:
+            label: TypeScript
+            snippets:
+              paths:
+                - ../../Arc.TypeScript/Documentation/client-snippets
+                - ../Arc.TypeScript/Documentation/client-snippets
+            publicDocs:
+              key: typescript
+              label: TypeScript
+              paths:
+                - ../../Arc.TypeScript/Documentation
+                - ../Arc.TypeScript/Documentation
+            validator:
+              cwd:
+                - ../../Arc.TypeScript
+                - ../Arc.TypeScript
+              command: python3
+              args:
+                - Documentation/validate-client-snippets.py
+              blockedOutput:
+                - "BLOCKED: could not validate the TypeScript snippets"
