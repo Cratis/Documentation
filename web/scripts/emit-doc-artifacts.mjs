@@ -9,7 +9,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertPublicDocPath, assertPublicDocSource } from './private-doc-paths.mjs';
 import { emitLlmIndexes } from './emit-llm-indexes.mjs';
-import { expandVariantTabs } from './sync-content.mjs';
+import { expandVariantTabs, splitFrontmatter } from './sync-content.mjs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -72,14 +72,17 @@ export async function emitDocArtifacts(docsRoot, distRoot, options = {}) {
                 // Site-owned MDX is expanded at render time; synchronized product
                 // MDX already contains these tabs. Preserve the same tab markup in
                 // both Markdown mirrors without changing either authored source.
-                const { body } = await expandVariantTabs(source, {
+                const { body } = splitFrontmatter(source);
+                const expanded = await expandVariantTabs(body, {
                     srcPath: file,
                     product: { key: 'site' },
                     variantAxes: axes,
                     reposRoot: options.reposRoot,
                     docRepoRoot: options.docRepoRoot,
                 });
-                await fs.writeFile(output, body);
+                // Keep the authored frontmatter and its separator verbatim; the
+                // generated Starlight import belongs in the MDX body, not above ---.
+                await fs.writeFile(output, source.slice(0, source.length - body.length) + expanded.body);
             } else {
                 await fs.copyFile(file, output);
             }

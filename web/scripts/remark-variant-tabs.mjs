@@ -58,8 +58,8 @@ export function remarkVariantTabs(options = {}) {
         // snippet fails the build, rather than leaving a half-expanded page.
         const replacements = [];
         for (const { node, index, parent } of macros) {
-            if (node.type !== 'mdxJsxFlowElement') {
-                throw new Error(`[variant-tabs] ${node.name} in ${srcPath} must be on its own line`);
+            if (node.type !== 'mdxJsxFlowElement' || parent.type !== 'root') {
+                throw new Error(`[variant-tabs] ${node.name} in ${srcPath} must be a top-level block on its own line`);
             }
             const axis = byMacro.get(node.name);
             const { body } = await expandVariantTabs(macroSource(node, srcPath), {

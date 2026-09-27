@@ -108,6 +108,7 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
             axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
         }), { markdownMirrors: 2, staticFiles: 0 });
         const mirror = await readFile(path.join(distRoot, 'capstone.md'), 'utf8');
+        assert.ok(mirror.startsWith("---\ntitle: Capstone\n---\nimport { Tabs, TabItem } from '@astrojs/starlight/components';\n"));
         assert.match(mirror, new RegExp(`<Tabs syncKey="${f.axis.syncKey}">`));
         for (const variant of f.variants) {
             assert.ok(mirror.includes('```text\n' + `${variant.key} owned example`));
@@ -115,6 +116,24 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
         assert.doesNotMatch(mirror, /<(?:ArcBackendTabs|ChronicleClientTabs)\b/);
         assert.equal(await readFile(path.join(distRoot, `${productKey}.md`), 'utf8'), converted);
         assert.equal(await readFile(f.sitePath, 'utf8'), source);
+    });
+
+    test(`${productKey} nested macros are rejected by the site renderer, as product sync cannot expand them`, async (t) => {
+        const f = await fixture(productKey, axisKey);
+        t.after(() => rm(f.root, { recursive: true, force: true }));
+        const source = `---\ntitle: Capstone\n---\n\n> <${f.axis.macro} snippet="${f.snippet}" />\n`;
+        const nestedMacro = new RegExp(`${f.axis.macro} in .*capstone\\.mdx must be a top-level block on its own line`);
+        await assert.rejects(render(source, f), nestedMacro);
+        await assert.rejects(compile({ path: f.sitePath, value: source }, {
+            remarkPlugins: [[remarkVariantTabs, { axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot }]],
+        }), nestedMacro);
+        const synced = await convertFile(source, {
+            basename: 'capstone.mdx', dir: path.dirname(f.sitePath), srcPath: f.sitePath,
+            product: { key: productKey, src: path.dirname(f.sitePath) },
+            variantAxes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+        });
+        assert.ok(synced.includes(`> <${f.axis.macro} snippet="${f.snippet}" />`));
+        assert.doesNotMatch(synced, /<Tabs syncKey=/);
     });
 }
 

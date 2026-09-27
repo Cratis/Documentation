@@ -331,7 +331,7 @@ function humanize(name) {
         .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function splitFrontmatter(raw) {
+export function splitFrontmatter(raw) {
     if (raw.startsWith('---')) {
         const end = raw.indexOf('\n---', 3);
         if (end !== -1) {
