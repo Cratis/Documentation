@@ -1,5 +1,6 @@
 // @ts-check
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import mermaid from 'astro-mermaid';
@@ -8,6 +9,7 @@ import { remarkMermaidPrerender, closeBrowser } from './scripts/mermaid-prerende
 import { remarkVariantTabs } from './scripts/remark-variant-tabs.mjs';
 import { rehypeFocusableTables } from './scripts/rehype-focusable-tables.mjs';
 import { LLM_SETS } from './scripts/llm-sets.mjs';
+import { emitDocArtifacts } from './scripts/emit-doc-artifacts.mjs';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightPageActions from 'starlight-page-actions';
 import starlightScrollToTop from 'starlight-scroll-to-top';
@@ -382,5 +384,17 @@ export default defineConfig({
                 }),
             ],
         }),
+        // page-actions copies files using source-case names, but its links use
+        // Astro's lowercase page slugs. Write the canonical mirrors (and static
+        // documentation assets) before the build completes, including when Astro
+        // is invoked directly rather than through npm's postbuild lifecycle.
+        {
+            name: 'documentation-artifacts',
+            hooks: {
+                'astro:build:done': async ({ dir }) => {
+                    await emitDocArtifacts(fileURLToPath(new URL('./src/content/docs/', import.meta.url)), fileURLToPath(dir));
+                },
+            },
+        },
     ],
 });

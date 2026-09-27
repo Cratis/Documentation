@@ -262,15 +262,31 @@ test('artifact preflight rejects symlink aliases into private work', async (cont
     await assert.rejects(emitDocArtifacts(source, path.join(root, 'dist')), /private documentation path/);
 });
 
-test('artifact exports preserve public Markdown and asset bytes and routes', async (context) => {
+test('artifact exports match slugged Markdown routes and copy supporting HTML assets', async (context) => {
     const root = await fixture(context);
-    const source = path.join(root, 'docs');
+    const source = path.join(root, 'authored');
+    const docs = path.join(root, 'docs');
     const output = path.join(root, 'dist');
-    await put(source, 'Product/Guide/index.mdx', '---\ntitle: Guide\n---\n\nPublic body.\n');
-    await put(source, 'Product/Guide/Chart.svg', '<svg></svg>');
-    assert.deepEqual(await emitDocArtifacts(source, output), { markdownMirrors: 1, staticFiles: 1 });
-    assert.equal(await fs.readFile(path.join(output, 'product/guide.md'), 'utf8'), await fs.readFile(path.join(source, 'Product/Guide/index.mdx'), 'utf8'));
-    assert.equal(await fs.readFile(path.join(output, 'product/guide/chart.svg'), 'utf8'), '<svg></svg>');
+    await put(source, 'Guide/index.mdx', '---\ntitle: Guide\n---\n\nPublic body.\n');
+    await put(source, 'Guide/Chart.svg', '<svg></svg>');
+    await put(source, 'CodeAnalysis/ARC0001.md', '# Rule\n');
+    await put(source, 'Statistics/index.md', '[Coverage](coverage.html)\n');
+    await put(source, 'Statistics/coverage.html', '<script src="coverage-data.js"></script><script src="coverage-page.js"></script>');
+    await put(source, 'Statistics/coverage-data.js', 'const coverage = 1;');
+    await put(source, 'Statistics/coverage-page.js', 'console.log(coverage);');
+    await walk(source, docs, { key: 'fixture', src: source });
+    assert.deepEqual(await emitDocArtifacts(docs, output), { markdownMirrors: 3, staticFiles: 4 });
+    assert.equal(await fs.readFile(path.join(output, 'guide.md'), 'utf8'), await fs.readFile(path.join(docs, 'Guide/index.mdx'), 'utf8'));
+    assert.equal(await fs.readFile(path.join(output, 'codeanalysis/arc0001.md'), 'utf8'), await fs.readFile(path.join(docs, 'CodeAnalysis/ARC0001.md'), 'utf8'));
+    assert.equal(await fs.readFile(path.join(output, 'statistics.md'), 'utf8'), await fs.readFile(path.join(docs, 'Statistics/index.md'), 'utf8'));
+    for (const [asset, synced] of [
+        ['guide/chart.svg', 'Guide/Chart.svg'],
+        ['statistics/coverage.html', 'Statistics/coverage.html'],
+        ['statistics/coverage-data.js', 'Statistics/coverage-data.js'],
+        ['statistics/coverage-page.js', 'Statistics/coverage-page.js'],
+    ]) {
+        assert.equal(await fs.readFile(path.join(output, asset), 'utf8'), await fs.readFile(path.join(docs, synced), 'utf8'));
+    }
 });
 
 test('Components buckets classify library and reference sections explicitly', () => {
