@@ -118,6 +118,71 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
         assert.equal(await readFile(f.sitePath, 'utf8'), source);
     });
 
+    test(`${productKey} macros after list and blockquote fences expand in mirrors and product sync`, async (t) => {
+        const f = await fixture(productKey, axisKey);
+        t.after(() => rm(f.root, { recursive: true, force: true }));
+        const docsRoot = path.dirname(f.sitePath);
+        const distRoot = path.join(f.root, 'dist');
+        for (const [name, fence] of [
+            ['list', '- ```sh\n  echo list\n  ```'],
+            ['blockquote', '> ```sh\n> echo blockquote\n> ```'],
+        ]) {
+            const source = `---\ntitle: Capstone\n---\n\n${fence}\n\n<${f.axis.macro} snippet="${f.snippet}" />\n`;
+            await writeFile(f.sitePath, source);
+            const rendered = await render(source, f);
+            assert.equal(rendered.children.filter(node => node.name === 'Tabs').length, 1, name);
+            const converted = await convertFile(source, {
+                basename: 'index.mdx', dir: docsRoot, srcPath: f.sitePath,
+                product: { key: productKey, src: docsRoot },
+                variantAxes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+            });
+            assert.equal((converted.match(/<Tabs syncKey=/g) ?? []).length, 1, name);
+            assert.ok(converted.includes(fence), name);
+            await emitDocArtifacts(docsRoot, distRoot, {
+                axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+            });
+            const mirror = await readFile(path.join(distRoot, 'capstone.md'), 'utf8');
+            assert.equal((mirror.match(/<Tabs syncKey=/g) ?? []).length, 1, name);
+            assert.ok(mirror.includes('```text\n' + `${f.variants[0].key} owned example`), name);
+            assert.ok(mirror.includes(fence), name);
+            assert.ok(!mirror.includes(`<${f.axis.macro}`), name);
+        }
+    });
+
+    test(`${productKey} macros inside code fences remain literal in mirrors and product sync`, async (t) => {
+        const f = await fixture(productKey, axisKey);
+        t.after(() => rm(f.root, { recursive: true, force: true }));
+        const docsRoot = path.dirname(f.sitePath);
+        const literal = `<${f.axis.macro} snippet="missing" />`;
+        const fencedOnly = `---\ntitle: Capstone\n---\n\n- \`\`\`mdx\n  ${literal}\n  \`\`\`\n`;
+        // Neither the code example nor a missing snippet can trigger expansion.
+        // A valid macro after the fence still must be discovered.
+        const withValidMacro = fencedOnly + `\n<${f.axis.macro} snippet="${f.snippet}" />\n`;
+        await writeFile(f.sitePath, withValidMacro);
+        const rendered = await render(withValidMacro, f);
+        assert.equal(rendered.children.filter(node => node.name === 'Tabs').length, 1);
+        const converted = await convertFile(withValidMacro, {
+            basename: 'capstone.mdx', dir: docsRoot, srcPath: f.sitePath,
+            product: { key: productKey, src: docsRoot },
+            variantAxes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+        });
+        assert.ok(converted.includes(literal));
+        assert.equal((converted.match(/<Tabs syncKey=/g) ?? []).length, 1);
+        await emitDocArtifacts(docsRoot, path.join(f.root, 'dist'), {
+            axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+        });
+        const mirror = await readFile(path.join(f.root, 'dist', 'capstone.md'), 'utf8');
+        assert.ok(mirror.includes(literal));
+        assert.equal((mirror.match(/<Tabs syncKey=/g) ?? []).length, 1);
+        const fencedConverted = await convertFile(fencedOnly, {
+            basename: 'capstone.mdx', dir: docsRoot, srcPath: f.sitePath,
+            product: { key: productKey, src: docsRoot },
+            variantAxes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+        });
+        assert.ok(fencedConverted.includes(literal));
+        assert.doesNotMatch(fencedConverted, /<Tabs syncKey=/);
+    });
+
     test(`${productKey} macros in site-owned Markdown require an .mdx page`, async (t) => {
         const f = await fixture(productKey, axisKey);
         t.after(() => rm(f.root, { recursive: true, force: true }));

@@ -15,6 +15,9 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
+import { fromMarkdown } from 'mdast-util-from-markdown';
+import { mdxFromMarkdown } from 'mdast-util-mdx';
+import { mdxjs } from 'micromark-extension-mdxjs';
 
 import { existsSync } from 'node:fs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
@@ -566,20 +569,26 @@ async function readVariantSnippet(source, snippet) {
     return null;
 }
 
-function isInsideFencedCode(body, index) {
-    let fence = null;
-    for (const line of body.slice(0, index).split('\n')) {
-        const match = line.match(/^\s*(`{3,}|~{3,})/);
-        if (!match) continue;
-        const marker = match[1][0];
-        const length = match[1].length;
-        if (!fence) {
-            fence = { marker, length };
-        } else if (marker === fence.marker && length >= fence.length && /^\s*[`~]+\s*$/.test(line)) {
-            fence = null;
+function codeRanges(body) {
+    // Markdown containers (lists, blockquotes) can prefix a fence opener but not
+    // its following macro line. Let the MDX parser locate code, rather than
+    // interpreting individual lines as independent fence delimiters.
+    // Product sources can still contain DocFX <xref:Namespace.Type> tokens at
+    // this stage. Mask them at the same length for MDX parsing; the original
+    // body (including offsets and xrefs) is left intact for conversion below.
+    const parseBody = body.replace(/<xref:[^>]+>/g, token => ' '.repeat(token.length));
+    const tree = fromMarkdown(parseBody, { extensions: [mdxjs()], mdastExtensions: [mdxFromMarkdown()] });
+    const ranges = [];
+    const pending = [tree];
+    while (pending.length) {
+        const node = pending.pop();
+        if (node.type === 'code') {
+            ranges.push([node.position.start.offset, node.position.end.offset]);
+        } else if (node.children) {
+            pending.push(...node.children);
         }
     }
-    return fence !== null;
+    return ranges;
 }
 
 export function ensureTabsImport(body) {
@@ -606,13 +615,14 @@ async function expandAxisMacro(body, ctx, axis) {
     }
 
     const componentRe = new RegExp(`^[ \\t]*<${axis.macro}\\s+([^>]*)\\/>[ \\t]*$`, 'gm');
+    const ranges = codeRanges(body);
     const parts = [];
     let expandedAny = false;
     let lastIndex = 0;
 
     for (const match of body.matchAll(componentRe)) {
         const index = match.index ?? 0;
-        if (isInsideFencedCode(body, index)) {
+        if (ranges.some(([start, end]) => start <= index && index < end)) {
             continue;
         }
 
