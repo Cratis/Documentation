@@ -118,6 +118,56 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
         assert.equal(await readFile(f.sitePath, 'utf8'), source);
     });
 
+    test(`${productKey} LF and CRLF macros expand equally in rendering and Markdown mirrors`, async (t) => {
+        const f = await fixture(productKey, axisKey);
+        t.after(() => rm(f.root, { recursive: true, force: true }));
+        for (const newline of ['\n', '\r\n']) {
+            const source = `---\ntitle: Capstone\n---\n\n<${f.axis.macro} snippet="${f.snippet}" />\n`
+                .replace(/\n/g, newline);
+            await writeFile(f.sitePath, source);
+            const rendered = await render(source, f);
+            assert.equal(rendered.children.filter(node => node.name === 'Tabs').length, 1, JSON.stringify(newline));
+            const distRoot = path.join(f.root, 'dist');
+            await emitDocArtifacts(path.dirname(f.sitePath), distRoot, {
+                axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+            });
+            const mirror = await readFile(path.join(distRoot, 'capstone.md'), 'utf8');
+            assert.equal((mirror.match(/<Tabs syncKey=/g) ?? []).length, 1, JSON.stringify(newline));
+            assert.equal(await readFile(f.sitePath, 'utf8'), source);
+        }
+    });
+
+    test(`${productKey} macros in MDX expressions and ESM are literal in rendering and mirrors`, async (t) => {
+        const f = await fixture(productKey, axisKey);
+        t.after(() => rm(f.root, { recursive: true, force: true }));
+        const literal = `<${f.axis.macro} snippet="missing" />`;
+        for (const expression of [
+            `{/*\n${literal}\n*/}`,
+            `Paragraph {/* ${literal} */} text.`,
+            `export const example = \`\n${literal}\n\`;`,
+        ]) {
+            const source = `---\ntitle: Capstone\n---\n\n${expression}\n`;
+            await writeFile(f.sitePath, source);
+            const rendered = await render(source, f);
+            assert.equal(rendered.children.filter(node => node.name === 'Tabs').length, 0, expression);
+            const synced = await convertFile(source, {
+                basename: 'capstone.mdx', dir: path.dirname(f.sitePath), srcPath: f.sitePath,
+                product: { key: productKey, src: path.dirname(f.sitePath) },
+                variantAxes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+            });
+            assert.ok(synced.includes(expression));
+            assert.doesNotMatch(synced, /<Tabs syncKey=/);
+            const distRoot = path.join(f.root, 'dist');
+            await emitDocArtifacts(path.dirname(f.sitePath), distRoot, {
+                axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+            });
+            const mirror = await readFile(path.join(distRoot, 'capstone.md'), 'utf8');
+            assert.ok(mirror.includes(expression));
+            assert.doesNotMatch(mirror, /<Tabs syncKey=/);
+            assert.equal(await readFile(f.sitePath, 'utf8'), source);
+        }
+    });
+
     test(`${productKey} macros after list and blockquote fences expand in mirrors and product sync`, async (t) => {
         const f = await fixture(productKey, axisKey);
         t.after(() => rm(f.root, { recursive: true, force: true }));

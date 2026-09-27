@@ -79,7 +79,8 @@ export function remarkVariantTabs(options = {}) {
             const end = node.position?.end.offset;
             const lineStart = source.lastIndexOf('\n', start - 1) + 1;
             const nextLine = source.indexOf('\n', end);
-            const lineEnd = nextLine === -1 ? source.length : nextLine;
+            let lineEnd = nextLine === -1 ? source.length : nextLine;
+            if (source[lineEnd - 1] === '\r') lineEnd--;
             const original = source.slice(lineStart, lineEnd);
             const match = variantMacroPattern(node.name).exec(original);
             if (start === undefined || end === undefined || !match || match.index !== 0 || match[0] !== original

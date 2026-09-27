@@ -593,7 +593,7 @@ function codeRanges(body, srcPath) {
     const pending = [tree];
     while (pending.length) {
         const node = pending.pop();
-        if (node.type === 'code') {
+        if (node.type === 'code' || (mdx && ['mdxFlowExpression', 'mdxTextExpression', 'mdxjsEsm'].includes(node.type))) {
             ranges.push([node.position.start.offset, node.position.end.offset]);
         } else if (node.children) {
             pending.push(...node.children);
