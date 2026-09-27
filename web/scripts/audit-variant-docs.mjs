@@ -68,7 +68,7 @@ function fenceRangesAndLanguages(body, languageAliases) {
 
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        const match = line.match(/^([`~]{3,})\s*([A-Za-z0-9_+.-]*)/);
+        const match = line.match(/^([`~]{3,})\s*([A-Za-z0-9_+.#-]*)/);
         if (match) {
             const marker = match[1];
             const markerChar = marker[0];
