@@ -75,12 +75,12 @@ You won't touch this again for the slice below — it's here so you can see wher
    public record AuthorRegistered(string Name);
    ```
 
-3. **The read model and its projection.** Declare the shape you want to query and which event feeds it — AutoMap matches `AuthorRegistered.Name` to `Name`. A static method exposes the query as an observable so the UI updates live:
+3. **The read model and its projection.** Declare the shape you want to query and which event feeds it — AutoMap matches `AuthorRegistered.Name` to `Name`. Because `AuthorId` derives from `EventSourceId<Guid>`, it is the read model's key without a `[Key]` attribute. A static method exposes the query as an observable so the UI updates live:
 
    ```csharp
    [ReadModel]
    [FromEvent<AuthorRegistered>]
-   public record Author([property: Key] AuthorId Id, string Name)
+   public record Author(AuthorId Id, string Name)
    {
        public static ISubject<IEnumerable<Author>> AllAuthors(IMongoCollection<Author> collection) =>
            collection.Observe();
