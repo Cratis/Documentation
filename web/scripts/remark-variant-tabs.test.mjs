@@ -11,6 +11,7 @@ import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkMdx from 'remark-mdx';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
+import { emitDocArtifacts } from './emit-doc-artifacts.mjs';
 import { remarkVariantTabs } from './remark-variant-tabs.mjs';
 import { convertFile } from './sync-content.mjs';
 
@@ -84,6 +85,35 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
         });
         assert.match(synced, new RegExp(`<Tabs syncKey="${f.axis.syncKey}">`));
         assert.ok(!synced.includes(`<${f.axis.macro}`));
+        assert.equal(await readFile(f.sitePath, 'utf8'), source);
+    });
+
+    test(`${productKey} site-owned macro expands in Markdown mirrors alongside synced product tabs`, async (t) => {
+        const f = await fixture(productKey, axisKey);
+        t.after(() => rm(f.root, { recursive: true, force: true }));
+        const docsRoot = path.dirname(f.sitePath);
+        const distRoot = path.join(f.root, 'dist');
+        const source = `---\ntitle: Capstone\n---\n\n<${f.axis.macro} snippet="${f.snippet}" />\n`;
+        await writeFile(f.sitePath, source);
+        const productSource = path.join(docsRoot, productKey, 'index.mdx');
+        const converted = await convertFile(source, {
+            basename: 'index.mdx', dir: path.dirname(f.sitePath), srcPath: f.sitePath,
+            product: { key: productKey, src: docsRoot },
+            variantAxes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+        });
+        await mkdir(path.dirname(productSource), { recursive: true });
+        await writeFile(productSource, converted);
+
+        assert.deepEqual(await emitDocArtifacts(docsRoot, distRoot, {
+            axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+        }), { markdownMirrors: 2, staticFiles: 0 });
+        const mirror = await readFile(path.join(distRoot, 'capstone.md'), 'utf8');
+        assert.match(mirror, new RegExp(`<Tabs syncKey="${f.axis.syncKey}">`));
+        for (const variant of f.variants) {
+            assert.ok(mirror.includes('```text\n' + `${variant.key} owned example`));
+        }
+        assert.doesNotMatch(mirror, /<(?:ArcBackendTabs|ChronicleClientTabs)\b/);
+        assert.equal(await readFile(path.join(distRoot, `${productKey}.md`), 'utf8'), converted);
         assert.equal(await readFile(f.sitePath, 'utf8'), source);
     });
 }
