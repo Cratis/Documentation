@@ -32,12 +32,15 @@ export function remarkVariantTabs(options = {}) {
 
     return async (tree, file) => {
         const candidates = [];
+        const rawHtml = [];
         visit(tree, (node, index, parent) => {
             if ((node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') && node.name && parent && index !== undefined) {
                 candidates.push({ node, index, parent });
+            } else if (node.type === 'html') {
+                rawHtml.push(node.value);
             }
         });
-        if (!candidates.length) return;
+        if (!candidates.length && !rawHtml.length) return;
 
         const axes = await axesPromise;
         const byMacro = new Map();
@@ -48,11 +51,19 @@ export function remarkVariantTabs(options = {}) {
             byMacro.set(axis.macro, axis);
         }
         const macros = candidates.filter(({ node }) => byMacro.has(node.name));
-        if (!macros.length) return;
         const srcPath = String(file.path ?? '(unknown MDX source)');
         if (path.extname(srcPath).toLowerCase() !== '.mdx') {
-            throw new Error(`[variant-tabs] Variant macros require an .mdx page: ${srcPath}`);
+            // Plain Markdown parses a JSX-looking tag as raw HTML, not mdxJsx.
+            // Reject it before Astro renders an unknown element (and before the
+            // Markdown mirror copies the unexpanded macro).
+            const rawMacro = rawHtml.some(value => [...byMacro.keys()].some(macro =>
+                new RegExp(`<${macro}(?=[\\s/>])`).test(value)));
+            if (macros.length || rawMacro) {
+                throw new Error(`[variant-tabs] Variant macros require an .mdx page: ${srcPath}`);
+            }
+            return;
         }
+        if (!macros.length) return;
 
         // Prepare every replacement before touching the tree. A missing/invalid
         // snippet fails the build, rather than leaving a half-expanded page.

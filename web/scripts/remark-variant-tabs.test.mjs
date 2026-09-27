@@ -118,6 +118,27 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
         assert.equal(await readFile(f.sitePath, 'utf8'), source);
     });
 
+    test(`${productKey} macros in site-owned Markdown require an .mdx page`, async (t) => {
+        const f = await fixture(productKey, axisKey);
+        t.after(() => rm(f.root, { recursive: true, force: true }));
+        const mdPath = f.sitePath.replace(/\.mdx$/, '.md');
+        const processor = unified().use(remarkParse).use(remarkVariantTabs, {
+            axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+        });
+        const error = /Variant macros require an \.mdx page: .*capstone\.md$/;
+        for (const source of [
+            `<${f.axis.macro} snippet="${f.snippet}" />\n`,
+            `Before <${f.axis.macro} snippet="${f.snippet}" /> after\n`,
+            `<div>\n<${f.axis.macro} snippet="${f.snippet}" />\n</div>\n`,
+        ]) {
+            const tree = processor.parse(source);
+            assert.ok(tree.children.some(node => node.type === 'html' || node.children?.some(child => child.type === 'html')));
+            await assert.rejects(processor.run(tree, { path: mdPath }), error);
+        }
+        const otherTag = `<${f.axis.macro}Extra />\n`;
+        await assert.doesNotReject(processor.run(processor.parse(otherTag), { path: mdPath }));
+    });
+
     test(`${productKey} nested macros are rejected by the site renderer, as product sync cannot expand them`, async (t) => {
         const f = await fixture(productKey, axisKey);
         t.after(() => rm(f.root, { recursive: true, force: true }));

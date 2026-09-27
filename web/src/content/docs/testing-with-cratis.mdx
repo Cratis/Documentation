@@ -158,7 +158,7 @@ In .NET, Chronicle tests are fastest when you test the part of the event pipelin
 | A projection or reducer builds the read model correctly | `ReadModelScenario<TReadModel>` |
 | A reactor performs the right side effect when an event arrives | `ReactorScenario<TReactor>` |
 
-For example, test that a registered-author event produces a read model with the expected name. C#, Kotlin, and TypeScript use in-process read-model scenarios; Java exercises its reducer directly. Elixir does not support this test yet. In the C# tab, `TestingIndexAuthorRegistered` and `TestingIndexAuthor` play the roles of `AuthorRegistered` and `Author` above:
+For example, test that a registered-author event produces a read model with the expected name. C#, Kotlin, and TypeScript use in-process read-model scenarios; Java exercises its reducer directly. Elixir does not support this test yet. The type names vary by tab: C# and TypeScript use `TestingIndexAuthorRegistered` and `TestingIndexAuthor`; Kotlin uses `TestingIndexAuthorRegistered` and `Author`; Java uses `AuthorRegistered` and `Author`:
 
 <ChronicleClientTabs snippet="testing/index/example-spec" />
 
