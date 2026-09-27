@@ -285,10 +285,13 @@ products:
           injectMode: into-bucket
           targetBucket: Backend
 
+        # TypeScript is not ratcheted here: shared Arc pages show the React
+        # frontend in TypeScript for every backend.
         ratchetLanguages:
           - name: csharp
-            aliases: [cs]
+            aliases: [cs, 'c#']
           - name: kotlin
+            aliases: [kt, kts]
           - name: java
 
         # Every backend here is expected to answer every shared snippet, so a
