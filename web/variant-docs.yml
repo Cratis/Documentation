@@ -54,10 +54,12 @@ products:
         # counted as csharp/typescript rather than escaping the ratchet.
         ratchetLanguages:
           - name: csharp
-            aliases: [cs]
+            aliases: [cs, 'c#']
           - name: java
           - name: kotlin
+            aliases: [kt, kts]
           - name: elixir
+            aliases: [ex, exs]
           - name: typescript
             aliases: [ts, tsx]
 

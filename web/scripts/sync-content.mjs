@@ -21,11 +21,12 @@ import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { assertPublicDocPath, assertPublicDocSource, isPrivateDocPath } from './private-doc-paths.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 import { sourceEditUrl, sourceViewUrl } from './source-edit-url.mjs';
+import { reposRootFor } from './repos-root.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..'); // Documentation/web
 const docRepoRoot = path.resolve(webRoot, '..'); // Documentation/  (submodules live here in CI)
-const reposRoot = path.resolve(webRoot, '..', '..'); // cratis/      (sibling clones live here locally)
+const reposRoot = reposRootFor(webRoot); // cratis/ (sibling clones, including nested worktrees)
 
 // Each product's docs can come from a sibling clone next to this repo (local dev
 // and the docs-site CI workflow) or a git submodule inside the Documentation repo
@@ -542,10 +543,21 @@ async function fileExists(filePath) {
 // which variants apply to a given example; that's discovered from disk.
 async function readVariantSnippet(source, snippet) {
     assertPublicDocPath(snippet);
+    // Snippet IDs are relative to their owning repository, never filesystem paths.
+    // Do not allow a page to reach outside a configured snippet root.
+    if (!snippet || path.posix.isAbsolute(snippet) || snippet.includes('\\') ||
+        snippet.split('/').some((part) => !part || part === '.' || part === '..')) {
+        throw new Error(`[sync] Invalid variant snippet ID: "${snippet}"`);
+    }
     for (const ext of ['.mdx', '.md']) {
         const candidate = path.join(source.src, snippet + ext);
         if (await fileExists(candidate)) {
             await assertPublicDocSource(candidate, source.src);
+            const [realCandidate, realRoot] = await Promise.all([fs.realpath(candidate), fs.realpath(source.src)]);
+            const relative = path.relative(realRoot, realCandidate);
+            if (relative === '..' || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+                throw new Error(`[sync] Variant snippet escapes configured root: ${candidate}`);
+            }
             const raw = await fs.readFile(candidate, 'utf8');
             const { body } = splitFrontmatter(raw);
             return { content: body.trim(), filePath: candidate };
@@ -570,22 +582,20 @@ function isInsideFencedCode(body, index) {
     return fence !== null;
 }
 
-function ensureTabsImport(body) {
-    const importRe = /import\s+\{([^}]+)\}\s+from\s+['"]@astrojs\/starlight\/components['"];?/;
-    const existing = body.match(importRe);
-    if (!existing) {
+export function ensureTabsImport(body) {
+    const importRe = /import\s+\{([^}]+)\}\s+from\s+['"]@astrojs\/starlight\/components['"];?/g;
+    const imports = [...body.matchAll(importRe)];
+    if (!imports.length) {
         return `import { Tabs, TabItem } from '@astrojs/starlight/components';\n\n${body}`;
     }
 
-    const names = existing[1]
-        .split(',')
-        .map((name) => name.trim())
-        .filter(Boolean);
-    for (const name of ['Tabs', 'TabItem']) {
-        if (!names.includes(name)) names.push(name);
-    }
-
-    return body.replace(importRe, `import { ${names.join(', ')} } from '@astrojs/starlight/components';`);
+    const bound = new Set(imports.flatMap(match => match[1].split(',')
+        .map(specifier => specifier.trim().split(/\s+as\s+/).at(-1))));
+    const missing = ['Tabs', 'TabItem'].filter(name => !bound.has(name));
+    if (!missing.length) return body;
+    const first = imports[0];
+    const names = first[1].split(',').map(name => name.trim()).filter(Boolean);
+    return body.replace(first[0], `import { ${[...names, ...missing].join(', ')} } from '@astrojs/starlight/components';`);
 }
 
 // Expands one axis's macro (`<Macro snippet="..." />`) into a Starlight <Tabs>
@@ -677,7 +687,7 @@ async function expandAxisMacro(body, ctx, axis) {
                 // Each tab's code is owned by its client repository. Link the exact
                 // authored snippet file so a reader can find and fix the real code;
                 // omit the link rather than invent one for an unowned path.
-                const sourceUrl = sourceViewUrl(filePath, reposRoot, docRepoRoot);
+                const sourceUrl = sourceViewUrl(filePath, ctx.reposRoot ?? reposRoot, ctx.docRepoRoot ?? docRepoRoot);
                 return [
                     `<TabItem label="${source.label}">`,
                     '',
@@ -705,7 +715,7 @@ async function expandAxisMacro(body, ctx, axis) {
 
 // Expands every axis configured for the page's product. `ctx.variantAxes` lets
 // a caller (tests) supply axes directly instead of going through the manifest.
-async function expandVariantTabs(body, ctx) {
+export async function expandVariantTabs(body, ctx) {
     const axes = ctx.variantAxes ?? variantAxesFor(ctx.product.key);
     if (!axes.length) {
         return { body, used: false };

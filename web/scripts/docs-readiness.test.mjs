@@ -15,6 +15,7 @@ import { emitDocArtifacts } from './emit-doc-artifacts.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 import { isPrivateDocPath } from './private-doc-paths.mjs';
 import { sourceEditUrl } from './source-edit-url.mjs';
+import { reposRootFor } from './repos-root.mjs';
 import { checkExternalLinks, externalLinkArguments } from './check-external-links.mjs';
 import { lintProse } from './lint-prose.mjs';
 import { findSiteSyntaxErrors } from './lint-docs.mjs';
@@ -60,7 +61,7 @@ function stubRunner(results) {
 const success = { status: 0 };
 
 test('converted product pages link editing to their authored repository, not the synchronized copy', async () => {
-    const source = path.resolve(webRoot, '../../Chronicle/Documentation/get-started/index.mdx');
+    const source = path.join(reposRootFor(webRoot), 'Chronicle/Documentation/get-started/index.mdx');
     const converted = await convertFile('---\ntitle: Get started\n---\n\nStart here.\n', {
         dir: path.dirname(source),
         basename: path.basename(source),
@@ -71,7 +72,7 @@ test('converted product pages link editing to their authored repository, not the
 });
 
 test('every configured product, family, and variant source has a real repository edit route', async () => {
-    const reposRoot = path.resolve(webRoot, '../..');
+    const reposRoot = reposRootFor(webRoot);
     const docRepoRoot = path.resolve(webRoot, '..');
     const variants = await loadVariantDocsConfig();
     const variantSources = PRODUCTS.flatMap(product => variants.axesFor(product.key))

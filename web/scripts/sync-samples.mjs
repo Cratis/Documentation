@@ -4,11 +4,12 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { reposRootFor } from './repos-root.mjs';
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(scriptDirectory, '..');
 const candidates = [
-    path.resolve(webRoot, '../../Samples/samples.json'),
+    path.join(reposRootFor(webRoot), 'Samples', 'samples.json'),
     path.resolve(webRoot, '../Samples/samples.json'),
 ];
 
