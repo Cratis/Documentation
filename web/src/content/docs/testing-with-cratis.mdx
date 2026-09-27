@@ -158,11 +158,11 @@ In .NET, Chronicle tests are fastest when you test the part of the event pipelin
 | A projection or reducer builds the read model correctly | `ReadModelScenario<TReadModel>` |
 | A reactor performs the right side effect when an event arrives | `ReactorScenario<TReactor>` |
 
-For example, test that a registered-author event produces a read model with the expected name. C# and Kotlin use in-process read-model scenarios; Java exercises its reducer directly. TypeScript and Elixir do not support this test yet. In the C# tab, `TestingIndexAuthorRegistered` and `TestingIndexAuthor` play the roles of `AuthorRegistered` and `Author` above:
+For example, test that a registered-author event produces a read model with the expected name. C#, Kotlin, and TypeScript use in-process read-model scenarios; Java exercises its reducer directly. Elixir does not support this test yet. In the C# tab, `TestingIndexAuthorRegistered` and `TestingIndexAuthor` play the roles of `AuthorRegistered` and `Author` above:
 
 <ChronicleClientTabs snippet="testing/index/example-spec" />
 
-Use a real Chronicle integration test when you are testing hosting, storage, subscriptions, observer recovery, or the boundary between processes. In .NET and Kotlin, keep the bulk of supported slice behavior in the in-process scenarios so the suite stays fast.
+Use a real Chronicle integration test when you are testing hosting, storage, subscriptions, observer recovery, or the boundary between processes. In .NET, Kotlin, and TypeScript, keep supported read-model behavior in the in-process scenarios so the suite stays fast.
 
 ## How to test a Cratis stack slice
 
