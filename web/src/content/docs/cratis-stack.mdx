@@ -61,8 +61,10 @@ call takes a configure callback after the name — `builder.AddCratisChronicle("
 or `WithPostgreSql`, `WithMsSql`, `WithSqlite` — and compliance encryption keys can live in HashiCorp Vault or
 Azure Key Vault via `WithHashiCorpVault` and `WithAzureKeyVault`.
 
-[Chronicle's Aspire integration](/chronicle/hosting/aspire/) walks through development versus production
-images, every storage option, ports, and connecting .NET clients.
+Aspire AppHost is a .NET hosting option, not a backend-language API. TypeScript and JVM backends can
+connect to a separately hosted Chronicle kernel; [choose a kernel hosting model](/chronicle/get-started/choose-hosting-model/)
+if you aren't using Aspire. [Chronicle's Aspire integration](/chronicle/hosting/aspire/) covers its
+images, storage options, ports, and connecting .NET clients.
 
 ## Security and compliance end to end
 
