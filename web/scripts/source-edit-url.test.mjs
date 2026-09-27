@@ -17,6 +17,8 @@ it('links a product page to its authored sibling checkout', () => {
         'https://github.com/Cratis/Chronicle.Kotlin/edit/main/Documentation/guides/client.md');
     assert.equal(edit(path.join(repos, 'Arc.Kotlin/Documentation/guides/command.md')),
         'https://github.com/Cratis/Arc.Kotlin/edit/main/Documentation/guides/command.md');
+    assert.equal(edit(path.join(repos, 'Arc.TypeScript/Documentation/commands/model-bound/index.md')),
+        'https://github.com/Cratis/Arc.TypeScript/edit/main/Documentation/commands/model-bound/index.md');
 });
 
 it('links fallback submodules and the organization contributing source', () => {
@@ -31,6 +33,8 @@ it('links fallback submodules and the organization contributing source', () => {
 it('views a snippet file in its owning repository with the same allowlist as editing', () => {
     assert.equal(sourceViewUrl(path.join(repos, 'Chronicle.Kotlin/Documentation/client-snippets-java/events/append.md'), repos, site),
         'https://github.com/Cratis/Chronicle.Kotlin/blob/main/Documentation/client-snippets-java/events/append.md');
+    assert.equal(sourceViewUrl(path.join(repos, 'Arc.TypeScript/Documentation/client-snippets/tutorial/first-slice/author-slice.md'), repos, site),
+        'https://github.com/Cratis/Arc.TypeScript/blob/main/Documentation/client-snippets/tutorial/first-slice/author-slice.md');
     assert.equal(sourceViewUrl(path.join(repos, 'Unrelated/Documentation/snippet.md'), repos, site), false);
     assert.equal(sourceViewUrl(path.join(site, '.ai-work/snippet.md'), repos, site), false);
 });
