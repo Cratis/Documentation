@@ -16,7 +16,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { fromMarkdown } from 'mdast-util-from-markdown';
+import { gfmFromMarkdown } from 'mdast-util-gfm';
 import { mdxFromMarkdown } from 'mdast-util-mdx';
+import { gfm } from 'micromark-extension-gfm';
 import { mdxjs } from 'micromark-extension-mdxjs';
 
 import { existsSync } from 'node:fs';
@@ -569,15 +571,24 @@ async function readVariantSnippet(source, snippet) {
     return null;
 }
 
-function codeRanges(body) {
+function codeRanges(body, srcPath) {
     // Markdown containers (lists, blockquotes) can prefix a fence opener but not
-    // its following macro line. Let the MDX parser locate code, rather than
-    // interpreting individual lines as independent fence delimiters.
+    // its following macro line. Let the source's grammar locate code, rather
+    // than interpreting individual lines as independent fence delimiters.
     // Product sources can still contain DocFX <xref:Namespace.Type> tokens at
-    // this stage. Mask them at the same length for MDX parsing; the original
+    // this stage. Mask them at the same length for parsing; the original
     // body (including offsets and xrefs) is left intact for conversion below.
     const parseBody = body.replace(/<xref:[^>]+>/g, token => ' '.repeat(token.length));
-    const tree = fromMarkdown(parseBody, { extensions: [mdxjs()], mdastExtensions: [mdxFromMarkdown()] });
+    const mdx = path.extname(srcPath).toLowerCase() === '.mdx';
+    let tree;
+    try {
+        tree = fromMarkdown(parseBody, {
+            extensions: [mdx ? mdxjs() : gfm()],
+            mdastExtensions: [mdx ? mdxFromMarkdown() : gfmFromMarkdown()],
+        });
+    } catch (error) {
+        throw new Error(`[sync] Failed to parse ${srcPath}: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
+    }
     const ranges = [];
     const pending = [tree];
     while (pending.length) {
@@ -607,6 +618,11 @@ export function ensureTabsImport(body) {
     return body.replace(first[0], `import { ${[...names, ...missing].join(', ')} } from '@astrojs/starlight/components';`);
 }
 
+// Sync and the remark renderer share the exact source shape of a variant macro.
+export function variantMacroPattern(macro) {
+    return new RegExp(`^[ \\t]*<${macro}\\s+([^>]*)\\/>[ \\t]*$`, 'gm');
+}
+
 // Expands one axis's macro (`<Macro snippet="..." />`) into a Starlight <Tabs>
 // block built from the variant-owned snippets that actually exist on disk.
 async function expandAxisMacro(body, ctx, axis) {
@@ -614,8 +630,8 @@ async function expandAxisMacro(body, ctx, axis) {
         return { body, used: false };
     }
 
-    const componentRe = new RegExp(`^[ \\t]*<${axis.macro}\\s+([^>]*)\\/>[ \\t]*$`, 'gm');
-    const ranges = codeRanges(body);
+    const componentRe = variantMacroPattern(axis.macro);
+    const ranges = codeRanges(body, ctx.srcPath ?? ctx.basename);
     const parts = [];
     let expandedAny = false;
     let lastIndex = 0;

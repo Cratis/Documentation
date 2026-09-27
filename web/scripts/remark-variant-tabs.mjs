@@ -5,7 +5,7 @@
 // Product pages use the same expansion during sync; neither path edits its source.
 import path from 'node:path';
 import { visit } from 'unist-util-visit';
-import { expandVariantTabs, ensureTabsImport } from './sync-content.mjs';
+import { expandVariantTabs, ensureTabsImport, variantMacroPattern } from './sync-content.mjs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 
 const STARLIGHT_IMPORT = /import\s+\{([^}]+)\}\s+from\s+['"]@astrojs\/starlight\/components['"];?/g;
@@ -71,6 +71,21 @@ export function remarkVariantTabs(options = {}) {
         for (const { node, index, parent } of macros) {
             if (node.type !== 'mdxJsxFlowElement' || parent.type !== 'root') {
                 throw new Error(`[variant-tabs] ${node.name} in ${srcPath} must be a top-level block on its own line`);
+            }
+            // An empty paired tag has no children, and MDX permits two JSX tags
+            // on one line. Neither shape is expanded by sync or the mirror.
+            const source = String(file.value ?? '');
+            const start = node.position?.start.offset;
+            const end = node.position?.end.offset;
+            const lineStart = source.lastIndexOf('\n', start - 1) + 1;
+            const nextLine = source.indexOf('\n', end);
+            const lineEnd = nextLine === -1 ? source.length : nextLine;
+            const original = source.slice(lineStart, lineEnd);
+            const match = variantMacroPattern(node.name).exec(original);
+            if (start === undefined || end === undefined || !match || match.index !== 0 || match[0] !== original
+                || start !== lineStart + original.match(/^[ \t]*/)[0].length
+                || end !== lineEnd - original.match(/[ \t]*$/)[0].length) {
+                throw new Error(`[variant-tabs] ${node.name} in ${srcPath} must be exactly one self-closing tag on its own line`);
             }
             const axis = byMacro.get(node.name);
             const { body } = await expandVariantTabs(macroSource(node, srcPath), {

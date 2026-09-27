@@ -44,7 +44,7 @@ async function render(source, f) {
     const processor = unified().use(remarkParse).use(remarkMdx).use(remarkVariantTabs, {
         axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
     });
-    return processor.run(processor.parse(source), { path: f.sitePath });
+    return processor.run(processor.parse(source), { path: f.sitePath, value: source });
 }
 
 for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']]) {
@@ -202,6 +202,30 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
         }
         const otherTag = `<${f.axis.macro}Extra />\n`;
         await assert.doesNotReject(processor.run(processor.parse(otherTag), { path: mdPath }));
+    });
+
+    test(`${productKey} paired or same-line macros fail rendering instead of silently missing the mirror`, async (t) => {
+        const f = await fixture(productKey, axisKey);
+        t.after(() => rm(f.root, { recursive: true, force: true }));
+        const macro = `<${f.axis.macro} snippet="${f.snippet}" />`;
+        const invalid = [
+            `<${f.axis.macro} snippet="${f.snippet}"></${f.axis.macro}>`,
+            `${macro} ${macro}`,
+        ];
+        for (const source of invalid) {
+            const error = new RegExp(`${f.axis.macro} in .*capstone\\.mdx must be exactly one self-closing tag on its own line`);
+            await assert.rejects(render(source, f), error);
+            await assert.rejects(compile({ path: f.sitePath, value: source }, {
+                remarkPlugins: [[remarkVariantTabs, { axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot }]],
+            }), error);
+            const synced = await convertFile(source, {
+                basename: 'capstone.mdx', dir: path.dirname(f.sitePath), srcPath: f.sitePath,
+                product: { key: productKey, src: path.dirname(f.sitePath) },
+                variantAxes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+            });
+            assert.ok(synced.includes(source));
+            assert.doesNotMatch(synced, /<Tabs syncKey=/);
+        }
     });
 
     test(`${productKey} nested macros are rejected by the site renderer, as product sync cannot expand them`, async (t) => {

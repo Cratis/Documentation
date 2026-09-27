@@ -323,6 +323,36 @@ test('a variant macro rejects Markdown sources with a source-path diagnostic', a
     );
 });
 
+test('Markdown comments and autolinks do not prevent fenced macro literals', async (context) => {
+    const root = await fixture(context);
+    const srcPath = path.join(root, 'shared-page.md');
+    const source = '<!-- markdownlint-disable MD013 -->\n\n<https://cratis.io>\n\n```mdx\n<ChronicleClientTabs snippet="missing" />\n```\n';
+    const converted = await convertFile(source, conversionContext(root, {
+        basename: 'shared-page.md', srcPath,
+        product: { key: 'chronicle', src: root },
+        variantAxes: [variantAxis()],
+    }));
+    assert.ok(converted.includes(source.trimEnd()));
+    assert.doesNotMatch(converted, /<Tabs syncKey=/);
+});
+
+test('MDX parse errors identify their source page', async (context) => {
+    const root = await fixture(context);
+    const srcPath = path.join(root, 'broken-page.mdx');
+    await assert.rejects(
+        convertFile('<ChronicleClientTabs snippet="example" />\n\n<!-- markdownlint-disable MD013 -->\n', conversionContext(root, {
+            basename: 'broken-page.mdx', srcPath,
+            product: { key: 'chronicle', src: root },
+            variantAxes: [variantAxis()],
+        })),
+        (error) => {
+            assert.match(error.message, /Failed to parse .*broken-page\.mdx:/);
+            assert.match(error.message, /Unexpected character `!`/);
+            return true;
+        }
+    );
+});
+
 test('a variant macro expands in MDX and ignores fenced examples', async (context) => {
     const root = await fixture(context);
     const snippets = path.join(root, 'snippets');
