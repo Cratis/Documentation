@@ -74,7 +74,7 @@ If a shared page still has direct C# fences, treat it as migration debt. Do not 
 
 `<ChronicleClientTabs />` has no `clients` property. Never add one, and never edit the sync/audit scripts to reintroduce one. The shared page does not declare which clients apply to an example — the sync discovers that by checking every registered client's snippet root for a file at that id, and renders a tab only for the clients where one exists.
 
-Chronicle's `client` axis sets `warnOnMissingSnippet: true`: if a registered client has no matching snippet, sync warns and omits that tab (it is not a build error). Check the rendered tabs as well as the sync output. When a concept genuinely exists for only some clients, just don't add a snippet file for the others.
+Chronicle's `client` axis sets `warnOnMissingSnippet: true`: if a registered client has no matching snippet, sync warns and omits that tab. The warning is not a build error while at least one client has the snippet; if no client has it, both the sync and the audit fail. Check the rendered tabs as well as the sync output, and don't treat the warning as expected noise. Omit a client's snippet file only when the concept has no meaning for that client; otherwise follow the next paragraph.
 
 Prefer keeping every generally supported client visible in shared pages. If a shared workflow is not implemented for one client yet, add a real snippet file for that client that says the feature is not supported yet instead of omitting the tab. This keeps the docs honest and makes the gap visible:
 
