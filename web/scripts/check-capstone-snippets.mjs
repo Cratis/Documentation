@@ -16,6 +16,13 @@ const backend = [
     ['register-author', 'Authors/RegisterAuthor.cs', 'register-author'],
     ['author-read-model', 'Authors/Author.cs', 'author-read-model'],
 ];
+// Kotlin, Java and TypeScript snippets are compiled by their owning repositories; here they must
+// exist with exactly one fence each, so a missing file fails instead of silently dropping a tab.
+const otherBackends = [
+    ['Arc.Kotlin', 'client-snippets', 'kotlin'],
+    ['Arc.Kotlin', 'client-snippets-java', 'java'],
+    ['Arc.TypeScript', 'client-snippets', 'typescript'],
+];
 const frontend = [
     ['Authors/AddAuthor.tsx', 'add-author'],
     ['Authors/Authors.tsx', 'authors-screen'],
@@ -24,7 +31,7 @@ const frontend = [
 
 function pageFences(page) {
     const fences = [];
-    const pattern = /^([ \t]*)```(csharp|tsx)[ \t]*\n([\s\S]*?)^\1```[ \t]*$/gm;
+    const pattern = /^([ \t]*)```(csharp|cs|c#|tsx)[ \t]*\n([\s\S]*?)^\1```[ \t]*$/gm;
     for (const match of page.matchAll(pattern)) {
         const [, indentation, language, body] = match;
         const lines = body.replaceAll('\r\n', '\n').split('\n');
@@ -35,6 +42,26 @@ function pageFences(page) {
         fences.push([language, lines.map(line => line.slice(indentation.length)).join('\n')]);
     }
     return fences;
+}
+
+/** Return the body of the snippet's only fence, or throw if it has another shape or language. */
+function singleFence(snippet, language, label) {
+    const lines = snippet.replaceAll('\r\n', '\n').trimEnd().split('\n');
+    const fences = lines.flatMap((line, index) => line.startsWith('```') ? [index] : []);
+    if (fences.length !== 2 || fences[0] !== 0 || fences[1] !== lines.length - 1
+        || lines[0] !== `\`\`\`${language}` || lines.at(-1) !== '```') {
+        throw new Error(`${label} must contain exactly one ${language} fence`);
+    }
+    return lines.slice(1, -1).join('\n');
+}
+
+async function readSnippet(file, label) {
+    try {
+        return await readFile(file, 'utf8');
+    } catch (error) {
+        if (error.code === 'ENOENT') throw new Error(`${label} is missing: ${file} (ENOENT)`);
+        throw error;
+    }
 }
 
 function sourceRegion(source, filename, name) {
@@ -58,9 +85,15 @@ export async function checkCapstoneSnippets({
     pageSource,
     samplesRoot,
     arcRoot,
+    arcKotlinRoot,
+    arcTypeScriptRoot,
 } = {}) {
     const root = samplesRoot ?? path.dirname(await samplesCatalogFor(webRoot));
     const arc = arcRoot ?? resolveRepoCandidate(webRoot, '../../Arc');
+    const repositories = {
+        'Arc.Kotlin': arcKotlinRoot ?? resolveRepoCandidate(webRoot, '../../Arc.Kotlin'),
+        'Arc.TypeScript': arcTypeScriptRoot ?? resolveRepoCandidate(webRoot, '../../Arc.TypeScript'),
+    };
     const page = pageSource ?? await readFile(pagePath, 'utf8');
     const tabs = [...page.matchAll(/^<ArcBackendTabs snippet="capstone\/([^"]+)" \/>$/gm)].map(match => match[1]);
     const expectedTabs = backend.map(([name]) => name);
@@ -81,12 +114,18 @@ export async function checkCapstoneSnippets({
     }
 
     for (const [name, filename, region] of backend) {
-        const snippet = await readFile(path.join(arc, 'Documentation/client-snippets/capstone', `${name}.md`), 'utf8');
-        const match = /^```csharp\n([\s\S]*?)\n```\s*$/.exec(snippet);
-        if (!match) throw new Error(`Arc capstone/${name} must contain exactly one C# fence`);
+        const label = `Arc capstone/${name}`;
+        const snippet = await readSnippet(path.join(arc, 'Documentation/client-snippets/capstone', `${name}.md`), label);
+        const body = singleFence(snippet, 'csharp', label);
         const source = await readFile(path.join(root, 'Capstone', filename), 'utf8');
-        if (match[1].replaceAll('\r\n', '\n').trimEnd() !== sourceRegion(source, filename, region)) {
-            throw new Error(`Arc capstone/${name} differs from Capstone/${filename} docs:${region}`);
+        if (body.trimEnd() !== sourceRegion(source, filename, region)) {
+            throw new Error(`${label} differs from Capstone/${filename} docs:${region}`);
+        }
+
+        for (const [repository, folder, language] of otherBackends) {
+            const otherLabel = `${repository} ${folder}/capstone/${name}`;
+            const file = path.join(repositories[repository], 'Documentation', folder, 'capstone', `${name}.md`);
+            singleFence(await readSnippet(file, otherLabel), language, otherLabel);
         }
     }
 }
