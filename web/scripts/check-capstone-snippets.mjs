@@ -4,21 +4,22 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { samplesCatalogFor } from './repos-root.mjs';
+import { resolveRepoCandidate, samplesCatalogFor } from './repos-root.mjs';
 
 const webRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pagePath = path.join(webRoot, 'src/content/docs/build-a-full-app.mdx');
 
-// These are all the C# and TSX fences on the capstone page, in reading order.
-// The four-language ArcBackendTabs excerpt belongs to its client repositories.
-const snippets = [
-    ['csharp', 'Program.cs', 'host'],
-    ['csharp', 'Authors/AuthorId.cs', 'author-id'],
-    ['csharp', 'Authors/RegisterAuthor.cs', 'register-author'],
-    ['csharp', 'Authors/Author.cs', 'author-read-model'],
-    ['tsx', 'Authors/AddAuthor.tsx', 'add-author'],
-    ['tsx', 'Authors/Authors.tsx', 'authors-screen'],
-    ['tsx', 'App.tsx', 'authors-route'],
+// C# snippets are owned by Arc; their fenced contents must match the built sample.
+const backend = [
+    ['host', 'Program.cs', 'host'],
+    ['author-id', 'Authors/AuthorId.cs', 'author-id'],
+    ['register-author', 'Authors/RegisterAuthor.cs', 'register-author'],
+    ['author-read-model', 'Authors/Author.cs', 'author-read-model'],
+];
+const frontend = [
+    ['Authors/AddAuthor.tsx', 'add-author'],
+    ['Authors/Authors.tsx', 'authors-screen'],
+    ['App.tsx', 'authors-route'],
 ];
 
 function pageFences(page) {
@@ -52,27 +53,40 @@ function sourceRegion(source, filename, name) {
     return region.map(line => line.slice(indentation)).join('\n').trimEnd();
 }
 
-/** Fail if a displayed C#/TSX block is missing or differs from the built sample. */
+/** Fail if the page loses a backend step, or displayed code drifts from the built sample. */
 export async function checkCapstoneSnippets({
     pageSource,
     samplesRoot,
+    arcRoot,
 } = {}) {
     const root = samplesRoot ?? path.dirname(await samplesCatalogFor(webRoot));
+    const arc = arcRoot ?? resolveRepoCandidate(webRoot, '../../Arc');
     const page = pageSource ?? await readFile(pagePath, 'utf8');
-    const fences = pageFences(page);
-    if (fences.length !== snippets.length) {
-        throw new Error(`Expected ${snippets.length} C#/TSX capstone fences; found ${fences.length}`);
+    const tabs = [...page.matchAll(/^<ArcBackendTabs snippet="capstone\/([^"]+)" \/>$/gm)].map(match => match[1]);
+    const expectedTabs = backend.map(([name]) => name);
+    if (tabs.length !== backend.length || tabs.some((tab, index) => tab !== expectedTabs[index])) {
+        throw new Error(`Expected ordered capstone backend tabs: ${expectedTabs.join(', ')}; found: ${tabs.join(', ')}`);
     }
 
-    for (const [index, [language, filename, name]] of snippets.entries()) {
-        const [actualLanguage, shown] = fences[index];
-        if (actualLanguage !== language) {
-            throw new Error(`Capstone fence ${index + 1} must be ${language} (Capstone/${filename})`);
-        }
+    const fences = pageFences(page);
+    if (fences.length !== frontend.length || fences.some(([language]) => language !== 'tsx')) {
+        throw new Error(`Expected ${frontend.length} TSX capstone fences and no C# fences; found ${fences.length} C#/TSX fences`);
+    }
+
+    for (const [index, [filename, name]] of frontend.entries()) {
         const source = await readFile(path.join(root, 'Capstone', filename), 'utf8');
-        const expected = sourceRegion(source, filename, name);
-        if (shown.trimEnd() !== expected) {
+        if (fences[index][1].trimEnd() !== sourceRegion(source, filename, name)) {
             throw new Error(`Capstone fence ${index + 1} differs from Capstone/${filename} docs:${name}`);
+        }
+    }
+
+    for (const [name, filename, region] of backend) {
+        const snippet = await readFile(path.join(arc, 'Documentation/client-snippets/capstone', `${name}.md`), 'utf8');
+        const match = /^```csharp\n([\s\S]*?)\n```\s*$/.exec(snippet);
+        if (!match) throw new Error(`Arc capstone/${name} must contain exactly one C# fence`);
+        const source = await readFile(path.join(root, 'Capstone', filename), 'utf8');
+        if (match[1].replaceAll('\r\n', '\n').trimEnd() !== sourceRegion(source, filename, region)) {
+            throw new Error(`Arc capstone/${name} differs from Capstone/${filename} docs:${region}`);
         }
     }
 }
