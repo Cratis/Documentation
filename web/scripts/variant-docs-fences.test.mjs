@@ -64,3 +64,17 @@ test('masks YAML frontmatter without shifting fence lines or ranges', () => {
 test('parse errors name the source file', () => {
     assert.throws(() => audit('<Steps>\n{bad\n</Steps>'), /Failed to parse example\.mdx:/);
 });
+
+test('counts a fence whose info string carries highlight or title metadata', () => {
+    const body = '```csharp{1,3}\nvar a = 1;\n```\n\n```cs,title\nvar b = 2;\n```\n\n```csharp:Program.cs\nvar c = 3;\n```\n';
+    assert.deepEqual(audit(body).fences, [
+        { line: 1, lang: 'csharp' },
+        { line: 5, lang: 'csharp' },
+        { line: 9, lang: 'csharp' },
+    ]);
+});
+
+test('masks frontmatter closed by a delimiter with trailing whitespace', () => {
+    const body = '---\ndescription: Uses IProjectionFor<T>\n---   \n\n```csharp\nvar value = 1;\n```\n';
+    assert.deepEqual(audit(body).fences, [{ line: 5, lang: 'csharp' }]);
+});

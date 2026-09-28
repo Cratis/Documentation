@@ -14,9 +14,17 @@ export function parseMarkdownCode(body, srcPath, messagePrefix = 'sync', hasFron
     // The audit reads raw pages; sync has already stripped frontmatter. Mask it
     // before parsing MDX so YAML strings containing <T> cannot be read as JSX.
     // Preserve every newline and offset for fence lines and macro positions.
-    const source = hasFrontmatter
-        ? body.replace(/^---\r?\n[\s\S]*?\r?\n---(?=\r?\n|$)/, header => header.replace(/[^\r\n]/g, ' '))
-        : body;
+    // Find the closing delimiter the way splitFrontmatter in sync-content does,
+    // so a delimiter with trailing whitespace is masked too.
+    let source = body;
+    if (hasFrontmatter && body.startsWith('---')) {
+        const close = body.indexOf('\n---', 3);
+        if (close !== -1) {
+            const lineEnd = body.indexOf('\n', close + 4);
+            const end = lineEnd === -1 ? body.length : lineEnd;
+            source = body.slice(0, end).replace(/[^\r\n]/g, ' ') + body.slice(end);
+        }
+    }
     // Mask DocFX xrefs without changing offsets; the authored body is untouched.
     const parseBody = source.replace(/<xref:[^>]+>/g, token => ' '.repeat(token.length));
     const mdx = path.extname(srcPath).toLowerCase() === '.mdx';
