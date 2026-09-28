@@ -44,7 +44,7 @@ Source/
         └── Listing.tsx      ← Shared React listing page
 ```
 
-The backend equivalent belongs in `Listing.kt` for Kotlin, `Listing.java` and `ListingReducer.java` for Java, or `Listing.ts` for TypeScript. Keep the shared concepts and registration event alongside the slice in each backend's own source layout.
+The backend equivalent can live in `Listing.kt` for Kotlin or `Listing.ts` for TypeScript. For Java, put each public type in its own file: `Author.java`, `AuthorReducer.java`, and `AuthorRegistered.java` (reuse the registration slice's event file if it already exists). Keep the shared concepts and registration event alongside the slice in each backend's own source layout.
 
 ---
 
@@ -58,7 +58,7 @@ Define an `Author` view with an identity and the two names from registration, th
 
 The read model describes the list the screen needs. In C# and TypeScript, a convention-based projection maps matching event properties to it, and the event-source ID supplies the model identity. The query observes changes to Chronicle's MongoDB sink in C# and uses `ChronicleReadModels.observeAll` in TypeScript. Configure the host's read-model storage and observation before expecting live updates.
 
-**Kotlin and Java take a different route:** their model-bound `@FromEvent` does not currently populate the model identity from the event-source ID. A reducer reads `EventContext` to set `id` instead. Their `allAuthors` query reads Chronicle's materialized models as a **snapshot**, not a live Chronicle-backed stream. Do not substitute a Spring Data MongoDB observable query here: that observes a different persistence path. A JVM screen must refresh this snapshot when it needs new registrations; the shared React example below demonstrates the observable C#/TypeScript path.
+**Kotlin and Java take a different route:** their model-bound `@FromEvent` does not currently populate the model identity from the event-source ID. A reducer reads `EventContext` to set `id` instead. Their `allAuthors` query reads Chronicle's materialized models as a **snapshot**, not a live Chronicle-backed stream. Do not substitute a Spring Data MongoDB observable query here: that observes a different persistence path. A JVM screen gets a new snapshot when the listing is mounted again (for example, by revisiting the route); the shared React example below demonstrates the observable C#/TypeScript path.
 
 Build the backend before importing the query in the UI. For C#, `dotnet build -c Debug` generates `AllAuthors.ts` and `Author.ts` via [proxy generation](/arc/backend/csharp/proxy-generation/); other backends use their own proxy generation commands and paths. Match the frontend imports to the generated files in your application.
 
@@ -83,7 +83,7 @@ Use a fluent projection when you want the mapping in a separate type. This is an
 
 <ArcBackendTabs snippet="scenarios/vertical-slices/state-view/fluent-projection" />
 
-C# and Kotlin/Java enable AutoMap by default for `From`/`from`; TypeScript calls `autoMap()` explicitly. The JVM and TypeScript examples use an `AuthorImported` event that **carries its own `id`**. This is not a drop-in replacement for the earlier `AuthorRegistered` event on the JVM: that event has no ID field, and a fluent mapping of its names alone cannot supply the model identity. Keep the reducer from Step 1 for the registration slice.
+C# and Kotlin/Java enable AutoMap by default for `From`/`from`; TypeScript calls `autoMap()` explicitly. The JVM and TypeScript examples use an `AuthorImported` event that **carries its own `id`**. On the JVM this is an either/or choice for the `Author` view: use the Step 1 reducer for `AuthorRegistered`, which has no ID field, or use this fluent projection for an ID-bearing `AuthorImported` event. Do not register both for the same view; a fluent mapping of the registration event's names alone cannot supply its identity. In Java, put the fluent example's public types in `AuthorImported.java` and `AuthorProjection.java` (and reuse `Author.java` from the chosen view).
 
 ---
 
@@ -137,9 +137,9 @@ export const Listing = () => {
 
 **[`DataPage`](/components/datapage/)** from `@cratis/components` provides the page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. Declare columns with `Column` inside `DataPage.Columns`, and actions inside `DataPage.MenuItems`. This example queries the whole author list; for a large catalog, add server-side paging rather than treating table pagination as a limit on backend work.
 
-**`useDialog<Guid>(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) supplies the wrapper component rendered in JSX and an async function that opens it. `showAddAuthor` resolves to `[dialogResult, authorId]` because `AddAuthor` closes with the `Guid` identity passed to its `onSuccess` callback. The observable C#/TypeScript query does not need that ID to refresh; a JVM snapshot query does need a refresh after registration.
+**`useDialog<Guid>(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) supplies the wrapper component rendered in JSX and an async function that opens it. `showAddAuthor` resolves to `[dialogResult, authorId]` because `AddAuthor` closes with the `Guid` identity passed to its `onSuccess` callback. The observable C#/TypeScript query does not need that ID to update; a JVM snapshot query is fetched again only after the listing is remounted or its query arguments change.
 
-**`MenuItem`** in the `MenuItems` slot adds an action to the toolbar. The `command` handler `await`s the dialog; with an observable query, the list updates after a successful registration. With a snapshot query, explicitly refresh or re-run it.
+**`MenuItem`** in the `MenuItems` slot adds an action to the toolbar. The `command` handler `await`s the dialog; with an observable query, the list updates after a successful registration. With a JVM snapshot query, the shared component does not refetch when the dialog closes; revisit the Authors route to remount `DataPage` and reload the list. `DataPage`'s `onRefresh` prop only forwards a callback to a details component; it does not refetch the query.
 
 The `AddAuthor` component is imported from the Registration slice — slices within the same feature compose naturally because they share the `AuthorId` and `AuthorName` concepts from the parent folder.
 
@@ -189,6 +189,6 @@ export const App = () => (
 | Generated proxy | Author-list query proxy | Backend-specific [Arc](/arc/) generation |
 | Listing page | `Listing.tsx` | [`@cratis/components`](/components/) [`DataPage`](/components/datapage/) |
 
-The projection or reducer follows `AuthorRegistered` from the [Register Author](../state-change) slice. C# and TypeScript expose live updates here; Kotlin and Java expose a snapshot until a Chronicle-backed observable query is available.
+The Step 1 projection or reducer follows `AuthorRegistered` from the [Register Author](../state-change) slice; the alternative fluent example follows `AuthorImported`. C# and TypeScript expose live updates here; Kotlin and Java expose a snapshot until a Chronicle-backed observable query is available.
 
 **Next**: [Automation — Cancel Expired Reservations](../automation)
