@@ -37,9 +37,19 @@ export async function samplesCatalogFor(webRoot, env = process.env) {
     );
 }
 
-/** Resolve a manifest path relative to web/, mapping ../../ sibling paths to an overridden root. */
+/** Resolve a manifest path relative to web/, with optional per-repo worktree checkouts. */
 export function resolveRepoCandidate(webRoot, candidate, env = process.env) {
-    return candidate.startsWith('../../')
-        ? path.resolve(reposRootFor(webRoot, env), candidate.slice('../../'.length))
-        : path.resolve(webRoot, candidate);
+    if (!candidate.startsWith('../../')) return path.resolve(webRoot, candidate);
+    const relative = candidate.slice('../../'.length);
+    const [repository, ...parts] = relative.split('/');
+    // A repo override replaces only that checkout, not the root for unrelated products.
+    const overrides = {
+        Arc: 'CRATIS_REPO_ARC',
+        'Arc.Kotlin': 'CRATIS_REPO_ARC_KOTLIN',
+        'Arc.TypeScript': 'CRATIS_REPO_ARC_TYPESCRIPT',
+    };
+    const override = env[overrides[repository]];
+    return override
+        ? path.resolve(env[overrides[repository]], ...parts)
+        : path.resolve(reposRootFor(webRoot, env), relative);
 }

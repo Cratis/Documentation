@@ -5,7 +5,7 @@ description: Put Chronicle, Arc, and Components together — go from a domain ev
 
 import { Steps } from '@astrojs/starlight/components';
 
-This is where the three products meet. You'll build one **vertical slice** of a library app — registering an author and listing authors — end to end: a command and event on the backend ([Arc](/arc/) + [Chronicle](/chronicle/)), a read model built by a projection, and a React screen ([Components](/components/)) that consumes the **generated, type-safe proxies**. No hand-written API client, no DTO duplication.
+This is where the three products meet. You'll build one **vertical slice** of a library app — registering an author and listing authors — end to end. Choose C#, Kotlin, Java, or TypeScript for the backend. In every version, an [Arc](/arc/) command produces a [Chronicle](/chronicle/) event; a read model turns that event into a list; a React screen ([Components](/components/)) uses generated, type-safe proxies to call the backend. No hand-written API client, no DTO duplication.
 
 Keep the feature under **one module** — that's the vertical-slice idea: you navigate by behavior, not by technical layer.
 
@@ -21,101 +21,55 @@ tf 04 rmo Authors.Author ->> 03
 tf 05 ui  Authors.Authors ->> 04
 ```
 
-The blocks are the slice, one per product: the `ui` screens are [Components](/components/), the `cmd` and the `rmo`'s query are [Arc](/arc/), the `evt` is [Chronicle](/chronicle/), and the build generates the typed proxies that connect them. Frames 01–03 are the **command pattern** (intent → fact); 03–05 are the **view pattern** (fact → read model → screen).
+The blocks are the slice, one per product: the `ui` screens are [Components](/components/), the `cmd` and the `rmo`'s query are [Arc](/arc/), the `evt` is [Chronicle](/chronicle/), and the build generates the typed proxies that connect them. Frames 01–03 are the **command pattern** (intent → fact); 03–05 are the **view pattern** (fact → read model → screen). Pick a backend language in the tabs below; your selection follows you through the steps.
 
 ## Before you start
 
-Scaffold a full-stack app with `dotnet new cratis -o Library` from the [Chronicle getting started](/chronicle/get-started/). You can follow the [buildable author-registration sample](https://github.com/Cratis/Samples/tree/main/Capstone) alongside this page. For brevity, this slice keeps all four C# types in one `Authors/` folder at the project root. The generated proxies land next to them, which is where the screen below imports them from. In a larger app, follow the scaffold's `<Module>/<Feature>/<Slice>/` layout instead (for example `SomeModule/SomeFeature/Registration/`). From `Library/`, run `docker compose up -d` to start Chronicle with bundled MongoDB; the default MongoDB setup stores the projected read model for the observable query. Then run `dotnet run` and start the frontend with the package manager you chose when scaffolding (for example, `npm run dev`). The generated `README.md` has the health check and commands for your package manager. The Compose file exposes development ports on all interfaces; bind them to `127.0.0.1` or use a trusted machine.
+Choose one backend to follow:
 
-## The host
+- **C#:** Install the [.NET 10 template](https://github.com/Cratis/Templates#how-to-use) and run `dotnet new cratis -o Library`. The [buildable Capstone sample](https://github.com/Cratis/Samples/tree/main/Capstone) contains this exact slice. From `Library/`, run `docker compose up -d`, `dotnet build`, then `dotnet run`; start the Vite frontend with the package manager selected by your scaffold (for example, `npm run dev`). For brevity, the C# slice keeps its four types (`AuthorId`, `RegisterAuthor`, `AuthorRegistered`, `Author`) in one `Authors/` folder at the project root; the generated proxies land beside them, which is why the screen below imports `./RegisterAuthor` and `./Author`.
+- **Kotlin or Java:** Run `dotnet new cratis --language Kotlin -o Library` or `dotnet new cratis --language Java -o Library`. With JDK 17 active, run `docker compose up -d`, `./gradlew build`, then `./gradlew bootRun` from `Library/`. Start the Vite frontend separately, following the generated [Kotlin](https://github.com/Cratis/Templates/blob/main/Templates/Cratis.Kotlin/README.md) or [Java](https://github.com/Cratis/Templates/blob/main/Templates/Cratis.Java/README.md) README. The Gradle build generates the proxies under `build/generated/arc-proxies/`.
+- **TypeScript (source preview):** There is [no TypeScript scaffold yet](https://github.com/Cratis/Templates/issues/61). Start from the [Arc TypeScript Library sample](https://github.com/Cratis/Arc.TypeScript/tree/main/Samples/Library): from the Arc.TypeScript repository root run `yarn install`, `docker compose -f Samples/Library/docker-compose.yml up -d`, then `yarn workspace @cratis/arc.sample.library dev`. The TypeScript tabs mirror the sample's `Features/Authors/AuthorId.ts`, `AuthorName.ts`, `Registration/Registration.ts` and `Listing/Listing.ts`, without its `Librarian` role, unique-name constraint and `authorsPage` query; [`AuthorName.ts`](https://github.com/Cratis/Arc.TypeScript/blob/main/Samples/Library/Features/Authors/AuthorName.ts) adds the name validation. The sample builds its proxies beside each feature as `*.proxy.ts`; see its README for setup and the local-only development identity.
 
-`dotnet new cratis` generates the [host](https://github.com/Cratis/Samples/blob/main/Capstone/Program.cs) for you. `AddCratis` brings up Arc and Chronicle together; `UseCratis` activates both. The template also configures the API and static-file serving used by the React screen:
+The scaffolded C# and JVM Compose configurations start Chronicle with the default MongoDB choice, which persists the projected read model. These development Compose files expose ports on all interfaces; bind them to `127.0.0.1` or use a trusted machine. Keep the four backend roles in one feature: host, author id, command/event, and read model/query. The sample layout differs by language; follow its neighboring files for imports and wiring.
 
-```csharp
-var builder = WebApplication.CreateBuilder(args);
+## 1. Wire the host (backend)
 
-builder.AddCratis(
-    configureArcBuilder: arcBuilder => arcBuilder.WithMongoDB(configureMongoDB: mongoBuilder => mongoBuilder.WithCamelCaseNamingPolicy()),
-    configureChronicleBuilder: chronicleBuilder => chronicleBuilder.WithCamelCaseNamingPolicy());
+The host connects Arc to Chronicle and exposes generated command and query endpoints. The scaffolds and Library sample supply this wiring; find it before changing the feature. C# and TypeScript need no change. On Kotlin and Java, add the three author types to the scaffold's `KnownClientArtifacts` in `ChronicleConfiguration`, so an executable jar registers them. Keep the scaffold's existing imports and add imports for the author types. Keep its sink fallback too: a non-MongoDB `--Database` generates `WellKnownSinkTypes.SQL` there, not `MONGODB`.
 
-builder.Services.AddControllers();
-builder.Services.AddMvc();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options => options.AddConcepts());
+<ArcBackendTabs snippet="capstone/host" />
 
-var app = builder.Build();
+## 2. Identify the event stream (backend)
 
-app.UseRouting();
+Chronicle uses the command key to select the author's event stream. Give each author an id in the form used by your backend. In C#, `AuthorId` derives from `EventSourceId<Guid>`, which also makes it the read model's key without a `[Key]` attribute:
 
-app.UseDefaultFiles();
-app.UseStaticFiles();
+<ArcBackendTabs snippet="capstone/author-id" />
 
-app.UseWebSockets();
-app.MapControllers();
-app.UseCratis();
+## 3. Register the author (backend)
 
-app.UseSwagger();
-app.UseSwaggerUI();
-app.MapFallbackToFile("/index.html");
+The command expresses intent; its handler returns the event that happened. Chronicle appends that event to the stream selected by the id. Arc.Kotlin rejects anonymous callers by default and the JVM scaffolds have no sign-in, so the Kotlin and Java command and read model carry `@AllowAnonymous`, as the scaffold's own `Register` and `Listing` do:
 
-await app.RunAsync();
-```
+<ArcBackendTabs snippet="capstone/register-author" />
 
-You won't touch this again for the slice below — it's here so you can see where the command, event, read model, and query you're about to write get wired in. The [Cratis package](/arc/backend/csharp/chronicle/cratis-package/) reference covers what `AddCratis` configures and how to adjust it.
+## 4. Build and query the author list (backend)
 
-## 1. Model the slice (backend)
+The read model describes the list entry; the event feeds it, and a query exposes the list. C# and TypeScript declare a projection from the event; in C#, AutoMap matches `AuthorRegistered.Name` to `Name`. Kotlin and Java use a reducer keyed by the event context's source id, rather than a model-bound event mapping. Choose the live observation when your backend supports it:
 
-<Steps>
+<ArcBackendTabs snippet="capstone/author-read-model" />
 
-1. **An event-source id.** Chronicle uses the command key to select an event stream. Derive the author id from `EventSourceId<Guid>` in [`AuthorId.cs`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/AuthorId.cs):
+Build your backend now (`dotnet build`, `./gradlew build`, or the Library sample's `yarn workspace @cratis/arc.sample.library build`). The build generates TypeScript command and query proxies: change a property on the backend and the frontend must compile against the updated shape. Chronicle projects asynchronously, so a successful command can precede the updated list. On Kotlin and Java, the live query doesn't deliver updates yet: the Chronicle kernel's materialized observation fails on MongoDB ([Chronicle#4365](https://github.com/Cratis/Chronicle/issues/4365)). Until that's fixed, read the sink once instead, with `eventStore.readModels.materialized.getInstances(Author::class, 0, 50)` in Kotlin (a `suspend` call) or `ReadModelsJavaBridge.getMaterializedInstances(store.getReadModels(), Author.class, 0, 50)` in Java, and reload the list after registering an author.
 
-   ```csharp
-   public record AuthorId(Guid Value) : EventSourceId<Guid>(Value)
-   {
-       public static readonly AuthorId NotSet = new(Guid.Empty);
-       public static implicit operator AuthorId(Guid value) => new(value);
-       public static AuthorId New() => new(Guid.NewGuid());
-   }
-   ```
+## 5. Build the screen (frontend)
 
-2. **The command and the event, together in [`RegisterAuthor.cs`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/RegisterAuthor.cs).** The command is a record with `Handle()` on it — no separate handler class. `Handle()` returns the event that happened:
+The screen below is the shared React flow from the [compiled C# Capstone sample](https://github.com/Cratis/Samples/tree/main/Capstone): run a generated command in a dialog, read a generated query, mount a route. Use the same Components in the other backends, adjusting only the generated proxy imports and id type:
 
-   ```csharp
-   [Command]
-   public record RegisterAuthor(AuthorId Id, string Name)
-   {
-       public AuthorRegistered Handle() => new(Name);
-   }
-
-   [EventType]
-   public record AuthorRegistered(string Name);
-   ```
-
-3. **The read model and its projection in [`Author.cs`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/Author.cs).** Declare the shape you want to query and which event feeds it — AutoMap matches `AuthorRegistered.Name` to `Name`. Because `AuthorId` derives from `EventSourceId<Guid>`, it is the read model's key without a `[Key]` attribute. A static method exposes the query as an observable so the UI updates live:
-
-   ```csharp
-   [ReadModel]
-   [FromEvent<AuthorRegistered>]
-   public record Author(AuthorId Id, string Name)
-   {
-       public static ISubject<IEnumerable<Author>> AllAuthors(IMongoCollection<Author> collection) =>
-           collection.Observe();
-   }
-   ```
-
-</Steps>
-
-That's the C# slice: four types under `Authors/` — `AuthorId`, `RegisterAuthor`, `AuthorRegistered`, and `Author`. Run `dotnet build`.
-
-:::note[What the build did]
-Building the backend **generates TypeScript proxies** for `RegisterAuthor` and `AllAuthors`. The frontend now has typed clients that match your C# exactly — change a property here and the frontend won't compile until you fix it.
-:::
-
-## 2. Build the screen (frontend)
+- **C#:** The snippets below import proxies co-located in `Authors/`; the id in the command proxy is a `Guid`.
+- **Kotlin and Java:** Import `RegisterAuthor.ts` and `AllAuthors.ts` under `build/generated/arc-proxies/` via your scaffold's `Api/` alias; the generated id is a string, so seed it with `crypto.randomUUID()` instead of `Guid.create()`.
+- **TypeScript:** Import `RegisterAuthor` from `Features/Authors/Registration/RegisterAuthor.proxy.ts` and `AllAuthors` from `Features/Authors/Listing/AllAuthors.proxy.ts`; keep `Guid.create()` for its id. Its [RegisterAuthorForm](https://github.com/Cratis/Arc.TypeScript/blob/main/Samples/Library/Features/Authors/Registration/RegisterAuthorForm.tsx) seeds the id before validation with `initialValues`.
 
 <Steps>
 
-1. **A dialog that executes the command.** [`AddAuthor.tsx`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/AddAuthor.tsx) uses `CommandDialog` to instantiate and run the generated command and render the OK/Cancel footer — you just supply the fields:
+1. **A dialog that executes the command.** [`AddAuthor.tsx`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/AddAuthor.tsx) uses `CommandDialog` to instantiate and run the generated command and render the OK/Cancel footer — supply the fields:
 
    ```tsx
    import { CommandDialog } from '@cratis/components/CommandDialog';
@@ -128,13 +82,13 @@ Building the backend **generates TypeScript proxies** for `RegisterAuthor` and `
            command={RegisterAuthor}
            title="Add author"
            okLabel="Add"
-           onBeforeExecute={(values) => { values.id = Guid.create(); return values; }}>
+           initialValues={{ id: Guid.create() }}>
            <InputTextField<RegisterAuthor> value={i => i.name} title="Name" />
        </CommandDialog>
    );
    ```
 
-2. **A screen that reads the observable query.** In [`Authors.tsx`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/Authors.tsx), the generated `AllAuthors` proxy is observable — `.use()` re-renders when the projection changes. The button opens the dialog above:
+2. **A screen that reads the observable query.** In [`Authors.tsx`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/Authors.tsx), the generated `AllAuthors` proxy is observable — `.use()` re-renders when the projection changes (C# and TypeScript; see the JVM note above). The button opens the dialog above:
 
    ```tsx
    import { useDialog } from '@cratis/arc.react/dialogs';
@@ -168,22 +122,16 @@ Building the backend **generates TypeScript proxies** for `RegisterAuthor` and `
 
 </Steps>
 
-## The event-producing command across backends
-
-Each backend can return an event from a command instead of writing a row. The C# excerpt follows the [Arc event-sourcing migration](/arc/backend/csharp/chronicle/add-event-sourcing/) and assumes its `AuthorName` concept (the simplified C# slice above uses `string`). The TypeScript excerpt assumes the `AuthorId` and `AuthorName` types beside its library sample and requires the `Librarian` role with `@roles('Librarian')`. Kotlin and Java use `CreateTask` / `TaskCreated` instead:
-
-<ArcBackendTabs snippet="guides/chronicle/event-from-command" />
-
-The [JVM Chronicle integration guide](/arc/backend/kotlin/guides/chronicle/) covers its host setup. The TypeScript backend is in **source preview**: its [library sample](https://github.com/Cratis/Arc.TypeScript/blob/main/Samples/Library/Features/Authors/Registration/Registration.ts) has the full author types and constraint, and its [host](https://github.com/Cratis/Arc.TypeScript/blob/main/Samples/Library/main.ts) calls `withChronicle(builder, ...)`. Its [listing](https://github.com/Cratis/Arc.TypeScript/blob/main/Samples/Library/Features/Authors/Listing/Listing.ts) offers both an observable `allAuthors` query and a one-shot `authorsPage` query. These tabs cover the write-side step, not four interchangeable frontend tutorials; the React flow above describes C#.
-
 ## What the slice illustrates
 
-- One **C# vertical slice**: command, event, read model, projection, and UI for a single behavior.
-- **Full-stack type safety**: the React code uses proxies generated from the C# types, rather than a hand-written client.
-- The **CQRS loop**: the command returns a fact, Chronicle appends it, the default MongoDB projection builds the read model, and the observable query streams updates to the UI.
+- One vertical slice in your chosen backend: host, id, command, event, read model, query, and React screen for one behavior.
+- **Full-stack type safety:** the screen uses proxies generated from backend types, not a hand-written client.
+- **The CQRS loop:** the command returns a fact, Chronicle appends it and builds the read model, and the query delivers the list to the UI. C# and TypeScript update the list live; Kotlin and Java will once Chronicle#4365 is fixed.
 
 ## Go deeper
 
-- Backend: [Commands](/arc/backend/csharp/commands/) and [Queries](/arc/backend/csharp/queries/) in Arc, [Projections](/chronicle/projections/) in Chronicle.
+- Backend: [Commands](/arc/backend/csharp/commands/) and [Queries](/arc/backend/csharp/queries/) in Arc, [Projections](/chronicle/projections/) in Chronicle, and the [Cratis package](/arc/backend/csharp/chronicle/cratis-package/) that `AddCratis` configures.
+- Kotlin and Java: the [Chronicle guide](/arc/backend/kotlin/guides/chronicle/) for Arc.Kotlin.
+- TypeScript: the [Arc TypeScript Library sample](https://github.com/Cratis/Arc.TypeScript/tree/main/Samples/Library).
 - Frontend: [Dialogs](/components/) and data tables in Components.
 - The reasoning: [Why developers choose Cratis](/why-cratis/) and [Why Arc](/arc/why-arc/).
