@@ -137,7 +137,7 @@ export const AddAuthor = () => {
 };
 ```
 
-With a Kotlin or Java backend, the command also has an `id` property for the new author. Supply it without showing a field, for example with `initialValues={{ id: Guid.create() }}` on `CommandDialog`. With a TypeScript backend, the response is the ID's string: use `string` instead of `Guid` in `CommandDialog`, `useDialogContext`, and the parent's `useDialog` below.
+With a Kotlin or Java backend, the command also has an `id` property for the new author. Supply it without showing a field, for example with `initialValues={{ id: Guid.create() }}` on `CommandDialog`. With a TypeScript backend, the response is the ID's string: use `string` instead of `Guid` in `CommandDialog`, `useDialogContext`, and the parent's `useDialog` and `useState` below, and drop the then-unused `Guid` import.
 
 The dialog component uses `useDialogContext` from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) to get the `closeDialog` function. It does not receive props for visibility — all dialog lifecycle is managed by the framework. A parent component uses the [`useDialog`](/arc/frontend/react/) hook to show and await this dialog.
 

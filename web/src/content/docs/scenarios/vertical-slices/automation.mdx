@@ -41,7 +41,7 @@ The Reservation slice supplies the events that open and close a reservation. Reu
 
 <ArcBackendTabs snippet="scenarios/vertical-slices/automation/reservation-domain" />
 
-The Kotlin and Java events carry times as epoch milliseconds. The JVM Chronicle client serializes `java.time` values as JSON objects, and Chronicle rejects such an append against the event's schema ([Chronicle.Kotlin#104](https://github.com/Cratis/Chronicle.Kotlin/issues/104)).
+The Kotlin and Java events and read models carry times as epoch milliseconds. The JVM Chronicle client serializes `java.time` values as JSON objects, and Chronicle rejects such an append against the event's schema ([Chronicle.Kotlin#104](https://github.com/Cratis/Chronicle.Kotlin/issues/104)).
 
 A `BookReserved` event starts the clock. If the member collects the book (`BookBorrowedFromReservation`), the reservation is closed. If they do not collect it before `ExpiresAt`, the system should cancel it and release the copy back to inventory.
 
