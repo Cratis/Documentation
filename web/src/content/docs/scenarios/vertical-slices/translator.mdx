@@ -53,8 +53,10 @@ Source/
     ├── Registration/
     │   └── Registration.cs          ← RegisterMember command + MemberRegistered event
     └── HRIntegration/
-        └── HRIntegration.cs         ← External event type + translator reactor
+        └── HRIntegration.cs         ← External event type + translator reactor (C# layout)
 ```
+
+Kotlin and TypeScript use the same folders with `.kt` or `.ts` files. Java puts each public type in its own file, so `Registration/` and `HRIntegration/` hold one file per event, command and reactor.
 
 The integration concern lives in its own slice folder. If the HR integration is ever replaced with a different HR system, you delete or replace `HRIntegration/` without touching `Registration/`.
 
@@ -62,78 +64,27 @@ The integration concern lives in its own slice folder. If the HR integration is 
 
 ## Step 1 — The Member Registration Slice
 
-First, the domain side — the Library's own vocabulary. This follows the same State Change pattern from [Register an Author](../state-change).
+First, the domain side — the Library's own vocabulary. This follows the same State Change pattern from [Register an Author](../state-change): a strongly-typed member identity and name, with a concept validator for the nonempty-name rule.
 
-```csharp
-// Members/MemberId.cs
-using Cratis.Chronicle.Events;
+<ArcBackendTabs snippet="scenarios/vertical-slices/translator/member-concepts" />
 
-namespace Library.Members;
+The registration command and its event:
 
-public record MemberId(Guid Value) : EventSourceId<Guid>(Value)
-{
-    public static readonly MemberId NotSet = new(Guid.Empty);
-    public static MemberId New() => new(Guid.NewGuid());
-    public static implicit operator MemberId(Guid value) => new(value);
-}
-```
+<ArcBackendTabs snippet="scenarios/vertical-slices/translator/member-registration" />
 
-```csharp
-// Members/MemberName.cs
-using Cratis.Arc.Validation;
-using Cratis.Concepts;
-using FluentValidation;
+And the Library's uniqueness rule for member names:
 
-namespace Library.Members;
-
-public record MemberName(string Value) : ConceptAs<string>(Value)
-{
-    public static readonly MemberName NotSet = new(string.Empty);
-    public static implicit operator MemberName(string value) => new(value);
-}
-
-public class MemberNameValidator : ConceptValidator<MemberName>
-{
-    public MemberNameValidator() => RuleFor(name => name.Value).NotEmpty();
-}
-```
-
-```csharp
-// Members/Registration/Registration.cs
-using Cratis.Arc.Commands.ModelBound;
-using Cratis.Chronicle.Events.Constraints;
-using Cratis.Chronicle.Events;
-using Library.Members;
-
-namespace Library.Members.Registration;
-
-/// <summary>Records a member's registration in the Library.</summary>
-[EventType]
-public record MemberRegistered(MemberName FirstName, MemberName LastName);
-
-public class UniqueMemberName : IConstraint
-{
-    public void Define(IConstraintBuilder builder) => builder
-        .Unique(_ => _
-            .On<MemberRegistered>(e => e.FirstName, e => e.LastName)
-            .WithMessage("A member with that name is already registered"));
-}
-
-[Command]
-public record RegisterMember(MemberName FirstName, MemberName LastName)
-{
-    public MemberId Provide() => MemberId.New();
-
-    public (MemberId, MemberRegistered) Handle(MemberId memberId) =>
-        (memberId, new MemberRegistered(FirstName, LastName));
-}
-```
+<ArcBackendTabs snippet="scenarios/vertical-slices/translator/unique-member-name" />
 
 `RegisterMember` knows nothing about HR. It can be called from the UI, from an API, or — as here — from a reactor. `MemberNameValidator` applies the same nonempty-name invariant to each entry point.
 
-`MemberId` derives from `EventSourceId<Guid>`, so the optional Arc–Chronicle integration uses the returned identity both for the append and for the command response. An ordinary `ConceptAs<Guid>` response would not select the event source. `Provide()` creates the ID and `Handle()` constructs the fact.
+The command both appends `MemberRegistered` under the new member's identity and returns that identity as its response, in each backend's own way:
 
-The tutorial retains the Library's exact first-name/last-name uniqueness rule. That rule is checked at append time, after `Handle()`. It is a registration policy, **not an HR deduplication key**: two different employees can share a name.
+- **C#**: `MemberId` derives from `EventSourceId<Guid>`, so the optional Arc–Chronicle integration uses the returned identity both for the append and for the command response. An ordinary `ConceptAs<Guid>` response would not select the event source. `Provide()` creates the ID and `Handle()` constructs the fact.
+- **TypeScript**: `provide()` creates the ID, and `handle()` returns `tuple(eventSourceIdResponse(id), event)` to append to that ID and return it.
+- **Kotlin and Java**: the caller supplies the ID in the `@CommandKey` property; Arc appends the event under the command key and returns the `MemberId` half of the `Pair`.
+
+The tutorial retains the Library's exact first-name/last-name uniqueness rule in C# and TypeScript. That rule is checked at append time, after the handler. It is a registration policy, **not an HR deduplication key**: two different employees can share a name. The Kotlin and Java clients cannot express a two-property unique constraint yet ([Cratis/Chronicle.Kotlin#101](https://github.com/Cratis/Chronicle.Kotlin/issues/101)).
 
 ---
 
@@ -141,63 +92,25 @@ The tutorial retains the Library's exact first-name/last-name uniqueness rule. T
 
 Now the integration side. This is the only place in the codebase that knows anything about the HR system's shape.
 
-```csharp
-// Members/HRIntegration/HRIntegration.cs
-using Cratis.Arc.Commands;
-using Cratis.Chronicle.Events;
-using Cratis.Chronicle.Reactors;
-using Library.Members;
-using Library.Members.Registration;
-
-namespace Library.Members.HRIntegration;
-
-// ─── External Event ───────────────────────────────────────────────────────────
-// The inbound adapter records this integration event in Chronicle.
-// Its string fields mirror the HR payload, not Library domain concepts.
-
-/// <summary>Records the staff-creation payload received from HR.</summary>
-[EventType]
-public record HRMemberCreated(
-    string EmployeeId,
-    string GivenName,
-    string FamilyName,
-    string Status);
-
-// ─── Translator Reactor ───────────────────────────────────────────────────────
-
-public class MemberImportReactor(ICommandPipeline commandPipeline) : IReactor
-{
-    [OnceOnly]
-    public async Task HandleHRMemberCreated(HRMemberCreated @event)
-    {
-        // Only import active staff as library members
-        if (@event.Status != "ACTIVE")
-        {
-            return;
-        }
-
-        var result = await commandPipeline.Execute(new RegisterMember(
-            FirstName: new MemberName(@event.GivenName),
-            LastName: new MemberName(@event.FamilyName)));
-        if (!result.IsSuccess)
-        {
-            throw new MemberImportFailed();
-        }
-    }
-}
-
-public class MemberImportFailed() : Exception("Library member registration failed.");
-```
+<ArcBackendTabs snippet="scenarios/vertical-slices/translator/hr-integration" />
 
 ### What is happening here?
 
-**[`[EventType]`](/chronicle/events/)** identifies the integration event recorded by your inbound adapter. It does not connect Chronicle to HR by itself. The reactor runs after that adapter has received, validated, and appended the payload to the configured event log.
+**The integration [event](/chronicle/events/)** `HRMemberCreated` is recorded by your inbound adapter. Declaring it does not connect Chronicle to HR by itself. The reactor runs after that adapter has received, validated, and appended the payload to the configured event log.
 
-**`[OnceOnly]`** skips the handler during replay. Rebuilding Library views should consume existing `MemberRegistered` facts, not issue fresh registrations from historical HR events. It does **not** prevent retries after failure or deduplicate separate incoming messages.
+**The once-only marker** (`[OnceOnly]` in C#, `@OnceOnly` in Kotlin and Java, `@onceOnly()` in TypeScript) skips the handler during replay. Rebuilding Library views should consume existing `MemberRegistered` facts, not issue fresh registrations from historical HR events. It does **not** prevent retries after failure or deduplicate separate incoming messages.
 
 **Status filtering** shows how the translator makes decisions. This import accepts only records whose status is `"ACTIVE"`; it makes no further distinction between employment categories. That filter lives here, at the integration boundary. The `RegisterMember` command never needs to know that the Library has an HR integration; it just registers members.
 
-**[`ICommandPipeline.Execute`](/arc/backend/csharp/commands/command-pipeline/)** runs the Library command's validation and Chronicle append, including `UniqueMemberName`. An unsuccessful result throws the named `MemberImportFailed` exception so Chronicle records an observer failure instead of acknowledging an import that did not happen. These background calls do not inherit a user's HTTP principal; configure an execution context if registration requires authorization.
+**The handler** is found the way each client finds [reactor](/chronicle/reactors/) handlers. C# and the JVM clients match on the event parameter type. TypeScript matches on the method name: the event class name with its first letter lowercased, which for `HRMemberCreated` is `hRMemberCreated`.
+
+**Arc's command pipeline** runs the Library command's validation and Chronicle append, including the name constraint where the backend has one. An unsuccessful result must fail the handler, so Chronicle records an observer failure instead of acknowledging an import that did not happen:
+
+- **C#**: the reactor calls [`ICommandPipeline.Execute`](/arc/backend/csharp/commands/command-pipeline/) and throws the named `MemberImportFailed` exception when the result is unsuccessful.
+- **Kotlin and Java**: the reactor passes the command, its own type and the event context to Arc's `ChronicleCommandSideEffectHandler`, and throws `MemberImportFailed` when the result is unsuccessful. Because the command key is the member identity, the reactor creates a new `MemberId` for each import.
+- **TypeScript**: the handler returns the command, and Arc executes it and fails the handler with a message naming the command when it is rejected. See [Returning commands from a reactor](/arc/backend/typescript/chronicle/reactors/command-side-effects/).
+
+These background calls do not inherit a user's HTTP principal; configure an execution context if registration requires authorization. The Kotlin and Java `RegisterMember` is `@AllowAnonymous`, matching the C# command, which has no authorization rules.
 
 A repeated name causes a visible rejection, not a successful deduplication. If registration succeeds but the reactor fails before acknowledging the HR event, retrying can encounter that rejection. A production import needs a durable mapping from HR's employee identity to `MemberId`, and a policy for repeated messages and name conflicts. `EmployeeId` is available at this boundary for that work; do not parse values such as `"EMP-00247"` as GUIDs or substitute name equality for employee identity.
 
@@ -205,7 +118,7 @@ A repeated name causes a visible rejection, not a successful deduplication. If r
 
 ## Step 3 — Comparing to Automation
 
-At a glance, Automation and Translation look similar — both use `IReactor` and both call `ICommandPipeline`. The difference is in *who owns the events*:
+At a glance, Automation and Translation look similar — both use a reactor and both send commands through Arc's command pipeline. The difference is in *who owns the events*:
 
 | | Automation | Translation |
 | --- | --------- | ----------- |
@@ -224,14 +137,14 @@ The transport adapter and translator have separate jobs. The adapter receives HR
 
 Wire the boundary in this order:
 
-1. Configure Arc's [Chronicle integration](/arc/backend/csharp/chronicle/) and include the integration event and reactor assemblies in application discovery.
+1. Configure Arc's Chronicle integration ([C#](/arc/backend/csharp/chronicle/), [Kotlin and Java](/arc/backend/kotlin/guides/chronicle/), [TypeScript](/arc/backend/typescript/chronicle/)) and include the integration event and reactor in application discovery.
 2. Implement the inbound adapter for HR's actual transport — for example, an authenticated webhook or a broker consumer. Validate the sender and payload before accepting it.
 3. Use the configured Chronicle [event log](/chronicle/events/) to append `HRMemberCreated` under a stable integration-event source identity. Check the append result before acknowledging the upstream message.
 4. Keep transport message deduplication and the employee-to-member mapping durable. Test redelivery and a failure after registration succeeds, not just the first successful message.
 
 A Chronicle namespace isolates event-store data; it is not a Kafka or Service Bus connection. The concrete adapter depends on HR's delivery contract, so it belongs in the host integration rather than in `RegisterMember`.
 
-To check the translator itself, substitute `ICommandPipeline` in a direct handler spec: inactive staff should issue no command; active staff should pass `GivenName` and `FamilyName` as `MemberName` values; an unsuccessful command should fail the handler. Then run a hosted test through the real adapter and observer to verify ingestion, discovery, authorization, and recovery together.
+To check the translator itself, write a direct handler spec: inactive staff should issue no command; active staff should pass `GivenName` and `FamilyName` as `MemberName` values; an unsuccessful command should fail the handler. In C#, substitute `ICommandPipeline`. In TypeScript, call `hRMemberCreated` directly and assert the command it returns. Then run a hosted test through the real adapter and observer to verify ingestion, discovery, authorization, and recovery together.
 
 ---
 
@@ -239,13 +152,13 @@ To check the translator itself, substitute `ICommandPipeline` in a direct handle
 
 | Layer | Artifact | Technology |
 | ----- | -------- | ---------- |
-| External event (HR mirror) | `HRMemberCreated` | [Chronicle](/chronicle/) [`[EventType]`](/chronicle/events/) (integration type) |
-| Domain command | `RegisterMember` | [Arc](/arc/) [`[Command]`](/arc/backend/csharp/commands/model-bound/) |
-| Domain event | `MemberRegistered` | [Chronicle](/chronicle/) [`[EventType]`](/chronicle/events/) |
-| Translator | `MemberImportReactor` | [Chronicle](/chronicle/) [`IReactor`](/chronicle/reactors/) + `[OnceOnly]` |
-| Bridge | `ICommandPipeline.Execute(...)` | [Arc](/arc/) [command pipeline](/arc/backend/csharp/commands/command-pipeline/) |
+| External event (HR mirror) | `HRMemberCreated` | [Chronicle](/chronicle/) [event type](/chronicle/events/) (integration type) |
+| Domain command | `RegisterMember` | [Arc](/arc/) model-bound command |
+| Domain event | `MemberRegistered` | [Chronicle](/chronicle/) [event type](/chronicle/events/) |
+| Translator | `MemberImportReactor` | [Chronicle](/chronicle/) [reactor](/chronicle/reactors/), once-only |
+| Bridge | Arc's command pipeline, called from the reactor | [Arc](/arc/) command pipeline |
 
-The HR system's vocabulary stops at the edge of `HRIntegration/`. Everything inside `Registration/` is pure Library domain, ignorant of HR entirely. Swap the HR system for a different one and you only touch `HRIntegration.cs`.
+The HR system's vocabulary stops at the edge of `HRIntegration/`. Everything inside `Registration/` is pure Library domain, ignorant of HR entirely. Swap the HR system for a different one and you only touch `HRIntegration/`.
 
 ---
 
@@ -256,7 +169,7 @@ Over the four tutorials in this series you have built:
 | Tutorial | Pattern | What you built |
 | -------- | ------- | -------------- |
 | [State Change](../state-change) | State Change | Register an author — command, event, validation, constraint, React form |
-| [State View](../state-view) | State View | List authors — reactive projection, observable query, live data page |
+| [State View](../state-view) | State View | List authors — read model, author query, data page |
 | [Automation](../automation) | Automation | Cancel expired reservations — active to-do list, passive decision model, command, reactor |
 | Translation | Translation | Import members from HR — external event mirror, domain command, translator reactor |
 
