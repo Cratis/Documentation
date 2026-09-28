@@ -41,6 +41,8 @@ The Reservation slice supplies the events that open and close a reservation. Reu
 
 <ArcBackendTabs snippet="scenarios/vertical-slices/automation/reservation-domain" />
 
+The Kotlin and Java events carry times as epoch milliseconds. The JVM Chronicle client serializes `java.time` values as JSON objects, and Chronicle rejects such an append against the event's schema.
+
 A `BookReserved` event starts the clock. If the member collects the book (`BookBorrowedFromReservation`), the reservation is closed. If they do not collect it before `ExpiresAt`, the system should cancel it and release the copy back to inventory.
 
 ---
@@ -66,12 +68,11 @@ There is no `.tsx` file for this slice — Automation has no UI. Everything happ
 
 ### What is happening here?
 
-**The passive read model** `PendingReservation` is important. It exists only to support decisions inside the cancellation command — it is not intended to be queried by the frontend. Marking it passive means [Chronicle](/chronicle/) will not proactively observe and replay the [projection](/chronicle/projections/); it is computed on demand when the command asks for it. It follows `BookReserved` for matching properties and is removed by every closing event — including `ReservationExpired` itself.
+**The passive read model** `PendingReservation` is important. It exists only to support decisions inside the cancellation command — it is not intended to be queried by the frontend. Marking it passive means [Chronicle](/chronicle/) will not proactively observe and replay the [projection](/chronicle/projections/); it is computed on demand, by the reservation's key, when the command asks for it. It follows `BookReserved` for matching properties and is removed by every closing event — including `ReservationExpired` itself.
 
-**The to-do list** `ReservationDueForExpiry` is the active, stored read model the reactor sweeps; the reactor never reads the passive model. How it drops completed reservations depends on the backend:
+**The to-do list** `ReservationDueForExpiry` is the active, stored read model the reactor sweeps; the reactor never reads the passive model. Every backend projects it from `BookReserved` and removes it with each closing event, like the passive model. C# reads it from its MongoDB collection, TypeScript through the reactor's `services.readModels`, and Kotlin and Java through Chronicle's read models.
 
-- **C# and TypeScript** project it from `BookReserved` and remove it with each closing event, like the passive model. C# reads it from its MongoDB collection; TypeScript reads it through the reactor's `services.readModels`.
-- **Kotlin and Java** build it with a reducer, because their model-bound projections do not copy the event-source ID into the model yet ([Cratis/Chronicle#3924](https://github.com/Cratis/Chronicle/issues/3924)). The reducer marks a closed reservation instead of removing it, and the reactor sweeps only open ones, read through Chronicle's read models.
+The sweep needs each reservation's ID in the model; Kotlin and Java mark `id` with `@FromEventSourceId` so the projection copies the event-source ID into it. Both JVM read models rely on projection instances being keyed by their event source. Before Chronicle.Kotlin 6.5.0, the client sent a projection key the kernel did not recognize, so every instance collapsed onto one empty key ([Cratis/Chronicle#3924](https://github.com/Cratis/Chronicle/issues/3924)). Arc.Kotlin uses 6.7.0, which includes the client-side fix; the issue remains open for the kernel side.
 
 **The cancellation command** `CancelExpiredReservation` provides the current time before its handler runs, so you can also test the decision directly with a fixed timestamp. The handler asks for the pending reservation by the command's `ReservationId`, and the Arc–Chronicle integration resolves that projection on demand. The handler accepts a missing reservation — a nullable parameter in C# and Kotlin, `commandReadModel(PendingReservation, { optional: true })` in TypeScript, and `Optional` in Java. A missing, collected, canceled, or already expired reservation produces no new event; a reservation whose deadline has passed produces `ReservationExpired`.
 
@@ -87,7 +88,7 @@ The sweep list can lag behind the event log. That is why it nominates candidates
 
 - **C#**: the reactor calls the constructor-injected [`ICommandPipeline`](/arc/backend/csharp/commands/command-pipeline/) and inspects `IsSuccess`, since a failed command returns a result rather than necessarily throwing. The named exception makes the failure visible to Chronicle.
 - **Kotlin and Java**: the reactor passes each command, its own type and the event context to Arc's `ChronicleCommandSideEffectHandler`, checks `isSuccess`, and throws the named exception. See [Execute reactor command side effects](/arc/backend/kotlin/guides/chronicle/#execute-reactor-command-side-effects).
-- **TypeScript**: the handler returns the commands, and Arc runs them in order, stopping at the first failure and failing the handler. See [Returning commands from a reactor](/arc/backend/typescript/chronicle/reactors/command-side-effects/).
+- **TypeScript**: the handler returns the commands, and Arc's `reactorCommandResultHandler` runs them in order, stopping at the first failure and failing the handler. `withChronicle` installs that handler for a client Arc creates; a Chronicle client you create yourself needs it as its `reactorResultHandler` option. See [Returning commands from a reactor](/arc/backend/typescript/chronicle/reactors/command-side-effects/).
 
 The reactor has no original HTTP principal. The C# commands here have no authorization rules, and the Kotlin and Java commands are marked `@AllowAnonymous` to match. If these commands require authorization, configure a deliberate execution context: in Kotlin, Java and TypeScript, the reactor's `@ExecuteCommandsAsSystem` or `@executeCommandsAsSystem` marker gives its commands a system principal with the roles you list.
 
@@ -118,7 +119,7 @@ Design your reactor methods to be safe:
 
 | Layer | Artifact | Technology |
 | ----- | -------- | ---------- |
-| Read model (internal) | Active `ReservationDueForExpiry` and passive `PendingReservation` | [Chronicle](/chronicle/) [projection](/chronicle/projections/) (a reducer for the Kotlin and Java to-do list) |
+| Read model (internal) | Active `ReservationDueForExpiry` and passive `PendingReservation` | [Chronicle](/chronicle/) [projection](/chronicle/projections/) |
 | Cancellation event | `ReservationExpired` | [Chronicle](/chronicle/) [event type](/chronicle/events/) |
 | Cancellation decision | `CancelExpiredReservation` | [Arc](/arc/) model-bound command with a command-side read model |
 | Automation driver | `ReservationExpiryReactor` | [Chronicle](/chronicle/) [reactor](/chronicle/reactors/) |

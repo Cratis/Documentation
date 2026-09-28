@@ -65,7 +65,7 @@ The identity is what Chronicle appends the registration under, and each backend 
 - **TypeScript**: `AuthorId` is a `ConceptAs<Guid>`; the command tells the integration which event source to use (Step 2).
 - **Kotlin and Java**: each concept implements both Arc's and Chronicle's `ConceptAs`, so Arc's JSON and Chronicle's event serialization both treat it as its underlying value. The command routes its events with `@CommandKey` rather than a typed event-source ID (Step 2).
 
-JSON serialization retains a simple wire value. In C# and TypeScript, the generated proxy deserializes the `AuthorId` response as a `Guid` from `@cratis/fundamentals`, not an object with an `authorId` property.
+JSON serialization retains a simple wire value, not an object with an `authorId` property. For C#, Kotlin and Java, the generated proxy types the `AuthorId` response as a `Guid` from `@cratis/fundamentals`. The TypeScript command returns the identity as a string (Step 2), so its proxy is `Command<IRegisterAuthor, string>`.
 
 ---
 
@@ -92,7 +92,7 @@ Chronicle checks uniqueness **when the returned event is committed, after the ha
 **The model-bound command** returns two things: the new author's identity, which becomes the response value the frontend receives, and the `AuthorRegistered` event to append. The backends differ in where that identity comes from:
 
 - **C#**: `Provide()` creates the `AuthorId` before `Handle()`, which returns the tuple `(AuthorId, AuthorRegistered)`. Because `AuthorId` derives from `EventSourceId<Guid>`, the integration uses it for the append as well as the response; a `ConceptAs<Guid>` alone would only be an ordinary response. See [model-bound commands](/arc/backend/csharp/commands/model-bound/).
-- **TypeScript**: `provide()` creates the `AuthorId`, and `handle()` returns `tuple(eventSourceIdResponse(id), event)`: the event is appended to that ID and the ID is returned as the response.
+- **TypeScript**: `provide()` creates the `AuthorId`, and `handle()` returns `tuple(eventSourceIdResponse(authorId.value.toString()), event)`: the event is appended to that ID, and the ID's string is the response.
 - **Kotlin and Java**: the caller supplies the identity in the `@CommandKey` property. Arc appends the returned event under the command key and returns the `AuthorId` half of the `Pair` as the response. The Kotlin and Java examples mark the command `@AllowAnonymous` because Arc on the JVM requires an authenticated caller by default.
 
 Creating the identity before the handler keeps the event-construction decision deterministic for a supplied ID.
@@ -137,7 +137,7 @@ export const AddAuthor = () => {
 };
 ```
 
-With a Kotlin or Java backend, the command also has an `id` property for the new author. Supply it without showing a field, for example with `initialValues={{ id: Guid.create() }}` on `CommandDialog`.
+With a Kotlin or Java backend, the command also has an `id` property for the new author. Supply it without showing a field, for example with `initialValues={{ id: Guid.create() }}` on `CommandDialog`. With a TypeScript backend, the response is the ID's string: use `string` instead of `Guid` in `CommandDialog`, `useDialogContext`, and the parent's `useDialog` below.
 
 The dialog component uses `useDialogContext` from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) to get the `closeDialog` function. It does not receive props for visibility — all dialog lifecycle is managed by the framework. A parent component uses the [`useDialog`](/arc/frontend/react/) hook to show and await this dialog.
 

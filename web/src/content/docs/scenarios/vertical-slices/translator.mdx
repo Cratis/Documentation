@@ -107,12 +107,16 @@ Now the integration side. This is the only place in the codebase that knows anyt
 **Arc's command pipeline** runs the Library command's validation and Chronicle append, including the name constraint where the backend has one. An unsuccessful result must fail the handler, so Chronicle records an observer failure instead of acknowledging an import that did not happen:
 
 - **C#**: the reactor calls [`ICommandPipeline.Execute`](/arc/backend/csharp/commands/command-pipeline/) and throws the named `MemberImportFailed` exception when the result is unsuccessful.
-- **Kotlin and Java**: the reactor passes the command, its own type and the event context to Arc's `ChronicleCommandSideEffectHandler`, and throws `MemberImportFailed` when the result is unsuccessful. Because the command key is the member identity, the reactor creates a new `MemberId` for each import.
-- **TypeScript**: the handler returns the command, and Arc executes it and fails the handler with a message naming the command when it is rejected. See [Returning commands from a reactor](/arc/backend/typescript/chronicle/reactors/command-side-effects/).
+- **Kotlin and Java**: the reactor passes the command, its own type and the event context to Arc's `ChronicleCommandSideEffectHandler`, and throws `MemberImportFailed` when the result is unsuccessful. Because the command key is the member identity, the reactor derives it from the employee ID, as explained below.
+- **TypeScript**: the handler returns the command, and Arc's `reactorCommandResultHandler` executes it and fails the handler with a message naming the command when it is rejected. `withChronicle` installs that handler for a client Arc creates; a Chronicle client you create yourself needs it as its `reactorResultHandler` option. See [Returning commands from a reactor](/arc/backend/typescript/chronicle/reactors/command-side-effects/).
 
 These background calls do not inherit a user's HTTP principal; configure an execution context if registration requires authorization. The Kotlin and Java `RegisterMember` is `@AllowAnonymous`, matching the C# command, which has no authorization rules.
 
-A repeated name causes a visible rejection, not a successful deduplication. If registration succeeds but the reactor fails before acknowledging the HR event, retrying can encounter that rejection. A production import needs a durable mapping from HR's employee identity to `MemberId`, and a policy for repeated messages and name conflicts. `EmployeeId` is available at this boundary for that work; do not parse values such as `"EMP-00247"` as GUIDs or substitute name equality for employee identity.
+In C# and TypeScript, a repeated name causes a visible rejection, not a successful deduplication. If registration succeeds but the reactor fails before acknowledging the HR event, the name constraint rejects the retry.
+
+Kotlin and Java have no name constraint ([Cratis/Chronicle.Kotlin#101](https://github.com/Cratis/Chronicle.Kotlin/issues/101)), so nothing rejects a retry. A reactor that created a new `MemberId` on each attempt would register the same employee a second time as a different member. Their reactors therefore derive the member ID from the employee ID with a name-based UUID (`UUID.nameUUIDFromBytes`), so a retry appends another `MemberRegistered` to the same member instead of creating a new one.
+
+A production import needs a durable mapping from HR's employee identity to `MemberId`, and a policy for repeated messages and name conflicts. `EmployeeId` is available at this boundary for that work; do not parse values such as `"EMP-00247"` as GUIDs or substitute name equality for employee identity.
 
 ---
 
