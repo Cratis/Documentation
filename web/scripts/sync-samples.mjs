@@ -4,13 +4,13 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { reposRootFor } from './repos-root.mjs';
+import { samplesRootFor } from './repos-root.mjs';
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(scriptDirectory, '..');
 const candidates = [
-    path.join(reposRootFor(webRoot), 'Samples', 'samples.json'),
-    path.resolve(webRoot, '../Samples/samples.json'),
+    path.join(samplesRootFor(webRoot), 'samples.json'),
+    ...(!process.env.CRATIS_SAMPLES_ROOT ? [path.resolve(webRoot, '../Samples/samples.json')] : []),
 ];
 
 let sourcePath;

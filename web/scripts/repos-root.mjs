@@ -10,6 +10,13 @@ export function reposRootFor(webRoot, env = process.env) {
         : path.resolve(webRoot, '..', '..');
 }
 
+/** Resolve the Samples checkout, optionally pointing local worktree checks at another checkout. */
+export function samplesRootFor(webRoot, env = process.env) {
+    return env.CRATIS_SAMPLES_ROOT
+        ? path.resolve(env.CRATIS_SAMPLES_ROOT)
+        : path.join(reposRootFor(webRoot, env), 'Samples');
+}
+
 /** Resolve a manifest path relative to web/, mapping ../../ sibling paths to an overridden root. */
 export function resolveRepoCandidate(webRoot, candidate, env = process.env) {
     return candidate.startsWith('../../')

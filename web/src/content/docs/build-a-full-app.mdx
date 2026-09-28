@@ -25,24 +25,40 @@ The blocks are the slice, one per product: the `ui` screens are [Components](/co
 
 ## Before you start
 
-Scaffold a full-stack app with `dotnet new cratis -o Library` from the [Chronicle getting started](/chronicle/get-started/). For brevity, this slice keeps all four C# types in one `Authors/` folder at the project root. The generated proxies land next to them, which is where the screen below imports them from. In a larger app, follow the scaffold's `<Module>/<Feature>/<Slice>/` layout instead (for example `SomeModule/SomeFeature/Registration/`). From `Library/`, run `docker compose up -d` to start Chronicle with bundled MongoDB; the default MongoDB setup stores the projected read model for the observable query. Then run `dotnet run` and start the frontend with the package manager you chose when scaffolding (for example, `npm run dev`). The generated `README.md` has the health check and commands for your package manager. The Compose file exposes development ports on all interfaces; bind them to `127.0.0.1` or use a trusted machine.
+Scaffold a full-stack app with `dotnet new cratis -o Library` from the [Chronicle getting started](/chronicle/get-started/). You can follow the [buildable author-registration sample](https://github.com/Cratis/Samples/tree/main/Capstone) alongside this page. For brevity, this slice keeps all four C# types in one `Authors/` folder at the project root. The generated proxies land next to them, which is where the screen below imports them from. In a larger app, follow the scaffold's `<Module>/<Feature>/<Slice>/` layout instead (for example `SomeModule/SomeFeature/Registration/`). From `Library/`, run `docker compose up -d` to start Chronicle with bundled MongoDB; the default MongoDB setup stores the projected read model for the observable query. Then run `dotnet run` and start the frontend with the package manager you chose when scaffolding (for example, `npm run dev`). The generated `README.md` has the health check and commands for your package manager. The Compose file exposes development ports on all interfaces; bind them to `127.0.0.1` or use a trusted machine.
 
 ## The host
 
-`dotnet new cratis` generates the host for you — the whole stack in two calls. `AddCratis` brings up Arc and Chronicle together; `UseCratis` activates both:
+`dotnet new cratis` generates the [host](https://github.com/Cratis/Samples/blob/main/Capstone/Program.cs) for you. `AddCratis` brings up Arc and Chronicle together; `UseCratis` activates both. The template also configures the API and static-file serving used by the React screen:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddCratis(
-    configureArcBuilder: arc => arc.WithMongoDB(),
-    configureChronicleOptions: chronicle => chronicle.EventStore = "Library",
-    configureChronicleBuilder: chronicle => chronicle.WithCamelCaseNamingPolicy());
+    configureArcBuilder: arcBuilder => arcBuilder.WithMongoDB(configureMongoDB: mongoBuilder => mongoBuilder.WithCamelCaseNamingPolicy()),
+    configureChronicleBuilder: chronicleBuilder => chronicleBuilder.WithCamelCaseNamingPolicy());
+
+builder.Services.AddControllers();
+builder.Services.AddMvc();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options => options.AddConcepts());
 
 var app = builder.Build();
 
+app.UseRouting();
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+app.UseWebSockets();
+app.MapControllers();
 app.UseCratis();
-app.Run();
+
+app.UseSwagger();
+app.UseSwaggerUI();
+app.MapFallbackToFile("/index.html");
+
+await app.RunAsync();
 ```
 
 You won't touch this again for the slice below — it's here so you can see where the command, event, read model, and query you're about to write get wired in. The [Cratis package](/arc/backend/csharp/chronicle/cratis-package/) reference covers what `AddCratis` configures and how to adjust it.
@@ -51,18 +67,18 @@ You won't touch this again for the slice below — it's here so you can see wher
 
 <Steps>
 
-1. **An event-source id.** Chronicle uses the command key to select an event stream. Derive the author id from `EventSourceId<Guid>`:
+1. **An event-source id.** Chronicle uses the command key to select an event stream. Derive the author id from `EventSourceId<Guid>` in [`AuthorId.cs`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/AuthorId.cs):
 
    ```csharp
    public record AuthorId(Guid Value) : EventSourceId<Guid>(Value)
    {
        public static readonly AuthorId NotSet = new(Guid.Empty);
-       public static AuthorId New() => new(Guid.NewGuid());
        public static implicit operator AuthorId(Guid value) => new(value);
+       public static AuthorId New() => new(Guid.NewGuid());
    }
    ```
 
-2. **The command and the event, together in one file.** The command is a record with `Handle()` on it — no separate handler class. `Handle()` returns the event that happened:
+2. **The command and the event, together in [`RegisterAuthor.cs`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/RegisterAuthor.cs).** The command is a record with `Handle()` on it — no separate handler class. `Handle()` returns the event that happened:
 
    ```csharp
    [Command]
@@ -75,7 +91,7 @@ You won't touch this again for the slice below — it's here so you can see wher
    public record AuthorRegistered(string Name);
    ```
 
-3. **The read model and its projection.** Declare the shape you want to query and which event feeds it — AutoMap matches `AuthorRegistered.Name` to `Name`. Because `AuthorId` derives from `EventSourceId<Guid>`, it is the read model's key without a `[Key]` attribute. A static method exposes the query as an observable so the UI updates live:
+3. **The read model and its projection in [`Author.cs`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/Author.cs).** Declare the shape you want to query and which event feeds it — AutoMap matches `AuthorRegistered.Name` to `Name`. Because `AuthorId` derives from `EventSourceId<Guid>`, it is the read model's key without a `[Key]` attribute. A static method exposes the query as an observable so the UI updates live:
 
    ```csharp
    [ReadModel]
@@ -99,16 +115,15 @@ Building the backend **generates TypeScript proxies** for `RegisterAuthor` and `
 
 <Steps>
 
-1. **A dialog that executes the command.** `CommandDialog` instantiates and runs the generated command and renders the OK/Cancel footer for you — you just supply the fields:
+1. **A dialog that executes the command.** [`AddAuthor.tsx`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/AddAuthor.tsx) uses `CommandDialog` to instantiate and run the generated command and render the OK/Cancel footer — you just supply the fields:
 
    ```tsx
    import { CommandDialog } from '@cratis/components/CommandDialog';
    import { InputTextField } from '@cratis/components/CommandForm';
-   import { DialogProps } from '@cratis/arc.react/dialogs';
    import { RegisterAuthor } from './RegisterAuthor';
    import { Guid } from '@cratis/fundamentals';
 
-   export const AddAuthor = ({ closeDialog }: DialogProps) => (
+   export const AddAuthor = () => (
        <CommandDialog<RegisterAuthor>
            command={RegisterAuthor}
            title="Add author"
@@ -119,17 +134,26 @@ Building the backend **generates TypeScript proxies** for `RegisterAuthor` and `
    );
    ```
 
-2. **A table that reads the observable query.** The generated `AllAuthors` proxy is observable — `.use()` re-renders when the projection changes:
+2. **A screen that reads the observable query.** In [`Authors.tsx`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/Authors.tsx), the generated `AllAuthors` proxy is observable — `.use()` re-renders when the projection changes. The button opens the dialog above:
 
    ```tsx
+   import { useDialog } from '@cratis/arc.react/dialogs';
    import { AllAuthors } from './Author';
+   import { AddAuthor } from './AddAuthor';
 
    export const Authors = () => {
+       const [AddAuthorDialog, showAddAuthor] = useDialog(AddAuthor);
        const [authors] = AllAuthors.use();
+
        return (
-           <ul>
-               {authors.data.map(a => <li key={String(a.id)}>{a.name}</li>)}
-           </ul>
+           <main>
+               <h1>Authors</h1>
+               <button type="button" onClick={() => { void showAddAuthor(); }}>Add author</button>
+               <ul>
+                   {authors.data.map(a => <li key={String(a.id)}>{a.name}</li>)}
+               </ul>
+               <AddAuthorDialog />
+           </main>
        );
    };
    ```
