@@ -26,9 +26,13 @@ test('capstone fence drift and missing fences fail the check', async () => {
     assert.notEqual(frontendDrift, pageSource);
     await assert.rejects(checkCapstoneSnippets({ pageSource: frontendDrift }), /differs from Capstone\/Authors\/AddAuthor.tsx/);
 
+    const routeDrift = pageSource.replace("<Route path='/authors' element={<Authors />} />", "<Route path='/writers' element={<Authors />} />");
+    assert.notEqual(routeDrift, pageSource);
+    await assert.rejects(checkCapstoneSnippets({ pageSource: routeDrift }), /differs from Capstone\/App.tsx/);
+
     const missing = pageSource.replace('```csharp\n   public record AuthorId', '```text\n   public record AuthorId');
     assert.notEqual(missing, pageSource);
-    await assert.rejects(checkCapstoneSnippets({ pageSource: missing }), /Expected 6 C#\/TSX capstone fences; found 5/);
+    await assert.rejects(checkCapstoneSnippets({ pageSource: missing }), /Expected 7 C#\/TSX capstone fences; found 6/);
 });
 
 test('capstone check cannot silently skip an unavailable Samples checkout', async () => {

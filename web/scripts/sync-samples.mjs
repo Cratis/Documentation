@@ -1,34 +1,14 @@
 // Copyright (c) Cratis. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { samplesRootFor } from './repos-root.mjs';
+import { samplesCatalogFor } from './repos-root.mjs';
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(scriptDirectory, '..');
-const candidates = [
-    path.join(samplesRootFor(webRoot), 'samples.json'),
-    ...(!process.env.CRATIS_SAMPLES_ROOT ? [path.resolve(webRoot, '../Samples/samples.json')] : []),
-];
-
-let sourcePath;
-for (const candidate of candidates) {
-    try {
-        await access(candidate);
-        sourcePath = candidate;
-        break;
-    } catch {
-        // Try the next supported repository layout.
-    }
-}
-
-if (!sourcePath) {
-    throw new Error(
-        `Could not find the Samples catalog. Expected one of:\n${candidates.map(candidate => `  - ${candidate}`).join('\n')}`,
-    );
-}
+const sourcePath = await samplesCatalogFor(webRoot);
 
 let catalog;
 try {

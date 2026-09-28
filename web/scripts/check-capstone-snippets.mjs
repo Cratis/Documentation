@@ -4,7 +4,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { samplesRootFor } from './repos-root.mjs';
+import { samplesCatalogFor } from './repos-root.mjs';
 
 const webRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pagePath = path.join(webRoot, 'src/content/docs/build-a-full-app.mdx');
@@ -18,6 +18,7 @@ const snippets = [
     ['csharp', 'Authors/Author.cs', 'author-read-model'],
     ['tsx', 'Authors/AddAuthor.tsx', 'add-author'],
     ['tsx', 'Authors/Authors.tsx', 'authors-screen'],
+    ['tsx', 'App.tsx', 'authors-route'],
 ];
 
 function pageFences(page) {
@@ -38,21 +39,25 @@ function pageFences(page) {
 function sourceRegion(source, filename, name) {
     const marker = filename.endsWith('.cs') ? '#' : '// #';
     const lines = source.replaceAll('\r\n', '\n').split('\n');
-    const start = `${marker}region docs:${name}`;
-    const end = `${marker}endregion docs:${name}`;
-    const starts = lines.flatMap((line, index) => line === start ? [index] : []);
-    const ends = lines.flatMap((line, index) => line === end ? [index] : []);
+    const jsxMarker = filename === 'App.tsx';
+    const start = jsxMarker ? `{/* #region docs:${name} */}` : `${marker}region docs:${name}`;
+    const end = jsxMarker ? `{/* #endregion docs:${name} */}` : `${marker}endregion docs:${name}`;
+    const starts = lines.flatMap((line, index) => line.trim() === start ? [index] : []);
+    const ends = lines.flatMap((line, index) => line.trim() === end ? [index] : []);
     if (starts.length !== 1 || ends.length !== 1 || ends[0] <= starts[0]) {
         throw new Error(`Expected exactly one matching docs:${name} region in Capstone/${filename}`);
     }
-    return lines.slice(starts[0] + 1, ends[0]).join('\n').trimEnd();
+    const region = lines.slice(starts[0] + 1, ends[0]);
+    const indentation = Math.min(...region.filter(line => line.trim()).map(line => line.match(/^\s*/)[0].length));
+    return region.map(line => line.slice(indentation)).join('\n').trimEnd();
 }
 
 /** Fail if a displayed C#/TSX block is missing or differs from the built sample. */
 export async function checkCapstoneSnippets({
     pageSource,
-    samplesRoot = samplesRootFor(webRoot),
+    samplesRoot,
 } = {}) {
+    const root = samplesRoot ?? path.dirname(await samplesCatalogFor(webRoot));
     const page = pageSource ?? await readFile(pagePath, 'utf8');
     const fences = pageFences(page);
     if (fences.length !== snippets.length) {
@@ -64,7 +69,7 @@ export async function checkCapstoneSnippets({
         if (actualLanguage !== language) {
             throw new Error(`Capstone fence ${index + 1} must be ${language} (Capstone/${filename})`);
         }
-        const source = await readFile(path.join(samplesRoot, 'Capstone', filename), 'utf8');
+        const source = await readFile(path.join(root, 'Capstone', filename), 'utf8');
         const expected = sourceRegion(source, filename, name);
         if (shown.trimEnd() !== expected) {
             throw new Error(`Capstone fence ${index + 1} differs from Capstone/${filename} docs:${name}`);

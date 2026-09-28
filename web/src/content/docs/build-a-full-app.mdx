@@ -158,6 +158,14 @@ Building the backend **generates TypeScript proxies** for `RegisterAuthor` and `
    };
    ```
 
+3. **Mount the screen.** In the scaffold's `App.tsx`, import `Authors` from `./Authors/Authors` and add this route inside the existing `<Routes>` (alongside `/` and `/demo`):
+
+   ```tsx
+   <Route path='/authors' element={<Authors />} />
+   ```
+
+   Open `/authors` in the browser to see the list and the **Add author** button.
+
 </Steps>
 
 ## The event-producing command across backends
