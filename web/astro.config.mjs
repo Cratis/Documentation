@@ -1,5 +1,9 @@
+// Copyright (c) Cratis. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 // @ts-check
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import mermaid from 'astro-mermaid';
@@ -8,6 +12,7 @@ import { remarkMermaidPrerender, closeBrowser } from './scripts/mermaid-prerende
 import { remarkVariantTabs } from './scripts/remark-variant-tabs.mjs';
 import { rehypeFocusableTables } from './scripts/rehype-focusable-tables.mjs';
 import { LLM_SETS } from './scripts/llm-sets.mjs';
+import { docArtifactsIntegration } from './scripts/doc-artifacts-integration.mjs';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightPageActions from 'starlight-page-actions';
 import starlightScrollToTop from 'starlight-scroll-to-top';
@@ -382,5 +387,6 @@ export default defineConfig({
                 }),
             ],
         }),
+        docArtifactsIntegration(fileURLToPath(new URL('./src/content/docs/', import.meta.url))),
     ],
 });
