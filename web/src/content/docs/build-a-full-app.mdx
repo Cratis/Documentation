@@ -115,7 +115,7 @@ Building the backend **generates TypeScript proxies** for `RegisterAuthor` and `
 
 <Steps>
 
-1. **A dialog that executes the command.** [`AddAuthor.tsx`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/AddAuthor.tsx) uses `CommandDialog` to instantiate and run the generated command and render the OK/Cancel footer — you just supply the fields:
+1. **A dialog that executes the command.** [`AddAuthor.tsx`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/AddAuthor.tsx) uses `CommandDialog` to instantiate and run the generated command and render the OK/Cancel footer — you just supply the fields. `initialValues` seeds the author id when the dialog opens, so the form only asks for the name:
 
    ```tsx
    import { CommandDialog } from '@cratis/components/CommandDialog';
@@ -128,7 +128,7 @@ Building the backend **generates TypeScript proxies** for `RegisterAuthor` and `
            command={RegisterAuthor}
            title="Add author"
            okLabel="Add"
-           onBeforeExecute={(values) => { values.id = Guid.create(); return values; }}>
+           initialValues={{ id: Guid.create() }}>
            <InputTextField<RegisterAuthor> value={i => i.name} title="Name" />
        </CommandDialog>
    );

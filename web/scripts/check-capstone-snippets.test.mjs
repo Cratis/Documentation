@@ -22,7 +22,7 @@ test('capstone fence drift and missing fences fail the check', async () => {
     assert.notEqual(drift, pageSource);
     await assert.rejects(checkCapstoneSnippets({ pageSource: drift }), /differs from Capstone\/Authors\/AuthorId.cs/);
 
-    const frontendDrift = pageSource.replace('values.id = Guid.create()', 'values.id = Guid.empty');
+    const frontendDrift = pageSource.replace('initialValues={{ id: Guid.create() }}', 'initialValues={{ id: Guid.empty }}');
     assert.notEqual(frontendDrift, pageSource);
     await assert.rejects(checkCapstoneSnippets({ pageSource: frontendDrift }), /differs from Capstone\/Authors\/AddAuthor.tsx/);
 
