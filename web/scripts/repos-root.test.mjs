@@ -19,6 +19,26 @@ test('sibling sources and Samples follow CRATIS_REPOS_ROOT in a nested Documenta
         path.join('/checkouts', 'Documentation', '.ai-work', 'worktrees', 'feature', 'Chronicle', 'Documentation'));
 });
 
+test('per-repository worktrees override only the named sibling, not Samples or other checkouts', () => {
+    const web = path.join('/checkouts', 'Documentation', 'web');
+    const env = {
+        CRATIS_REPOS_ROOT: '/checkouts',
+        CRATIS_REPO_ARC: '/worktrees/arc-capstone',
+        CRATIS_REPO_ARC_KOTLIN: '/worktrees/arc.kotlin-capstone',
+        CRATIS_REPO_ARC_TYPESCRIPT: '/worktrees/arc.typescript-capstone',
+    };
+    assert.equal(resolveRepoCandidate(web, '../../Arc/Documentation/client-snippets', env),
+        '/worktrees/arc-capstone/Documentation/client-snippets');
+    assert.equal(resolveRepoCandidate(web, '../../Arc.Kotlin/Documentation/client-snippets-java', env),
+        '/worktrees/arc.kotlin-capstone/Documentation/client-snippets-java');
+    assert.equal(resolveRepoCandidate(web, '../../Arc.TypeScript/Documentation/client-snippets', env),
+        '/worktrees/arc.typescript-capstone/Documentation/client-snippets');
+    assert.equal(resolveRepoCandidate(web, '../../Chronicle/Documentation', env), '/checkouts/Chronicle/Documentation');
+    assert.equal(resolveRepoCandidate(web, '../Arc/Documentation', env),
+        '/checkouts/Documentation/Arc/Documentation');
+    assert.equal(samplesRootFor(web, env), '/checkouts/Samples');
+});
+
 test('standard sibling and submodule paths remain unchanged without an override', () => {
     const web = path.join('/checkouts', 'Documentation', 'web');
     assert.equal(reposRootFor(web, {}), '/checkouts');

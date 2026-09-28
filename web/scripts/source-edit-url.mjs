@@ -30,7 +30,15 @@ function within(root, file) {
 function sourceUrl(action, sourcePath, reposRoot, docRepoRoot) {
     if (!sourcePath) return false;
     const resolved = path.resolve(sourcePath);
-    const segments = within(docRepoRoot, resolved) ?? within(reposRoot, resolved);
+    const overrides = [
+        ['Arc', process.env.CRATIS_REPO_ARC],
+        ['Arc.Kotlin', process.env.CRATIS_REPO_ARC_KOTLIN],
+        ['Arc.TypeScript', process.env.CRATIS_REPO_ARC_TYPESCRIPT],
+    ];
+    const overridden = overrides.flatMap(([checkout, root]) => root
+        ? [within(path.resolve(root), resolved)].filter(Boolean).map(segments => [checkout, ...segments])
+        : []).at(0);
+    const segments = overridden ?? within(docRepoRoot, resolved) ?? within(reposRoot, resolved);
     if (!segments || segments.length < 2) return false;
     const [checkout, ...sourceSegments] = segments;
     if (!publicCheckouts.has(checkout)) return false;

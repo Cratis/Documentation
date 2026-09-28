@@ -4,26 +4,34 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { samplesCatalogFor } from './repos-root.mjs';
+import { resolveRepoCandidate, samplesCatalogFor } from './repos-root.mjs';
 
 const webRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pagePath = path.join(webRoot, 'src/content/docs/build-a-full-app.mdx');
 
-// These are all the C# and TSX fences on the capstone page, in reading order.
-// The four-language ArcBackendTabs excerpt belongs to its client repositories.
-const snippets = [
-    ['csharp', 'Program.cs', 'host'],
-    ['csharp', 'Authors/AuthorId.cs', 'author-id'],
-    ['csharp', 'Authors/RegisterAuthor.cs', 'register-author'],
-    ['csharp', 'Authors/Author.cs', 'author-read-model'],
-    ['tsx', 'Authors/AddAuthor.tsx', 'add-author'],
-    ['tsx', 'Authors/Authors.tsx', 'authors-screen'],
-    ['tsx', 'App.tsx', 'authors-route'],
+// C# snippets are owned by Arc; their fenced contents must match the built sample.
+const backend = [
+    ['host', 'Program.cs', 'host'],
+    ['author-id', 'Authors/AuthorId.cs', 'author-id'],
+    ['register-author', 'Authors/RegisterAuthor.cs', 'register-author'],
+    ['author-read-model', 'Authors/Author.cs', 'author-read-model'],
+];
+// Kotlin, Java and TypeScript snippets are compiled by their owning repositories; here they must
+// exist with exactly one fence each, so a missing file fails instead of silently dropping a tab.
+const otherBackends = [
+    ['Arc.Kotlin', 'client-snippets', 'kotlin'],
+    ['Arc.Kotlin', 'client-snippets-java', 'java'],
+    ['Arc.TypeScript', 'client-snippets', 'typescript'],
+];
+const frontend = [
+    ['Authors/AddAuthor.tsx', 'add-author'],
+    ['Authors/Authors.tsx', 'authors-screen'],
+    ['App.tsx', 'authors-route'],
 ];
 
 function pageFences(page) {
     const fences = [];
-    const pattern = /^([ \t]*)```(csharp|tsx)[ \t]*\n([\s\S]*?)^\1```[ \t]*$/gm;
+    const pattern = /^([ \t]*)```(csharp|cs|c#|tsx)[ \t]*\n([\s\S]*?)^\1```[ \t]*$/gm;
     for (const match of page.matchAll(pattern)) {
         const [, indentation, language, body] = match;
         const lines = body.replaceAll('\r\n', '\n').split('\n');
@@ -34,6 +42,26 @@ function pageFences(page) {
         fences.push([language, lines.map(line => line.slice(indentation.length)).join('\n')]);
     }
     return fences;
+}
+
+/** Return the body of the snippet's only fence, or throw if it has another shape or language. */
+function singleFence(snippet, language, label) {
+    const lines = snippet.replaceAll('\r\n', '\n').trimEnd().split('\n');
+    const fences = lines.flatMap((line, index) => line.startsWith('```') ? [index] : []);
+    if (fences.length !== 2 || fences[0] !== 0 || fences[1] !== lines.length - 1
+        || lines[0] !== `\`\`\`${language}` || lines.at(-1) !== '```') {
+        throw new Error(`${label} must contain exactly one ${language} fence`);
+    }
+    return lines.slice(1, -1).join('\n');
+}
+
+async function readSnippet(file, label) {
+    try {
+        return await readFile(file, 'utf8');
+    } catch (error) {
+        if (error.code === 'ENOENT') throw new Error(`${label} is missing: ${file} (ENOENT)`);
+        throw error;
+    }
 }
 
 function sourceRegion(source, filename, name) {
@@ -52,27 +80,52 @@ function sourceRegion(source, filename, name) {
     return region.map(line => line.slice(indentation)).join('\n').trimEnd();
 }
 
-/** Fail if a displayed C#/TSX block is missing or differs from the built sample. */
+/** Fail if the page loses a backend step, or displayed code drifts from the built sample. */
 export async function checkCapstoneSnippets({
     pageSource,
     samplesRoot,
+    arcRoot,
+    arcKotlinRoot,
+    arcTypeScriptRoot,
 } = {}) {
     const root = samplesRoot ?? path.dirname(await samplesCatalogFor(webRoot));
+    const arc = arcRoot ?? resolveRepoCandidate(webRoot, '../../Arc');
+    const repositories = {
+        'Arc.Kotlin': arcKotlinRoot ?? resolveRepoCandidate(webRoot, '../../Arc.Kotlin'),
+        'Arc.TypeScript': arcTypeScriptRoot ?? resolveRepoCandidate(webRoot, '../../Arc.TypeScript'),
+    };
     const page = pageSource ?? await readFile(pagePath, 'utf8');
-    const fences = pageFences(page);
-    if (fences.length !== snippets.length) {
-        throw new Error(`Expected ${snippets.length} C#/TSX capstone fences; found ${fences.length}`);
+    const tabs = [...page.matchAll(/^<ArcBackendTabs snippet="capstone\/([^"]+)" \/>$/gm)].map(match => match[1]);
+    const expectedTabs = backend.map(([name]) => name);
+    if (tabs.length !== backend.length || tabs.some((tab, index) => tab !== expectedTabs[index])) {
+        throw new Error(`Expected ordered capstone backend tabs: ${expectedTabs.join(', ')}; found: ${tabs.join(', ')}`);
     }
 
-    for (const [index, [language, filename, name]] of snippets.entries()) {
-        const [actualLanguage, shown] = fences[index];
-        if (actualLanguage !== language) {
-            throw new Error(`Capstone fence ${index + 1} must be ${language} (Capstone/${filename})`);
-        }
+    const fences = pageFences(page);
+    if (fences.length !== frontend.length || fences.some(([language]) => language !== 'tsx')) {
+        throw new Error(`Expected ${frontend.length} TSX capstone fences and no C# fences; found ${fences.length} C#/TSX fences`);
+    }
+
+    for (const [index, [filename, name]] of frontend.entries()) {
         const source = await readFile(path.join(root, 'Capstone', filename), 'utf8');
-        const expected = sourceRegion(source, filename, name);
-        if (shown.trimEnd() !== expected) {
+        if (fences[index][1].trimEnd() !== sourceRegion(source, filename, name)) {
             throw new Error(`Capstone fence ${index + 1} differs from Capstone/${filename} docs:${name}`);
+        }
+    }
+
+    for (const [name, filename, region] of backend) {
+        const label = `Arc capstone/${name}`;
+        const snippet = await readSnippet(path.join(arc, 'Documentation/client-snippets/capstone', `${name}.md`), label);
+        const body = singleFence(snippet, 'csharp', label);
+        const source = await readFile(path.join(root, 'Capstone', filename), 'utf8');
+        if (body.trimEnd() !== sourceRegion(source, filename, region)) {
+            throw new Error(`${label} differs from Capstone/${filename} docs:${region}`);
+        }
+
+        for (const [repository, folder, language] of otherBackends) {
+            const otherLabel = `${repository} ${folder}/capstone/${name}`;
+            const file = path.join(repositories[repository], 'Documentation', folder, 'capstone', `${name}.md`);
+            singleFence(await readSnippet(file, otherLabel), language, otherLabel);
         }
     }
 }

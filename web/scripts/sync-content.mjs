@@ -22,7 +22,7 @@ import { assertPublicDocPath, assertPublicDocSource, isPrivateDocPath } from './
 import { parseMarkdownCode } from './markdown-code-ranges.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 import { sourceEditUrl, sourceViewUrl } from './source-edit-url.mjs';
-import { reposRootFor } from './repos-root.mjs';
+import { reposRootFor, resolveRepoCandidate } from './repos-root.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..'); // Documentation/web
@@ -83,7 +83,7 @@ export const PRODUCTS = [
     {
         key: 'arc', label: 'Arc', icon: 'puzzle', sidebarMode: 'toc',
         src: firstExisting(
-            path.join(reposRoot, 'Arc', 'Documentation'),
+            resolveRepoCandidate(webRoot, '../../Arc/Documentation'),
             path.join(docRepoRoot, 'Arc', 'Documentation')),
         buckets: [
             { label: 'Start here', sections: ['Tutorial', 'Scenarios'] },
