@@ -57,7 +57,7 @@ The read model describes the list entry; the event feeds it, and a query exposes
 
 <ArcBackendTabs snippet="capstone/author-read-model" />
 
-Build your backend now (`dotnet build`, `./gradlew build`, or the Library sample's `yarn workspace @cratis/arc.sample.library build`). The build generates TypeScript command and query proxies: change a property on the backend and the frontend must compile against the updated shape. Chronicle projects asynchronously, so a successful command can precede the updated list. The Kotlin and Java live-query API compiles with Chronicle.Kotlin 6.7.0, but live delivery is not yet verified against kernel 19.21.1: its MongoDB materialized observation returns `MissingIdMapping` for `MongoDB.Bson.BsonDocument`, while the InMemory sink emitted only empty snapshots after registration in the sample test. Treat these two live queries as experimental until the kernel issue is resolved; use a one-shot `getInstances` query and refresh after registration if your deployment hits either failure.
+Build your backend now (`dotnet build`, `./gradlew build`, or the Library sample's `yarn workspace @cratis/arc.sample.library build`). The build generates TypeScript command and query proxies: change a property on the backend and the frontend must compile against the updated shape. Chronicle projects asynchronously, so a successful command can precede the updated list. On Kotlin and Java, the live query doesn't deliver updates yet: the Chronicle kernel's materialized observation fails on MongoDB ([Chronicle#4365](https://github.com/Cratis/Chronicle/issues/4365)). Until that's fixed, use a one-shot `getInstances` query and reload the list after registering an author.
 
 ## 5. Build the screen (frontend)
 
@@ -126,7 +126,7 @@ The screen below is the shared React flow from the [compiled C# Capstone sample]
 
 - One vertical slice in your chosen backend: host, id, command, event, read model, query, and React screen for one behavior.
 - **Full-stack type safety:** the screen uses proxies generated from backend types, not a hand-written client.
-- **The CQRS loop:** the command returns a fact, Chronicle appends it and builds the read model, and the query delivers the list to the UI. C# and TypeScript demonstrate live updates; Kotlin and Java show the 6.7.0 observable API, subject to the runtime caveat above.
+- **The CQRS loop:** the command returns a fact, Chronicle appends it and builds the read model, and the query delivers the list to the UI. C# and TypeScript update the list live; Kotlin and Java will once Chronicle#4365 is fixed.
 
 ## Go deeper
 
