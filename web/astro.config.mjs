@@ -1,3 +1,6 @@
+// Copyright (c) Cratis. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 // @ts-check
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

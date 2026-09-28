@@ -2,7 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 // Emits /path.md mirrors for page actions and static product documentation assets.
-// Run after astro build: node scripts/emit-doc-artifacts.mjs
+// Astro's build-completion hook calls emitDocArtifacts; running this script directly
+// also generates AI indexes after the build.
 
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
@@ -90,7 +91,7 @@ export async function emitDocArtifacts(docsRoot, distRoot, options = {}) {
             await fs.copyFile(file, output);
         }
     }
-    console.log(`[postbuild] emitted ${markdownMirrors} markdown mirrors and ${staticFiles} static doc assets`);
+    console.log(`[build] emitted ${markdownMirrors} markdown mirrors and ${staticFiles} static doc assets`);
     return { markdownMirrors, staticFiles };
 }
 

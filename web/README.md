@@ -1,3 +1,6 @@
+<!-- Copyright (c) Cratis. All rights reserved. -->
+<!-- Licensed under the MIT license. See LICENSE file in the project root for full license information. -->
+
 # Cratis documentation site
 
 The Cratis documentation site, built with [Astro Starlight](https://starlight.astro.build/). It aggregates the documentation from each product repository (Chronicle, Arc, Components, CLI, Fundamentals) plus the Contributing guide, and presents them as one site.
@@ -83,6 +86,8 @@ A successful build:
 - generates the site-wide `/llms.txt` and bulk `/llms-full.txt`, product and area indexes (such as `/chronicle/llms.txt` and `/chronicle/events/llms.txt`), bounded rendered-text sets under `/_llms-txt/`, and the Pagefind search index.
 
 The product indexes come from the synchronized pages in this build; they link to canonical HTML and offer rendered-text sets for a few focused areas. Add or adjust those sets in `scripts/llm-sets.mjs`. The postbuild step rejects missing pages, empty sets, and sets larger than 600 KB. The site-wide full export is a bulk archive, not a useful default context for a question. Product indexes are generated **after a production build**, not by `npm run dev`.
+
+Astro's build-completion hook writes slugged `/path.md` mirrors for page actions and copies supporting documentation assets (including HTML coverage reports and their scripts), even when you invoke `astro build` directly. `npm run build` also runs the `postbuild` step to generate the AI indexes and content redirects; a direct Astro build does not run that npm step.
 
 Two QA scripts back this up:
 
