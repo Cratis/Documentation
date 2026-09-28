@@ -72,7 +72,7 @@ If a shared page still has direct C# fences, treat it as migration debt. Do not 
 5. Prefer `.md` for snippet files. Use `.mdx` only if the snippet file itself needs MDX syntax.
 6. Keep the snippet ID extensionless in the shared page. The sync supports both `.md` and `.mdx`.
 
-`<ChronicleClientTabs />` has no `clients` property. Never add one, and never edit the sync/audit scripts to reintroduce one. The sync checks each registered client's snippet root for a file at that ID and renders a tab only where a file exists.
+`<ChronicleClientTabs />` has no `clients` property. Never add one, and never edit the sync/audit scripts to reintroduce one. The sync checks each registered client's snippet root for a file at that ID, or only the clients named in a `variants` attribute, and renders a tab only where a file exists. Use `variants="kotlin,java"` only on a client family's own pages, to limit their tabs to that family's languages. Never set `variants` on a shared Chronicle page: there every registered client needs a snippet file, and `variants` would only hide the missing-snippet warning.
 
 Chronicle's `client` axis sets `warnOnMissingSnippet: true`: if a registered client has no matching snippet, sync warns and omits that tab. The warning is not a build error while at least one client has the snippet; if no client has it, both the sync and the audit fail. Check the rendered tabs as well as the sync output. Every registered client must have a snippet file for every shared snippet ID, even when the workflow is not implemented or the concept does not apply. Do not leave a missing-snippet warning as expected noise.
 
