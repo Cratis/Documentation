@@ -14,6 +14,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
+import { resolveRepoCandidate } from './repos-root.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 export const webRoot = path.resolve(here, '..');
@@ -59,7 +60,7 @@ function createReporter(prefix) {
 }
 
 function resolveFromWebRoot(candidate) {
-    return path.resolve(webRoot, candidate);
+    return resolveRepoCandidate(webRoot, candidate);
 }
 
 function firstExistingPath(r, candidates, name) {

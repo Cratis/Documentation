@@ -5,6 +5,7 @@ import starlight from '@astrojs/starlight';
 import mermaid from 'astro-mermaid';
 import remarkGfm from 'remark-gfm';
 import { remarkMermaidPrerender, closeBrowser } from './scripts/mermaid-prerender.mjs';
+import { remarkVariantTabs } from './scripts/remark-variant-tabs.mjs';
 import { rehypeFocusableTables } from './scripts/rehype-focusable-tables.mjs';
 import { LLM_SETS } from './scripts/llm-sets.mjs';
 import starlightLlmsTxt from 'starlight-llms-txt';
@@ -243,7 +244,8 @@ export default defineConfig({
         // remarkMermaidPrerender renders ```mermaid and ```eventmodeling to SVG
         // at build time (before astro-mermaid's plugin sees it); Mermaid blocks it
         // can't render fall through to astro-mermaid's client-side rendering.
-        remarkPlugins: [remarkGfm, remarkMermaidPrerender],
+        // Expand snippet tabs first so their Mermaid fences can be pre-rendered too.
+        remarkPlugins: [remarkGfm, remarkVariantTabs, remarkMermaidPrerender],
         rehypePlugins: [rehypeFocusableTables],
     },
     integrations: [

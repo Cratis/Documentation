@@ -7,7 +7,7 @@ import { Steps } from '@astrojs/starlight/components';
 
 This is where the three products meet. You'll build one **vertical slice** of a library app — registering an author and listing authors — end to end: a command and event on the backend ([Arc](/arc/) + [Chronicle](/chronicle/)), a read model built by a projection, and a React screen ([Components](/components/)) that consumes the **generated, type-safe proxies**. No hand-written API client, no DTO duplication.
 
-Everything for the feature lives in **one folder** — that's the vertical-slice idea: you navigate by feature, not by technical layer.
+Keep the feature under **one module** — that's the vertical-slice idea: you navigate by behavior, not by technical layer.
 
 Here's the slice as an **[event model](/event-modeling/)** — read left to right, the user acts on a screen, a command records a fact, that fact is projected into a read model, and the next screen reads it:
 
@@ -25,7 +25,7 @@ The blocks are the slice, one per product: the `ui` screens are [Components](/co
 
 ## Before you start
 
-Scaffold a full-stack app and have it running — `dotnet new cratis -o Library` from the [Chronicle getting started](/chronicle/get-started/). You'll add the slice below into a `Features/Authors/` folder.
+Scaffold a full-stack app with `dotnet new cratis -o Library` from the [Chronicle getting started](/chronicle/get-started/). For brevity, this slice keeps all four C# types in one `Authors/` folder at the project root. The generated proxies land next to them, which is where the screen below imports them from. In a larger app, follow the scaffold's `<Module>/<Feature>/<Slice>/` layout instead (for example `SomeModule/SomeFeature/Registration/`). From `Library/`, run `docker compose up -d` to start Chronicle with bundled MongoDB; the default MongoDB setup stores the projected read model for the observable query. Then run `dotnet run` and start the frontend with the package manager you chose when scaffolding (for example, `npm run dev`). The generated `README.md` has the health check and commands for your package manager. The Compose file exposes development ports on all interfaces; bind them to `127.0.0.1` or use a trusted machine.
 
 ## The host
 
@@ -51,13 +51,14 @@ You won't touch this again for the slice below — it's here so you can see wher
 
 <Steps>
 
-1. **A strongly-typed id.** Never pass a raw `Guid` around — wrap it:
+1. **An event-source id.** Chronicle uses the command key to select an event stream. Derive the author id from `EventSourceId<Guid>`:
 
    ```csharp
-   public record AuthorId(Guid Value) : ConceptAs<Guid>(Value)
+   public record AuthorId(Guid Value) : EventSourceId<Guid>(Value)
    {
+       public static readonly AuthorId NotSet = new(Guid.Empty);
        public static AuthorId New() => new(Guid.NewGuid());
-       public static implicit operator EventSourceId(AuthorId id) => new(id.Value.ToString());
+       public static implicit operator AuthorId(Guid value) => new(value);
    }
    ```
 
@@ -74,12 +75,12 @@ You won't touch this again for the slice below — it's here so you can see wher
    public record AuthorRegistered(string Name);
    ```
 
-3. **The read model and its projection.** Declare the shape you want to query and which event feeds it — AutoMap matches `AuthorRegistered.Name` to `Name`. A static method exposes the query as an observable so the UI updates live:
+3. **The read model and its projection.** Declare the shape you want to query and which event feeds it — AutoMap matches `AuthorRegistered.Name` to `Name`. Because `AuthorId` derives from `EventSourceId<Guid>`, it is the read model's key without a `[Key]` attribute. A static method exposes the query as an observable so the UI updates live:
 
    ```csharp
    [ReadModel]
    [FromEvent<AuthorRegistered>]
-   public record Author([property: Key] AuthorId Id, string Name)
+   public record Author(AuthorId Id, string Name)
    {
        public static ISubject<IEnumerable<Author>> AllAuthors(IMongoCollection<Author> collection) =>
            collection.Observe();
@@ -88,7 +89,7 @@ You won't touch this again for the slice below — it's here so you can see wher
 
 </Steps>
 
-That's the whole backend for the feature — one file, three records. Run `dotnet build`.
+That's the C# slice: four types under `Authors/` — `AuthorId`, `RegisterAuthor`, `AuthorRegistered`, and `Author`. Run `dotnet build`.
 
 :::note[What the build did]
 Building the backend **generates TypeScript proxies** for `RegisterAuthor` and `AllAuthors`. The frontend now has typed clients that match your C# exactly — change a property here and the frontend won't compile until you fix it.
@@ -135,11 +136,19 @@ Building the backend **generates TypeScript proxies** for `RegisterAuthor` and `
 
 </Steps>
 
-## What you built
+## The event-producing command across backends
 
-- One **vertical slice**: command, event, read model, projection, and UI — all for a single behavior, in one place.
-- **Full-stack type safety**: the React code calls proxies generated from your C# types. There is no second source of truth to drift.
-- The **CQRS loop**: the command appends a fact, a projection builds the read model, and the observable query streams it to the UI live.
+Each backend can return an event from a command instead of writing a row. The C# excerpt follows the [Arc event-sourcing migration](/arc/backend/csharp/chronicle/add-event-sourcing/) and assumes its `AuthorName` concept (the simplified C# slice above uses `string`). The TypeScript excerpt assumes the `AuthorId` and `AuthorName` types beside its library sample and requires the `Librarian` role with `@roles('Librarian')`. Kotlin and Java use `CreateTask` / `TaskCreated` instead:
+
+<ArcBackendTabs snippet="guides/chronicle/event-from-command" />
+
+The [JVM Chronicle integration guide](/arc/backend/kotlin/guides/chronicle/) covers its host setup. The TypeScript backend is in **source preview**: its [library sample](https://github.com/Cratis/Arc.TypeScript/blob/main/Samples/Library/Features/Authors/Registration/Registration.ts) has the full author types and constraint, and its [host](https://github.com/Cratis/Arc.TypeScript/blob/main/Samples/Library/main.ts) calls `withChronicle(builder, ...)`. Its [listing](https://github.com/Cratis/Arc.TypeScript/blob/main/Samples/Library/Features/Authors/Listing/Listing.ts) offers both an observable `allAuthors` query and a one-shot `authorsPage` query. These tabs cover the write-side step, not four interchangeable frontend tutorials; the React flow above describes C#.
+
+## What the slice illustrates
+
+- One **C# vertical slice**: command, event, read model, projection, and UI for a single behavior.
+- **Full-stack type safety**: the React code uses proxies generated from the C# types, rather than a hand-written client.
+- The **CQRS loop**: the command returns a fact, Chronicle appends it, the default MongoDB projection builds the read model, and the observable query streams updates to the UI.
 
 ## Go deeper
 

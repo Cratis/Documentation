@@ -15,6 +15,7 @@ import { emitDocArtifacts } from './emit-doc-artifacts.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 import { isPrivateDocPath } from './private-doc-paths.mjs';
 import { sourceEditUrl } from './source-edit-url.mjs';
+import { reposRootFor } from './repos-root.mjs';
 import { checkExternalLinks, externalLinkArguments } from './check-external-links.mjs';
 import { lintProse } from './lint-prose.mjs';
 import { findSiteSyntaxErrors } from './lint-docs.mjs';
@@ -60,7 +61,7 @@ function stubRunner(results) {
 const success = { status: 0 };
 
 test('converted product pages link editing to their authored repository, not the synchronized copy', async () => {
-    const source = path.resolve(webRoot, '../../Chronicle/Documentation/get-started/index.mdx');
+    const source = path.join(reposRootFor(webRoot), 'Chronicle/Documentation/get-started/index.mdx');
     const converted = await convertFile('---\ntitle: Get started\n---\n\nStart here.\n', {
         dir: path.dirname(source),
         basename: path.basename(source),
@@ -71,7 +72,7 @@ test('converted product pages link editing to their authored repository, not the
 });
 
 test('every configured product, family, and variant source has a real repository edit route', async () => {
-    const reposRoot = path.resolve(webRoot, '../..');
+    const reposRoot = reposRootFor(webRoot);
     const docRepoRoot = path.resolve(webRoot, '..');
     const variants = await loadVariantDocsConfig();
     const variantSources = PRODUCTS.flatMap(product => variants.axesFor(product.key))
@@ -317,6 +318,36 @@ test('a variant macro rejects Markdown sources with a source-path diagnostic', a
             assert.match(error.message, /Cannot expand ChronicleClientTabs in Markdown source/);
             assert.match(error.message, /shared-page\.md/);
             assert.match(error.message, /rename the source file to \.mdx/);
+            return true;
+        }
+    );
+});
+
+test('Markdown comments and autolinks do not prevent fenced macro literals', async (context) => {
+    const root = await fixture(context);
+    const srcPath = path.join(root, 'shared-page.md');
+    const source = '<!-- markdownlint-disable MD013 -->\n\n<https://cratis.io>\n\n```mdx\n<ChronicleClientTabs snippet="missing" />\n```\n';
+    const converted = await convertFile(source, conversionContext(root, {
+        basename: 'shared-page.md', srcPath,
+        product: { key: 'chronicle', src: root },
+        variantAxes: [variantAxis()],
+    }));
+    assert.ok(converted.includes(source.trimEnd()));
+    assert.doesNotMatch(converted, /<Tabs syncKey=/);
+});
+
+test('MDX parse errors identify their source page', async (context) => {
+    const root = await fixture(context);
+    const srcPath = path.join(root, 'broken-page.mdx');
+    await assert.rejects(
+        convertFile('<ChronicleClientTabs snippet="example" />\n\n<!-- markdownlint-disable MD013 -->\n', conversionContext(root, {
+            basename: 'broken-page.mdx', srcPath,
+            product: { key: 'chronicle', src: root },
+            variantAxes: [variantAxis()],
+        })),
+        (error) => {
+            assert.match(error.message, /Failed to parse .*broken-page\.mdx:/);
+            assert.match(error.message, /Unexpected character `!`/);
             return true;
         }
     );

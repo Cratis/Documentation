@@ -9,6 +9,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertPublicDocPath, assertPublicDocSource } from './private-doc-paths.mjs';
 import { emitLlmIndexes } from './emit-llm-indexes.mjs';
+import { expandVariantTabs, splitFrontmatter } from './sync-content.mjs';
+import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..');
@@ -36,7 +38,7 @@ async function* walk(root, directory = root) {
     }
 }
 
-export async function emitDocArtifacts(docsRoot, distRoot) {
+export async function emitDocArtifacts(docsRoot, distRoot, options = {}) {
     // Validate the entire input before copying anything. Old local sync output
     // may still contain work records; silently skipping them would leave a
     // publishable build containing Astro/LLM exports of those same records.
@@ -45,6 +47,7 @@ export async function emitDocArtifacts(docsRoot, distRoot) {
 
     let markdownMirrors = 0;
     let staticFiles = 0;
+    const axes = options.axes ?? (await loadVariantDocsConfig()).axes;
     for (const file of files) {
         const relativeFile = path.relative(docsRoot, file);
         const extension = path.extname(file).toLowerCase();
@@ -63,7 +66,29 @@ export async function emitDocArtifacts(docsRoot, distRoot) {
             continue;
         }
         await fs.mkdir(path.dirname(output), { recursive: true });
-        await fs.copyFile(file, output);
+        if (extension === '.mdx') {
+            const source = await fs.readFile(file, 'utf8');
+            if (axes.some(axis => source.includes(`<${axis.macro}`))) {
+                // Site-owned MDX is expanded at render time; synchronized product
+                // MDX already contains these tabs. Preserve the same tab markup in
+                // both Markdown mirrors without changing either authored source.
+                const { body } = splitFrontmatter(source);
+                const expanded = await expandVariantTabs(body, {
+                    srcPath: file,
+                    product: { key: 'site' },
+                    variantAxes: axes,
+                    reposRoot: options.reposRoot,
+                    docRepoRoot: options.docRepoRoot,
+                });
+                // Keep the authored frontmatter and its separator verbatim; the
+                // generated Starlight import belongs in the MDX body, not above ---.
+                await fs.writeFile(output, source.slice(0, source.length - body.length) + expanded.body);
+            } else {
+                await fs.copyFile(file, output);
+            }
+        } else {
+            await fs.copyFile(file, output);
+        }
     }
     console.log(`[postbuild] emitted ${markdownMirrors} markdown mirrors and ${staticFiles} static doc assets`);
     return { markdownMirrors, staticFiles };
