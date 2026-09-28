@@ -14,13 +14,13 @@
           "csharp": 2
         },
         "tutorial/books-and-relationships.mdx": {
-          "csharp": 1
+          "csharp": 2
         },
         "tutorial/first-slice.mdx": {
-          "csharp": 1
+          "csharp": 2
         },
         "tutorial/validation.mdx": {
-          "csharp": 2
+          "csharp": 3
         }
       }
     }

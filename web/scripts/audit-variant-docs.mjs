@@ -10,6 +10,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
 import { loadVariantDocsConfig, webRoot } from './variant-docs-config.mjs';
+import { fenceRangesAndLanguages } from './variant-docs-fences.mjs';
 
 const MESSAGE_PREFIX = '[variant-docs]';
 
@@ -59,42 +60,6 @@ async function* markdownFiles(root, skipDirs, mountRoutes, current = root) {
     }
 }
 
-function fenceRangesAndLanguages(body, languageAliases) {
-    const ranges = [];
-    const fences = [];
-    const lines = body.split(/\r?\n/);
-    let offset = 0;
-    let current;
-
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const match = line.match(/^([`~]{3,})\s*([A-Za-z0-9_+.#-]*)/);
-        if (match) {
-            const marker = match[1];
-            const markerChar = marker[0];
-            const lang = languageAliases.get((match[2] ?? '').toLowerCase());
-
-            if (!current) {
-                current = { markerChar, markerLength: marker.length, start: offset, line: i + 1, lang };
-                if (lang) {
-                    fences.push({ line: i + 1, lang });
-                }
-            } else if (markerChar === current.markerChar && marker.length >= current.markerLength) {
-                ranges.push({ start: current.start, end: offset + line.length });
-                current = undefined;
-            }
-        }
-
-        offset += line.length + 1;
-    }
-
-    if (current) {
-        ranges.push({ start: current.start, end: body.length });
-    }
-
-    return { ranges, fences };
-}
-
 function isInRange(index, ranges) {
     return ranges.some((range) => index >= range.start && index <= range.end);
 }
@@ -139,7 +104,7 @@ async function collectAxisAudit(product, axis) {
     for await (const file of markdownFiles(product.sharedDocsRoot, skipDirs, mountRoutes)) {
         const body = await fs.readFile(file, 'utf8');
         const rel = path.relative(product.sharedDocsRoot, file).replace(/\\/g, '/');
-        const { ranges, fences } = fenceRangesAndLanguages(body, axis.ratchetLanguageAliases);
+        const { ranges, fences } = fenceRangesAndLanguages(body, file, axis.ratchetLanguageAliases);
 
         for (const fence of fences) {
             const fileEntry = directFences.get(rel) ?? {};

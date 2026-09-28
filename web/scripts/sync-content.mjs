@@ -15,15 +15,11 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
-import { fromMarkdown } from 'mdast-util-from-markdown';
-import { gfmFromMarkdown } from 'mdast-util-gfm';
-import { mdxFromMarkdown } from 'mdast-util-mdx';
-import { gfm } from 'micromark-extension-gfm';
-import { mdxjs } from 'micromark-extension-mdxjs';
 
 import { existsSync } from 'node:fs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { assertPublicDocPath, assertPublicDocSource, isPrivateDocPath } from './private-doc-paths.mjs';
+import { parseMarkdownCode } from './markdown-code-ranges.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 import { sourceEditUrl, sourceViewUrl } from './source-edit-url.mjs';
 import { reposRootFor } from './repos-root.mjs';
@@ -572,34 +568,7 @@ async function readVariantSnippet(source, snippet) {
 }
 
 function codeRanges(body, srcPath) {
-    // Markdown containers (lists, blockquotes) can prefix a fence opener but not
-    // its following macro line. Let the source's grammar locate code, rather
-    // than interpreting individual lines as independent fence delimiters.
-    // Product sources can still contain DocFX <xref:Namespace.Type> tokens at
-    // this stage. Mask them at the same length for parsing; the original
-    // body (including offsets and xrefs) is left intact for conversion below.
-    const parseBody = body.replace(/<xref:[^>]+>/g, token => ' '.repeat(token.length));
-    const mdx = path.extname(srcPath).toLowerCase() === '.mdx';
-    let tree;
-    try {
-        tree = fromMarkdown(parseBody, {
-            extensions: [mdx ? mdxjs() : gfm()],
-            mdastExtensions: [mdx ? mdxFromMarkdown() : gfmFromMarkdown()],
-        });
-    } catch (error) {
-        throw new Error(`[sync] Failed to parse ${srcPath}: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
-    }
-    const ranges = [];
-    const pending = [tree];
-    while (pending.length) {
-        const node = pending.pop();
-        if (node.type === 'code' || (mdx && ['mdxFlowExpression', 'mdxTextExpression', 'mdxjsEsm'].includes(node.type))) {
-            ranges.push([node.position.start.offset, node.position.end.offset]);
-        } else if (node.children) {
-            pending.push(...node.children);
-        }
-    }
-    return ranges;
+    return parseMarkdownCode(body, srcPath).ranges;
 }
 
 export function ensureTabsImport(body) {
