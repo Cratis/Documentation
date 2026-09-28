@@ -21,6 +21,26 @@ it('links a product page to its authored sibling checkout', () => {
         'https://github.com/Cratis/Arc.TypeScript/edit/main/Documentation/commands/model-bound/index.md');
 });
 
+it('links explicitly overridden Arc worktrees to their public owning repositories', () => {
+    const keys = ['CRATIS_REPO_ARC', 'CRATIS_REPO_ARC_KOTLIN', 'CRATIS_REPO_ARC_TYPESCRIPT'];
+    const previous = keys.map(key => process.env[key]);
+    try {
+        for (const [index, key] of keys.entries()) {
+            const checkout = ['Arc', 'Arc.Kotlin', 'Arc.TypeScript'][index];
+            process.env[key] = `/checkout/.worktrees/${checkout.toLowerCase()}-capstone`;
+            const snippet = path.join(process.env[key], 'Documentation/client-snippets/capstone/host.md');
+            assert.equal(sourceViewUrl(snippet, repos, site),
+                `https://github.com/Cratis/${checkout}/blob/main/Documentation/client-snippets/capstone/host.md`);
+        }
+        assert.equal(edit('/checkout/.worktrees/unrelated/Documentation/host.md'), false);
+    } finally {
+        keys.forEach((key, index) => {
+            if (previous[index] === undefined) delete process.env[key];
+            else process.env[key] = previous[index];
+        });
+    }
+});
+
 it('links fallback submodules and the organization contributing source', () => {
     assert.equal(edit(path.join(site, 'Arc/Documentation/tutorial/first-slice.mdx')),
         'https://github.com/Cratis/Arc/edit/main/Documentation/tutorial/first-slice.mdx');
