@@ -48,6 +48,14 @@ test('does not count a non-client fence, but excludes macros inside code', () =>
     assert.equal(ranges.some(({ start, end }) => start <= body.lastIndexOf(macro) && body.lastIndexOf(macro) <= end), false);
 });
 
+test('preserves the MDX expression exclusion range for macro checks', () => {
+    const macro = '<ChronicleClientTabs snippet="missing" />';
+    const body = `{/*\n${macro}\n*/}\n\n\`\`\`csharp\nclass C {}\n\`\`\`\n`;
+    const { ranges, fences } = audit(body);
+    assert.deepEqual(fences, [{ line: 5, lang: 'csharp' }]);
+    assert.equal(ranges.some(({ start, end }) => start <= body.indexOf(macro) && body.indexOf(macro) <= end), true);
+});
+
 test('masks YAML frontmatter without shifting fence lines or ranges', () => {
     const body = '---\ndescription: "Uses IProjectionFor<T>"\n---\n\n```cs\nclass C {}\n```\n';
     assert.deepEqual(audit(body).fences, [{ line: 5, lang: 'csharp' }]);
