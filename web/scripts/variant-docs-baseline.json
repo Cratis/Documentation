@@ -6,23 +6,7 @@
       "client": {}
     },
     "arc": {
-      "backend": {
-        "arc-without-event-sourcing.md": {
-          "csharp": 4
-        },
-        "tutorial/authorization.mdx": {
-          "csharp": 2
-        },
-        "tutorial/books-and-relationships.mdx": {
-          "csharp": 2
-        },
-        "tutorial/first-slice.mdx": {
-          "csharp": 2
-        },
-        "tutorial/validation.mdx": {
-          "csharp": 3
-        }
-      }
+      "backend": {}
     }
   }
 }
