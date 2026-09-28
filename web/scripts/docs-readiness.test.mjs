@@ -7,11 +7,12 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
 import { PRODUCTS, applyAfterBucketInjections, variantSidebarInjections, applyBuckets, bucketsWithInjectedSections, collectSlugs, convertFile, entryToItem, tocToSidebar, walk } from './sync-content.mjs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { emitDocArtifacts } from './emit-doc-artifacts.mjs';
+import { DOC_ARTIFACTS_INTEGRATION, docArtifactsIntegration } from './doc-artifacts-integration.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 import { isPrivateDocPath } from './private-doc-paths.mjs';
 import { sourceEditUrl } from './source-edit-url.mjs';
@@ -287,6 +288,37 @@ test('artifact exports match slugged Markdown routes and copy supporting HTML as
     ]) {
         assert.equal(await fs.readFile(path.join(output, asset), 'utf8'), await fs.readFile(path.join(docs, synced), 'utf8'));
     }
+});
+
+test('the Astro build-completion hook writes slugged Markdown mirrors into the build output', async (context) => {
+    const root = await fixture(context);
+    const source = path.join(root, 'authored');
+    const docs = path.join(root, 'docs');
+    const output = path.join(root, 'dist');
+    await put(source, 'CodeAnalysis/ARC0001.md', '# Rule\n');
+    await put(source, 'Statistics/index.md', '[Coverage](coverage.html)\n');
+    await put(source, 'Statistics/coverage.html', '<p>coverage</p>');
+    await walk(source, docs, { key: 'fixture', src: source });
+
+    const integration = docArtifactsIntegration(docs);
+    assert.equal(integration.name, DOC_ARTIFACTS_INTEGRATION);
+    await integration.hooks['astro:build:done']({ dir: pathToFileURL(`${output}${path.sep}`) });
+
+    assert.equal(await fs.readFile(path.join(output, 'codeanalysis/arc0001.md'), 'utf8'), await fs.readFile(path.join(docs, 'CodeAnalysis/ARC0001.md'), 'utf8'));
+    assert.equal(await fs.readFile(path.join(output, 'statistics.md'), 'utf8'), await fs.readFile(path.join(docs, 'Statistics/index.md'), 'utf8'));
+    assert.equal(await fs.readFile(path.join(output, 'statistics/coverage.html'), 'utf8'), '<p>coverage</p>');
+});
+
+// The site config cannot be imported outside a full content sync, so check its
+// source: a direct `astro build` only writes the mirrors if the integration is
+// registered after page-actions and pointed at the synced documentation root.
+test('the site config registers the documentation artifacts integration after page actions', async () => {
+    const config = await fs.readFile(path.join(webRoot, 'astro.config.mjs'), 'utf8');
+    const registration = config.indexOf("docArtifactsIntegration(fileURLToPath(new URL('./src/content/docs/', import.meta.url)))");
+    assert.notEqual(registration, -1, 'astro.config.mjs must register docArtifactsIntegration for src/content/docs');
+    const pageActions = config.indexOf('starlightPageActions(');
+    assert.notEqual(pageActions, -1, 'expected starlight-page-actions to be configured');
+    assert.ok(registration > pageActions, 'the artifacts integration must run after page-actions has copied its files');
 });
 
 test('Components buckets classify library and reference sections explicitly', () => {
