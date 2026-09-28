@@ -25,7 +25,7 @@ Use this workflow when editing any Chronicle page that shows client SDK code.
 
 The shared Chronicle page decides where an example appears. The client repo decides what code appears for that language.
 
-The Documentation repo owns the coordination contract in `web/chronicle-client-docs.yml`. That manifest is the source of truth for:
+The Documentation repo owns the coordination contract in `web/variant-docs.yml`. That manifest is the source of truth for:
 
 - participating client keys and labels
 - client-owned snippet roots
@@ -39,7 +39,7 @@ Do not add a new Chronicle client by hardcoding it into individual scripts. Upda
 
 ## Core Rule
 
-Shared Chronicle docs are language agnostic. Do not paste a raw `csharp`, `java`, `kotlin`, `elixir`, `typescript`, `ts`, or `cs` fenced code block into a shared Chronicle page for client SDK behavior.
+Shared Chronicle docs are language agnostic. Do not paste a raw `csharp`, `java`, `kotlin`, `elixir`, `typescript`, `ts`, `tsx`, or `cs` fenced code block into a shared Chronicle page for client SDK behavior.
 
 Use one of these shapes instead:
 
@@ -51,7 +51,7 @@ If a shared page still has direct C# fences, treat it as migration debt. Do not 
 
 ## Add Or Change A Multi-Client Example
 
-1. Edit the shared page in `Chronicle/Documentation/**`.
+1. Edit the shared `.mdx` page in `Chronicle/Documentation/**` (the sync cannot expand tabs in `.md` source).
 2. Add a placeholder where the example should appear:
 
    ```mdx
@@ -72,14 +72,22 @@ If a shared page still has direct C# fences, treat it as migration debt. Do not 
 5. Prefer `.md` for snippet files. Use `.mdx` only if the snippet file itself needs MDX syntax.
 6. Keep the snippet ID extensionless in the shared page. The sync supports both `.md` and `.mdx`.
 
-`<ChronicleClientTabs />` has no `clients` property. Never add one, and never edit the sync/audit scripts to reintroduce one. The shared page does not declare which clients apply to an example — the sync discovers that by checking every registered client's snippet root for a file at that id, and renders a tab only for the clients where one exists. When a concept genuinely exists for only some clients, just don't add a snippet file for the others.
+`<ChronicleClientTabs />` has no `clients` property. Never add one, and never edit the sync/audit scripts to reintroduce one. The sync checks each registered client's snippet root for a file at that ID, or only the clients named in a `variants` attribute, and renders a tab only where a file exists. Use `variants="kotlin,java"` only on a client family's own pages, to limit their tabs to that family's languages. Never set `variants` on a shared Chronicle page: there every registered client needs a snippet file, and `variants` would only hide the missing-snippet warning.
 
-Prefer keeping every generally supported client visible in shared pages. If a shared workflow is not implemented for one client yet, add a real snippet file for that client that says the feature is not supported yet instead of omitting the tab. This keeps the docs honest and makes the gap visible:
+Chronicle's `client` axis sets `warnOnMissingSnippet: true`: if a registered client has no matching snippet, sync warns and omits that tab. The warning is not a build error while at least one client has the snippet; if no client has it, both the sync and the audit fail. Check the rendered tabs as well as the sync output. Every registered client must have a snippet file for every shared snippet ID, even when the workflow is not implemented or the concept does not apply. Do not leave a missing-snippet warning as expected noise.
+
+For a workflow not implemented yet, use a real snippet file saying it is not supported yet and track the gap in a client SDK issue. When a concept does not apply to a client, use a real snippet file saying it does not apply to that client. For example:
 
 ````md
 ```text
 This Chronicle client does not support this workflow yet.
 Track the client SDK issue before using this API from this language.
+```
+````
+
+````md
+```text
+This concept does not apply to this Chronicle client.
 ```
 ````
 
@@ -132,29 +140,28 @@ When local toolchains are missing, report that explicitly and rely on the client
 - TypeScript requires Node/Yarn dependencies.
 - C# requires the Chronicle .NET SDK project to build.
 
-Then run the site build from `Documentation/web`:
+Then run the aggregate check and site build from `Documentation/web`:
 
 ```bash
-npm run chronicle-client-docs:check
-npm run audit:chronicle-client-docs
+npm run variant-docs:check
 npm run build
 ```
 
-`npm run chronicle-client-docs:check` is the preferred aggregate gate. It runs the strict shared-doc audit, checks that `legacy/` snippet counts have not increased, and runs every configured client validator whose local toolchain is available. It reports missing Java, Mix, or similar local toolchains as blocked in local runs. CI should use:
+`npm run variant-docs:check` is the preferred aggregate gate across all configured products and axes. It runs the shared-doc audit with `--strict` and the recorded fence baseline, checks that `legacy/` snippet and public shared-topic overlap counts have not increased, and runs every configured client or backend validator. It reports missing Java, Mix, or similar local toolchains as blocked in local runs. CI uses:
 
 ```bash
-npm run chronicle-client-docs:check:ci
+npm run variant-docs:check:ci
 ```
 
 The CI variant treats blocked validators as failures.
 
-Use strict mode to see whether shared Chronicle docs are fully migrated:
+Use the standalone baseline audit to check shared docs roots, snippet coverage, and direct client-language fence regressions:
 
 ```bash
-npm run audit:chronicle-client-docs:strict
+npm run audit:variant-docs
 ```
 
-`audit:chronicle-client-docs` is a ratchet: it fails on missing client docs roots, missing snippets, or any increase in direct client-language fences in shared Chronicle docs. `audit:chronicle-client-docs:strict` fails while any shared direct client-language fences remain.
+The audit fails on missing snippet or public docs roots, a missing `snippet` attribute or a shared snippet ID with no file in any registered variant, or an increase in direct variant-language fences above the recorded baseline. A missing file for just one client warns during sync but does not fail the audit. Use `npm run audit:variant-docs:strict` to fail if *any* direct variant-language fences remain in shared docs across the configured products, even those within the baseline.
 
 For visual changes, start or restart the dev server and inspect the page:
 
@@ -173,19 +180,19 @@ Every client repo that owns snippets must have a `Client Snippet Verification` w
 
 Every external client repo must also dispatch or otherwise trigger the Documentation repo docs build after snippet changes land on `main`, so the published site updates.
 
-The Documentation repo docs workflow must checkout every client repo listed in `web/chronicle-client-docs.yml`.
+The Documentation repo docs workflow must checkout every Chronicle client repo listed in `web/variant-docs.yml`.
 
 ## Add A New Chronicle Client
 
 1. Add the client repository to the Documentation repo checkout/submodule setup.
-2. Add the client to `Documentation/web/chronicle-client-docs.yml`.
+2. Add the client under Chronicle's `client` axis in `Documentation/web/variant-docs.yml`.
 3. Use a stable key such as `swift` or `go`, and choose the reader-facing tab/sidebar label.
-4. Add `Documentation/client-snippets/**` to the client repo when it participates in shared tabs.
+4. Add `Documentation/client-snippets/**` to the client repo so it can participate in shared tabs.
 5. Add `Documentation/validate-client-snippets.py` that compiles snippets against that client source.
 6. Add the client's `Client Snippet Verification` workflow.
 7. Add the client's documentation dispatch workflow so `Documentation/**` changes rebuild the site.
-8. Add or update snippet files for the shared Chronicle pages that should include the new client.
-9. Run the affected client validators, `npm run chronicle-client-docs:check`, and `npm run build` in `Documentation/web`.
+8. Add a snippet file for every shared Chronicle snippet ID, including explicit unsupported or inapplicable notes where needed.
+9. Run the affected client validators, `npm run variant-docs:check`, and `npm run build` in `Documentation/web`.
 
 Do not split the public docs into one section per client just because the registry grows.
 
@@ -195,7 +202,7 @@ Client-specific public docs are for language/runtime details: installation, conn
 
 Chronicle concepts and feature workflows belong in the shared Chronicle docs. If a client page explains events, reactors, reducers, read models, projections, constraints, seeding, transactions, migrations, or compliance in a way that would help multiple clients, move that explanation into the shared page and leave only client-specific API notes behind.
 
-`npm run chronicle-client-docs:check` audits client public docs for shared-topic overlap using the manifest's `publicDocsAudit` section. The count is a migration debt baseline: it may go down as pages are consolidated, but it must not increase.
+`npm run variant-docs:check` audits client public docs for shared-topic overlap using the manifest's `publicDocsAudit` section. The count is a migration debt baseline: it may go down as pages are consolidated, but it must not increase.
 
 When preserving an old client URL only to point readers to the shared docs, make it a bridge page with frontmatter:
 
@@ -211,14 +218,14 @@ Bridge pages should not contain full client-specific examples. They should brief
 
 - The shared page owns prose, not client-specific API details.
 - Shared Chronicle pages do not add new direct client-language fences.
-- Shared pages include an explicit "not supported yet" snippet tab when a client lacks a workflow but readers need to see the gap.
+- Every registered client has a snippet file for each shared ID: "not supported yet" with a tracked issue for unimplemented workflows, or "does not apply" for inapplicable concepts.
 - Client public docs do not add new concept/guide pages for shared Chronicle topics.
 - .NET-specific pages live under `/chronicle/clients/dotnet/**`, not mixed into shared Chronicle docs.
 - Each language's code lives in its client repo.
 - Snippet files use the same extensionless ID across clients.
 - `.md` is used unless `.mdx` is needed.
 - Code examples are complete enough to compile under the owning validator.
-- The synchronized tabs render on the shared page.
+- The synchronized tabs render on the shared page, and sync reports no missing-snippet warnings.
 - No snippet folder becomes a public docs page.
-- `npm run chronicle-client-docs:check` passes, or reports only missing local toolchains that CI covers.
+- `npm run variant-docs:check` passes, or reports only missing local toolchains that CI covers.
 - Local validation results and any missing toolchains are reported clearly.
