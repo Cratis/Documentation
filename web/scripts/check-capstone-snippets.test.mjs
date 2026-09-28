@@ -98,4 +98,10 @@ test('a JVM or TypeScript capstone snippet with the wrong fence fails', async t 
     await writeFile(host, (await readFile(host, 'utf8')) + '\n```kotlin\nval extra = 1\n```\n');
     await assert.rejects(checkCapstoneSnippets({ arcKotlinRoot: kotlinRoot }),
         /Arc.Kotlin client-snippets\/capstone\/host must contain exactly one kotlin fence/);
+
+    const [javaRoot] = await copyCapstoneSnippets(t, 'Arc.Kotlin', 'client-snippets-java');
+    const javaHost = path.join(javaRoot, 'Documentation', 'client-snippets-java', 'capstone', 'host.md');
+    await writeFile(javaHost, (await readFile(javaHost, 'utf8')).replace('```java', '```kotlin'));
+    await assert.rejects(checkCapstoneSnippets({ arcKotlinRoot: javaRoot }),
+        /Arc.Kotlin client-snippets-java\/capstone\/host must contain exactly one java fence/);
 });
