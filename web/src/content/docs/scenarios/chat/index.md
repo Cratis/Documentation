@@ -59,8 +59,8 @@ Covers:
 
 The pattern is the same in every backend. These are the places where the code differs; the guides explain each one where it first appears.
 
-| | C# | Kotlin | Java | TypeScript (source preview) |
-| - | -- | ------ | ---- | --------------------------- |
+| | C# | Kotlin | Java | TypeScript (preview) |
+| - | -- | ------ | ---- | -------------------- |
 | Source with a current value | System.Reactive `BehaviorSubject<IEnumerable<ChatMessage>>` | `MutableStateFlow<List<ChatMessage>>` | Arc's `ObservableState<List<ChatMessage>>` | RxJS `BehaviorSubject<ChatMessage[]>` |
 | `ForRoom` returns | `ISubject<IEnumerable<ChatMessage>>`, a relay per subscriber | `Flow<List<ChatMessage>>`, the room's source | `Flow.Publisher<List<ChatMessage>>`, the room's source | The room's RxJS subject |
 | `ChatService` as a service parameter | Resolved from dependency injection because its type is registered | Marked `@FromServices` | Marked `@FromServices` | Listed as `service(ChatService)` in `@query` |

@@ -24,7 +24,7 @@ Each backend tests a command through the real Arc command pipeline and a read mo
 | C# | `Cratis.Arc.Testing` (`CommandScenario<TCommand>`), with `Cratis.Arc.Chronicle.Testing` for the events a command appends | `Cratis.Chronicle.Testing` (`ReadModelScenario<TReadModel>`) |
 | Kotlin | `io.cratis:arc-testing` (`CommandScenario`), with `io.cratis:arc-chronicle-spring-boot-starter` for the events a command appends | `io.cratis:chronicle-testing` (`ReadModelScenario`) |
 | Java | `io.cratis:arc-testing`, driven through `BlockingCommandScenario`, with the same Chronicle starter | The examples call the reducer directly |
-| TypeScript (source preview) | `@cratis/arc.testing` (`CommandScenario`), with `@cratis/arc.chronicle/testing` (`ChronicleCommandScenario`) for the events a command appends | `@cratis/chronicle/testing` (`ReadModelScenario`) |
+| TypeScript (preview) | `@cratis/arc.testing` (`CommandScenario`), with `@cratis/arc.chronicle/testing` (`ChronicleCommandScenario`) for the events a command appends | `@cratis/chronicle/testing` (`ReadModelScenario`) |
 
 The [Arc for Kotlin and Java testing guide](/arc/backend/kotlin/guides/testing/) and the [Arc for TypeScript testing guide](/arc/backend/typescript/testing/) cover the JVM and TypeScript harnesses in depth. The rest of this section lists the .NET packages.
 
@@ -90,7 +90,7 @@ Read it as a testable behavior:
 
 ### The slice
 
-The command's handler returns the event, and Arc appends it to the event source the command identifies. The slice stays small:
+The command's handler returns the event, and Arc appends it to the event source the command identifies. The slice stays small: each snippet holds only the `RegisterAuthor` command and the `AuthorRegistered` event. The `Author` read model from the event model comes in with the spec under [Spec the read side](#spec-the-read-side).
 
 <ArcBackendTabs snippet="testing-with-cratis/register-author" />
 
@@ -100,11 +100,11 @@ The command spec covers the first two rows: the command succeeds, and `AuthorReg
 
 <ArcBackendTabs snippet="testing-with-cratis/register-author-spec" />
 
-There is no HTTP server in that spec and no Chronicle server to start. Arc runs the command through the real command pipeline, and each backend's Chronicle test support captures the events the command appends in memory. TypeScript's `ChronicleCommandScenario` does not enforce constraints; the [Arc for TypeScript testing guide](/arc/backend/typescript/testing/) lists what it does not cover.
+There is no HTTP server in that spec and no Chronicle server to start. Arc runs the command through the real command pipeline, and each backend's Chronicle test support captures the events the command appends in memory. In Kotlin and Java, `shouldHaveAppendedEvent` expects exactly one matching event; C# and TypeScript accept one or more. TypeScript's `ChronicleCommandScenario` does not enforce constraints; the [Arc for TypeScript testing guide](/arc/backend/typescript/testing/) lists what it does not cover.
 
 ### Spec the read side
 
-The read-side spec covers the last row: given `AuthorRegistered`, the `Author` read model contains the name the screen needs. C#, Kotlin, and TypeScript run the read model in process with a read-model scenario; Java calls its reducer directly. Elixir does not support this test yet. Each example declares the event again so it compiles on its own; in your application, reuse the event from the slice.
+The read-side spec covers the last row: given `AuthorRegistered`, the `Author` read model contains the name the screen needs. C#, Kotlin, and TypeScript run the read model in process with a read-model scenario; Java calls its reducer directly. Elixir does not support this test yet. Each example declares `AuthorRegistered` again so it compiles on its own (in your application, reuse the event from the slice) and introduces the `Author` read model. These tabs are the Chronicle client set, which also includes Elixir. They are separate from the Arc backend tabs above, so picking a backend there does not switch them.
 
 <ChronicleClientTabs snippet="testing/index/example-spec" />
 

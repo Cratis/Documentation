@@ -101,7 +101,7 @@ That becomes a BDD-style specification:
 
 In .NET, Cratis Specifications gives that shape a light wrapper over xUnit: `Establish()` is the given, `Because()` is the when, and each `[Fact]` is one then. Arc adds `CommandScenario<TCommand>` so the command runs through the real pipeline. Chronicle adds in-process scenarios for events, projections, and reactors. Together, you test the slice in the same language you designed it: facts in, command happens, facts and read models out.
 
-Kotlin, Java, and TypeScript backends run the command through the real Arc pipeline and the read model in process too. [Testing with Cratis](/testing-with-cratis/) lists the test packages for each backend and walks through the same slice and its specs in every language.
+Kotlin, Java, and TypeScript backends also run the command through the real Arc pipeline and test the read model in process (Java calls its reducer directly). [Testing with Cratis](/testing-with-cratis/) lists the test packages for each backend and walks through the same slice and its specs in every language.
 
 ## Build it with AI
 
