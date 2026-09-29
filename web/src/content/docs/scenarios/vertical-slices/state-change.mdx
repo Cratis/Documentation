@@ -1,12 +1,12 @@
 ---
-title: State change — register an author
+title: State Change — register an author
 description: Build the Library's author registration as an Event Modeling State Change, with an Arc command, a Chronicle event, a uniqueness constraint and a CommandDialog form.
 ---
 
 import YouWillLearn from '@components/YouWillLearn.astro';
 import Recap from '@components/Recap.astro';
 
-A librarian types an author's first and last name into a dialog and presses **Register**. Arc validates the names, Chronicle records that the author was registered, and the dialog closes with the new author's ID. Where the backend enforces unique names, a second registration of exactly the same name is rejected. Registering an author is the Library's first **State Change**. Each step shows it with a C#, Kotlin, Java or TypeScript backend, and the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists what the JVM backends and the TypeScript source preview do differently.
+A librarian types an author's first and last name into a dialog and presses **Register**. Arc validates the names, Chronicle records that the author was registered, and the dialog closes with the new author's ID. Where the backend enforces unique names, a second registration of exactly the same name is rejected. Registering an author is the Library's first **State Change**, shown with a C#, Kotlin, Java or TypeScript (source preview) backend.
 
 This series uses Arc with its optional Chronicle integration; Arc also supports commands and queries without event sourcing.
 

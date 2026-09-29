@@ -1,5 +1,5 @@
 ---
-title: State view — list authors
+title: State View — list authors
 description: Project the Library's AuthorRegistered events into an Author read model, query it, and show it on a DataPage listing, as an Event Modeling State View.
 ---
 
@@ -182,7 +182,7 @@ export const App = () => (
 - `allAuthors` / `AllAuthors` is the [Arc](/arc/) query over that projected state, and each backend's [Arc](/arc/) build generates its proxy.
 - `Listing.tsx` shows the list with [`DataPage`](/components/datapage/) from [`@cratis/components`](/components/): live with C# and TypeScript, and a snapshot with Kotlin and Java until a Chronicle-backed observable query is available.
 
-To present authors differently later, change the projection and replay it against the same registration events.
+To present authors differently later, change the projection or reducer and replay it against the same registration events.
 
 Next, [cancel expired reservations](/scenarios/vertical-slices/automation/) in the background, with a reactor that sends commands on its own.
 

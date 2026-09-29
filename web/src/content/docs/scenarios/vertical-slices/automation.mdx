@@ -6,7 +6,7 @@ description: Cancel uncollected Library reservations in the background with a Ch
 import YouWillLearn from '@components/YouWillLearn.astro';
 import Recap from '@components/Recap.astro';
 
-A member reserves a book and never comes to collect it. The copy should not stay unavailable forever. Each day, a clock event prompts a reactor to find the overdue reservations and send each one through a cancellation command. No user clicks a button, and an external scheduler supplies the clock signal, so the slice is an **Automation**. The C#, Kotlin, Java and TypeScript (source preview) backends differ in how they store times and how the reactor finds its handler and runs its commands; the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists each difference.
+A member reserves a book and never comes to collect it. The copy should not stay unavailable forever. Each day, a clock event prompts a reactor to find the overdue reservations and send each one through a cancellation command. No user clicks a button, and an external scheduler supplies the clock signal, so the slice is an **Automation**. It is shown with a C#, Kotlin, Java or TypeScript (source preview) backend; the [reactor table](#how-each-backend-runs-the-reactor) and the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) list where they differ.
 
 <YouWillLearn title="What you'll build">
 
@@ -115,9 +115,9 @@ Design your reactor methods to be safe:
 
 <Recap>
 
-1. The scheduler's `DailyTick` wakes `ReservationExpiryReactor`, a [Chronicle](/chronicle/) [reactor](/chronicle/reactors/).
-2. The reactor sweeps `ReservationDueForExpiry`, the active, internal [Chronicle](/chronicle/) [projection](/chronicle/projections/) that nominates candidates, and sends `CancelExpiredReservation` for each through the [Arc](/arc/) command pipeline.
-3. That [Arc](/arc/) model-bound command reads the passive, internal `PendingReservation` projection as its command-side read model, decides whether the reservation expires and, if so, records `ReservationExpired`, a [Chronicle](/chronicle/) [event type](/chronicle/events/).
+1. The scheduler's `DailyTick` wakes `ReservationExpiryReactor`, a [Chronicle reactor](/chronicle/reactors/).
+2. The reactor sweeps `ReservationDueForExpiry`, the active, internal [projection](/chronicle/projections/) that nominates candidates, and sends `CancelExpiredReservation` for each through the [Arc](/arc/) command pipeline.
+3. That model-bound command reads the passive, internal `PendingReservation` projection as its command-side read model, decides whether the reservation expires and, if so, records `ReservationExpired`, a Chronicle [event type](/chronicle/events/).
 
 Every expiry is recorded as an event, so later views and automations can follow the outcome without repeating the deadline logic.
 
