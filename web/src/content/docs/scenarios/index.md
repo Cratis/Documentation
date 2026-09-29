@@ -13,7 +13,7 @@ Rather than covering individual APIs in isolation, each scenario builds a comple
 
 | Section | Description |
 | ------- | ----------- |
-| [Camel Casing](/scenarios/camel-casing/) | How to configure camel casing consistently for Chronicle projections and Arc MongoDB documents from a Cratis meta package setup. |
+| [Camel Casing](/scenarios/camel-casing/) | How to get camelCase field names consistently in Chronicle projections and Arc MongoDB documents, for each Arc backend. |
 | [Vertical Slices](/scenarios/vertical-slices/) | Step-by-step tutorials that build an event-sourced Library system one slice at a time, following Event Modeling patterns. |
 | [Real-Time Chat](/scenarios/chat/) | How to use Arc observable queries with an in-memory service to build a live multi-room chat — no polling, no manual WebSocket setup. |
 
@@ -22,6 +22,6 @@ Rather than covering individual APIs in isolation, each scenario builds a comple
 Every scenario follows the same discipline:
 
 - **One behaviour at a time.** Each tutorial adds exactly one piece of functionality — a single vertical slice — so you can follow along without getting lost in unrelated complexity.
-- **End-to-end.** Each slice goes all the way from the domain event in C# to the React component the user interacts with.
+- **End-to-end.** Each slice goes all the way from the domain event and the backend that handles it — in C#, Kotlin, Java or TypeScript — to the React component the user interacts with.
 - **Real tooling.** The code uses the exact packages, conventions, and components you would use in a production Cratis project — not simplified toy APIs.
 - **Explained, not just shown.** Each step explains *why* things are done a particular way, not just *what* to type.

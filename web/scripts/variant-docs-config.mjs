@@ -309,6 +309,83 @@ function normalizeProduct(r, productKey, value, name) {
     };
 }
 
+// A tiny glob matcher for site-page paths: `**` crosses folders (and `**/`
+// may match none), `*` stays inside one segment, everything else is literal.
+export function globToRegExp(glob) {
+    let source = '';
+    for (let index = 0; index < glob.length; index++) {
+        const char = glob[index];
+        if (char !== '*') {
+            source += char.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+        } else if (glob[index + 1] !== '*') {
+            source += '[^/]*';
+        } else if (glob[index + 2] === '/') {
+            source += '(?:.*/)?';
+            index += 2;
+        } else {
+            source += '.*';
+            index += 1;
+        }
+    }
+    return new RegExp(`^${source}$`);
+}
+
+function reason(r, value, name) {
+    const text = r.string(value, name).trim();
+    if (!text) r.fail(`${name} must explain why`);
+    return text;
+}
+
+// Site-authored pages under web/src/content/docs are not synced from a product,
+// so the product walk never sees them. `sitePages` names the axis each page is
+// ratcheted against (first matching group wins), the pages that are
+// intentionally single-language, and individual fences that are allowed to stay
+// single-language. Every exclusion and exemption carries its reason.
+function normalizeSitePages(r, value, axesByScope, name) {
+    if (!value) return null;
+    const node = r.object(value, name);
+    const root = resolveFromWebRoot(r.string(node.root, `${name}.root`));
+
+    const groups = r.array(node.groups, `${name}.groups`).map((entry, index) => {
+        const groupName = `${name}.groups[${index}]`;
+        const group = r.object(entry, groupName);
+        const scope = r.string(group.axis, `${groupName}.axis`);
+        const axis = axesByScope.get(scope);
+        if (!axis) r.fail(`${groupName}.axis "${scope}" is not a configured <product>/<axis>`);
+        const include = r.array(group.include, `${groupName}.include`)
+            .map((glob, globIndex) => r.string(glob, `${groupName}.include[${globIndex}]`));
+        return {
+            label: group.label ? String(group.label) : scope,
+            scope,
+            axis,
+            include,
+            matchers: include.map(globToRegExp),
+        };
+    });
+
+    const exclude = (node.exclude ? r.array(node.exclude, `${name}.exclude`) : []).map((entry, index) => {
+        const item = r.object(entry, `${name}.exclude[${index}]`);
+        return {
+            page: r.string(item.page, `${name}.exclude[${index}].page`),
+            reason: reason(r, item.reason, `${name}.exclude[${index}].reason`),
+        };
+    });
+
+    const exemptFences = (node.exemptFences ? r.array(node.exemptFences, `${name}.exemptFences`) : [])
+        .map((entry, index) => {
+            const itemName = `${name}.exemptFences[${index}]`;
+            const item = r.object(entry, itemName);
+            return {
+                page: r.string(item.page, `${itemName}.page`),
+                language: r.string(item.language, `${itemName}.language`),
+                contains: r.string(item.contains, `${itemName}.contains`),
+                reason: reason(r, item.reason, `${itemName}.reason`),
+            };
+        });
+
+    return { root, groups, exclude, exemptFences };
+}
+
 /**
  * Loads the variant documentation manifest.
  *
@@ -338,6 +415,7 @@ export async function loadVariantDocsConfig(options = {}) {
         normalizeProduct(r, key, product, `products.${key}`));
     const productsByKey = new Map(products.map((product) => [product.key, product]));
     const axes = products.flatMap((product) => product.axes);
+    const axesByScope = new Map(axes.map((axis) => [`${axis.productKey}/${axis.key}`, axis]));
 
     return {
         manifestPath,
@@ -345,6 +423,7 @@ export async function loadVariantDocsConfig(options = {}) {
         products,
         productsByKey,
         axes,
+        sitePages: normalizeSitePages(r, manifest.sitePages, axesByScope, 'sitePages'),
         getProduct(key) {
             return productsByKey.get(key) ?? null;
         },

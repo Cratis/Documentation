@@ -287,6 +287,13 @@ export const PRODUCTS = [
     },
 ];
 
+const RELEASE_DIGESTS_ROUTE = 'release-digests';
+
+// The folders under web/src/content/docs this sync regenerates. Everything else
+// there is authored in this repository, which is what the site-page variant
+// audit walks.
+export const GENERATED_CONTENT_ROUTES = [...PRODUCTS.map((product) => product.key), RELEASE_DIGESTS_ROUTE];
+
 // The Cratis/.github org repo also carries a `release-digests/` folder of
 // weekly cross-repo digests (one file per week, named `<start>-to-<end>.md`).
 // These are site-level pages surfaced from the "Cratis Stack" nav rather than
@@ -1301,7 +1308,7 @@ function formatReleaseDigestRange(startIso, endIso) {
 // PRODUCTS loop this isn't a product topic: it's a plain nav group hung off
 // the "Cratis Stack" topic in astro.config.mjs.
 async function syncReleaseDigests() {
-    const outDir = path.join(webRoot, 'src', 'content', 'docs', 'release-digests');
+    const outDir = path.join(webRoot, 'src', 'content', 'docs', RELEASE_DIGESTS_ROUTE);
     await fs.rm(outDir, { recursive: true, force: true });
 
     const genDir = path.join(webRoot, 'src', 'generated');

@@ -4,6 +4,9 @@
 // belongs in variant-owned snippets expanded through the axis macro (for
 // Chronicle's `client` axis, <ChronicleClientTabs />), or in the variant's own
 // docs mounted under /<product>/<route>/<variant>/.
+//
+// The site's own pages under web/src/content/docs (configured by `sitePages`)
+// are audited the same way, each against the axis its group names.
 
 import { existsSync } from 'node:fs';
 import { promises as fs } from 'node:fs';
@@ -11,6 +14,8 @@ import path from 'node:path';
 
 import { loadVariantDocsConfig, webRoot } from './variant-docs-config.mjs';
 import { fenceRangesAndLanguages } from './variant-docs-fences.mjs';
+import { auditSitePages, checkMacros, compareFenceBaseline as compareBaseline } from './variant-docs-site-audit.mjs';
+import { GENERATED_CONTENT_ROUTES } from './sync-content.mjs';
 
 const MESSAGE_PREFIX = '[variant-docs]';
 
@@ -60,28 +65,6 @@ async function* markdownFiles(root, skipDirs, mountRoutes, current = root) {
     }
 }
 
-function isInRange(index, ranges) {
-    return ranges.some((range) => index >= range.start && index <= range.end);
-}
-
-function getAttr(attrs, name) {
-    const match = attrs.match(new RegExp(`\\b${name}\\s*=\\s*("([^"]*)"|'([^']*)')`));
-    return match ? (match[2] ?? match[3] ?? '') : null;
-}
-
-async function snippetExists(variant, snippet) {
-    for (const ext of ['.mdx', '.md']) {
-        try {
-            if (!variant.snippetRoot) continue;
-            await fs.access(path.join(variant.snippetRoot, snippet + ext));
-            return true;
-        } catch {
-            // Try the next supported extension.
-        }
-    }
-    return false;
-}
-
 async function collectAxisAudit(product, axis) {
     const directFences = new Map();
     const placeholders = [];
@@ -99,8 +82,6 @@ async function collectAxisAudit(product, axis) {
         }
     }
 
-    const componentSource = `^[ \\t]*<${axis.macro}\\s+([^>]*)\\/>[ \\t]*$`;
-
     for await (const file of markdownFiles(product.sharedDocsRoot, skipDirs, mountRoutes)) {
         const body = await fs.readFile(file, 'utf8');
         const rel = path.relative(product.sharedDocsRoot, file).replace(/\\/g, '/');
@@ -112,31 +93,9 @@ async function collectAxisAudit(product, axis) {
             directFences.set(rel, fileEntry);
         }
 
-        const componentRe = new RegExp(componentSource, 'gm');
-        for (const match of body.matchAll(componentRe)) {
-            const index = match.index ?? 0;
-            if (isInRange(index, ranges)) continue;
-
-            const attrs = match[1];
-            const snippet = getAttr(attrs, 'snippet');
-            if (!snippet) {
-                missingSnippets.push(`${rel}: ${axis.macro} is missing snippet="..."`);
-                continue;
-            }
-
-            const available = [];
-            for (const variant of axis.variants) {
-                if (await snippetExists(variant, snippet)) {
-                    available.push(variant.key);
-                }
-            }
-
-            placeholders.push({ file: rel, snippet, variants: available });
-
-            if (!available.length) {
-                missingSnippets.push(`${rel}: no ${axis.key} has a snippet for "${snippet}"`);
-            }
-        }
+        const macros = await checkMacros(body, rel, ranges, axis);
+        placeholders.push(...macros.placeholders);
+        missingSnippets.push(...macros.missingSnippets);
     }
 
     return { directFences, placeholders, missingSnippets, missingRoots };
@@ -161,20 +120,10 @@ async function readBaseline(filePath) {
     const absolute = path.resolve(webRoot, filePath);
     const raw = await fs.readFile(absolute, 'utf8');
     const parsed = JSON.parse(raw);
-    return parsed.directVariantLanguageFences ?? {};
-}
-
-function compareBaseline(current, baseline) {
-    const regressions = [];
-    for (const [file, languages] of Object.entries(current)) {
-        for (const [language, count] of Object.entries(languages)) {
-            const allowed = baseline[file]?.[language] ?? 0;
-            if (count > allowed) {
-                regressions.push(`${file}: ${language} fences increased from ${allowed} to ${count}`);
-            }
-        }
-    }
-    return regressions;
+    return {
+        products: parsed.directVariantLanguageFences ?? {},
+        sitePages: parsed.directSitePageFences ?? {},
+    };
 }
 
 function totalFences(map) {
@@ -203,6 +152,8 @@ function printTopDirectFences(current) {
 
 const failures = [];
 const baselineOutput = {};
+const siteBaselineOutput = {};
+const baseline = baselinePath ? await readBaseline(baselinePath) : null;
 let auditedAxes = 0;
 
 for (const product of config.products) {
@@ -228,9 +179,8 @@ for (const product of config.products) {
         failures.push(...audit.missingSnippets.map((message) => `${scope}: ${message}`));
 
         let baselinedFenceCount = 0;
-        if (baselinePath) {
-            const baseline = await readBaseline(baselinePath);
-            const axisBaseline = baseline[product.key]?.[axis.key] ?? {};
+        if (baseline) {
+            const axisBaseline = baseline.products[product.key]?.[axis.key] ?? {};
             baselinedFenceCount = Object.values(axisBaseline)
                 .reduce((total, languages) => total + Object.values(languages).reduce((s, n) => s + n, 0), 0);
             failures.push(...compareBaseline(current, axisBaseline).map((message) => `${scope}: ${message}`));
@@ -250,14 +200,53 @@ for (const product of config.products) {
     }
 }
 
+// Site-authored pages. Their absence from the manifest would leave them
+// unaudited without a sound, so it is a failure rather than a skip.
+if (!config.sitePages) {
+    failures.push(`sitePages: not configured in ${path.relative(webRoot, config.manifestPath)}, so site-authored pages are unaudited`);
+} else {
+    const site = await auditSitePages({
+        sitePages: config.sitePages,
+        axes: config.axes,
+        generatedRoutes: GENERATED_CONTENT_ROUTES,
+    });
+    Object.assign(siteBaselineOutput, site.current);
+
+    console.log(
+        `${MESSAGE_PREFIX} site pages: audited ${site.auditedPages} of ${site.pageCount} pages ` +
+        `(${site.excludedPages} excluded, ${site.exemptedFences} exempted fences, ${site.placeholders.length} variant macros)`);
+    for (const [scope, pages] of Object.entries(site.current)) {
+        const count = totalFences(pages);
+        console.log(`${MESSAGE_PREFIX} site pages/${scope}: found ${count} direct variant-language fences`);
+        if (count > 0) printTopDirectFences(pages);
+    }
+
+    // Non-vacuity: a walk that found no site pages means the root is wrong.
+    if (site.auditedPages === 0) {
+        failures.push(`sitePages: audited no pages under ${path.relative(webRoot, config.sitePages.root)}`);
+    }
+    failures.push(...site.problems.map((message) => `site pages: ${message}`));
+
+    if (baseline) {
+        for (const [scope, pages] of Object.entries(site.current)) {
+            failures.push(...compareBaseline(pages, baseline.sitePages[scope] ?? {})
+                .map((message) => `site pages/${scope}: ${message}`));
+        }
+    } else if (strict) {
+        const count = Object.values(site.current).reduce((total, pages) => total + totalFences(pages), 0);
+        if (count > 0) failures.push(`site pages: strict mode failed: ${count} direct variant-language fences remain`);
+    }
+}
+
 if (writeBaselinePath) {
     const absolute = path.resolve(webRoot, writeBaselinePath);
-    const baseline = {
+    const output = {
         version: 2,
-        description: 'Known direct variant-language fences in shared product docs, per product and axis. Lower counts are allowed; increases fail the audit.',
+        description: 'Known direct variant-language fences in shared product docs (per product and axis) and in site-authored pages (per ratchet axis). Lower counts are allowed; increases fail the audit.',
         directVariantLanguageFences: baselineOutput,
+        directSitePageFences: siteBaselineOutput,
     };
-    await fs.writeFile(absolute, JSON.stringify(baseline, null, 2) + '\n', 'utf8');
+    await fs.writeFile(absolute, JSON.stringify(output, null, 2) + '\n', 'utf8');
     console.log(`${MESSAGE_PREFIX} Wrote baseline: ${path.relative(webRoot, absolute)}`);
 }
 
