@@ -1,12 +1,16 @@
 ---
-title: Real-Time Chat — In-Memory
+title: Real-time chat with an in-memory backend
+description: Build a live multi-room chat backed by an in-memory service, with an Arc observable query, a command, and a React component.
 ---
 
-# Real-Time Chat — In-Memory
+import YouWillLearn from '@components/YouWillLearn.astro';
+import Recap from '@components/Recap.astro';
 
-This guide builds a real-time chat room backed entirely by an in-memory service. It demonstrates the core observable query pattern: the frontend subscribes once and receives updates as they arrive — no polling, no manual WebSocket setup.
+This guide builds a real-time chat room backed entirely by an in-memory service. It demonstrates the core observable query pattern: the frontend subscribes once and receives updates as they arrive, with no polling and no manual WebSocket setup.
 
-By the end you will have:
+The backend is shown in C#, Kotlin, Java, and TypeScript. Arc for TypeScript is a source preview: no package is published to npm, and it does not have full parity with Arc on .NET. [How the backends differ](/scenarios/chat/#how-the-backends-differ) summarizes the per-language differences this guide explains.
+
+<YouWillLearn title="What you'll build">
 
 - A `ChatRoom` that holds each room's message history in a source with a current value
 - A single, application-wide `ChatService` that creates and tracks rooms by name
@@ -14,9 +18,9 @@ By the end you will have:
 - A `SendMessage` command that posts to a room and triggers a push to all subscribers
 - A React page component that joins a room and renders a live chat thread
 
----
+</YouWillLearn>
 
-## Folder Structure
+## Folder structure
 
 ```text
 Chat/
@@ -27,9 +31,7 @@ Chat/
 
 This is the C# layout. Kotlin and TypeScript keep the same two backend files as `.kt` or `.ts`. Java puts each public type in its own file in the same folder.
 
----
-
-## Step 1 — The Backend
+## Step 1 — The backend
 
 The backend has four pieces:
 
@@ -78,13 +80,11 @@ Build the backend to generate the TypeScript proxies before writing the frontend
 
 The message `id` is a `Guid` in every backend's proxy. The frontend below only turns it into a string, so it works with any backend.
 
----
-
 <a id="step-3--delta-mode"></a>
 
-## Step 2 — Delta Mode
+## Step 2 — Delta mode
 
-Arc observable queries use **delta mode by default**. Understanding this helps you reason about what crosses the network.
+Arc observable queries use **delta mode by default**. Knowing what it sends helps you reason about what crosses the network.
 
 **What happens on each emission:**
 
@@ -99,15 +99,15 @@ The `use()` hook applies each `ChangeSet` transparently. `messagesResult.data` a
 
 The `Id` matters. Without an `Id` property, Arc for C# sends the full collection on every emission and logs a warning, and Arc for Kotlin, Java and TypeScript compare items by their JSON instead, which cannot report a replaced item.
 
-The server still builds and compares the whole list on every message. That is cheap for a chat room; the [Incremental Pushes](../incremental-pushes) guide shows a backend that emits only new messages.
+The server still builds and compares the whole list on every message. That is cheap for a chat room; the [Incremental Pushes](/scenarios/chat/incremental-pushes/) guide shows a backend that emits only new messages.
 
-> **Full mode.** To send the complete collection on every emission (useful during debugging), set `observableQueryTransferMode={ObservableQueryTransferMode.Full}` on the `<Arc>` provider. Delta mode is the default and is recommended for production.
-
----
+:::note[Full mode]
+To send the complete collection on every emission (useful during debugging), set `observableQueryTransferMode={ObservableQueryTransferMode.Full}` on the `<Arc>` provider. Delta mode is the default and is recommended for production.
+:::
 
 <a id="step-4--the-react-component"></a>
 
-## Step 3 — The React Component
+## Step 3 — The React component
 
 ```tsx
 // Chat/ChatRoomPage.tsx
@@ -236,8 +236,6 @@ export const ChatRoomPage = () => {
 
 **Messages are keyed by `id`**, which stays stable as messages arrive, so React keeps each rendered message in place. `String(msg.id)` works whether the proxy types the `id` as a `Guid` or a string.
 
----
-
 ## Summary
 
 | Piece | What it does |
@@ -250,4 +248,10 @@ export const ChatRoomPage = () => {
 | Delta mode | First push = full history; later pushes = a `ChangeSet` with the new message |
 | `ForRoom.ts` (generated) | TypeScript observable query proxy with `use()` and `when()` hooks |
 | `SendMessage.ts` (generated) | TypeScript command proxy with a `use()` hook |
-| `ChatRoomPage.tsx` | React component — subscribes on join, renders `messagesResult.data` |
+| `ChatRoomPage.tsx` | React component; subscribes on join, renders `messagesResult.data` |
+
+<Recap>
+
+You built a chat room whose history lives in memory and reaches every subscriber through an observable query, with Arc sending only what changed. Next, [load the history from storage and fan messages out over RabbitMQ](/scenarios/chat/rabbitmq/).
+
+</Recap>
