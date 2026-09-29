@@ -55,7 +55,7 @@ Because the source has a current value, every new subscription starts from the r
 
 **The query** returns the room's source:
 
-- **C#** creates a relay `BehaviorSubject` for each subscriber, seeded with the room's current history and subscribed to the room. When Arc for C# fails to deliver to a WebSocket subscriber, it calls `OnError` on the subject the query returned, so the relay keeps one subscriber's failure away from the shared room.
+- **C#** creates a relay `BehaviorSubject` for each subscriber, seeded with the room's current history. `Observable.Using` subscribes the relay to the room when Arc subscribes to the query and disposes that subscription when the client leaves, so relays do not pile up on the room. With direct mode (`queryDirectMode` on `<Arc>`), when Arc for C# fails to deliver to a WebSocket subscriber, it calls `OnError` on the subject the query returned, so the relay keeps one subscriber's failure away from the shared room. The default multiplexed connection reports a failed subscription to the client instead.
 - **Kotlin, Java and TypeScript** return the room's source directly. Arc subscribes to it and unsubscribes when the client leaves; it never publishes into it.
 
 **The query parameters** are told apart the way each backend binds them. `roomName` is a query argument; `ChatService` comes from the application's services. C# resolves a parameter from dependency injection when its type is a registered service, so `ChatService` must be registered. Kotlin and Java mark the service parameter `@FromServices`, and TypeScript lists `argument('roomName', String)` and `service(ChatService)` in `@query`.
@@ -76,7 +76,7 @@ Build the backend to generate the TypeScript proxies before writing the frontend
 - `ForRoom.ts` — the observable query proxy with `use()` and `when()` hooks
 - `SendMessage.ts` — the command proxy with a `use()` hook
 
-The message `id` is a `Guid` in the C#, Kotlin and Java proxies. The frontend below only turns it into a string, so it works with any backend.
+The message `id` is a `Guid` in every backend's proxy. The frontend below only turns it into a string, so it works with any backend.
 
 ---
 

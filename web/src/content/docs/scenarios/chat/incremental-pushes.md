@@ -10,7 +10,7 @@ This guide flips the model. The backend emits only what is **new** on each push.
 
 The result is constant backend work per message once a subscriber has received the history, however long the conversation has been running. It does not make the delta-mode network payload smaller: the previous guides already send only the new message, and this one sends a little more (see [Step 3](#step-3--what-the-frontend-receives)).
 
-The backend is shown in C# only, because the relay it relies on is a System.Reactive `ReplaySubject`. The [in-memory guide](../in-memory) shows the same roles for Kotlin, Java and TypeScript.
+The backend is shown in C# only, with a System.Reactive `ReplaySubject` as the relay. That keeps the guide short; it is not a limit of the other backends, which have the same building block, such as RxJS's `ReplaySubject` in TypeScript and `MutableSharedFlow(replay = 1)` in Kotlin. The [in-memory guide](../in-memory) shows the shared roles for Kotlin, Java and TypeScript.
 
 By the end you will have:
 
@@ -245,7 +245,7 @@ With the backend emitting incremental payloads, this is what the frontend sees i
 
 | Push | Backend emits | Arc ChangeSet sent | `messagesResult.data` |
 | ---- | ------------- | ------------------ | --------------------- |
-| 1st — history | `[msg1, msg2, msg3]` | `added: [msg1, msg2, msg3]` | `[msg1, msg2, msg3]` |
+| 1st — history | `[msg1, msg2, msg3]` | none — full data | `[msg1, msg2, msg3]` |
 | 2nd — new msg | `[msg4]` | `removed: [msg1, msg2, msg3]`, `added: [msg4]` | `[msg4]` |
 | 3rd — new msg | `[msg5]` | `removed: [msg4]`, `added: [msg5]` | `[msg5]` |
 

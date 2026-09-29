@@ -7,7 +7,7 @@ description: These guides build a real-time multi-room chat application using Ar
 
 These guides build a real-time multi-room chat application using Arc's [observable queries](/arc/backend/csharp/queries/). They share a common shape — a `ChatMessage` read model with a `ForRoom` observable query, a `SendMessage` command, and a React page component — but each one explores a different dimension of the pattern.
 
-The backends are shown in C#, Kotlin, Java and TypeScript where Arc's APIs differ; pieces that are plain application code, such as the RabbitMQ consumer, are shown in C#. The React frontend is the same for every backend.
+The backends are shown in C#, Kotlin, Java and TypeScript where Arc's APIs differ; pieces that are plain application code, such as the RabbitMQ consumer, are shown in C#. The Incremental Pushes backend is shown in C# only, to keep that guide short. The React frontend is the same for every backend.
 
 ---
 
@@ -46,7 +46,7 @@ Covers:
 
 ### [Incremental Pushes](./incremental-pushes)
 
-The backend changes fundamentally. `ChatRoom` becomes a pure pub/sub channel with no history that fires only new messages. `ChatService` owns the history. The `ForRoom` query emits the full history once as the initial payload, then forwards each new message individually, so the backend's work per message stays constant regardless of conversation length. It does not shrink the delta-mode payload; the guide explains what Arc sends. The backend is shown in C#, with a System.Reactive `Subject` and `ReplaySubject(1)`.
+The backend changes fundamentally. `ChatRoom` becomes a pure pub/sub channel with no history that fires only new messages. `ChatService` owns the history. The `ForRoom` query emits the full history once as the initial payload, then forwards each new message individually, so the backend's work per message stays constant regardless of conversation length. It does not shrink the delta-mode payload; the guide explains what Arc sends. The backend is shown in C#, with a System.Reactive `Subject` and `ReplaySubject(1)`; that is a scope choice, since TypeScript (RxJS `ReplaySubject`) and Kotlin (`MutableSharedFlow(replay = 1)`) have the same building block.
 
 Covers:
 

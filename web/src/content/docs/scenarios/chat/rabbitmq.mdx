@@ -70,14 +70,14 @@ The backend keeps the shape of the in-memory guide and changes where messages co
 - **The room** starts from that history and exposes `Receive`, which the broker consumer calls for every message that arrives.
 - **The chat service** is still one instance for the application. It loads a room's history the first time the room is asked for.
 - **The publishing contract** hides the broker from the command. The message's `Id` is created when it is sent and travels in the envelope, so every server instance stores the same message under the same `Id`.
-- **The read model and its query** are the same as in the in-memory guide.
+- **The read model and its query** are the same as in the in-memory guide, except in TypeScript, where the query awaits the room because its history loads asynchronously.
 - **The command** publishes an envelope instead of writing to the room. The room changes when the message comes back from the broker.
 
 <ArcBackendTabs snippet="scenarios/chat/rabbitmq/backend" />
 
 Per backend:
 
-- **C#** blocks on the first load of a room's history and loads each room once, even when two requests ask for it at the same time. For production, consider warming the rooms when the application starts, with a hosted service.
+- **C#** blocks on the first load of a room's history and loads each room once, even when two requests ask for it at the same time. A `Lazy` keeps a failed load's exception, so the service removes a failed room and the next subscriber tries again. For production, consider warming the rooms when the application starts, with a hosted service.
 - **Kotlin and Java** load the history inside `computeIfAbsent`, so a room is loaded once. The persistence contract is a blocking call, as with JDBC.
 - **TypeScript** loads the history asynchronously, so `getChatRoom` and the query are `async`. The service caches the pending load, so concurrent subscribers share one load, and forgets a failed load so the next subscriber tries again. `ChatPersistence` and `ChatPublisher` are abstract classes because a TypeScript interface does not exist at runtime to be a service token.
 
