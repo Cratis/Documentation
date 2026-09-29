@@ -34,26 +34,9 @@ All of these require knowing *which* items just appeared. `useChangeStream()` gi
 
 ## Backend — Unchanged
 
-The backend is identical to the [in-memory guide](../in-memory). No changes to `ChatRoom.cs` or `ChatRoomPage.cs`.
+The backend is identical to the [in-memory guide](../in-memory), in every backend language: the same room, chat service, `ChatMessage` read model with its `ForRoom` query, and `SendMessage` command. Build it from that guide.
 
-```csharp
-// Features/Chat/ChatRoomPage.cs — unchanged
-[ReadModel]
-public record ChatMessage(string User, DateTimeOffset SentAt, string Message)
-{
-    public static ISubject<IEnumerable<ChatMessage>> ForRoom(
-        string roomName,
-        ChatService chatService)
-    {
-        var room = chatService.GetChatRoom(roomName);
-        var relay = new BehaviorSubject<IEnumerable<ChatMessage>>(room.Messages.Value);
-        room.Messages.Subscribe(relay);
-        return relay;
-    }
-}
-```
-
-The server still emits the full message list on each `OnNext()`. Arc still computes a `ChangeSet` server-side and sends only the diff. The difference is how the frontend consumes it.
+The room still publishes the full message list on every message. Arc still computes a `ChangeSet` server-side and sends only the diff. The difference is how the frontend consumes it.
 
 ---
 
@@ -66,14 +49,14 @@ Arc's delta mode is always on by default. Here is what the frontend receives:
 | First connection | All existing messages appear in `added`; `replaced` and `removed` are empty |
 | Each new message sent | The one new message appears in `added`; `replaced` and `removed` are empty |
 
-For chat, `replaced` and `removed` are always empty — messages are immutable and are never deleted. The component only ever needs to handle `added`.
+For chat, `replaced` and `removed` are always empty — messages are immutable and are never deleted, and Arc matches them by their `Id`. The component only ever needs to handle `added`.
 
 ---
 
 ## The React Component
 
 ```tsx
-// Features/Chat/ChatRoomPage.tsx
+// Chat/ChatRoomPage.tsx
 import { useState, useEffect, useRef } from 'react';
 import { ForRoom } from './ForRoom';
 import { SendMessage } from './SendMessage';
@@ -192,9 +175,9 @@ export const ChatRoomPage = () => {
                             No messages yet. Say hello!
                         </p>
                     )}
-                    {messages.map((msg, index) => (
+                    {messages.map(msg => (
                         <div
-                            key={index}
+                            key={String(msg.id)}
                             style={{
                                 background: msg.user === user ? '#e8f4fd' : '#f5f5f5',
                                 borderRadius: 8,
@@ -277,6 +260,6 @@ export const ChatRoomPage = () => {
 | Delta application | Automatic, inside the hook | Manual, in `useEffect` |
 | Knowing what changed | Not directly visible | Explicit — `added`, `replaced`, `removed` |
 | Typical use case | Render a list | React to specific additions or removals |
-| Backend requirement | None — same `ISubject<IEnumerable<T>>` | None — same `ISubject<IEnumerable<T>>` |
+| Backend requirement | None — the same observable query | None — the same observable query |
 
 Both hooks subscribe to the same generated query proxy. Switching between them is a one-line change in the component. The backend and the generated proxy are identical in both cases.
