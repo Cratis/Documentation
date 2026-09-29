@@ -19,9 +19,6 @@
       },
       "scenarios/vertical-slices/state-change.mdx": {
         "csharp": 1
-      },
-      "testing-with-cratis.mdx": {
-        "csharp": 2
       }
     }
   }
