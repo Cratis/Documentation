@@ -9,13 +9,13 @@ This guide changes the model: the backend emits only what is **new** on each pus
 
 The result is constant backend work per message once a subscriber has received the history, however long the conversation has been running. It does not make the delta-mode network payload smaller: the previous guides already send only the new message, and this one sends a little more (see [Step 3](#step-3--what-the-frontend-receives)).
 
-The backend is shown in C# only, with a System.Reactive `ReplaySubject` as the relay. That keeps the guide short; it is not a limit of the other backends, which have the same building block, such as RxJS's `ReplaySubject` in TypeScript and `MutableSharedFlow(replay = 1)` in Kotlin. The [in-memory guide](/scenarios/chat/in-memory/) shows the shared roles for Kotlin, Java and TypeScript, and [how the backends differ](/scenarios/chat/#how-the-backends-differ) summarizes them.
+The backend is shown in C# only, with System.Reactive's `Observable.Create` building a stream for each subscriber. That keeps the guide short; it is not a limit of the other backends, which have the same building block, such as an RxJS `Observable` built per subscriber in TypeScript and a `Flow` built per subscriber, such as `callbackFlow`, in Kotlin. The [in-memory guide](/scenarios/chat/in-memory/) shows the shared roles for Kotlin, Java and TypeScript, and [how the backends differ](/scenarios/chat/#how-the-backends-differ) summarizes them.
 
 By the end you will have:
 
 - A `ChatRoom` with a plain `Subject`: no history, no accumulated state, only a pub/sub channel
-- A `ChatService` that tracks history separately and exposes a `Send()` method
-- A `ForRoom` query that emits history once, then forwards only new messages via a `ReplaySubject`
+- A `ChatService` that tracks history separately, exposes a `Send()` method, and hands each subscriber the history and the new messages without a gap between them
+- A `ForRoom` query that emits history once, then forwards only new messages, through a stream built for each subscriber
 - A React component that uses `use()` and a `useEffect` accumulator, **not** `useChangeStream()`
 
 ## How this differs from the other guides
@@ -24,7 +24,7 @@ By the end you will have:
 | - | -------------------- | ---------------------- | ---------- |
 | Each emission holds | Full history list | Full history list | New message only |
 | History lives in | `ChatRoom` | `ChatRoom` | `ChatService` |
-| C# relay type | `BehaviorSubject` | `BehaviorSubject` | `ReplaySubject(1)` |
+| C# relay type | `BehaviorSubject` | `BehaviorSubject` | `Observable.Create`, one stream per subscriber |
 | Backend work per message | Grows with history | Grows with history | Constant |
 | Delta-mode payload per message | The new message | The new message | The new message plus the previous emission as `removed` |
 | Frontend hook | `use()` | `useChangeStream()` | `use()` |
@@ -43,7 +43,7 @@ Chat/
 
 `ChatRoom` is now a pure pub/sub channel. It holds no state and tracks no history. A plain `Subject<IEnumerable<ChatMessage>>` emits only when `Deliver()` is called.
 
-History tracking moves to `ChatService`, which also becomes the entry point for sending messages so that it can record each message before firing the room's subject.
+History tracking moves to `ChatService`, which also becomes the entry point for sending messages and for subscribing to a room, so that recording a message, delivering it, and handing the history to a new subscriber all happen under one lock.
 
 ```csharp
 // Chat/ChatRoom.cs
@@ -61,10 +61,10 @@ public class ChatRoom
     readonly Subject<IEnumerable<ChatMessage>> _messages = new();
 
     /// <summary>
-    /// Gets the subject that emits each incoming delivery.
-    /// Each emission contains only the messages passed to <see cref="Deliver"/> in that call.
+    /// Gets the observable that emits each incoming delivery.
+    /// Each emission contains only the message passed to <see cref="Deliver"/> in that call.
     /// </summary>
-    public ISubject<IEnumerable<ChatMessage>> Messages => _messages;
+    public IObservable<IEnumerable<ChatMessage>> Messages => _messages;
 
     /// <summary>
     /// Delivers a message to all subscribers.
@@ -79,7 +79,7 @@ public class ChatRoom
 public class ChatService
 {
     readonly ConcurrentDictionary<string, ChatRoom> _rooms = new();
-    readonly ConcurrentDictionary<string, List<ChatMessage>> _history = new();
+    readonly Dictionary<string, List<ChatMessage>> _history = [];
     readonly object _lock = new();
 
     /// <summary>
@@ -91,12 +91,32 @@ public class ChatService
         _rooms.GetOrAdd(name, _ => new ChatRoom());
 
     /// <summary>
-    /// Gets the full message history for the given room, oldest first.
+    /// Gets a copy of the message history for the given room, oldest first.
     /// </summary>
     /// <param name="name">The room name.</param>
     /// <returns>All messages posted so far.</returns>
-    public IEnumerable<ChatMessage> GetHistory(string name) =>
-        _history.TryGetValue(name, out var msgs) ? msgs.AsReadOnly() : [];
+    public IEnumerable<ChatMessage> GetHistory(string name)
+    {
+        lock (_lock)
+        {
+            return _history.TryGetValue(name, out var messages) ? messages.ToArray() : [];
+        }
+    }
+
+    /// <summary>
+    /// Sends the room's history to an observer, then every message sent after it.
+    /// </summary>
+    /// <param name="name">The room name.</param>
+    /// <param name="observer">The observer that receives the history and the new messages.</param>
+    /// <returns>A disposable that ends the observer's subscription to the room.</returns>
+    public IDisposable Subscribe(string name, IObserver<IEnumerable<ChatMessage>> observer)
+    {
+        lock (_lock)
+        {
+            observer.OnNext(GetHistory(name));
+            return GetChatRoom(name).Messages.Subscribe(observer);
+        }
+    }
 
     /// <summary>
     /// Records a new message in the history and delivers it to the room's subscribers.
@@ -109,23 +129,36 @@ public class ChatService
         var msg = new ChatMessage(ChatMessageId.New(), user, DateTimeOffset.UtcNow, message);
         lock (_lock)
         {
-            _history.GetOrAdd(name, _ => new List<ChatMessage>()).Add(msg);
+            if (!_history.TryGetValue(name, out var messages))
+            {
+                messages = [];
+                _history[name] = messages;
+            }
+            messages.Add(msg);
+            GetChatRoom(name).Deliver(msg);
         }
-        GetChatRoom(name).Deliver(msg);
     }
 }
 ```
 
 ### What is happening here?
 
-**Plain `Subject<IEnumerable<ChatMessage>>`** only delivers values to subscribers that are currently active. Unlike a `BehaviorSubject`, it holds no current value and emits nothing to late subscribers. That is deliberate: history is the responsibility of `ChatService`, not the room.
+**Plain `Subject<IEnumerable<ChatMessage>>`** only delivers values to subscribers that are currently active. Unlike a `BehaviorSubject`, it holds no current value and emits nothing to late subscribers. That is deliberate: history is the responsibility of `ChatService`, not the room. The room exposes the subject as an `IObservable`, so nothing outside `ChatService` can publish a message that skips the history.
 
-**`ChatService.Send()`** records the message in `_history` under a lock before delivering it to the room. The lock protects the per-room `List<ChatMessage>` from concurrent appends while remaining uncontested in typical usage. The message is added to history before the pub/sub delivery so that any concurrent `GetHistory()` call (e.g. a second client joining the room at the same moment) sees the new message in the initial payload.
+**`ChatService.Send()`** records the message in `_history` and delivers it to the room inside the same lock. The lock protects the per-room `List<ChatMessage>` from concurrent appends, and it is held only while a message is appended and handed to each subscriber, which in a chat room is rarely contested. Delivering inside the lock also means each subscriber receives messages one at a time, in the order they were recorded.
+
+**`ChatService.Subscribe()`** takes the same lock, sends the observer a copy of the history, and subscribes it to the room before releasing the lock. A `Send()` therefore happens either before the subscription, so the message is in that subscriber's history, or after it, so the message arrives live. A joining subscriber never misses a message sent while it joins and never receives one twice.
+
+**`ChatService.GetHistory()`** returns a copy made under the lock, not a view of the list. Arc serializes the history after the query has returned, and a later `Send()` appending to the list it enumerates would make that enumeration throw.
+
+Because every delivery runs while the lock is held, a slow observer delays every sender. Arc's own observers start the write asynchronously and return, so keep any other observer of a room equally quick.
 
 ## Step 2 — The read model and command
 
 ```csharp
 // Chat/ChatRoomPage.cs
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Cratis.Arc.Commands.ModelBound;
 using Cratis.Arc.Queries.ModelBound;
@@ -170,18 +203,18 @@ public record ChatMessage(ChatMessageId Id, string User, DateTimeOffset SentAt, 
         string roomName,
         ChatService chatService)
     {
-        // ReplaySubject(1) stores the last emitted value and replays it to
-        // any new subscriber — including Arc's subscription which occurs after
-        // this method returns.
-        var relay = new ReplaySubject<IEnumerable<ChatMessage>>(1);
+        // Carries anything Arc sends back into the subject, such as OnError
+        // when it fails to deliver to this subscriber.
+        var relay = new Subject<IEnumerable<ChatMessage>>();
 
-        // First payload: the full history.
-        relay.OnNext(chatService.GetHistory(roomName));
+        // Runs once per subscription, when Arc subscribes after this method returns:
+        // the subscriber gets the history, then every message sent after it.
+        var messages = Observable.Create<IEnumerable<ChatMessage>>(observer =>
+            new CompositeDisposable(
+                relay.Subscribe(observer),
+                chatService.Subscribe(roomName, observer)));
 
-        // Subsequent payloads: whatever ChatRoom.Deliver() fires — one message at a time.
-        chatService.GetChatRoom(roomName).Messages.Subscribe(relay);
-
-        return relay;
+        return Subject.Create<IEnumerable<ChatMessage>>(relay, messages);
     }
 }
 
@@ -207,16 +240,20 @@ public record SendMessage(string RoomName, string User, string Message)
 
 ### What is happening here?
 
-**`ReplaySubject<IEnumerable<ChatMessage>>(1)`** is the right relay here for a specific reason. The method calls `OnNext(history)` and then subscribes to the room, but Arc subscribes to the returned relay *after* the method returns. A plain `Subject` would have already fired and lost the history emission by the time Arc subscribes. `ReplaySubject(1)` stores the last emitted value and replays it to each new subscriber immediately upon subscription, so Arc always receives the history as its first message.
+**`Observable.Create`** builds a separate stream for each subscription, and nothing in it runs when `ForRoom` returns. Arc subscribes to the returned subject *after* the method returns; only then does `chatService.Subscribe` send that subscriber the history and subscribe it to the room, in one step under the `ChatService` lock. The history is therefore always the subscriber's first emission, whatever was sent in the meantime. A relay filled with the history before Arc subscribes would have to replay it, and a message delivered before Arc subscribed could take the history's place in the replay.
+
+**Returning an `ISubject`:** Arc for C# recognizes an observable query by its `ISubject<T>` return type, not by `IObservable<T>`. `Subject.Create` pairs the per-subscriber stream with `relay`, a `Subject` that acts as the observer side. With direct mode (`queryDirectMode` on `<Arc>`), when Arc for C# fails to deliver to a subscriber, it calls `OnError` on the subject the query returned; the relay passes that error to the subscriber's stream, which ends it. The default multiplexed connection reports a failed subscription to the client instead.
+
+**Unsubscribing:** the `CompositeDisposable` returned from `Observable.Create` holds the relay subscription and the room subscription. Arc disposes its subscription when the client unsubscribes or disconnects, which disposes both, so a subscriber that leaves stops receiving the room's messages instead of staying attached to the room for the life of the process.
 
 **Two emissions, two sources:**
 
 | Emission | Source | Content |
 | -------- | ------ | ------- |
-| First | `relay.OnNext(chatService.GetHistory(roomName))` | All persisted history |
-| Subsequent | `chatService.GetChatRoom(roomName).Messages` → relay | One new `ChatMessage` per send |
+| First | `chatService.Subscribe` → `observer.OnNext(GetHistory(name))` | A copy of all history so far |
+| Subsequent | `chatService.GetChatRoom(roomName).Messages` → the same observer | One new `ChatMessage` per send |
 
-The `Subject` in `ChatRoom` fires once per `Deliver()` call with a single-element collection. The relay forwards each of these to Arc as a separate push.
+The `Subject` in `ChatRoom` fires once per `Deliver()` call with a single-element collection, and each one reaches Arc as a separate push.
 
 Register `ChatService` as a singleton in your `Program.cs`:
 
@@ -385,9 +422,9 @@ export const ChatRoomPage = () => {
 
 | Piece | What it does |
 | ----- | ------------ |
-| `ChatRoom` | Pure pub/sub channel: `Subject<IEnumerable<ChatMessage>>`, no state |
-| `ChatService` | Owns history per room; `Send()` records then delivers |
-| `ChatMessage.ForRoom()` | `ReplaySubject(1)`: emits history once, then forwards single-message deliveries |
+| `ChatRoom` | Pure pub/sub channel: a `Subject<IEnumerable<ChatMessage>>` exposed as `IObservable`, no state |
+| `ChatService` | Owns history per room; `Send()` records and delivers under one lock; `Subscribe()` sends a copy of the history and subscribes under the same lock |
+| `ChatMessage.ForRoom()` | `Observable.Create` per subscriber: emits history once, then forwards single-message deliveries; Arc's unsubscribe ends the room subscription |
 | `SendMessage.Handle()` | Delegates to `chatService.Send()` |
 | Backend work per message | Constant: one `ChatMessage` per emission after the initial history |
 | Delta-mode payload per message | The new message plus the previous emission as `removed`; one message in full mode |
