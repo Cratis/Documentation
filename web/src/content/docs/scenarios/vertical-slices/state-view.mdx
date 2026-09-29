@@ -1,20 +1,20 @@
 ---
-title: State View — List Authors
+title: State View — list authors
+description: Project the Library's AuthorRegistered events into an Author read model, query it, and show it on a DataPage listing, as an Event Modeling State View.
 ---
 
-<a id="state-view--list-authors"></a>
+import YouWillLearn from '@components/YouWillLearn.astro';
+import Recap from '@components/Recap.astro';
 
-This tutorial builds the **List Authors** slice of the Library system. It is a **State View** — the read side of Event Modeling.
+The librarian has registered a few authors and now wants to see them: an Authors page with each author's first and last name, sortable, with an **Add Author** action on the toolbar. The events recorded by the [register-an-author slice](/scenarios/vertical-slices/state-change/) already hold those names. This **State View** projects them into a read model shaped for that page and queries it. With a C# or TypeScript backend (the TypeScript one a source preview), the page updates as authors are registered. Kotlin and Java return a snapshot instead, one of the differences the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists.
 
-Events recorded by the [Register Author](../state-change) slice become a purpose-built read model that the Authors page can query. C# and TypeScript can stream updates; the JVM examples query a snapshot.
+<YouWillLearn title="What you'll build">
 
-By the end you will have:
+- an `Author` read model built from `AuthorRegistered` events
+- an `AllAuthors` query for the author list
+- an `Authors` listing page using `DataPage` from `@cratis/components`
 
-- An `Author` read model built from `AuthorRegistered` events
-- An `AllAuthors` query for the author list (observable where the backend supports it)
-- An `Authors` listing page using `DataPage` from `@cratis/components` (shown with an observable query)
-
----
+</YouWillLearn>
 
 ## What is a State View?
 
@@ -23,16 +23,14 @@ In Event Modeling terms, a **State View** slice answers the question: *"What doe
 The shape is:
 
 1. Recorded events build a **Read Model** through a projection or reducer
-2. The read model is a purpose-built view — not a generic table, but exactly the shape a specific UI needs
+2. The read model is a purpose-built view in the exact shape one specific UI needs, instead of a generic table
 3. The frontend queries the read model and renders it
 
-This is the read side of CQRS. The read model never writes to the event log — it only reads from it. You can have as many projections as you like from the same events, each optimized for a different query. If you change what data the UI needs, you change the projection and replay; the event log is untouched.
+This is the read side of CQRS. The read model only reads from the event log and never writes to it. You can have as many projections as you like from the same events, each optimized for a different query. If you change what data the UI needs, you change the projection and replay; the event log is untouched.
 
 Chronicle projections and reducers are **rewindable**: use Chronicle's replay tooling to rebuild a view from its event history. That lets you change how authors are presented without changing the registration facts. Rebuilding depends on retaining the required history and keeping the projection compatible with it; it is not a substitute for event-store backups.
 
----
-
-## Folder Structure
+## Folder structure
 
 ```text
 Source/
@@ -46,9 +44,7 @@ Source/
 
 The backend equivalent can live in `Listing.kt` for Kotlin or `Listing.ts` for TypeScript. For Java, put each public type in its own file: `Author.java`, `AuthorReducer.java`, and `AuthorRegistered.java` (reuse the registration slice's event file if it already exists). Keep the shared concepts and registration event alongside the slice in each backend's own source layout.
 
----
-
-## Step 1 — The Backend Slice
+## Step 1 — The backend slice
 
 Define an `Author` view with an identity and the two names from registration, then expose a query over that view. Reuse the registration event and shared concepts. The JVM and TypeScript tabs show the event declaration for context; if it already lives in the registration slice, do not declare it twice.
 
@@ -58,13 +54,17 @@ Define an `Author` view with an identity and the two names from registration, th
 
 The read model describes the list the screen needs. In C# and TypeScript, a convention-based projection maps matching event properties to it, and the event-source ID supplies the model identity. The query observes changes to Chronicle's MongoDB sink in C# and uses `ChronicleReadModels.observeAll` in TypeScript. Configure the host's read-model storage and observation before expecting live updates.
 
-**Kotlin and Java take a different route:** their model-bound `@FromEvent` does not currently populate the model identity from the event-source ID. A reducer reads `EventContext` to set `id` instead. Their `allAuthors` query reads Chronicle's materialized models as a **snapshot**, not a live Chronicle-backed stream. Do not substitute a Spring Data MongoDB observable query here: that observes a different persistence path. A JVM screen gets a new snapshot when the listing is mounted again (for example, by revisiting the route); the shared React example below demonstrates the observable C#/TypeScript path.
+Kotlin and Java use a reducer: their model-bound `@FromEvent` does not currently populate the model identity from the event-source ID, so the reducer reads `EventContext` to set `id`. On Kotlin and Java, `allAuthors` returns a snapshot because the Chronicle kernel's materialized observation fails on MongoDB ([Chronicle#4365](https://github.com/Cratis/Chronicle/issues/4365)); run the query again to see an author registered since. Do not substitute a Spring Data MongoDB observable query here: that observes a different persistence path.
 
-Build the backend before importing the query in the UI. For C#, `dotnet build -c Debug` generates `AllAuthors.ts` and `Author.ts` via [proxy generation](/arc/backend/csharp/proxy-generation/); other backends use their own proxy generation commands and paths. Match the frontend imports to the generated files in your application.
+Build the backend before importing the query in the UI. The build generates the query proxy `AllAuthors` and the model `Author`:
 
----
+- **C#**: `dotnet build -c Debug` generates `AllAuthors.ts` and `Author.ts` ([proxy generation](/arc/backend/csharp/proxy-generation/)).
+- **Kotlin and Java**: `./gradlew build` generates `AllAuthors.ts` and `Author.ts` under `build/generated/arc-proxies/` ([TypeScript proxies](/arc/backend/kotlin/guides/typescript-proxies/)).
+- **TypeScript**: proxy generation writes `AllAuthors.proxy.ts` and `Author.proxy.ts` beside the slice; the Library sample runs it as part of `yarn workspace @cratis/arc.sample.library build` ([generated code](/arc/backend/typescript/proxy-generation/generated-code/)).
 
-## Step 2 — Projection Mapping Options
+Match the frontend imports to the generated files in your application.
+
+## Step 2 — Projection mapping options
 
 Convention mapping works when event and read-model property names match. C# also offers attributes for explicit mapping and arithmetic:
 
@@ -79,15 +79,13 @@ Convention mapping works when event and read-model property names match. C# also
 | `[RemovedWith<T>]` | Remove the read model document when this event occurs |
 | `[Join<T>]` | Join properties from a second event stream |
 
-Use a fluent projection when you want the mapping in a separate type. This is an **alternative** to the convention annotation on the read model: remove that annotation when registering a separate projection, rather than defining both.
+Use a fluent projection when you want the mapping in a separate type. It is an **alternative** to the convention annotation on the read model: when you register a separate projection, remove that annotation so the view is not defined twice.
 
 <ArcBackendTabs snippet="scenarios/vertical-slices/state-view/fluent-projection" />
 
 C# and Kotlin/Java enable AutoMap by default for `From`/`from`; TypeScript calls `autoMap()` explicitly. The JVM and TypeScript examples use an `AuthorImported` event that **carries its own `id`**. On the JVM this is an either/or choice for the `Author` view: use the Step 1 reducer for `AuthorRegistered`, which has no ID field, or use this fluent projection for an ID-bearing `AuthorImported` event. Do not register both for the same view; a fluent mapping of the registration event's names alone cannot supply its identity. In Java, put the fluent example's public types in `AuthorImported.java` and `AuthorProjection.java` (and reuse `Author.java` from the chosen view).
 
----
-
-## Step 3 — The React Component
+## Step 3 — The React component
 
 ```tsx
 // Authors/Listing/Listing.tsx
@@ -133,19 +131,21 @@ export const Listing = () => {
 
 ### What is happening here?
 
-**`AllAuthors`** is the generated query proxy for the author list. With an observable backend (C# or TypeScript above), [`DataPage`](/components/datapage/) subscribes to new lists and re-renders when the backend pushes a change. The Kotlin and Java examples return a snapshot; this component alone does not turn that snapshot into a live Chronicle subscription.
+**`AllAuthors`** is the generated query proxy for the author list. With the observable C# or TypeScript query, [`DataPage`](/components/datapage/) subscribes to new lists and re-renders when the backend pushes a change.
 
-**[`DataPage`](/components/datapage/)** from `@cratis/components` provides the page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. Declare columns with `Column` inside `DataPage.Columns`, and actions inside `DataPage.MenuItems`. This example queries the whole author list; for a large catalog, add server-side paging rather than treating table pagination as a limit on backend work.
+**[`DataPage`](/components/datapage/)** from `@cratis/components` provides the page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. Declare columns with `Column` inside `DataPage.Columns`, and actions inside `DataPage.MenuItems`. This example queries the whole author list; for a large catalog, add server-side paging, because table pagination does not limit the work the backend does.
 
-**`useDialog<Guid>(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) supplies the wrapper component rendered in JSX and an async function that opens it. `showAddAuthor` resolves to `[dialogResult, authorId]` because `AddAuthor` closes with the `Guid` identity passed to its `onSuccess` callback. The observable C#/TypeScript query does not need that ID to update; a JVM snapshot query is fetched again when the listing is remounted, its query arguments change or the table moves to another page.
+**`useDialog<Guid>(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) supplies the wrapper component rendered in JSX and an async function that opens it. `showAddAuthor` resolves to `[dialogResult, authorId]` because `AddAuthor` closes with the `Guid` identity passed to its `onSuccess` callback. The observable query does not need that ID to update. With a TypeScript backend, `AddAuthor` closes with the ID's string: use `useDialog<string>(AddAuthor)` and drop the then-unused `Guid` import.
 
-**`MenuItem`** in the `MenuItems` slot adds an action to the toolbar. The `command` handler `await`s the dialog; with an observable query, the list updates after a successful registration. With a JVM snapshot query, the shared component does not refetch when the dialog closes; revisit the Authors route to remount `DataPage` and reload the list. `DataPage`'s `onRefresh` prop only forwards a callback to a details component; it does not refetch the query.
+**`MenuItem`** in the `MenuItems` slot adds an action to the toolbar. The `command` handler `await`s the dialog; with an observable query, the list updates after a successful registration.
 
-The `AddAuthor` component is imported from the Registration slice — slices within the same feature compose naturally because they share the `AuthorId` and `AuthorName` concepts from the parent folder.
+:::note[Using a Kotlin or Java backend]
+The JVM `AllAuthors` query returns a snapshot, and this component alone does not turn that snapshot into a live Chronicle subscription. `DataPage` fetches it again when the listing is remounted, its query arguments change or the table moves to another page. It does not refetch when the dialog closes: revisit the Authors route to remount `DataPage` and reload the list. `DataPage`'s `onRefresh` prop only forwards a callback to a details component; it does not refetch the query.
+:::
 
----
+The `AddAuthor` component is imported from the Registration slice. Slices within the same feature can use each other's components because they share the `AuthorId` and `AuthorName` concepts from the parent folder.
 
-## Step 4 — Wiring to the Feature Page
+## Step 4 — Wiring to the feature page
 
 Each feature has a composition page that assembles its slices.
 
@@ -158,9 +158,7 @@ export const Authors = () => <Listing />;
 
 In larger features this page will host a navigation menu that switches between slices. For now, the listing is the whole feature.
 
----
-
-## Step 5 — Registering the Route
+## Step 5 — Registering the route
 
 Register `Authors` in your application's router. This minimal route composition assumes the application's Arc and Components providers are already mounted above `App`; if it already has a router, add only the route to its existing `Routes`.
 
@@ -178,17 +176,14 @@ export const App = () => (
 );
 ```
 
----
+<Recap>
 
-## Summary
+- The `AuthorRegistered` events that the [register-an-author slice](/scenarios/vertical-slices/state-change/) records build `Author`, a [Chronicle](/chronicle/) read model, through a projection or reducer. The alternative fluent example follows `AuthorImported`.
+- `allAuthors` / `AllAuthors` is the [Arc](/arc/) query over that projected state, and each backend's [Arc](/arc/) build generates its proxy.
+- `Listing.tsx` shows the list with [`DataPage`](/components/datapage/) from [`@cratis/components`](/components/): live with C# and TypeScript, and a snapshot with Kotlin and Java until a Chronicle-backed observable query is available.
 
-| Layer | Artifact | Technology |
-| ----- | -------- | ---------- |
-| Read model | `Author` | [Chronicle](/chronicle/) read model and projection or reducer |
-| Query | `allAuthors` / `AllAuthors` | [Arc](/arc/) query over projected state |
-| Generated proxy | Author-list query proxy | Backend-specific [Arc](/arc/) generation |
-| Listing page | `Listing.tsx` | [`@cratis/components`](/components/) [`DataPage`](/components/datapage/) |
+To present authors differently later, change the projection or reducer and replay it against the same registration events.
 
-The Step 1 projection or reducer follows `AuthorRegistered` from the [Register Author](../state-change) slice; the alternative fluent example follows `AuthorImported`. C# and TypeScript expose live updates here; Kotlin and Java expose a snapshot until a Chronicle-backed observable query is available.
+Next, [cancel expired reservations](/scenarios/vertical-slices/automation/) in the background, with a reactor that sends commands on its own.
 
-**Next**: [Automation — Cancel Expired Reservations](../automation)
+</Recap>
