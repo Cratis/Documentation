@@ -6,9 +6,9 @@ description: Build the Library's author registration as an Event Modeling State 
 import YouWillLearn from '@components/YouWillLearn.astro';
 import Recap from '@components/Recap.astro';
 
-A librarian types an author's first and last name into a dialog and presses **Register**. Arc validates the names, Chronicle records that the author was registered, and the dialog closes with the new author's ID. Where the backend enforces unique names, a second registration of exactly the same name is rejected. This is the Library's first **State Change**, the Event Modeling pattern for anything a user does that permanently changes the system.
+A librarian types an author's first and last name into a dialog and presses **Register**. Arc validates the names, Chronicle records that the author was registered, and the dialog closes with the new author's ID. Where the backend enforces unique names, a second registration of exactly the same name is rejected. Registering an author is the Library's first **State Change**. Each step shows it with a C#, Kotlin, Java or TypeScript backend, and the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists what the JVM backends and the TypeScript source preview do differently.
 
-This series uses Arc with its optional Chronicle integration; Arc also supports commands and queries without event sourcing. The backend is shown in C#, Kotlin, Java and TypeScript. The TypeScript backend is a source preview, and the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists what the JVM and TypeScript backends do differently.
+This series uses Arc with its optional Chronicle integration; Arc also supports commands and queries without event sourcing.
 
 Start with an application configured for Arc with its Chronicle integration, proxy generation, and [Components](/components/). For C#, see [Arc and Chronicle](/arc/backend/csharp/chronicle/) and [proxy generation](/arc/backend/csharp/proxy-generation/); the other backends are covered under [Arc backends](/arc/backend/). The examples below add the Library behavior to that application.
 
@@ -81,7 +81,7 @@ The uniqueness rule belongs to the same file:
 
 **The command validator** runs automatically before the handler is ever called. If any rule fails, the command pipeline short-circuits and returns validation errors to the caller; the validator reports a failed rule without throwing an exception. C# builds it on FluentValidation (a [`CommandValidator<T>`](/arc/backend/csharp/commands/command-validation/)); TypeScript uses Arc's `CommandValidator` with `ruleFor`; Kotlin and Java implement Arc's command-validator interface and return validation results.
 
-**The [constraint](/chronicle/constraints/)** guards the combination of `FirstName` and `LastName` across authors in the event store namespace. `On` selects the two properties themselves; the constraint does not compute a concatenated string. This tutorial keeps the Library's rule that an exact name combination may be registered only once; it does not treat names as a universal way to identify people. Kotlin and Java have no append-time uniqueness rule here (see the [backend table](/scenarios/vertical-slices/#how-the-backends-differ)).
+**The [constraint](/chronicle/constraints/)** guards the combination of `FirstName` and `LastName` across authors in the event store namespace. `On` selects the two properties themselves, and the constraint computes no concatenated string from them. This tutorial keeps the Library's rule that an exact name combination may be registered only once; it does not treat names as a universal way to identify people. Kotlin and Java have no append-time uniqueness rule here (see the [backend table](/scenarios/vertical-slices/#how-the-backends-differ)).
 
 Chronicle checks uniqueness **when the returned event is committed, after the handler has run**. A duplicate produces a constraint violation in the command result and the attempted registration is not appended. That is different from input validation, which short-circuits before the handler.
 

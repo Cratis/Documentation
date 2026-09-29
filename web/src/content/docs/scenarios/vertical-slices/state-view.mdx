@@ -6,9 +6,7 @@ description: Project the Library's AuthorRegistered events into an Author read m
 import YouWillLearn from '@components/YouWillLearn.astro';
 import Recap from '@components/Recap.astro';
 
-The librarian has registered a few authors and now wants to see them: an Authors page with each author's first and last name, sortable, with an **Add Author** action on the toolbar. The events recorded by the [register-an-author slice](/scenarios/vertical-slices/state-change/) already hold those names. This **State View** projects them into a read model shaped for that page and queries it; with C# and TypeScript, the page updates as authors are registered.
-
-The backend is shown in C#, Kotlin, Java and TypeScript. The TypeScript backend is a source preview, and the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists what the JVM and TypeScript backends do differently.
+The librarian has registered a few authors and now wants to see them: an Authors page with each author's first and last name, sortable, with an **Add Author** action on the toolbar. The events recorded by the [register-an-author slice](/scenarios/vertical-slices/state-change/) already hold those names. This **State View** projects them into a read model shaped for that page and queries it. With a C# or TypeScript backend (the TypeScript one a source preview), the page updates as authors are registered. Kotlin and Java return a snapshot instead, one of the differences the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists.
 
 <YouWillLearn title="What you'll build">
 
@@ -137,7 +135,7 @@ export const Listing = () => {
 
 **[`DataPage`](/components/datapage/)** from `@cratis/components` provides the page chrome: title, action menu bar, a data table with sorting and filtering, and pagination. Declare columns with `Column` inside `DataPage.Columns`, and actions inside `DataPage.MenuItems`. This example queries the whole author list; for a large catalog, add server-side paging, because table pagination does not limit the work the backend does.
 
-**`useDialog<Guid>(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) supplies the wrapper component rendered in JSX and an async function that opens it. `showAddAuthor` resolves to `[dialogResult, authorId]` because `AddAuthor` closes with the `Guid` identity passed to its `onSuccess` callback. The observable query does not need that ID to update.
+**`useDialog<Guid>(AddAuthor)`** from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) supplies the wrapper component rendered in JSX and an async function that opens it. `showAddAuthor` resolves to `[dialogResult, authorId]` because `AddAuthor` closes with the `Guid` identity passed to its `onSuccess` callback. The observable query does not need that ID to update. With a TypeScript backend, `AddAuthor` closes with the ID's string: use `useDialog<string>(AddAuthor)` and drop the then-unused `Guid` import.
 
 **`MenuItem`** in the `MenuItems` slot adds an action to the toolbar. The `command` handler `await`s the dialog; with an observable query, the list updates after a successful registration.
 
@@ -180,9 +178,11 @@ export const App = () => (
 
 <Recap>
 
-- `Author` is a [Chronicle](/chronicle/) read model, built by a projection or reducer from `AuthorRegistered`, the event the [register-an-author slice](/scenarios/vertical-slices/state-change/) records. The alternative fluent example follows `AuthorImported`.
+- The `AuthorRegistered` events that the [register-an-author slice](/scenarios/vertical-slices/state-change/) records build `Author`, a [Chronicle](/chronicle/) read model, through a projection or reducer. The alternative fluent example follows `AuthorImported`.
 - `allAuthors` / `AllAuthors` is the [Arc](/arc/) query over that projected state, and each backend's [Arc](/arc/) build generates its proxy.
-- `Listing.tsx` shows the list with [`DataPage`](/components/datapage/) from [`@cratis/components`](/components/). C# and TypeScript expose live updates here; Kotlin and Java expose a snapshot until a Chronicle-backed observable query is available.
+- `Listing.tsx` shows the list with [`DataPage`](/components/datapage/) from [`@cratis/components`](/components/): live with C# and TypeScript, and a snapshot with Kotlin and Java until a Chronicle-backed observable query is available.
+
+To present authors differently later, change the projection and replay it against the same registration events.
 
 Next, [cancel expired reservations](/scenarios/vertical-slices/automation/) in the background, with a reactor that sends commands on its own.
 

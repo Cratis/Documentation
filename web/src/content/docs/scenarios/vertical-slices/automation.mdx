@@ -6,9 +6,7 @@ description: Cancel uncollected Library reservations in the background with a Ch
 import YouWillLearn from '@components/YouWillLearn.astro';
 import Recap from '@components/Recap.astro';
 
-A member reserves a book and never comes to collect it. The copy should not stay unavailable forever. Each day, a clock event prompts a reactor to find the overdue reservations and send each one through a cancellation command. No user clicks a button; an external scheduler supplies the clock signal. This is an **Automation**, the Event Modeling pattern for work the system does on its own.
-
-The backend is shown in C#, Kotlin, Java and TypeScript. The TypeScript backend is a source preview, and the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists what the JVM and TypeScript backends do differently.
+A member reserves a book and never comes to collect it. The copy should not stay unavailable forever. Each day, a clock event prompts a reactor to find the overdue reservations and send each one through a cancellation command. No user clicks a button, and an external scheduler supplies the clock signal, so the slice is an **Automation**. The C#, Kotlin, Java and TypeScript (source preview) backends differ in how they store times and how the reactor finds its handler and runs its commands; the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists each difference.
 
 <YouWillLearn title="What you'll build">
 
@@ -64,7 +62,7 @@ There is no `.tsx` file for this slice, because Automation has no UI: everything
 
 ### What is happening here?
 
-**The passive read model** `PendingReservation` exists only to support decisions inside the cancellation command; the frontend is not meant to query it. Because it is passive, [Chronicle](/chronicle/) does not proactively observe and replay the [projection](/chronicle/projections/). Chronicle computes it on demand, by the reservation's key, when the command asks for it. It follows `BookReserved` for matching properties and is removed by every closing event — including `ReservationExpired` itself.
+**The passive read model** `PendingReservation` exists only to support decisions inside the cancellation command; the frontend is not meant to query it. Because it is passive, [Chronicle](/chronicle/) does not proactively observe and replay the [projection](/chronicle/projections/). Chronicle computes it on demand, by the reservation's key, when the command asks for it. It follows `BookReserved` for matching properties and is removed by each of the three closing events, `ReservationExpired` among them.
 
 **The to-do list** `ReservationDueForExpiry` is the active, stored read model the reactor sweeps; the reactor never reads the passive model. Every backend projects it from `BookReserved` and removes it with each closing event, like the passive model. C# reads it from its MongoDB collection, TypeScript through the reactor's `services.readModels`, and Kotlin and Java through Chronicle's read models.
 
@@ -76,7 +74,7 @@ Both JVM read models rely on projection instances being keyed by their event sou
 
 **The cancellation command** `CancelExpiredReservation` provides the current time before its handler runs, so you can also test the decision directly with a fixed timestamp. The handler asks for the pending reservation by the command's `ReservationId`, and the Arc–Chronicle integration resolves that projection on demand. The handler accepts a missing reservation — a nullable parameter in C# and Kotlin, `commandReadModel(PendingReservation, { optional: true })` in TypeScript, and `Optional` in Java. A missing, collected, canceled, or already expired reservation produces no new event; a reservation whose deadline has passed produces `ReservationExpired`.
 
-The sweep list can lag behind the event log, so it only nominates candidates, and the command decides whether each one may expire. The command rechecks the reservation; it does not trust the earlier collection query. Read-model injection alone is not a blanket guarantee against a concurrent collection or cancellation; a production lifecycle needs append-time rules or the applicable [consistency controls](/arc/backend/csharp/chronicle/commands/transactional-commands/) for competing terminal transitions.
+The sweep list can lag behind the event log, so it only nominates candidates. The command rechecks each reservation when it runs, without trusting the earlier collection query, and decides whether it may expire. Read-model injection alone is not a blanket guarantee against a concurrent collection or cancellation; a production lifecycle needs append-time rules or the applicable [consistency controls](/arc/backend/csharp/chronicle/commands/transactional-commands/) for competing terminal transitions.
 
 **The [reactor](/chronicle/reactors/)** runs its daily-tick handler when Chronicle delivers a `DailyTick`. Configure a scheduler or background service to append that event to the application's event log; the reactor does not create its own timer. If the to-do projection has not caught up at a sweep, a later tick can pick up the remaining reservation.
 
@@ -88,7 +86,7 @@ The reactor has no original HTTP principal. The C# and TypeScript commands here 
 
 This is the first reactor in the series; the [Translation tutorial](/scenarios/vertical-slices/translator/) uses the same mechanics.
 
-| | C# | Kotlin and Java | TypeScript |
+| Mechanism | C# | Kotlin and Java | TypeScript (preview) |
 | --- | --- | --- | --- |
 | Reactor | An `IReactor` | A `@Reactor` class | A `@reactor()` class |
 | How Chronicle finds the handler | Supported signatures and event parameter types | The event parameter type | The method name: the event class in camelCase (`dailyTick` for `DailyTick`) |
@@ -96,7 +94,7 @@ This is the first reactor in the series; the [Translation tutorial](/scenarios/v
 | How a failed command fails the handler | Inspect `IsSuccess` and throw the named exception | Check `isSuccess` and throw the named exception | The result handler stops at the first failure and fails the handler |
 | Once-only marker (Step 2) | `[OnceOnly]` | `@OnceOnly` | `@onceOnly()` |
 
-In C#, a failed command returns a result rather than necessarily throwing, which is why the reactor inspects `IsSuccess`; the named exception makes the failure visible to Chronicle. The TypeScript handler receives the stored event as parsed JSON, so it converts `occurredAt` back to a `Date`. `withChronicle` installs `reactorCommandResultHandler` for a client Arc creates; a Chronicle client you create yourself needs it as its `reactorResultHandler` option.
+In C#, a failed command may return a result without throwing, so the reactor inspects `IsSuccess` and throws the named exception to make the failure visible to Chronicle. The TypeScript handler receives the stored event as parsed JSON, so it converts `occurredAt` back to a `Date`. `withChronicle` installs `reactorCommandResultHandler` for a client Arc creates; a Chronicle client you create yourself needs it as its `reactorResultHandler` option.
 
 ## Step 2 — Idempotency with once-only handlers
 
@@ -117,9 +115,9 @@ Design your reactor methods to be safe:
 
 <Recap>
 
-- `ReservationDueForExpiry` (active) and `PendingReservation` (passive) are internal [Chronicle](/chronicle/) [projections](/chronicle/projections/): the first nominates candidates, the second backs the decision.
-- `CancelExpiredReservation` is an [Arc](/arc/) model-bound command with a command-side read model; it decides whether a reservation expires and records `ReservationExpired`, a [Chronicle](/chronicle/) [event type](/chronicle/events/).
-- `ReservationExpiryReactor` is the [Chronicle](/chronicle/) [reactor](/chronicle/reactors/) that the scheduler's `DailyTick` wakes, and it sends each command through the [Arc](/arc/) command pipeline.
+1. The scheduler's `DailyTick` wakes `ReservationExpiryReactor`, a [Chronicle](/chronicle/) [reactor](/chronicle/reactors/).
+2. The reactor sweeps `ReservationDueForExpiry`, the active, internal [Chronicle](/chronicle/) [projection](/chronicle/projections/) that nominates candidates, and sends `CancelExpiredReservation` for each through the [Arc](/arc/) command pipeline.
+3. That [Arc](/arc/) model-bound command reads the passive, internal `PendingReservation` projection as its command-side read model, decides whether the reservation expires and, if so, records `ReservationExpired`, a [Chronicle](/chronicle/) [event type](/chronicle/events/).
 
 Every expiry is recorded as an event, so later views and automations can follow the outcome without repeating the deadline logic.
 

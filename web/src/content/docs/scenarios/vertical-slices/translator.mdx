@@ -6,9 +6,7 @@ description: Import staff from an HR system as Library members with a translator
 import YouWillLearn from '@components/YouWillLearn.astro';
 import Recap from '@components/Recap.astro';
 
-The Library takes its members from an HR system: each active staff member HR reports should become a Library member. HR delivers staff records, but the Library does not own those events, does not control their schema, and does not want to be coupled to how the HR system names things. A translator reactor listens for the external events, translates them into the Library's own vocabulary, and fires commands that produce proper domain events. This is a **Translation**, the Event Modeling pattern for integrating with external systems without letting their language leak into your domain.
-
-The backend is shown in C#, Kotlin, Java and TypeScript. The TypeScript backend is a source preview, and the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists what the JVM and TypeScript backends do differently.
+The Library takes its members from an HR system: each active staff member HR reports should become a Library member. HR delivers staff records, but the Library does not own those events, does not control their schema, and does not want to be coupled to how the HR system names things. A translator reactor listens for the external events, translates them into the Library's own vocabulary, and fires commands that produce proper domain events, which makes the slice a **Translation**. Each step shows the C#, Kotlin, Java and TypeScript (source preview) backends, and the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists where they differ, including the name constraint Kotlin and Java cannot express yet.
 
 <YouWillLearn>
 
@@ -112,9 +110,9 @@ A production import needs a durable mapping from HR's employee identity to `Memb
 
 ## Step 3 — Comparing to Automation
 
-At a glance, Automation and Translation look similar — both use a reactor and both send commands through Arc's command pipeline. The difference is in *who owns the events*:
+Automation and Translation look similar at a glance: both use a reactor and both send commands through Arc's command pipeline. The difference is in *who owns the events*:
 
-| | Automation | Translation |
+| Aspect | Automation | Translation |
 | --- | --------- | ----------- |
 | What triggers it | A clock signal (`DailyTick`) checking Library reservations | An imported HR payload (`HRMemberCreated`) |
 | Who owns the trigger event | The Library's scheduler contract | The adapter mirrors HR's contract |
@@ -134,19 +132,9 @@ Wire the boundary in this order:
 3. Use the configured Chronicle [event log](/chronicle/events/) to append `HRMemberCreated` under a stable integration-event source identity. Check the append result before acknowledging the upstream message.
 4. Keep transport message deduplication and the employee-to-member mapping durable. Test redelivery and a failure after registration succeeds, not only the first successful message.
 
-A Chronicle namespace isolates event-store data; it is not a Kafka or Service Bus connection. The concrete adapter depends on HR's delivery contract, so it belongs in the host integration rather than in `RegisterMember`.
+A Chronicle namespace isolates event-store data; it is not a Kafka or Service Bus connection. Because the concrete adapter depends on HR's delivery contract, it belongs in the host integration and stays out of `RegisterMember`.
 
-To check the translator itself, write a direct handler spec: inactive staff should issue no command; active staff should pass `GivenName` and `FamilyName` as `MemberName` values; an unsuccessful command should fail the handler. In C#, substitute `ICommandPipeline`. In TypeScript, call `hRMemberCreated` directly and assert the command it returns. This series does not show a Kotlin or Java handler spec: their reactor runs the real command pipeline through `ChronicleCommandSideEffectHandler`, so cover it with the hosted test. Then run a hosted test through the real adapter and observer to verify ingestion, discovery, authorization, and recovery together.
-
-<Recap>
-
-- `HRMemberCreated` is the integration [event type](/chronicle/events/) that mirrors the HR payload in [Chronicle](/chronicle/).
-- `RegisterMember` is the Library's [Arc](/arc/) model-bound command, and `MemberRegistered` the domain [event type](/chronicle/events/) it records.
-- `MemberImportReactor` is a once-only [Chronicle](/chronicle/) [reactor](/chronicle/reactors/) that bridges the two through the [Arc](/arc/) command pipeline.
-
-Only `HRIntegration/` knows the HR system's names and status codes; `Registration/` uses the Library's vocabulary alone. Replacing the HR system means replacing `HRIntegration/`.
-
-</Recap>
+To check the translator itself, write a direct handler spec: inactive staff should issue no command; active staff should pass `GivenName` and `FamilyName` as `MemberName` values; an unsuccessful command should fail the handler. In C#, substitute `ICommandPipeline`. In TypeScript, call `hRMemberCreated` directly and assert the command it returns. This series shows no Kotlin or Java handler spec. To write one, construct the `ChronicleCommandSideEffectHandler` the reactor takes from a stub `CommandPipeline`, a `CommandHandlerRegistry` with a handler registered for `RegisterMember`, a `ServiceResolver` and a `CoroutineScope`, then assert the commands the stub receives. Without one, the hosted test is what covers the Kotlin and Java translator. For every backend, run a hosted test through the real adapter and observer to verify ingestion, discovery, authorization, and recovery together.
 
 ## What you have built
 
@@ -161,4 +149,14 @@ Over the four tutorials in this series you have built:
 
 Each slice keeps one behavior in one folder: user intent, a query's needs, background work or an external vocabulary. [Chronicle](/chronicle/) holds the event log, [Arc](/arc/) the commands and queries, and [Components](/components/) the UI.
 
-To grow the Library from here, pick the next behavior from the [Library system list](/scenarios/vertical-slices/#the-library-system), such as lending a book, and model it first: decide which of the four patterns it is, then name its command, event and read model before you write code. The [Event Modeling](/event-modeling/) section shows how to draw that model.
+<Recap>
+
+In this last slice, `Registration/` uses the Library's vocabulary alone and only `HRIntegration/` knows the HR system's names and status codes, so replacing the HR system touches only `HRIntegration/`.
+
+- `HRMemberCreated` is the integration [event type](/chronicle/events/) that mirrors the HR payload in [Chronicle](/chronicle/).
+- `RegisterMember` is the Library's [Arc](/arc/) model-bound command, and `MemberRegistered` the domain [event type](/chronicle/events/) it records.
+- `MemberImportReactor` is a once-only [Chronicle](/chronicle/) [reactor](/chronicle/reactors/) that bridges the two through the [Arc](/arc/) command pipeline.
+
+To grow the Library from here, pick the next behavior from the [Library system list](/scenarios/vertical-slices/#the-library-system), such as lending a book, and model it first: decide which of the four patterns it is, then name its command, event and read model before you write code. The [Event Modeling](/event-modeling/) section explains the four patterns.
+
+</Recap>
