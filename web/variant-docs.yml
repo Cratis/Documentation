@@ -382,3 +382,59 @@ products:
                 - Documentation/validate-client-snippets.py
               blockedOutput:
                 - "BLOCKED: could not validate the TypeScript snippets"
+
+# Site-authored pages under web/src/content/docs.
+#
+# The product walks above only see pages synced from the product repositories.
+# The site's own pages - the Cratis Stack section, the scenarios, the capstone -
+# are written in this repository, so nothing flagged a direct single-language
+# backend fence on them. This section audits them with the same fence parser,
+# ratchets them in the baseline's `directSitePageFences`, and checks their
+# <ArcBackendTabs>/<ChronicleClientTabs> macros resolve.
+#
+# Every site page must be matched by a group or excluded with a reason, so a new
+# page cannot escape the audit by not being listed. The first matching group
+# wins. Folders the content sync regenerates (product keys, release-digests)
+# are product pages, not site pages, and are skipped.
+sitePages:
+  root: src/content/docs
+
+  groups:
+    # The Arc backend axis ratchets csharp, kotlin and java only, so the React
+    # frontend's TypeScript/TSX on these pages is not counted. It also covers
+    # Chronicle C#, Kotlin and Java, which is all the backend code these pages
+    # show. No site page is on the Chronicle client axis: that axis ratchets
+    # TypeScript, which on a site page is almost always frontend code, and the
+    # pages that are genuinely about one Chronicle client are excluded below.
+    - label: Cratis Stack and scenarios
+      axis: arc/backend
+      include:
+        - build-a-full-app.mdx
+        - testing-with-cratis.mdx
+        - cratis-stack.mdx
+        - scenarios/**
+    - label: Every other site page
+      axis: arc/backend
+      include:
+        - '**'
+
+  exclude:
+    - page: event-sourcing/dotnet.mdx
+      reason: The .NET landing page for Chronicle; its code is .NET by design.
+    - page: event-sourcing/kotlin.mdx
+      reason: The Kotlin and Java landing page for Chronicle; its code is JVM by design.
+    - page: specifications.mdx
+      reason: Documents Cratis.Specifications, a .NET-only library, so every example is C#.
+
+  # A single fence allowed to stay single-language on an otherwise audited page.
+  # `contains` must match exactly one counted fence of `language` on the page;
+  # an exemption that matches none (or several) fails, so it cannot go stale.
+  exemptFences:
+    - page: cratis-stack.mdx
+      language: csharp
+      contains: DistributedApplication.CreateBuilder
+      reason: The Aspire AppHost. Aspire is .NET-only, so there is no other backend to tab.
+    - page: chronicle-clients.mdx
+      language: kotlin
+      contains: build.gradle.kts
+      reason: The Gradle install step for the JVM client; each client's install section is in its own build tool by design.
