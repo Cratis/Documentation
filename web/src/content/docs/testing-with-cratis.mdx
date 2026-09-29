@@ -100,7 +100,7 @@ The command spec covers the first two rows: the command succeeds, and `AuthorReg
 
 <ArcBackendTabs snippet="testing-with-cratis/register-author-spec" />
 
-There is no HTTP server in that spec and no Chronicle server to start. Arc runs the command through the real command pipeline, and each backend's Chronicle test support captures the events the command appends in memory. In Kotlin and Java, `shouldHaveAppendedEvent` expects exactly one matching event; C# and TypeScript accept one or more. TypeScript's `ChronicleCommandScenario` does not enforce constraints; the [Arc for TypeScript testing guide](/arc/backend/typescript/testing/) lists what it does not cover.
+There is no HTTP server in that spec and no Chronicle server to start. Arc runs the command through the real command pipeline, and each backend's Chronicle test support captures the events the command appends in memory. In Kotlin and Java, `shouldHaveAppendedEvent` expects exactly one matching event; C# (`ShouldHaveAppendedEvent`) and TypeScript accept one or more. TypeScript's `ChronicleCommandScenario` does not enforce constraints; the [Arc for TypeScript testing guide](/arc/backend/typescript/testing/) lists what it does not cover.
 
 ### Spec the read side
 
