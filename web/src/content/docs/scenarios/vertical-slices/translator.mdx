@@ -6,7 +6,7 @@ description: Import staff from an HR system as Library members with a translator
 import YouWillLearn from '@components/YouWillLearn.astro';
 import Recap from '@components/Recap.astro';
 
-The Library takes its members from an HR system: each active staff member HR reports should become a Library member. HR delivers staff records, but the Library does not own those events, does not control their schema, and does not want to be coupled to how the HR system names things. A translator reactor listens for the external events, translates them into the Library's own vocabulary, and fires commands that produce proper domain events, which makes the slice a **Translation**. Each step shows the C#, Kotlin, Java and TypeScript (source preview) backends, and the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists where they differ, including the name constraint Kotlin and Java cannot express yet.
+The Library takes its members from an HR system: each active staff member HR reports should become a Library member. HR delivers staff records, but the Library does not own those events, does not control their schema, and does not want to be coupled to how the HR system names things. A translator reactor listens for the external events, translates them into the Library's own vocabulary, and fires commands that produce proper domain events, which makes the slice a **Translation**. Each step shows the C#, Kotlin, Java and TypeScript (source preview) backends, and the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists where they differ.
 
 <YouWillLearn>
 
@@ -80,7 +80,7 @@ The command both appends `MemberRegistered` under the new member's identity and 
 - **TypeScript**: `provide()` creates the ID, and `handle()` returns `tuple(eventSourceIdResponse(id), event)` to append to that ID and return it.
 - **Kotlin and Java**: the caller supplies the ID in the `@CommandKey` property; Arc appends the event under the command key and returns the `MemberId` half of the `Pair`.
 
-The tutorial retains the Library's exact first-name/last-name uniqueness rule in C# and TypeScript; Kotlin and Java cannot express it yet (see the [backend table](/scenarios/vertical-slices/#how-the-backends-differ)). That rule is checked at append time, after the handler. It is a registration policy, **not an HR deduplication key**: two different employees can share a name.
+Every backend keeps the Library's exact first-name/last-name uniqueness rule; Kotlin and Java need Chronicle.Kotlin 6.9.0 or later for it. That rule is checked at append time, after the handler. It is a registration policy, **not an HR deduplication key**: two different employees can share a name.
 
 ## Step 2 — The translator slice
 
@@ -98,13 +98,13 @@ Now the integration side. This is the only place in the codebase that knows anyt
 
 **The handler** is found and runs its command the way the [Automation reactor](/scenarios/vertical-slices/automation/#how-each-backend-runs-the-reactor) does. In TypeScript that makes the handler's name `hRMemberCreated`: the event class name with its first letter lowercased.
 
-**Arc's command pipeline** runs the Library command's validation and Chronicle append, including the name constraint where the backend has one. An unsuccessful result must fail the handler, so Chronicle records an observer failure instead of acknowledging an import that did not happen. The C#, Kotlin and Java reactors throw the named `MemberImportFailed` exception; in TypeScript, `reactorCommandResultHandler` fails the handler with a message naming the rejected command. Because the Kotlin and Java command key is the member identity, their reactors derive it from the employee ID, as explained below.
+**Arc's command pipeline** runs the Library command's validation and Chronicle append, including the name constraint. An unsuccessful result must fail the handler, so Chronicle records an observer failure instead of acknowledging an import that did not happen. The C#, Kotlin and Java reactors throw the named `MemberImportFailed` exception; in TypeScript, `reactorCommandResultHandler` fails the handler with a message naming the rejected command. Because the Kotlin and Java command key is the member identity, their reactors derive it from the employee ID, as explained below.
 
 As in Automation, these background calls do not inherit a user's HTTP principal; configure an execution context if registration requires authorization. The Kotlin and Java `RegisterMember` is `@AllowAnonymous`, matching the C# command, which has no authorization rules.
 
-In C# and TypeScript, a repeated name causes a visible rejection, not a successful deduplication. If registration succeeds but the reactor fails before acknowledging the HR event, the name constraint rejects the retry.
+A repeated name causes a visible rejection, not a successful deduplication. In C# and TypeScript, `RegisterMember` creates a new `MemberId` on each attempt. If registration succeeds but the reactor fails before acknowledging the HR event, the retry arrives under a new identity and the name constraint rejects it.
 
-Kotlin and Java have no name constraint, so nothing rejects a retry. A reactor that created a new `MemberId` on each attempt would register the same employee a second time as a different member. Their reactors therefore derive the member ID from the employee ID with a name-based UUID (`UUID.nameUUIDFromBytes`), so a retry appends another `MemberRegistered` to the same member instead of creating a new one.
+In Kotlin and Java the member identity is the command key, so the reactor supplies it, and one that created a new `MemberId` on each attempt would meet the same rejection on a retry. Their reactors instead derive the member ID from the employee ID with a name-based UUID (`UUID.nameUUIDFromBytes`). A retry then appends another `MemberRegistered` to the same member, which the constraint accepts because the same event source may append its current name again. Two employees who share a name still get different member IDs, so the constraint rejects the second.
 
 A production import needs a durable mapping from HR's employee identity to `MemberId`, and a policy for repeated messages and name conflicts. `EmployeeId` is available at this boundary for that work; do not parse values such as `"EMP-00247"` as GUIDs or substitute name equality for employee identity.
 
