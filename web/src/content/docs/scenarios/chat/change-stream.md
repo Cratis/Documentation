@@ -1,12 +1,11 @@
 ---
-title: Real-Time Chat — Frontend-Managed State
+title: Real-time chat with frontend-managed state
+description: Receive Arc's raw ChangeSet with useChangeStream() and keep the chat's message list, scroll position, and unread count in React state.
 ---
-
-# Real-Time Chat — Frontend-Managed State
 
 The two previous guides use `ForRoom.use()`, which applies Arc's delta `ChangeSet` transparently and always gives the component a complete `messagesResult.data` array. That is the right default for most UIs.
 
-This guide uses `ForRoom.useChangeStream()` instead. The component receives the raw `ChangeSet` — `{ added, replaced, removed }` — and maintains its own `useState` accumulator. **The backend is unchanged from the [in-memory guide](../in-memory).** Only the frontend differs.
+This guide uses `ForRoom.useChangeStream()` instead. The component receives the raw `ChangeSet` (`{ added, replaced, removed }`) and maintains its own `useState` accumulator. **The backend is unchanged from the [in-memory guide](/scenarios/chat/in-memory/),** in any of its four languages (Arc for TypeScript is a source preview). Only the frontend differs.
 
 By the end you will have:
 
@@ -15,45 +14,37 @@ By the end you will have:
 - A `useEffect` that appends incoming `ChangeSet.added` items to the local list
 - A clear picture of when this pattern is preferable to the transparent `use()` hook
 
----
+## When to use this pattern
 
-## When to Use This Pattern
+**`use()` (transparent)** is the right choice for most list UIs. The component renders `messagesResult.data` directly, and Arc applies the delta for you.
 
-**`use()` (transparent)** — the right choice for most list UIs. The component renders `messagesResult.data` directly. Arc handles the delta under the hood.
-
-**`useChangeStream()` (explicit)** — reach for this when you need to react to *what changed*, not just *what the current state is*:
+**`useChangeStream()` (explicit)** is for when you need to react to *what changed*, not only *what the current state is*:
 
 - Scroll to the bottom only when new messages arrive, not on every render
 - Show a "new message" badge when the user is scrolled up
 - Animate newly added items with an entry transition
 - Track a separate `unreadCount` derived from `added.length`
 
-All of these require knowing *which* items just appeared. `useChangeStream()` gives you exactly that.
+All of these require knowing *which* items appeared. `useChangeStream()` gives you exactly that.
 
----
+## Backend: unchanged
 
-## Backend — Unchanged
-
-The backend is identical to the [in-memory guide](../in-memory), in every backend language: the same room, chat service, `ChatMessage` read model with its `ForRoom` query, and `SendMessage` command. Build it from that guide.
+The backend is identical to the [in-memory guide](/scenarios/chat/in-memory/), in every backend language: the same room, chat service, `ChatMessage` read model with its `ForRoom` query, and `SendMessage` command. Build it from that guide.
 
 The room still publishes the full message list on every message. Arc still computes a `ChangeSet` server-side and sends only the diff. The difference is how the frontend consumes it.
 
----
+## How the ChangeSet reaches the frontend
 
-## How the ChangeSet Reaches the Frontend
-
-Arc's delta mode is always on by default. Here is what the frontend receives:
+Arc's delta mode is on by default. The frontend receives:
 
 | Emission | `ChangeSet` content |
 | -------- | ------------------- |
 | First connection | All existing messages appear in `added`; `replaced` and `removed` are empty |
 | Each new message sent | The one new message appears in `added`; `replaced` and `removed` are empty |
 
-For chat, `replaced` and `removed` are always empty — messages are immutable and are never deleted, and Arc matches them by their `Id`. The component only ever needs to handle `added`.
+For chat, `replaced` and `removed` are always empty: messages are immutable and are never deleted, and Arc matches them by their `Id`. The component only ever needs to handle `added`.
 
----
-
-## The React Component
+## The React component
 
 ```tsx
 // Chat/ChatRoomPage.tsx
@@ -240,26 +231,26 @@ export const ChatRoomPage = () => {
 
 ### What is happening here?
 
-**`ForRoom.when(...).useChangeStream({ roomName: joinedRoom })`** — returns the raw `ChangeSet<ChatMessage>` on each push rather than the reconstructed full collection. The component receives `{ added, replaced, removed }` directly.
+**`ForRoom.when(...).useChangeStream({ roomName: joinedRoom })`** returns the raw `ChangeSet<ChatMessage>` on each push rather than the reconstructed full collection. The component receives `{ added, replaced, removed }` directly.
 
 **The first `useEffect`** appends `changes.added` to the local `messages` state. On the first subscription the entire room history arrives in `added`, populating the initial list. Every subsequent message arrives as a single item in `added`. The `replaced` and `removed` arrays are always empty for chat messages.
 
-**`unreadCount`** is incremented when new messages arrive while `isAtBottomRef.current` is `false` — meaning the user has scrolled up. The "new messages" button appears and resets the count when the user scrolls back to the bottom. This behaviour is only possible because `useChangeStream` exposes `added` explicitly.
+**`unreadCount`** is incremented when new messages arrive while `isAtBottomRef.current` is `false`, meaning the user has scrolled up. The "new messages" button appears and resets the count when the user scrolls back to the bottom. This behavior is only possible because `useChangeStream` exposes `added` explicitly.
 
 **`isAtBottomRef`** uses a `ref` rather than `useState` so that the scroll handler does not trigger re-renders on every scroll event.
 
 **`setMessages([])`** when joining resets local state. Without this, switching rooms would briefly show the previous room's messages before the new history arrives.
 
----
-
-## Key Difference from `use()`
+## Key difference from `use()`
 
 | | `use()` | `useChangeStream()` |
 | - | ------- | ------------------- |
 | Component receives | Full collection snapshot | `{ added, replaced, removed }` |
 | Delta application | Automatic, inside the hook | Manual, in `useEffect` |
-| Knowing what changed | Not directly visible | Explicit — `added`, `replaced`, `removed` |
+| Knowing what changed | Not directly visible | Explicit: `added`, `replaced`, `removed` |
 | Typical use case | Render a list | React to specific additions or removals |
-| Backend requirement | None — the same observable query | None — the same observable query |
+| Backend requirement | None; the same observable query | None; the same observable query |
 
 Both hooks subscribe to the same generated query proxy. Switching between them is a one-line change in the component. The backend and the generated proxy are identical in both cases.
+
+Next, [push only new messages from the backend](/scenarios/chat/incremental-pushes/) and see why that guide keeps `use()`.

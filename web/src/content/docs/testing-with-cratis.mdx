@@ -1,6 +1,6 @@
 ---
 title: Testing with Cratis
-description: How Cratis Specifications, Arc command scenarios, and Chronicle in-process scenarios turn event models into fast BDD-style tests.
+description: Turn an event-model column into in-process given/when/then specs for a command and its read model, in C#, Kotlin, Java, or TypeScript.
 ---
 
 import { CardGrid, Aside } from '@astrojs/starlight/components';
@@ -11,9 +11,26 @@ import TopicHero from '@components/TopicHero.astro';
 Cratis applications already describe behavior as a timeline: a screen sends a command, the command records an event, projections build read models, and reactors act on facts. The testing story follows the same shape. You write a small specification for the behavior, seed the facts that already happened, perform the command or event, and assert the new facts, read models, or side effects.
 </TopicHero>
 
-## The .NET testing stack
+<Aside type="caution" title="Arc for TypeScript is a source preview">
+No Arc for TypeScript package is published to npm, and it does not have full parity with Arc on .NET. Its package names and APIs can still change. The TypeScript tabs on this page use it.
+</Aside>
 
-For .NET, the packages are layered the same way the runtime is layered. The language tabs below show other backends' test APIs where available.
+## Test packages by backend
+
+Each backend tests a command through the real Arc command pipeline and a read model without a Chronicle server. The packages differ:
+
+| Backend | Command specs | Read-model specs |
+|---|---|---|
+| C# | `Cratis.Arc.Testing` (`CommandScenario<TCommand>`), with `Cratis.Arc.Chronicle.Testing` for the events a command appends | `Cratis.Chronicle.Testing` (`ReadModelScenario<TReadModel>`) |
+| Kotlin | `io.cratis:arc-testing` (`CommandScenario`), with `io.cratis:arc-chronicle-spring-boot-starter` for the events a command appends | `io.cratis:chronicle-testing` (`ReadModelScenario`) |
+| Java | `io.cratis:arc-testing`, driven through `BlockingCommandScenario`, with the same Chronicle starter | The examples call the reducer directly |
+| TypeScript (preview) | `@cratis/arc.testing` (`CommandScenario`), with `@cratis/arc.chronicle/testing` (`ChronicleCommandScenario`) for the events a command appends | `@cratis/chronicle/testing` (`ReadModelScenario`) |
+
+The [Arc for Kotlin and Java testing guide](/arc/backend/kotlin/guides/testing/) and the [Arc for TypeScript testing guide](/arc/backend/typescript/testing/) cover the JVM and TypeScript harnesses in depth. The rest of this section lists the .NET packages.
+
+### The .NET packages
+
+For .NET, the packages are layered the same way the runtime is layered:
 
 | Package | Use it for |
 |---|---|
@@ -35,7 +52,7 @@ Use `Cratis.Chronicle.Testing` directly for Chronicle-only libraries, and `Crati
 
 ## Why BDD fits event sourcing
 
-The given/when/then shape is not an arbitrary testing style here. It is the same grammar as event sourcing. These are the .NET specification APIs:
+Given/when/then maps one to one onto event sourcing: the given is the facts that already happened, the when is the command or event under test, and the then is the facts, read models, or side effects that result. The .NET specification APIs line up like this:
 
 | Specification word | Event-sourced meaning | Cratis test API |
 |---|---|---|
@@ -46,7 +63,7 @@ The given/when/then shape is not an arbitrary testing style here. It is the same
 That makes specs readable in the same language as the event model. A domain expert can read "given an author already exists, when registering the same name, then it should not append another event" and understand the rule without knowing the implementation.
 
 <Aside type="tip" title="One act, many facts">
-`Specification` runs `Establish()` and `Because()` before each `[Fact]`. Put the behavior under test in `Because()` once, store the result in fields, and let each fact assert one thing about the same behavior.
+In .NET, `Specification` runs `Establish()` and `Because()` before each `[Fact]`. Put the behavior under test in `Because()` once, store the result in fields, and let each fact assert one thing about the same behavior.
 </Aside>
 
 ## The event model becomes the spec
@@ -71,74 +88,27 @@ Read it as a testable behavior:
 | no author exists for this id | `RegisterAuthor` is executed | `AuthorRegistered` is appended for the author id |
 | `AuthorRegistered` exists | the projection handles it | the `Author` read model contains the name the screen needs |
 
-In C#, the slice can stay small:
+### The slice
 
-```csharp
-using Cratis.Arc.Commands;
-using Cratis.Chronicle.Events;
-using Cratis.Chronicle.Keys;
-using Cratis.Chronicle.Projections;
-using Cratis.Chronicle.ReadModels;
+The command's handler returns the event, and Arc appends it to the event source the command identifies. The slice stays small: each snippet holds only the `RegisterAuthor` command and the `AuthorRegistered` event. The `Author` read model from the event model comes in with the spec under [Spec the read side](#spec-the-read-side).
 
-[Command]
-public record RegisterAuthor([property: Key] EventSourceId AuthorId, string Name)
-{
-    public AuthorRegistered Handle() => new(Name);
-}
+<ArcBackendTabs snippet="testing-with-cratis/register-author" />
 
-[EventType]
-public record AuthorRegistered(string Name);
+### Spec the command
 
-[ReadModel]
-[FromEvent<AuthorRegistered>]
-public record Author([property: Key] EventSourceId Id, string Name);
-```
+The command spec covers the first two rows: the command succeeds, and `AuthorRegistered` is recorded for the author id.
 
-The C# stack spec follows the same order:
+<ArcBackendTabs snippet="testing-with-cratis/register-author-spec" />
 
-```csharp
-using Cratis.Arc.Chronicle.Testing.Commands;
-using Cratis.Arc.Commands;
-using Cratis.Arc.Testing.Commands;
-using Cratis.Chronicle.Events;
-using Cratis.Chronicle.Testing.ReadModels;
-using Cratis.Specifications;
-using Xunit;
+There is no HTTP server in that spec and no Chronicle server to start. Arc runs the command through the real command pipeline, and each backend's Chronicle test support captures the events the command appends in memory. In Kotlin and Java, `shouldHaveAppendedEvent` expects exactly one matching event; C# (`ShouldHaveAppendedEvent`) and TypeScript accept one or more. TypeScript's `ChronicleCommandScenario` does not enforce constraints; the [Arc for TypeScript testing guide](/arc/backend/typescript/testing/) lists what it does not cover.
 
-public class when_registering_a_new_author : Specification
-{
-    readonly EventSourceId _authorId = EventSourceId.New();
-    readonly CommandScenario<RegisterAuthor> _command = new();
-    readonly ReadModelScenario<Author> _projection = new();
-    CommandResult _result = default!;
+### Spec the read side
 
-    async Task Because()
-    {
-        _result = await _command.Execute(new RegisterAuthor(_authorId, "Jane Austen"));
+The read-side spec covers the last row: given `AuthorRegistered`, the `Author` read model contains the name the screen needs. C#, Kotlin, and TypeScript run the read model in process with a read-model scenario; Java calls its reducer directly. Elixir does not support this test yet. Each example declares `AuthorRegistered` again so it compiles on its own (in your application, reuse the event from the slice) and introduces the `Author` read model. These tabs are the Chronicle client set, which also includes Elixir. They are separate from the Arc backend tabs above, so picking a backend there does not switch them.
 
-        await _projection.Given
-            .ForEventSource(_authorId)
-            .Events(_command.AppendedEvents.Select(_ => _.Event.Content).ToArray());
-    }
+<ChronicleClientTabs snippet="testing/index/example-spec" />
 
-    [Fact] void should_accept_the_command() =>
-        _result.ShouldBeSuccessful();
-
-    [Fact] Task should_record_the_fact() =>
-        _command.ShouldHaveAppendedEvent<RegisterAuthor, AuthorRegistered>(
-            _authorId,
-            e => e.Name == "Jane Austen");
-
-    [Fact] void should_project_the_author_for_the_screen() =>
-        _projection.Instance!.Name.ShouldEqual("Jane Austen");
-}
-```
-
-There is no HTTP server in that spec and no Chronicle server to start. Arc runs the command through the real command pipeline. The Chronicle extension captures the events appended by the command. The read model scenario then feeds those event contents through the projection in-process, so the final assertion checks the same state the React query would read.
-
-Other backends can return an event from a command too. These examples show that write-side step, not the complete C# slice above. The TypeScript backend is in source preview, uses author types from its library sample, and requires the `Librarian` role with `@roles('Librarian')`; Kotlin and Java use a task instead:
-
-<ArcBackendTabs snippet="guides/chronicle/event-from-command" />
+In C#, one spec can cover both sides: pass the contents of the command scenario's `AppendedEvents` to `ReadModelScenario<TReadModel>.Given.ForEventSource(...).Events(...)`, and the last assertion checks the same state the React query reads.
 
 ## How to test Arc
 
@@ -157,10 +127,6 @@ In .NET, Chronicle tests are fastest when you test the part of the event pipelin
 | Code appends the right event, or rejects an append because of constraints | `EventScenario` |
 | A projection or reducer builds the read model correctly | `ReadModelScenario<TReadModel>` |
 | A reactor performs the right side effect when an event arrives | `ReactorScenario<TReactor>` |
-
-For example, test that a registered-author event produces a read model with the expected name. C#, Kotlin, and TypeScript use in-process read-model scenarios; Java exercises its reducer directly. Elixir does not support this test yet. The type names vary by tab: C# and TypeScript use `TestingIndexAuthorRegistered` and `TestingIndexAuthor`; Kotlin uses `TestingIndexAuthorRegistered` and `Author`; Java uses `AuthorRegistered` and `Author`:
-
-<ChronicleClientTabs snippet="testing/index/example-spec" />
 
 Use a real Chronicle integration test when you are testing hosting, storage, subscriptions, observer recovery, or the boundary between processes. In .NET, Kotlin, and TypeScript, keep supported read-model behavior in the in-process scenarios so the suite stays fast.
 

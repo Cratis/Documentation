@@ -19,15 +19,33 @@ Two things decide the stored names:
 - An application using Arc with its MongoDB integration, and Chronicle for projections.
 - For C#, the Cratis meta package setup (`AddCratis()` and `UseCratis()`).
 
+:::caution[Arc for TypeScript is a source preview]
+The TypeScript tab uses Arc for TypeScript. No package is published to npm, it does not have full parity with Arc on .NET, and its package names and APIs can still change.
+:::
+
 ## 1. Configure the naming
 
 Each backend does what its conventions call for:
 
-- **C#** turns on the camel case naming policy in both places: in Arc's MongoDB integration and in the Chronicle client.
-- **Kotlin and Java** need no configuration for field names. Documents store each property under its declared name, which is already camelCase, and the Chronicle JVM client has no camel case option. Collection names do need configuration: Chronicle's JVM client stores a projected read model in a collection named after the read model's identifier, which is the class's simple name unpluralized (`User`), while Arc's default `DefaultNamingPolicy` pluralizes (`Users`). Declare `DefaultNamingPolicy(pluralizeReadModelNames = false)` (Java: `new DefaultNamingPolicy(false)`) so Arc reads the collection the kernel writes. An explicit `@ReadModel(id = ...)` changes the collection name to that id, so override the policy for that type too. The default mismatch is tracked in [Cratis/Chronicle.Kotlin#105](https://github.com/Cratis/Chronicle.Kotlin/issues/105).
-- **TypeScript** fields are already camelCase, and Chronicle's TypeScript client, which has no naming policy option, writes them as declared. Set `camelCaseMongoNamingPolicy` on `withMongoDB` when your read models must match a C# service that uses camel case: it also camel-cases collection names (`User` becomes `users`). Collection names for projected read models always differ, though: Chronicle's TypeScript client stores a projected read model in a collection named after its identifier, the class name unpluralized (`User`) unless `@readModel` gives it another id, while both of Arc's built-in policies pluralize. Pass `collectionName: type => type.name` to `withMongoDB`, as below, so Arc reads the collection Chronicle writes. For a read model whose `@readModel` sets another id, return that id from `collectionName` instead. The alternative is `.containerName(...)` on the projection builder, which sets the name the projection writes to; in the current client it also becomes the read model's identifier, so the read model registers without its class's schema. The mismatch is tracked in [Cratis/Chronicle.TypeScript#149](https://github.com/Cratis/Chronicle.TypeScript/issues/149).
-
 <ArcBackendTabs snippet="scenarios/camel-casing/setup" />
+
+### C#
+
+Turn on the camel case naming policy in both places: in Arc's MongoDB integration and in the Chronicle client.
+
+### Kotlin and Java
+
+**Field names** need no configuration. Documents store each property under its declared name, which is already camelCase, and the Chronicle JVM client has no camel case option.
+
+**Collection names** do need configuration. Chronicle's JVM client stores a projected read model in a collection named after the read model's identifier, which is the class's simple name unpluralized (`User`), while Arc's default `DefaultNamingPolicy` pluralizes (`Users`). Declare `DefaultNamingPolicy(pluralizeReadModelNames = false)` (Java: `new DefaultNamingPolicy(false)`) so Arc reads the collection the kernel writes. An explicit `@ReadModel(id = ...)` changes the collection name to that id, so override the policy for that type too. The default mismatch is tracked in [Cratis/Chronicle.Kotlin#105](https://github.com/Cratis/Chronicle.Kotlin/issues/105).
+
+### TypeScript
+
+**Field names** are already camelCase, and Chronicle's TypeScript client, which has no naming policy option, writes them as declared. Set `camelCaseMongoNamingPolicy` on `withMongoDB` when your read models must match a C# service that uses camel case: it also camel-cases collection names (`User` becomes `users`).
+
+**Collection names** for projected read models always differ, though. Chronicle's TypeScript client stores a projected read model in a collection named after its identifier: the class name unpluralized (`User`), unless `@readModel` gives it another id. Both of Arc's built-in policies pluralize. Pass `collectionName: type => type.name` to `withMongoDB`, as in the tab above, so Arc reads the collection Chronicle writes. For a read model whose `@readModel` sets another id, return that id from `collectionName` instead.
+
+The alternative is `.containerName(...)` on the projection builder, which sets the name the projection writes to. In the current client it also becomes the read model's identifier, so the read model registers without its class's schema. The mismatch is tracked in [Cratis/Chronicle.TypeScript#149](https://github.com/Cratis/Chronicle.TypeScript/issues/149).
 
 ## 2. What this gives you
 
