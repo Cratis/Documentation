@@ -11,20 +11,11 @@
   },
   "directSitePageFences": {
     "arc/backend": {
-      "scenarios/camel-casing/index.md": {
-        "csharp": 1
-      },
-      "scenarios/chat/change-stream.md": {
-        "csharp": 1
-      },
-      "scenarios/chat/in-memory.md": {
-        "csharp": 3
-      },
       "scenarios/chat/incremental-pushes.md": {
         "csharp": 3
       },
-      "scenarios/chat/rabbitmq.md": {
-        "csharp": 5
+      "scenarios/chat/rabbitmq.mdx": {
+        "csharp": 3
       },
       "scenarios/vertical-slices/state-change.mdx": {
         "csharp": 1
