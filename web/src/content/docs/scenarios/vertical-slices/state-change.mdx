@@ -1,23 +1,25 @@
 ---
-title: State Change — Register an Author
+title: State change — register an author
+description: Build the Library's author registration as an Event Modeling State Change, with an Arc command, a Chronicle event, a uniqueness constraint and a CommandDialog form.
 ---
 
-<a id="state-change--register-an-author"></a>
+import YouWillLearn from '@components/YouWillLearn.astro';
+import Recap from '@components/Recap.astro';
 
-This tutorial builds the **Register Author** slice of the Library system. It is a **State Change** — the most fundamental pattern in Event Modeling.
+A librarian types an author's first and last name into a dialog and presses **Register**. Arc validates the names, Chronicle records that the author was registered, and the dialog closes with the new author's ID. Where the backend enforces unique names, a second registration of exactly the same name is rejected. This is the Library's first **State Change**, the Event Modeling pattern for anything a user does that permanently changes the system.
 
-A user fills in a form, Arc validates the command, Chronicle records the registration, and the UI confirms the result. This series uses Arc with its optional Chronicle integration. Arc also supports commands and queries without event sourcing.
+This series uses Arc with its optional Chronicle integration; Arc also supports commands and queries without event sourcing. The backend is shown in C#, Kotlin, Java and TypeScript. The TypeScript backend is a source preview, and the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists what the JVM and TypeScript backends do differently.
 
 Start with an application configured for Arc with its Chronicle integration, proxy generation, and [Components](/components/). For C#, see [Arc and Chronicle](/arc/backend/csharp/chronicle/) and [proxy generation](/arc/backend/csharp/proxy-generation/); the other backends are covered under [Arc backends](/arc/backend/). The examples below add the Library behavior to that application.
 
-By the end you will have:
+<YouWillLearn title="What you'll build">
 
-- A `RegisterAuthor` command with built-in validation
-- An `AuthorRegistered` event stored in Chronicle
-- A `CommandDialog`-based React form that calls the command and gives the user feedback
-- A uniqueness constraint to prevent duplicate author names, where the backend supports it
+- a `RegisterAuthor` command with built-in validation
+- an `AuthorRegistered` event stored in Chronicle
+- a `CommandDialog`-based React form that calls the command and gives the user feedback
+- a uniqueness constraint to prevent duplicate author names, where the backend supports it
 
----
+</YouWillLearn>
 
 ## What is a State Change?
 
@@ -31,11 +33,9 @@ The shape is always the same:
 4. If valid, one or more **Events** are appended to the event log
 5. The event log is the truth — the state has changed
 
-Registration does not update an author table directly. It records that `AuthorRegistered` happened for an identity. The [next slice](../state-view) builds a queryable view from those facts, so readers do not have to scan the event log.
+Registration does not update an author table directly. It records that `AuthorRegistered` happened for an identity. The [next slice](/scenarios/vertical-slices/state-view/) builds a queryable view from those facts, so readers do not have to scan the event log.
 
----
-
-## Folder Structure
+## Folder structure
 
 Following the vertical slice convention, everything for this slice lives together:
 
@@ -51,8 +51,6 @@ Source/
 
 One folder holds the slice's backend artifacts and one `.tsx` file holds the UI. The shared concepts sit in the parent folder so later author slices use the same vocabulary. Kotlin keeps the same layout with `.kt` files and TypeScript with `.ts` files. Java puts each public type in its own file, so `Registration/` holds `AuthorRegistered.java`, `RegisterAuthor.java` and the validator files instead of one `Registration` file.
 
----
-
 ## Step 1 — Concepts
 
 Before writing the command, name the domain values: a strongly-typed author name and a strongly-typed author identity. Both keep unrelated values from being swapped accidentally, and the name carries a concept validator so the nonempty-name rule travels with it wherever Arc validates it.
@@ -67,9 +65,7 @@ The identity is what Chronicle appends the registration under, and each backend 
 
 JSON serialization retains a simple wire value, not an object with an `authorId` property. For C#, Kotlin and Java, the generated proxy types the `AuthorId` response as a `Guid` from `@cratis/fundamentals`. The TypeScript command returns the identity as a string (Step 2), so its proxy is `Command<IRegisterAuthor, string>`.
 
----
-
-## Step 2 — The Backend Slice
+## Step 2 — The backend slice
 
 The event, the command validation and the command live together in the slice's registration file.
 
@@ -81,11 +77,11 @@ The uniqueness rule belongs to the same file:
 
 ### What is happening here?
 
-**The event declaration** marks `AuthorRegistered` as a [Chronicle](/chronicle/) [event](/chronicle/events/). The framework uses the type name as the event identifier — no GUID argument, no string argument. Every property records a fact; there are no nullable fields. The validators enforce the required names before this command constructs the event.
+**The event declaration** marks `AuthorRegistered` as a [Chronicle](/chronicle/) [event](/chronicle/events/). The framework uses the type name as the event identifier, so the declaration takes neither a GUID nor a string argument. Each property records part of the fact, and none of them is nullable: the validators enforce the required names before this command constructs the event.
 
-**The command validator** runs automatically before the handler is ever called. If any rule fails, the command pipeline short-circuits and returns validation errors to the caller — no exception throwing required. C# builds it on FluentValidation (a [`CommandValidator<T>`](/arc/backend/csharp/commands/command-validation/)); TypeScript uses Arc's `CommandValidator` with `ruleFor`; Kotlin and Java implement Arc's command-validator interface and return validation results.
+**The command validator** runs automatically before the handler is ever called. If any rule fails, the command pipeline short-circuits and returns validation errors to the caller; the validator reports a failed rule without throwing an exception. C# builds it on FluentValidation (a [`CommandValidator<T>`](/arc/backend/csharp/commands/command-validation/)); TypeScript uses Arc's `CommandValidator` with `ruleFor`; Kotlin and Java implement Arc's command-validator interface and return validation results.
 
-**The [constraint](/chronicle/constraints/)** guards the combination of `FirstName` and `LastName` across authors in the event store namespace. `On` selects two properties, rather than computing a concatenated string. This tutorial keeps the Library's rule that an exact name combination may be registered only once; it does not treat names as a universal way to identify people. The Kotlin and Java clients cannot express a two-property unique constraint yet ([Cratis/Chronicle.Kotlin#101](https://github.com/Cratis/Chronicle.Kotlin/issues/101)), so their registration has no append-time uniqueness rule.
+**The [constraint](/chronicle/constraints/)** guards the combination of `FirstName` and `LastName` across authors in the event store namespace. `On` selects the two properties themselves; the constraint does not compute a concatenated string. This tutorial keeps the Library's rule that an exact name combination may be registered only once; it does not treat names as a universal way to identify people. Kotlin and Java have no append-time uniqueness rule here (see the [backend table](/scenarios/vertical-slices/#how-the-backends-differ)).
 
 Chronicle checks uniqueness **when the returned event is committed, after the handler has run**. A duplicate produces a constraint violation in the command result and the attempted registration is not appended. That is different from input validation, which short-circuits before the handler.
 
@@ -93,17 +89,23 @@ Chronicle checks uniqueness **when the returned event is committed, after the ha
 
 - **C#**: `Provide()` creates the `AuthorId` before `Handle()`, which returns the tuple `(AuthorId, AuthorRegistered)`. Because `AuthorId` derives from `EventSourceId<Guid>`, the integration uses it for the append as well as the response; a `ConceptAs<Guid>` alone would only be an ordinary response. See [model-bound commands](/arc/backend/csharp/commands/model-bound/).
 - **TypeScript**: `provide()` creates the `AuthorId`, and `handle()` returns `tuple(eventSourceIdResponse(authorId.value.toString()), event)`: the event is appended to that ID, and the ID's string is the response.
-- **Kotlin and Java**: the caller supplies the identity in the `@CommandKey` property. Arc appends the returned event under the command key and returns the `AuthorId` half of the `Pair` as the response. The Kotlin and Java examples mark the command `@AllowAnonymous` because Arc on the JVM requires an authenticated caller by default.
+- **Kotlin and Java**: the caller supplies the identity in the `@CommandKey` property. Arc appends the returned event under the command key and returns the `AuthorId` half of the `Pair` as the response. The command is marked `@AllowAnonymous` (see the [backend table](/scenarios/vertical-slices/#how-the-backends-differ)).
 
 Creating the identity before the handler keeps the event-construction decision deterministic for a supplied ID.
 
-> **Build before writing frontend code.** Generate the TypeScript proxy (`RegisterAuthor.ts`) after saving the slice — without it, the React component has nothing to import. For C#, run `dotnet build -c Debug` ([proxy generation](/arc/backend/csharp/proxy-generation/)); the other backends use their own proxy generation commands and paths.
+Build before writing frontend code. The build generates the `RegisterAuthor` proxy the React component imports; without it, the component has nothing to import:
 
----
+- **C#**: `dotnet build -c Debug` generates `RegisterAuthor.ts` ([proxy generation](/arc/backend/csharp/proxy-generation/)).
+- **Kotlin and Java**: `./gradlew build` generates `RegisterAuthor.ts` under `build/generated/arc-proxies/` ([TypeScript proxies](/arc/backend/kotlin/guides/typescript-proxies/)).
+- **TypeScript**: the application's proxy generation writes `RegisterAuthor.proxy.ts` beside the slice; the Library sample runs it as part of `yarn workspace @cratis/arc.sample.library build` ([generated code](/arc/backend/typescript/proxy-generation/generated-code/)).
 
-## Step 3 — The React Component
+## Step 3 — The React component
 
-With the proxy generated, the frontend component is straightforward.
+The form is one component around the generated proxy. The code below is written against the C# proxy.
+
+:::note[Using a Kotlin, Java, or TypeScript backend]
+With a Kotlin or Java backend, the command also has an `id` property for the new author. Supply it without showing a field, for example with `initialValues={{ id: Guid.create() }}` on `CommandDialog`. With a TypeScript backend, the response is the ID's string: use `string` instead of `Guid` in `CommandDialog`, `useDialogContext`, and the parent's `useDialog` and `useState` below, and drop the then-unused `Guid` import. Import the proxy from where your backend generated it.
+:::
 
 ```tsx
 // Authors/Registration/AddAuthor.tsx
@@ -136,8 +138,6 @@ export const AddAuthor = () => {
     );
 };
 ```
-
-With a Kotlin or Java backend, the command also has an `id` property for the new author. Supply it without showing a field, for example with `initialValues={{ id: Guid.create() }}` on `CommandDialog`. With a TypeScript backend, the response is the ID's string: use `string` instead of `Guid` in `CommandDialog`, `useDialogContext`, and the parent's `useDialog` and `useState` below, and drop the then-unused `Guid` import.
 
 The dialog component uses `useDialogContext` from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) to get the `closeDialog` function. It does not receive props for visibility — all dialog lifecycle is managed by the framework. A parent component uses the [`useDialog`](/arc/frontend/react/) hook to show and await this dialog.
 
@@ -181,11 +181,9 @@ export const RegisterAuthorButton = () => {
 };
 ```
 
-`useDialog<Guid>` describes the value supplied to `closeDialog`. In the dialog, that value is the **second** generic parameter of `useDialogContext<object, Guid>`; its first parameter describes the request. The command result envelope stays inside `CommandDialog` — this parent receives the author ID itself.
+`useDialog<Guid>` describes the value supplied to `closeDialog`. In the dialog, that value is the **second** generic parameter of `useDialogContext<object, Guid>`; its first parameter describes the request. The command result envelope stays inside `CommandDialog`, so this parent receives the author ID itself.
 
----
-
-## Step 4 — Integration Specs
+## Step 4 — Command specs
 
 Use an in-process command scenario to prove that the response identity and appended event agree. It runs the command through the real Arc pipeline — validation, the handler and the Chronicle append — without an HTTP host.
 
@@ -205,7 +203,7 @@ What each scenario needs:
 - **Kotlin and Java**: `io.cratis:arc-testing` in the test configuration alongside the Chronicle integration, which gives `CommandScenario` an in-memory event log. The test supplies the identity, because it is the command key.
 - **TypeScript**: `ChronicleCommandScenario` from `@cratis/arc.chronicle/testing`, which records appended events in memory.
 
-Then establish the same name under an existing author and check the precise rejection. This spec is C#-only: it needs Chronicle to enforce the constraint, and only the C# scenario runs an in-process kernel. The Kotlin, Java and TypeScript in-memory scenarios do not enforce constraints.
+Then establish the same name under an existing author and check the precise rejection. This spec is C#-only: it needs Chronicle to enforce the constraint, and only the C# scenario runs an in-process kernel. The Kotlin, Java and TypeScript in-memory scenarios do not enforce constraints (see the [backend table](/scenarios/vertical-slices/#how-the-backends-differ)).
 
 ```csharp
 // when_registering/and_author_name_already_exists.cs
@@ -247,18 +245,15 @@ public class and_author_name_already_exists : Specification
 
 These C# scenarios use the in-process Chronicle kernel — no Docker or MongoDB — and check both the rejection reason and the unchanged event log. The normal `Specification` lifecycle runs `Establish`, `Because`, the fact, and `Destroy`; dispose the scenario in `Destroy`. Add provider-backed and HTTP tests to cover the application's actual storage and transport.
 
----
+<Recap>
 
-## Summary
+- `AuthorRegistered` is a [Chronicle](/chronicle/) [event type](/chronicle/events/); `RegisterAuthor` and its handler are an [Arc](/arc/) model-bound command.
+- `RegisterAuthorValidator` and `AuthorNameValidator` are the [Arc](/arc/) command and concept validators for the input.
+- `UniqueAuthorName` (C# and TypeScript) is the [Chronicle](/chronicle/) [constraint](/chronicle/constraints/) that rejects a duplicate name.
+- `AddAuthor.tsx` is the React form, built on [`CommandDialog`](/components/commanddialog/) from [`@cratis/components`](/components/).
 
-| Layer | Artifact | Technology |
-| ----- | -------- | ---------- |
-| Domain event | `AuthorRegistered` | [Chronicle](/chronicle/) [event type](/chronicle/events/) |
-| Command + handler | `RegisterAuthor` and its handler | [Arc](/arc/) model-bound command |
-| Input validation | `RegisterAuthorValidator` and `AuthorNameValidator` | [Arc](/arc/) command and concept validators |
-| Uniqueness constraint | `UniqueAuthorName` (C# and TypeScript) | [Chronicle](/chronicle/) [constraint](/chronicle/constraints/) |
-| React form | `AddAuthor.tsx` | [`@cratis/components`](/components/) [`CommandDialog`](/components/commanddialog/) |
+The event, command validator, constraint and command live in one slice, `Authors/Registration/`, and the frontend is one component that imports one generated proxy. With discovery and proxy generation configured, the framework connects the HTTP command, validation, and event append.
 
-The entire write side — event, validator, constraint, command — lives in one slice. The frontend is one component that imports one generated proxy. With discovery and proxy generation configured, the framework connects the HTTP command, validation, and event append; the slice stays focused on registration.
+Next, [list the registered authors](/scenarios/vertical-slices/state-view/) by projecting `AuthorRegistered` into a read model.
 
-**Next**: [State View — List Authors](../state-view)
+</Recap>
