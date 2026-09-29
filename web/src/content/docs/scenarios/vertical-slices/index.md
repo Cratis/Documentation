@@ -39,7 +39,7 @@ A user submits a command. It gets validated. An event is recorded.
 
 `RegisterAuthor` fires → `AuthorRegistered` is stored. The intent is explicit, the outcome is captured. This is the most common pattern — the write side of your system.
 
-In Cratis this is: a [`[Command]`](/arc/backend/csharp/commands/model-bound/) record with a `Handle()` method that returns a Chronicle [`[EventType]`](/chronicle/events/), optionally enforced by a [`CommandValidator<T>`](/arc/backend/csharp/commands/command-validation/) or an [`IConstraint`](/chronicle/constraints/).
+In Cratis this is: an [Arc](/arc/) model-bound command whose handler returns a Chronicle [event](/chronicle/events/), optionally guarded by a command validator or a Chronicle [constraint](/chronicle/constraints/).
 
 #### State View
 
@@ -47,7 +47,7 @@ Events are **projected** into a read model that the UI displays.
 
 An `Author` read model gets built from `AuthorRegistered` events. It is always up to date, and you can rebuild it from scratch at any point just by replaying the events. This is the read side — fast, purpose-built, and completely independent from the write side.
 
-In Cratis this is: a [`[ReadModel]`](/chronicle/read-models/) record decorated with [`[FromEvent<T>]`](/chronicle/projections/) attributes and a static query method that returns an `ISubject<IEnumerable<T>>` for real-time reactivity.
+In Cratis this is: a [read model](/chronicle/read-models/) built by a [projection](/chronicle/projections/) or reducer, with a query that the frontend calls — observable where the backend supports it, so the UI updates in real time.
 
 #### Automation
 
@@ -55,13 +55,13 @@ A processor watches a read model (think: a to-do list), picks up items, and fire
 
 Sending an overdue notice when a loan passes its return date. Cancelling a reservation that was never collected. Triggering a payment. No human involved; the same building blocks, automated.
 
-In Cratis this is: an [`IReactor`](/chronicle/reactors/) that observes a Chronicle event stream and calls [`ICommandPipeline`](/arc/backend/csharp/commands/command-pipeline/) to fire commands back into your own system.
+In Cratis this is: a Chronicle [reactor](/chronicle/reactors/) that observes the event stream and sends commands through Arc's command pipeline back into your own system.
 
 #### Translation
 
 When an event comes from an external system — one you don't own — you translate its language into yours. You don't want raw payloads as domain events. You want `BookInformationReceived` and `MemberImported` — events that mean something in your own context.
 
-In Cratis this is: an [`IReactor`](/chronicle/reactors/) that listens for external events and fires commands in your own system, which in turn produce domain events with your own vocabulary.
+In Cratis this is: a Chronicle [reactor](/chronicle/reactors/) that listens for external events and fires commands in your own system, which in turn produce domain events with your own vocabulary.
 
 ---
 
@@ -69,10 +69,12 @@ In Cratis this is: an [`IReactor`](/chronicle/reactors/) that listens for extern
 
 | Pattern | Chronicle | Arc | Components |
 | ------- | --------- | --- | ---------- |
-| **State Change** | [`[EventType]`](/chronicle/events/) records stored in the event log | [`[Command]`](/arc/backend/csharp/commands/model-bound/) + `Handle()`, [`CommandValidator<T>`](/arc/backend/csharp/commands/command-validation/), [`IConstraint`](/chronicle/constraints/) | [`CommandDialog`](/components/commanddialog/) for the form UI |
-| **State View** | [Projections](/chronicle/projections/) (`[FromEvent<T>]`, `IProjectionFor<T>`) building [`[ReadModel]`](/chronicle/read-models/) | `IQueryFor<T>` / `IObservableQueryFor<T>` generated proxies | [`DataPage`](/components/datapage/) for the listing UI |
-| **Automation** | [`IReactor`](/chronicle/reactors/) observing the event log | [`ICommandPipeline`](/arc/backend/csharp/commands/command-pipeline/) to fire commands | No UI — runs in the background |
-| **Translation** | [`IReactor`](/chronicle/reactors/) on external event streams | [`ICommandPipeline`](/arc/backend/csharp/commands/command-pipeline/) bridging to domain commands | No UI — integration layer |
+| **State Change** | [Event types](/chronicle/events/) stored in the event log, guarded by [constraints](/chronicle/constraints/) | Model-bound command with a handler and validators | [`CommandDialog`](/components/commanddialog/) for the form UI |
+| **State View** | [Projections](/chronicle/projections/) or reducers building a [read model](/chronicle/read-models/) | Query over the read model, with generated proxies | [`DataPage`](/components/datapage/) for the listing UI |
+| **Automation** | [Reactor](/chronicle/reactors/) observing the event log | Command pipeline to fire commands | No UI — runs in the background |
+| **Translation** | [Reactor](/chronicle/reactors/) on external event streams | Command pipeline bridging to domain commands | No UI — integration layer |
+
+Each tutorial shows the backend code in C#, Kotlin, Java and TypeScript, and notes where a backend does not support a step yet. For the language-specific APIs, see [Arc backends](/arc/backend/).
 
 The key insight: [Chronicle](/chronicle/) stores the facts (events), [Arc](/arc/) wires up the intent (commands) and the queries, [Components](/components/) renders the result. Each layer has one job and they compose cleanly.
 
@@ -100,6 +102,6 @@ Work through these in order — each one builds on the context from the previous
 | Tutorial | Pattern | What you build |
 | -------- | ------- | -------------- |
 | [State Change — Register an Author](./state-change) | State Change | `RegisterAuthor` command, `AuthorRegistered` event, `AddAuthor` React form using `CommandDialog` |
-| [State View — List Authors](./state-view) | State View | `Author` read model, projection from events, `AllAuthors` observable query, `Authors` listing page using `DataPage` |
-| [Automation — Cancel Expired Reservations](./automation) | Automation | `PendingReservations` read model, `CancelReservation` reactor that fires automatically when a reservation expires |
-| [Translation — Import Members from HR](./translator) | Translation | Reactor that listens for `HRMemberCreated` external events and fires `RegisterMember` in the library domain |
+| [State View — List Authors](./state-view) | State View | `Author` read model built from events, `AllAuthors` query (observable where the backend supports it), `Authors` listing page using `DataPage` |
+| [Automation — Cancel Expired Reservations](./automation) | Automation | `ReservationDueForExpiry` to-do list, passive `PendingReservation` read model, and a `ReservationExpiryReactor` that sends `CancelExpiredReservation` for each overdue reservation |
+| [Translation — Import Members from HR](./translator) | Translation | `MemberImportReactor` that listens for `HRMemberCreated` external events and fires `RegisterMember` in the library domain |
