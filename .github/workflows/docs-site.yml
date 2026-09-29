@@ -375,7 +375,7 @@ jobs:
         working-directory: Documentation/web
         run: npm run sync && npm run lint:docs
 
-      - name: Check Chronicle client docs
+      - name: Check variant docs (product and site pages)
         working-directory: Documentation/web
         run: npm run variant-docs:check:ci
 
