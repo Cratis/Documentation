@@ -88,7 +88,7 @@ export async function listSitePages(root, generatedRoutes) {
             if (entry.isDirectory()) {
                 if (SKIP_DIRS.has(entry.name) || generated.has(rel)) continue;
                 await walk(absolute);
-            } else if (entry.name.endsWith('.md') || entry.name.endsWith('.mdx')) {
+            } else if (/\.(md|mdx|markdown|mdown|mkdn|mkd|mdwn)$/i.test(entry.name)) {
                 pages.push(rel);
             }
         }
@@ -174,7 +174,18 @@ export async function auditSitePages({ sitePages, axes, generatedRoutes }) {
     let auditedPages = 0;
     let exemptedFences = 0;
     for (const page of pages) {
-        if (excluded.has(page)) continue;
+        if (excluded.has(page)) {
+            // An exclusion excuses single-language fences, not broken tab macros.
+            const absolute = path.join(sitePages.root, page);
+            const body = await fs.readFile(absolute, 'utf8');
+            const { ranges } = fenceRangesAndLanguages(body, absolute, axes[0].ratchetLanguageAliases);
+            for (const axis of axes) {
+                const macros = await checkMacros(body, page, ranges, axis);
+                placeholders.push(...macros.placeholders);
+                problems.push(...macros.missingSnippets);
+            }
+            continue;
+        }
         const group = sitePages.groups.find((candidate) => candidate.matchers.some((matcher) => matcher.test(page)));
         if (!group) {
             problems.push(`${page}: matched by no sitePages group and not excluded; audit it or exclude it with a reason`);

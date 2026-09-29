@@ -149,3 +149,16 @@ test('a site-page macro must name a snippet some variant provides', async (conte
     assert.deepEqual(result.placeholders.map((entry) => [entry.snippet, entry.variants]),
         [['present', ['csharp']], ['missing', []]]);
 });
+
+test('an excluded page still has its tab macros checked', async (context) => {
+    const root = await fixture(context, { 'dotnet.mdx': csharp() + '\n<ArcBackendTabs snippet="missing" />\n' });
+    const result = await audit(root, { exclude: [{ page: 'dotnet.mdx', reason: '.NET by design' }] });
+    assert.deepEqual(result.current['arc/backend'], {});
+    assert.deepEqual(result.problems, ['dotnet.mdx: no backend has a snippet for "missing"']);
+});
+
+test('every Markdown extension Starlight renders is a site page', async (context) => {
+    const root = await fixture(context, { 'legacy.markdown': csharp() });
+    const result = await audit(root);
+    assert.deepEqual(result.current['arc/backend'], { 'legacy.markdown': { csharp: 1 } });
+});
