@@ -1,0 +1,253 @@
+---
+title: Real-Time Chat — In-Memory
+---
+
+# Real-Time Chat — In-Memory
+
+This guide builds a real-time chat room backed entirely by an in-memory service. It demonstrates the core observable query pattern: the frontend subscribes once and receives updates as they arrive — no polling, no manual WebSocket setup.
+
+By the end you will have:
+
+- A `ChatRoom` that holds each room's message history in a source with a current value
+- A single, application-wide `ChatService` that creates and tracks rooms by name
+- A `ChatMessage` read model with an observable `ForRoom` query that delivers the room's current history as the initial payload, then pushes updates in real time
+- A `SendMessage` command that posts to a room and triggers a push to all subscribers
+- A React page component that joins a room and renders a live chat thread
+
+---
+
+## Folder Structure
+
+```text
+Chat/
+├── ChatRoom.cs           ← ChatRoom state holder + ChatService singleton
+├── ChatRoomPage.cs       ← ChatMessage read model + SendMessage command
+└── ChatRoomPage.tsx      ← React component
+```
+
+This is the C# layout. Kotlin and TypeScript keep the same two backend files as `.kt` or `.ts`. Java puts each public type in its own file in the same folder.
+
+---
+
+## Step 1 — The Backend
+
+The backend has four pieces:
+
+- **The room** keeps its history in an observable source that always has a current value. A new subscriber receives that value first, which is how a client joining mid-conversation gets the history without a separate call.
+- **The chat service** is one instance for the whole application. It creates a room the first time its name is used and returns the same room afterwards.
+- **The read model and its query** describe a chat message and expose the room's source as an observable query. Arc calls the query once per subscriber, passes the room name from the request and supplies the chat service from the application's services.
+- **The command** sends a message to a room. The room appends it and publishes the new history, and every subscriber of that room receives it.
+
+<ArcBackendTabs snippet="scenarios/chat/in-memory/backend" />
+
+### What is happening here?
+
+**The source with a current value** is the only part that differs by backend:
+
+- **C#**: a `BehaviorSubject<IEnumerable<ChatMessage>>` from System.Reactive.
+- **Kotlin**: a `MutableStateFlow<List<ChatMessage>>`, returned from the query as a `Flow`.
+- **Java**: Arc's `ObservableState<List<ChatMessage>>`, returned as a `Flow.Publisher`.
+- **TypeScript**: an RxJS `BehaviorSubject<ChatMessage[]>`.
+
+Because the source has a current value, every new subscription starts from the room's history. Arc for Kotlin, Java and TypeScript also answers a one-off `GET` of the query from that value instead of reporting that no result is ready yet.
+
+**`Send`** appends the message and publishes a copy of the complete list. Sending the whole list keeps the backend straightforward; Arc sends each subscriber only what changed (see [Step 2](#step-2--delta-mode)). The C#, Kotlin and Java rooms serialize concurrent sends, so two messages sent at once both end up in the history. TypeScript runs one handler at a time on its event loop.
+
+**The query** returns the room's source:
+
+- **C#** creates a relay `BehaviorSubject` for each subscriber, seeded with the room's current history and subscribed to the room. When Arc for C# fails to deliver to a WebSocket subscriber, it calls `OnError` on the subject the query returned, so the relay keeps one subscriber's failure away from the shared room.
+- **Kotlin, Java and TypeScript** return the room's source directly. Arc subscribes to it and unsubscribes when the client leaves; it never publishes into it.
+
+**The query parameters** are told apart the way each backend binds them. `roomName` is a query argument; `ChatService` comes from the application's services. C# resolves a parameter from dependency injection when its type is a registered service, so `ChatService` must be registered. Kotlin and Java mark the service parameter `@FromServices`, and TypeScript lists `argument('roomName', String)` and `service(ChatService)` in `@query`.
+
+**The chat service** must be a single instance, or each request would see its own rooms:
+
+- **C#**: register it with `builder.Services.AddSingleton<ChatService>();` in `Program.cs`.
+- **Kotlin and Java**: `@Component` makes it a Spring singleton.
+- **TypeScript**: `@singleton()` registers it when the application discovers the module.
+
+**`ChatMessageId`** gives every message an `Id`. Arc uses a property named `Id` (in any case) to compute what changed between two emissions, as the next step explains.
+
+The Kotlin and Java query and command are marked `@AllowAnonymous` because Arc on the JVM requires an authenticated caller by default; the C# and TypeScript versions have no authorization rules.
+
+Build the backend to generate the TypeScript proxies before writing the frontend. For C#, `dotnet build` runs the [Arc proxy generator](/arc/backend/csharp/proxy-generation/); the other backends use their own proxy generation commands and paths. Each produces:
+
+- `ChatMessage.ts` — the TypeScript model type
+- `ForRoom.ts` — the observable query proxy with `use()` and `when()` hooks
+- `SendMessage.ts` — the command proxy with a `use()` hook
+
+The message `id` is a `Guid` in the C#, Kotlin and Java proxies. The frontend below only turns it into a string, so it works with any backend.
+
+---
+
+<a id="step-3--delta-mode"></a>
+
+## Step 2 — Delta Mode
+
+Arc observable queries use **delta mode by default**. Understanding this helps you reason about what crosses the network.
+
+**What happens on each emission:**
+
+| Emission | What is sent |
+| -------- | ------------ |
+| First | The complete collection — the room's full history as the initial payload |
+| Subsequent | A [`ChangeSet`](/arc/backend/csharp/queries/change-stream/) with only the `added`, `replaced`, and `removed` items |
+
+The `use()` hook applies each `ChangeSet` transparently. `messagesResult.data` always holds the full current collection — the React component never sees raw deltas.
+
+**How Arc computes the ChangeSet.** The server compares each emission with the previous one it sent to that subscriber, matching items by their `Id`. An item with a new `Id` is added, a missing `Id` is removed, and an `Id` whose content changed is replaced. Because `ChatMessage` has an `Id` and messages never change, each new message arrives as one item in `added`, however long the history is.
+
+The `Id` matters. Without an `Id` property, Arc for C# sends the full collection on every emission and logs a warning, and Arc for Kotlin, Java and TypeScript compare items by their JSON instead, which cannot report a replaced item.
+
+The server still builds and compares the whole list on every message. That is cheap for a chat room; the [Incremental Pushes](../incremental-pushes) guide shows a backend that emits only new messages.
+
+> **Full mode.** To send the complete collection on every emission (useful during debugging), set `observableQueryTransferMode={ObservableQueryTransferMode.Full}` on the `<Arc>` provider. Delta mode is the default and is recommended for production.
+
+---
+
+<a id="step-4--the-react-component"></a>
+
+## Step 3 — The React Component
+
+```tsx
+// Chat/ChatRoomPage.tsx
+import { useState } from 'react';
+import { ForRoom } from './ForRoom';
+import { SendMessage } from './SendMessage';
+import type { ChatMessage } from './ChatMessage';
+
+export const ChatRoomPage = () => {
+    const [roomName, setRoomName] = useState('');
+    const [joinedRoom, setJoinedRoom] = useState('');
+    const [user, setUser] = useState('');
+    const [messageText, setMessageText] = useState('');
+
+    const [messagesResult] = ForRoom
+        .when(joinedRoom.length > 0)
+        .use({ roomName: joinedRoom });
+
+    const [sendCommand, setSendValues] = SendMessage.use();
+
+    const handleJoin = () => {
+        if (roomName.trim() && user.trim()) {
+            setJoinedRoom(roomName.trim());
+        }
+    };
+
+    const handleSend = async () => {
+        if (!messageText.trim()) return;
+        setSendValues({ roomName: joinedRoom, user, message: messageText });
+        await sendCommand.execute();
+        setMessageText('');
+    };
+
+    if (!joinedRoom) {
+        return (
+            <div style={{ maxWidth: 400, margin: '80px auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <h2>Join a Chat Room</h2>
+                <input
+                    placeholder="Room name"
+                    value={roomName}
+                    onChange={e => setRoomName(e.target.value)}
+                />
+                <input
+                    placeholder="Your name"
+                    value={user}
+                    onChange={e => setUser(e.target.value)}
+                />
+                <button
+                    onClick={handleJoin}
+                    disabled={!roomName.trim() || !user.trim()}
+                >
+                    Join
+                </button>
+            </div>
+        );
+    }
+
+    const messages: ChatMessage[] = messagesResult.data ?? [];
+
+    return (
+        <div style={{ maxWidth: 600, margin: '40px auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <h2>{joinedRoom}</h2>
+            <p style={{ color: '#888', margin: 0 }}>Chatting as <strong>{user}</strong></p>
+
+            <div style={{
+                border: '1px solid #e0e0e0',
+                borderRadius: 8,
+                height: 400,
+                overflowY: 'auto',
+                padding: 16,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+            }}>
+                {messages.length === 0 && (
+                    <p style={{ color: '#aaa', alignSelf: 'center', marginTop: 'auto', marginBottom: 'auto' }}>
+                        No messages yet. Say hello!
+                    </p>
+                )}
+                {messages.map(msg => (
+                    <div
+                        key={String(msg.id)}
+                        style={{
+                            background: msg.user === user ? '#e8f4fd' : '#f5f5f5',
+                            borderRadius: 8,
+                            padding: '8px 12px',
+                            alignSelf: msg.user === user ? 'flex-end' : 'flex-start',
+                            maxWidth: '75%',
+                        }}
+                    >
+                        <div style={{ fontSize: 12, color: '#888', marginBottom: 2 }}>
+                            <strong>{msg.user}</strong>
+                            {' · '}
+                            {new Date(msg.sentAt).toLocaleTimeString()}
+                        </div>
+                        <div>{msg.message}</div>
+                    </div>
+                ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                    style={{ flex: 1 }}
+                    placeholder="Type a message…"
+                    value={messageText}
+                    onChange={e => setMessageText(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleSend(); }}
+                />
+                <button
+                    onClick={handleSend}
+                    disabled={!messageText.trim()}
+                >
+                    Send
+                </button>
+            </div>
+        </div>
+    );
+};
+```
+
+### What is happening here?
+
+**`ForRoom.when(joinedRoom.length > 0).use({ roomName: joinedRoom })`** — `.when(condition)` prevents the subscription from opening until the user has joined a room. Once `joinedRoom` is set, Arc opens the subscription. The component immediately receives the room's full history as the first push. Every subsequent `SendMessage` command — from any user in that room — triggers a new push, and `messagesResult.data` updates automatically.
+
+**`setSendValues` then `execute()`** — `setSendValues` updates the command object with the room name, user name, and message text. `sendCommand.execute()` sends the HTTP POST. On the server, the command's handler sends the message to the room, the room publishes the new history, and every subscriber receives it — including this browser.
+
+**Messages are keyed by `id`**, which stays stable as messages arrive, so React keeps each rendered message in place. `String(msg.id)` works whether the proxy types the `id` as a `Guid` or a string.
+
+---
+
+## Summary
+
+| Piece | What it does |
+| ----- | ------------ |
+| `ChatRoom` | Holds the history in a source with a current value; `Send` publishes the full list |
+| `ChatService` | One instance for the application; creates and tracks rooms by name |
+| `ChatMessage` query `ForRoom` | Returns the room's source (a per-subscriber relay in C#) |
+| `SendMessage` command | Sends the message to the room, which pushes to every subscriber |
+| `ChatMessageId` | Lets Arc match messages by `Id` when it computes deltas |
+| Delta mode | First push = full history; later pushes = a `ChangeSet` with the new message |
+| `ForRoom.ts` (generated) | TypeScript observable query proxy with `use()` and `when()` hooks |
+| `SendMessage.ts` (generated) | TypeScript command proxy with a `use()` hook |
+| `ChatRoomPage.tsx` | React component — subscribes on join, renders `messagesResult.data` |

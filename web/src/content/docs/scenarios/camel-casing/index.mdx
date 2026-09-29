@@ -1,0 +1,49 @@
+---
+title: Configure camel casing for Chronicle and MongoDB
+description: How to get camelCase field names consistently in Chronicle projections and Arc MongoDB documents, for each Arc backend.
+---
+
+This how-to shows how to get camelCase field names in your read-model documents, the same for the documents Chronicle projections write and the documents Arc reads and writes in MongoDB.
+
+## Goal
+
+Store read-model data with camelCase field names, and keep Chronicle and Arc's MongoDB integration agreeing on every field and collection name.
+
+Two things decide the stored names:
+
+- **The declared member names.** C# properties are PascalCase by convention; Kotlin properties, Java record components and TypeScript fields are already camelCase.
+- **The naming policy.** A naming policy can rename members and collections on the way to MongoDB. Chronicle's projections and Arc's MongoDB integration each apply one, and both must agree, or Arc reads fields and collections that Chronicle never writes.
+
+## Prerequisites
+
+- An application using Arc with its MongoDB integration, and Chronicle for projections.
+- For C#, the Cratis meta package setup (`AddCratis()` and `UseCratis()`).
+
+## 1. Configure the naming
+
+Each backend does what its conventions call for:
+
+- **C#** turns on the camel case naming policy in both places: in Arc's MongoDB integration and in the Chronicle client.
+- **Kotlin and Java** need no configuration. Documents store each property under its declared name, which is already camelCase. The `NamingPolicy` bean shown here is the one Arc's MongoDB integration registers by itself; declaring it only makes the choice visible. It keeps the collection names the Chronicle kernel writes. The Chronicle JVM client has no camel case option.
+- **TypeScript** fields are already camelCase, and Chronicle's TypeScript client, which has no naming policy option, writes them as declared. Set `camelCaseMongoNamingPolicy` on `withMongoDB` when your read models must match a C# service that uses camel case: it also camel-cases collection names (`User` is stored in `users`). Check collection names for projected read models too: Chronicle's TypeScript client names the collection after the read model's identifier, so pass `collectionName` to `withMongoDB` when that differs from the name the policy derives.
+
+<ArcBackendTabs snippet="scenarios/camel-casing/setup" />
+
+## 2. What this gives you
+
+With this setup:
+
+- Chronicle projections write read-model fields in camelCase.
+- Arc's MongoDB integration reads and writes the same camelCase field names.
+- A property declared as `EmailAddress` in C#, or `emailAddress` in Kotlin, Java or TypeScript, is stored as `emailAddress`.
+
+## 3. Verify in MongoDB
+
+After your app runs and projections update read models, inspect the stored documents. You should see camelCase fields. If a query returns empty or half-filled read models, compare the stored collection and field names with the names your backend expects; a naming mismatch produces no error.
+
+## Related reference pages
+
+- [Chronicle camel casing](/chronicle/configuration/camel-casing/)
+- [Arc MongoDB naming policies](/arc/backend/csharp/mongodb/naming-policies/)
+- [Read-model naming for Kotlin and Java](/arc/backend/kotlin/guides/read-model-naming/)
+- [MongoDB naming policies for TypeScript](/arc/backend/typescript/mongodb/naming-policies/)

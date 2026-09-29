@@ -4,11 +4,13 @@ title: Real-Time Chat — Incremental Pushes
 
 # Real-Time Chat — Incremental Pushes
 
-The three previous guides all emit the **full message history** on every `OnNext()` call. Arc's delta mode compresses this down to a `ChangeSet` over the wire, but the backend still accumulates and sends a growing list.
+The three previous guides all publish the **full message history** on every message. Arc's delta mode compresses this down to a `ChangeSet` over the wire, but the backend still copies the growing list into every emission and Arc compares it with the previous one.
 
-This guide flips the model. The backend emits only what is **new** on each push. The first emission is the full history (initial payload); every subsequent emission contains only the messages that just arrived. The frontend accumulates them into its own local state.
+This guide flips the model. The backend emits only what is **new** on each push. The first emission is the full history (initial payload); every subsequent emission contains only the newly arrived message. The frontend accumulates them into its own local state.
 
-The result is a constant-size network payload per message regardless of how long the conversation has been running.
+The result is constant backend work per message once a subscriber has received the history, however long the conversation has been running. It does not make the delta-mode network payload smaller: the previous guides already send only the new message, and this one sends a little more (see [Step 3](#step-3--what-the-frontend-receives)).
+
+The backend is shown in C# only, because the relay it relies on is a System.Reactive `ReplaySubject`. The [in-memory guide](../in-memory) shows the same roles for Kotlin, Java and TypeScript.
 
 By the end you will have:
 
@@ -23,10 +25,11 @@ By the end you will have:
 
 | | In-Memory / RabbitMQ | Frontend-Managed State | This guide |
 | - | -------------------- | ---------------------- | ---------- |
-| Each `OnNext()` emits | Full history list | Full history list | New message(s) only |
-| History lives in | `ChatRoom` (`BehaviorSubject`) | `ChatRoom` (`BehaviorSubject`) | `ChatService` |
-| Relay type | `BehaviorSubject` | `BehaviorSubject` | `ReplaySubject(1)` |
-| Network per message | Grows with history | Grows with history | Constant |
+| Each emission holds | Full history list | Full history list | New message only |
+| History lives in | `ChatRoom` | `ChatRoom` | `ChatService` |
+| C# relay type | `BehaviorSubject` | `BehaviorSubject` | `ReplaySubject(1)` |
+| Backend work per message | Grows with history | Grows with history | Constant |
+| Delta-mode payload per message | The new message | The new message | The new message plus the previous emission as `removed` |
 | Frontend hook | `use()` | `useChangeStream()` | `use()` |
 | Component accumulates | No — renders `data` directly | Yes — appends `added` | Yes — appends `data` |
 
@@ -35,11 +38,10 @@ By the end you will have:
 ## Folder Structure
 
 ```text
-Features/
-└── Chat/
-    ├── ChatRoom.cs           ← ChatRoom (Subject only) + ChatService (history + send)
-    ├── ChatRoomPage.cs       ← ChatMessage [ReadModel] + SendMessage [Command]
-    └── ChatRoomPage.tsx      ← React component
+Chat/
+├── ChatRoom.cs           ← ChatRoom (Subject only) + ChatService (history + send)
+├── ChatRoomPage.cs       ← ChatMessage read model + SendMessage command
+└── ChatRoomPage.tsx      ← React component
 ```
 
 ---
@@ -51,7 +53,7 @@ Features/
 History tracking moves to `ChatService`, which also becomes the entry point for sending messages so that it can record each message before firing the room's subject.
 
 ```csharp
-// Features/Chat/ChatRoom.cs
+// Chat/ChatRoom.cs
 using System.Collections.Concurrent;
 using System.Reactive.Subjects;
 
@@ -111,7 +113,7 @@ public class ChatService
     /// <param name="message">The message text.</param>
     public void Send(string name, string user, string message)
     {
-        var msg = new ChatMessage(user, DateTimeOffset.UtcNow, message);
+        var msg = new ChatMessage(ChatMessageId.New(), user, DateTimeOffset.UtcNow, message);
         lock (_lock)
         {
             _history.GetOrAdd(name, _ => new List<ChatMessage>()).Add(msg);
@@ -132,23 +134,38 @@ public class ChatService
 ## Step 2 — The Read Model and Command
 
 ```csharp
-// Features/Chat/ChatRoomPage.cs
+// Chat/ChatRoomPage.cs
+using System.Reactive.Subjects;
 using Cratis.Arc.Commands.ModelBound;
 using Cratis.Arc.Queries.ModelBound;
-using System.Reactive.Subjects;
+using Cratis.Concepts;
 
 namespace MyApp.Chat;
 
 // ─── Read Model ───────────────────────────────────────────────────────────────
 
 /// <summary>
+/// Represents the unique identifier of a chat message.
+/// </summary>
+/// <param name="Value">The underlying value.</param>
+public record ChatMessageId(Guid Value) : ConceptAs<Guid>(Value)
+{
+    /// <summary>
+    /// Creates a new, unique <see cref="ChatMessageId"/>.
+    /// </summary>
+    /// <returns>A new identifier.</returns>
+    public static ChatMessageId New() => new(Guid.NewGuid());
+}
+
+/// <summary>
 /// Represents a single chat message.
 /// </summary>
+/// <param name="Id">The unique identifier of the message.</param>
 /// <param name="User">The display name of the sender.</param>
 /// <param name="SentAt">The UTC time the message was sent.</param>
 /// <param name="Message">The message text.</param>
 [ReadModel]
-public record ChatMessage(string User, DateTimeOffset SentAt, string Message)
+public record ChatMessage(ChatMessageId Id, string User, DateTimeOffset SentAt, string Message)
 {
     /// <summary>
     /// Observes the message feed for the given room.
@@ -218,6 +235,8 @@ The `Subject` in `ChatRoom` fires once per `Deliver()` call with a single-elemen
 >
 > **Run `dotnet build`** after saving. The proxy generator produces `ForRoom.ts`, `SendMessage.ts`, and `ChatMessage.ts` — identical in shape to the other chat guides.
 
+`ChatMessage` keeps the `Id` from the other guides, so the generated proxies match and the frontend can key messages by `id`.
+
 ---
 
 ## Step 3 — What the Frontend Receives
@@ -227,10 +246,14 @@ With the backend emitting incremental payloads, this is what the frontend sees i
 | Push | Backend emits | Arc ChangeSet sent | `messagesResult.data` |
 | ---- | ------------- | ------------------ | --------------------- |
 | 1st — history | `[msg1, msg2, msg3]` | `added: [msg1, msg2, msg3]` | `[msg1, msg2, msg3]` |
-| 2nd — new msg | `[msg4]` | `removed: [msg1,msg2,msg3]`, `added: [msg4]` | `[msg4]` |
+| 2nd — new msg | `[msg4]` | `removed: [msg1, msg2, msg3]`, `added: [msg4]` | `[msg4]` |
 | 3rd — new msg | `[msg5]` | `removed: [msg4]`, `added: [msg5]` | `[msg5]` |
 
-Arc's ChangeSet computation compares successive emissions — it sees the previous full history disappear and a single new message appear. This looks odd internally, but `messagesResult.data` from `use()` accurately reflects what the backend emitted: the history on the first push, and only the new message on every subsequent push.
+Arc's ChangeSet computation compares each emission with the previous one, matching items by `Id`. Every item of the previous emission that is missing from the new one is `removed`, and `removed` carries the whole items, not only their ids. So the first message after joining sends the entire history back as `removed` along with the new message, and every later message sends the previous message as `removed` along with the new one. That is more than the other guides send: when the backend publishes the full history, the only difference between two emissions is the new message, so their `ChangeSet` is one item in `added`.
+
+The payload is one message per push only in full transfer mode (`observableQueryTransferMode={ObservableQueryTransferMode.Full}` on `<Arc>`), where Arc sends each emission as it is — here, the new message alone. Choose this backend when the work of copying and comparing a long history on every message matters, or when you use full mode; with delta mode and a small history, the [in-memory](../in-memory) backend is simpler and sends less.
+
+`messagesResult.data` from `use()` accurately reflects what the backend emitted: the history on the first push, and only the new message on every subsequent push.
 
 This is why the frontend must **not** use `useChangeStream()` here. `useChangeStream()` would expose the `removed` side of the ChangeSet, making it appear that history was deleted on every new message. `use()` abstracts that away and gives the component the clean per-emission `data`.
 
@@ -239,7 +262,7 @@ This is why the frontend must **not** use `useChangeStream()` here. `useChangeSt
 ## Step 4 — The React Component
 
 ```tsx
-// Features/Chat/ChatRoomPage.tsx
+// Chat/ChatRoomPage.tsx
 import { useState, useEffect } from 'react';
 import { ForRoom } from './ForRoom';
 import { SendMessage } from './SendMessage';
@@ -322,9 +345,9 @@ export const ChatRoomPage = () => {
                         No messages yet. Say hello!
                     </p>
                 )}
-                {messages.map((msg, index) => (
+                {messages.map(msg => (
                     <div
-                        key={index}
+                        key={String(msg.id)}
                         style={{
                             background: msg.user === user ? '#e8f4fd' : '#f5f5f5',
                             borderRadius: 8,
@@ -381,6 +404,7 @@ export const ChatRoomPage = () => {
 | `ChatService` | Owns history per room; `Send()` records then delivers |
 | `ChatMessage.ForRoom()` | `ReplaySubject(1)` — emits history once, then forwards single-message deliveries |
 | `SendMessage.Handle()` | Delegates to `chatService.Send()` |
-| Network per message | Constant — one `ChatMessage` per push after the initial history |
+| Backend work per message | Constant — one `ChatMessage` per emission after the initial history |
+| Delta-mode payload per message | The new message plus the previous emission as `removed`; one message in full mode |
 | Frontend hook | `use()` — `data` reflects each backend emission directly |
 | Component state | Accumulated via `useEffect` — never replaced, only appended |
