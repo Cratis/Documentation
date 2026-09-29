@@ -360,9 +360,12 @@ products:
           # Arc for TypeScript is a Node.js implementation in source preview. Its
           # validator compiles each snippet against the checkout's own packages,
           # so the checkout needs `yarn install --immutable && yarn build` first;
-          # without them it exits 2 and prints the blocked marker below.
+          # without them it exits 2 and prints the blocked marker below. The tab
+          # label says so, because a shared page's first screen may show only tabs.
+          # Every backend tab set shares this axis's syncKey and syncs by label, so
+          # the label must stay the same on every page.
           typescript:
-            label: TypeScript
+            label: TypeScript (preview)
             snippets:
               paths:
                 - ../../Arc.TypeScript/Documentation/client-snippets
