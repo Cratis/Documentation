@@ -39,8 +39,6 @@ The Reservation slice supplies the events that open and close a reservation. The
 
 <ArcBackendTabs snippet="scenarios/vertical-slices/automation/reservation-domain" />
 
-The Kotlin and Java events and read models carry times as epoch milliseconds: the JVM Chronicle client serializes `java.time` values as JSON objects, and Chronicle rejects such an append against the event's schema (see the [backend table](/scenarios/vertical-slices/#how-the-backends-differ)).
-
 A `BookReserved` event starts the clock. If the member collects the book (`BookBorrowedFromReservation`), the reservation is closed. If they do not collect it before `ExpiresAt`, the system should cancel it and release the copy back to inventory.
 
 ## Folder structure
@@ -68,8 +66,10 @@ There is no `.tsx` file for this slice, because Automation has no UI: everything
 
 The sweep needs each reservation's ID in the model; Kotlin and Java mark `id` with `@FromEventSourceId` so the projection copies the event-source ID into it.
 
-:::note[Kotlin and Java need Chronicle.Kotlin 6.5.0 or later]
-Both JVM read models rely on projection instances being keyed by their event source. Before Chronicle.Kotlin 6.5.0, the client sent a projection key the kernel did not recognize, so every instance collapsed onto one empty key ([Cratis/Chronicle#3924](https://github.com/Cratis/Chronicle/issues/3924)). Arc.Kotlin uses 6.7.0, which includes the client-side fix; the issue remains open for the kernel side.
+:::note[Kotlin and Java need Chronicle.Kotlin 6.8.0 or later]
+Both JVM read models rely on projection instances being keyed by their event source. Before Chronicle.Kotlin 6.5.0, the client sent a projection key the kernel did not recognize, so every instance collapsed onto one empty key ([Cratis/Chronicle#3924](https://github.com/Cratis/Chronicle/issues/3924)). Arc.Kotlin uses 6.9.0, which includes the client-side fix; the issue remains open for the kernel side.
+
+The `Instant` times in the events and read models need 6.8.0, which serializes `java.time` values as ISO-8601 strings. Earlier versions wrote them as JSON objects, and Chronicle rejects such an append against the event's schema.
 :::
 
 **The cancellation command** `CancelExpiredReservation` provides the current time before its handler runs, so you can also test the decision directly with a fixed timestamp. The handler asks for the pending reservation by the command's `ReservationId`, and the Arc–Chronicle integration resolves that projection on demand. The handler accepts a missing reservation — a nullable parameter in C# and Kotlin, `commandReadModel(PendingReservation, { optional: true })` in TypeScript, and `Optional` in Java. A missing, collected, canceled, or already expired reservation produces no new event; a reservation whose deadline has passed produces `ReservationExpired`.

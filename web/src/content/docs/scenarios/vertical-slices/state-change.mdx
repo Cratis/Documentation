@@ -6,7 +6,7 @@ description: Build the Library's author registration as an Event Modeling State 
 import YouWillLearn from '@components/YouWillLearn.astro';
 import Recap from '@components/Recap.astro';
 
-A librarian types an author's first and last name into a dialog and presses **Register**. Arc validates the names, Chronicle records that the author was registered, and the dialog closes with the new author's ID. Where the backend enforces unique names, a second registration of exactly the same name is rejected. Registering an author is the Library's first **State Change**, shown with a C#, Kotlin, Java or TypeScript (source preview) backend.
+A librarian types an author's first and last name into a dialog and presses **Register**. Arc validates the names, Chronicle records that the author was registered, and the dialog closes with the new author's ID. A second registration of exactly the same name is rejected. Registering an author is the Library's first **State Change**, shown with a C#, Kotlin, Java or TypeScript (source preview) backend.
 
 This series uses Arc with its optional Chronicle integration; Arc also supports commands and queries without event sourcing.
 
@@ -17,7 +17,7 @@ Start with an application configured for Arc with its Chronicle integration, pro
 - a `RegisterAuthor` command with built-in validation
 - an `AuthorRegistered` event stored in Chronicle
 - a `CommandDialog`-based React form that calls the command and gives the user feedback
-- a uniqueness constraint to prevent duplicate author names, where the backend supports it
+- a uniqueness constraint to prevent duplicate author names
 
 </YouWillLearn>
 
@@ -81,7 +81,7 @@ The uniqueness rule belongs to the same file:
 
 **The command validator** runs automatically before the handler is ever called. If any rule fails, the command pipeline short-circuits and returns validation errors to the caller; the validator reports a failed rule without throwing an exception. C# builds it on FluentValidation (a [`CommandValidator<T>`](/arc/backend/csharp/commands/command-validation/)); TypeScript uses Arc's `CommandValidator` with `ruleFor`; Kotlin and Java implement Arc's command-validator interface and return validation results.
 
-**The [constraint](/chronicle/constraints/)** guards the combination of `FirstName` and `LastName` across authors in the event store namespace. `On` selects the two properties themselves, and the constraint computes no concatenated string from them. This tutorial keeps the Library's rule that an exact name combination may be registered only once; it does not treat names as a universal way to identify people. Kotlin and Java have no append-time uniqueness rule here (see the [backend table](/scenarios/vertical-slices/#how-the-backends-differ)).
+**The [constraint](/chronicle/constraints/)** guards the combination of `FirstName` and `LastName` across authors in the event store namespace. `On` selects the two properties themselves, and the constraint computes no concatenated string from them. This tutorial keeps the Library's rule that an exact name combination may be registered only once; it does not treat names as a universal way to identify people. Kotlin and Java name the same two properties and need Chronicle.Kotlin 6.9.0 or later; earlier versions cannot express a constraint over more than one property.
 
 Chronicle checks uniqueness **when the returned event is committed, after the handler has run**. A duplicate produces a constraint violation in the command result and the attempted registration is not appended. That is different from input validation, which short-circuits before the handler.
 
@@ -249,7 +249,7 @@ These C# scenarios use the in-process Chronicle kernel — no Docker or MongoDB 
 
 - `AuthorRegistered` is a [Chronicle](/chronicle/) [event type](/chronicle/events/); `RegisterAuthor` and its handler are an [Arc](/arc/) model-bound command.
 - `RegisterAuthorValidator` and `AuthorNameValidator` are the [Arc](/arc/) command and concept validators for the input.
-- `UniqueAuthorName` (C# and TypeScript) is the [Chronicle](/chronicle/) [constraint](/chronicle/constraints/) that rejects a duplicate name.
+- `UniqueAuthorName` is the [Chronicle](/chronicle/) [constraint](/chronicle/constraints/) that rejects a duplicate name.
 - `AddAuthor.tsx` is the React form, built on [`CommandDialog`](/components/commanddialog/) from [`@cratis/components`](/components/).
 
 The event, command validator, constraint and command live in one slice, `Authors/Registration/`, and the frontend is one component that imports one generated proxy. With discovery and proxy generation configured, the framework connects the HTTP command, validation, and event append.
