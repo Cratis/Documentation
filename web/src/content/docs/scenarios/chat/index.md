@@ -51,7 +51,7 @@ The backend changes fundamentally. `ChatRoom` becomes a pure pub/sub channel wit
 Covers:
 
 - Separating pub/sub (`ChatRoom`) from history (`ChatService`)
-- Why `ReplaySubject(1)` is needed when the first payload is emitted before Arc subscribes
+- Sending the history and subscribing to the room in one step, so a joining subscriber neither misses nor repeats a message
 - Why `use()`, not `useChangeStream()`, is correct when the backend sends incremental payloads
 - A `useEffect` accumulator that appends both the initial history and each new arrival
 
@@ -67,7 +67,7 @@ The pattern is the same in every backend. These are the places where the code di
 | One `ChatService` instance | `builder.Services.AddSingleton<ChatService>()` | `@Component` | `@Component` | `@singleton()` |
 | Authorization on the query and command | None | `@AllowAnonymous`, because Arc on the JVM requires an authenticated caller by default | `@AllowAnonymous`, for the same reason | None |
 | RabbitMQ publisher and consumer | Shown; the consumer is a `BackgroundService` | Use your platform's AMQP client | Use your platform's AMQP client | Use your platform's AMQP client |
-| Incremental Pushes backend | Shown, with a System.Reactive `Subject` and `ReplaySubject(1)` | Same building block: `MutableSharedFlow(replay = 1)` | Not shown | Same building block: RxJS `ReplaySubject` |
+| Incremental Pushes backend | Shown, with a System.Reactive `Subject` and `Observable.Create` | Same building block: a `Flow` built per subscriber, such as `callbackFlow` | Not shown | Same building block: an RxJS `Observable` built per subscriber |
 
 Choosing C# for the Incremental Pushes backend is a scope choice, not a limit of the other backends.
 
@@ -79,7 +79,7 @@ Choosing C# for the Incremental Pushes backend is a scope choice, not a limit of
 | - | --------- | -------- | -------------- | ------------------ |
 | Backend emits | Full history | Full history | Full history | History once, then single messages |
 | History lives in | `ChatRoom` | `ChatRoom` | `ChatRoom` | `ChatService` |
-| C# relay type | `BehaviorSubject` | `BehaviorSubject` | `BehaviorSubject` | `ReplaySubject(1)` |
+| C# relay type | `BehaviorSubject` | `BehaviorSubject` | `BehaviorSubject` | `Observable.Create`, one stream per subscriber |
 | Backend work per message | Grows | Grows | Grows | Constant |
 | Delta-mode payload per message | New message | New message | New message | New message + previous emission as `removed` |
 | React hook | `use()` | `use()` | `useChangeStream()` | `use()` |
