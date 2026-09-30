@@ -53,7 +53,7 @@ The steps below are the same for every backend. Where the code differs, this tab
 | Author id in the generated proxy (step 2) | `Guid`, from `EventSourceId<Guid>` | `Guid`, from a UUID-backed concept | `Guid`, from `ConceptAs<Guid>` |
 | Anonymous callers (step 3) | Accepted; the command declares no authorization | Rejected by default; the author types carry `@AllowAnonymous` | Accepted; the command declares no authorization |
 | Read model (step 4) | Projection from the event, with AutoMap | Reducer keyed by the event's source id | Projection from the event |
-| Author list (step 4) | Live: re-renders when the projection changes | Snapshot: the Chronicle kernel's materialized observation fails on MongoDB ([Chronicle#4365](https://github.com/Cratis/Chronicle/issues/4365)); reload to see a new author | Live: re-renders when the projection changes |
+| Author list (step 4) | Live: re-renders when the projection changes | Live: observes the first page of 50 materialized instances; needs Chronicle 19.22.2 or later | Live: re-renders when the projection changes |
 | Generated proxies (step 4) | `dotnet build`, beside the types in `Authors/` | `./gradlew build`, under `build/generated/arc-proxies/` | The sample's `build`, as `*.proxy.ts` beside each feature |
 
 ## 1. Wire the host (backend)
@@ -80,14 +80,14 @@ The read model describes the list entry; the event feeds it, and a query exposes
 
 <ArcBackendTabs snippet="capstone/author-read-model" />
 
-Build your backend now (`dotnet build`, `./gradlew build`, or the Library sample's `yarn workspace @cratis/arc.sample.library build`). The build generates TypeScript command and query proxies: change a property on the backend and the frontend must compile against the updated shape. Chronicle projects asynchronously, so a successful command can precede the updated list. On Kotlin and Java, `allAuthors` returns a snapshot (see *Author list* in the table above).
+Build your backend now (`dotnet build`, `./gradlew build`, or the Library sample's `yarn workspace @cratis/arc.sample.library build`). The build generates TypeScript command and query proxies: change a property on the backend and the frontend must compile against the updated shape. Chronicle projects asynchronously, so a successful command can precede the updated list. On Kotlin and Java, `allAuthors` observes a page of materialized instances (see *Author list* in the table above).
 
 ## 5. Build the screen (frontend)
 
-The screen below is the shared React flow from the [compiled C# Capstone sample](https://github.com/Cratis/Samples/tree/main/Capstone): run a generated command in a dialog, read a generated query, mount a route. Use the same Components with every backend, adjusting the generated proxy imports and, on Kotlin and Java, rerunning the snapshot query:
+The screen below is the shared React flow from the [compiled C# Capstone sample](https://github.com/Cratis/Samples/tree/main/Capstone): run a generated command in a dialog, read a generated query, mount a route. Use the same Components with every backend, adjusting the generated proxy imports:
 
 - **C#:** The snippets below import proxies co-located in `Authors/`; the id in the command proxy is a `Guid`.
-- **Kotlin and Java:** Import `RegisterAuthor.ts` and `AllAuthors.ts` under `build/generated/arc-proxies/` via your scaffold's `Api/` alias; the id in the command proxy is a `Guid`, as in C#. `AllAuthors.use()` returns the query's result and a function that runs it again: await `showAddAuthor()` and then call that function, or revisit `/authors`, to see the new author. It can take a moment to appear, because Chronicle projects asynchronously.
+- **Kotlin and Java:** Import `RegisterAuthor.ts` and `AllAuthors.ts` under `build/generated/arc-proxies/` via your scaffold's `Api/` alias; the id in the command proxy is a `Guid`, as in C#. `AllAuthors` is observable, so `.use()` re-renders when the new author is projected. It can take a moment to appear, because Chronicle projects asynchronously.
 - **TypeScript:** Import `RegisterAuthor` from `Features/Authors/Registration/RegisterAuthor.proxy.ts` and `AllAuthors` from `Features/Authors/Listing/AllAuthors.proxy.ts`; keep `Guid.create()` for its id. Its [RegisterAuthorForm](https://github.com/Cratis/Arc.TypeScript/blob/main/Samples/Library/Features/Authors/Registration/RegisterAuthorForm.tsx) seeds the id before validation with `initialValues`.
 
 <Steps>
@@ -111,7 +111,7 @@ The screen below is the shared React flow from the [compiled C# Capstone sample]
    );
    ```
 
-2. **A screen that reads the query.** In [`Authors.tsx`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/Authors.tsx), the generated `AllAuthors` proxy is observable for C# and TypeScript: `.use()` re-renders when the projection changes. The Kotlin and Java proxy returns a snapshot (see the table). The button opens the dialog above:
+2. **A screen that reads the query.** In [`Authors.tsx`](https://github.com/Cratis/Samples/blob/main/Capstone/Authors/Authors.tsx), the generated `AllAuthors` proxy is observable: `.use()` re-renders when the projection changes. Kotlin and Java observe a page of materialized instances (see the table). The button opens the dialog above:
 
    ```tsx
    import { useDialog } from '@cratis/arc.react/dialogs';
@@ -149,7 +149,7 @@ The screen below is the shared React flow from the [compiled C# Capstone sample]
 
 - You built one vertical slice in your chosen backend: host, id, command, event, read model, query, and React screen for one behavior.
 - The screen calls proxies generated from your backend types, not a hand-written client; after a backend change, rebuild so the frontend compiles against the updated shape.
-- The command returned a fact; Chronicle appended it and built the read model, and the query delivered the list to the UI. C# and TypeScript update the list live; Kotlin and Java return a snapshot until live observation works on the JVM.
+- The command returned a fact; Chronicle appended it and built the read model, and the query delivered the list to the UI. Every backend updates the list live.
 
 Next, the [vertical slices series](/scenarios/vertical-slices/) grows the same Library domain one Event Modeling pattern at a time.
 

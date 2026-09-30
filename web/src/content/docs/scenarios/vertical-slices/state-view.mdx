@@ -6,7 +6,7 @@ description: Project the Library's AuthorRegistered events into an Author read m
 import YouWillLearn from '@components/YouWillLearn.astro';
 import Recap from '@components/Recap.astro';
 
-The librarian has registered a few authors and now wants to see them: an Authors page with each author's first and last name, sortable, with an **Add Author** action on the toolbar. The events recorded by the [register-an-author slice](/scenarios/vertical-slices/state-change/) already hold those names. This **State View** projects them into a read model shaped for that page and queries it. With a C# or TypeScript backend (the TypeScript one a source preview), the page updates as authors are registered. Kotlin and Java return a snapshot instead, one of the differences the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists.
+The librarian has registered a few authors and now wants to see them: an Authors page with each author's first and last name, sortable, with an **Add Author** action on the toolbar. The events recorded by the [register-an-author slice](/scenarios/vertical-slices/state-change/) already hold those names. This **State View** projects them into a read model shaped for that page and queries it. The page updates as authors are registered, with every backend (the TypeScript one a source preview). How each backend observes the list is one of the differences the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) lists.
 
 <YouWillLearn title="What you'll build">
 
@@ -54,7 +54,7 @@ Define an `Author` view with an identity and the two names from registration, th
 
 The read model describes the list the screen needs. In C# and TypeScript, a convention-based projection maps matching event properties to it, and the event-source ID supplies the model identity. The query observes changes to Chronicle's MongoDB sink in C# and uses `ChronicleReadModels.observeAll` in TypeScript. Configure the host's read-model storage and observation before expecting live updates.
 
-Kotlin and Java use a reducer: their model-bound `@FromEvent` does not currently populate the model identity from the event-source ID, so the reducer reads `EventContext` to set `id`. On Kotlin and Java, `allAuthors` returns a snapshot because the Chronicle kernel's materialized observation fails on MongoDB ([Chronicle#4365](https://github.com/Cratis/Chronicle/issues/4365)); run the query again to see an author registered since. Do not substitute a Spring Data MongoDB observable query here: that observes a different persistence path.
+Kotlin and Java use a reducer: their model-bound `@FromEvent` does not currently populate the model identity from the event-source ID, so the reducer reads `EventContext` to set `id`. On Kotlin and Java, `allAuthors` observes the first page of 50 materialized instances through Chronicle, which needs a Chronicle kernel of 19.22.2 or later. Do not substitute a Spring Data MongoDB observable query here: that observes a different persistence path.
 
 Build the backend before importing the query in the UI. The build generates the query proxy `AllAuthors` and the model `Author`:
 
@@ -140,7 +140,7 @@ export const Listing = () => {
 **`MenuItem`** in the `MenuItems` slot adds an action to the toolbar. The `command` handler `await`s the dialog; with an observable query, the list updates after a successful registration.
 
 :::note[Using a Kotlin or Java backend]
-The JVM `AllAuthors` query returns a snapshot, and this component alone does not turn that snapshot into a live Chronicle subscription. `DataPage` fetches it again when the listing is remounted, its query arguments change or the table moves to another page. It does not refetch when the dialog closes: revisit the Authors route to remount `DataPage` and reload the list. `DataPage`'s `onRefresh` prop only forwards a callback to a details component; it does not refetch the query.
+The JVM `AllAuthors` query observes the first page of 50 materialized instances, so the list updates after a registration as it does with the other backends. It needs a Chronicle kernel of 19.22.2 or later; on earlier kernels, materialized observation fails on MongoDB.
 :::
 
 The `AddAuthor` component is imported from the Registration slice. Slices within the same feature can use each other's components because they share the `AuthorId` and `AuthorName` concepts from the parent folder.
@@ -180,7 +180,7 @@ export const App = () => (
 
 - The `AuthorRegistered` events that the [register-an-author slice](/scenarios/vertical-slices/state-change/) records build `Author`, a [Chronicle](/chronicle/) read model, through a projection or reducer. The alternative fluent example follows `AuthorImported`.
 - `allAuthors` / `AllAuthors` is the [Arc](/arc/) query over that projected state, and each backend's [Arc](/arc/) build generates its proxy.
-- `Listing.tsx` shows the list with [`DataPage`](/components/datapage/) from [`@cratis/components`](/components/): live with C# and TypeScript, and a snapshot with Kotlin and Java until a Chronicle-backed observable query is available.
+- `Listing.tsx` shows the list with [`DataPage`](/components/datapage/) from [`@cratis/components`](/components/): live with every backend.
 
 To present authors differently later, change the projection or reducer and replay it against the same registration events.
 

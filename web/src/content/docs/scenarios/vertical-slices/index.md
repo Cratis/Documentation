@@ -76,7 +76,7 @@ The tutorials teach one design in four backend languages. Where a backend cannot
 
 | Behavior | C# | Kotlin and Java | TypeScript (preview) |
 | --- | --- | --- | --- |
-| Author list ([State View](/scenarios/vertical-slices/state-view/)) | Live: the query observes Chronicle's MongoDB sink | Snapshot: the kernel's materialized observation fails on MongoDB ([Chronicle#4365](https://github.com/Cratis/Chronicle/issues/4365)) | Live: `ChronicleReadModels.observeAll` |
+| Author list ([State View](/scenarios/vertical-slices/state-view/)) | Live: the query observes Chronicle's MongoDB sink | Live: observes the first page of 50 materialized instances; needs Chronicle 19.22.2 or later | Live: `ChronicleReadModels.observeAll` |
 | Commands called without a signed-in user | The commands declare no authorization rules | Marked `@AllowAnonymous`, because Arc on the JVM requires an authenticated caller by default | The commands declare no authorization rules |
 | How Chronicle finds a reactor's handler ([Automation](/scenarios/vertical-slices/automation/#how-each-backend-runs-the-reactor)) | Supported signatures and event parameter types on an `IReactor` | The event parameter type on a `@Reactor` class | The method name: the event class name with its first letter lowercased, on a `@reactor()` class |
 | How a reactor runs commands ([Automation](/scenarios/vertical-slices/automation/#how-each-backend-runs-the-reactor)) | It calls the injected `ICommandPipeline` and throws on failure | It passes each command to `ChronicleCommandSideEffectHandler` and throws on failure | It returns the commands; Arc's `reactorCommandResultHandler` runs them |
