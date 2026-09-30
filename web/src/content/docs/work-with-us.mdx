@@ -13,7 +13,7 @@ We maintain Chronicle, Arc, Components, and the rest of the stack. If you are ev
 
 <CardGrid>
   <LinkCard title="Contact us" description="Email the Cratis maintainers with your context, the kind of help you need, and the timeframe." href="mailto:oss@cratis.io?subject=Working%20with%20Cratis" />
-  <LinkCard title="Ask in the community first" description="Discord is open, free, and often faster when the question can be discussed publicly." href="/community/" />
+  <LinkCard title="Ask in the community first" description="Discord is open, free, and best-effort, and suits questions that can be discussed publicly." href="/community/" />
   <LinkCard title="How dedicated help works" description="What separates a private engagement from community support, and how to prepare an inquiry." href="/professional-help/" />
 </CardGrid>
 
@@ -36,7 +36,7 @@ You do not need a finished design or an approved budget to start a conversation.
 | Cratis adoption | Slice selection, product choice, and a path from the system you run today | A sequenced adoption plan with the first slice specified |
 | Architecture review | A read of your model, consistency boundaries, tenancy, storage, and failure modes | A written review with the risks ranked and the fixes named |
 | Implementation help | Pairing, pull-request guidance, or focused development on a bounded slice | Working slices in your codebase, built the way the stack intends |
-| AI-ready foundations | Conventions, analyzers, and `.ai` guidance set up so assistants build to your standards | A repository where developers and agents follow the same rails |
+| AI-ready foundations | Conventions, analyzers, and Cratis AI guidance set up so assistants build to your standards | A repository where developers and agents follow the same rails |
 | Teaching event sourcing | Domain events, consistency, projections, replay, versioning, and the operational trade-offs | A team that can model without us in the room |
 | Teaching the stack | Chronicle, Arc, Components, and the CLI, taught through the full-stack loop | A team productive in the stack without shadowing someone |
 | Production readiness | A review of TLS, storage, secrets, deployment, observability, replay, and backup plans | A checked list of what must be true before you go live |
@@ -45,9 +45,9 @@ You do not need a finished design or an approved budget to start a conversation.
 
 There is a reason we lead with the model rather than the tooling. An assistant is only as good as the structure it works inside: give it a vague codebase and it produces vague code, faster. Give it recorded facts, typed contracts that span the stack, and conventions a compiler or analyzer can check, and its output starts landing inside the lines.
 
-Cratis ships that structure. Generated proxies break the build when a contract drifts, analyzers catch the shapes that are wrong before review does, and the `.ai` rules and skills are written to be read by assistants directly. A large part of any engagement is putting those rails in place, so that moving faster does not quietly cost you the model.
+Cratis ships that structure. Generated proxies break the build when a contract drifts, analyzers catch the shapes that are wrong before review does, and the Cratis AI rules and skills are written to be read by assistants directly. A large part of any engagement is putting those rails in place, so that moving faster does not quietly cost you the model.
 
-For what this looks like in the products themselves, see [AI-native development](/ai/), the [editor and assistant plugins](/plugins/), and [code analysis](/code-analysis/).
+For what this looks like in the products themselves, see [AI-native development](/ai/), [Cratis AI skills and plugins](/plugins/), and [code analysis](/code-analysis/).
 
 ## How we work
 
@@ -70,7 +70,7 @@ Enough context for us to tell you honestly whether we can help:
 
 Being direct about the limits saves everyone a meeting:
 
-- **The question can be answered in public.** [Community and help](/community/) is free, open, and usually faster.
+- **The question can be answered in public.** [Community and help](/community/) is free and open.
 - **You found a vulnerability.** Use [Security](/security/) for responsible disclosure instead.
 - **You want a general .NET or React consultancy.** We work on the model, the stack, and the architecture around them.
 

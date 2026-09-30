@@ -1,51 +1,61 @@
 ---
 title: Production readiness
-description: Cross-stack checklist for deploying and operating Cratis with versioned artifacts, TLS, storage, secrets, identity, observability, replay, and support paths.
+description: Cross-stack checklist for deploying and operating Cratis with versioned artifacts, TLS and encryption certificates, storage, backups, secrets, identity, observability, replay, and support paths.
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
 Production readiness is not one switch. Cratis gives you the event log, generated contracts, operational tools, and hosting configuration, but you still need explicit choices for storage, secrets, identity, deployment, monitoring, replay, and incident handling.
 
-Use this checklist before deploying Chronicle or a full Cratis application.
+Use this checklist before deploying Chronicle or a full Cratis application. Each item links to the product page that owns the details.
 
 <CardGrid>
-  <LinkCard title="Chronicle production hosting" description="Container deployment, storage, scaling, TLS, and operational concerns for Chronicle." href="/chronicle/hosting/production/" />
+  <LinkCard title="Chronicle production hosting" description="The production image, required certificates, storage, backups, scaling, and health checks." href="/chronicle/hosting/production/" />
   <LinkCard title="Version compatibility" description="Runtime, package, React, Node, storage, and tooling compatibility." href="/compatibility/" />
   <LinkCard title="Security" description="Report vulnerabilities privately and review operational hardening expectations." href="/security/" />
 </CardGrid>
 
+<Aside type="caution" title="The production image will not start on development settings">
+`cratis/chronicle:latest` and the versioned release tags always take the production code path. It needs a storage connection, a **TLS certificate**, and an **encryption certificate** before it starts. The TLS certificate is needed even when a proxy or load balancer terminates TLS in front of Chronicle, because Chronicle serves gRPC and HTTP over its own TLS port. The encryption certificate protects Chronicle's internal OAuth authority and is not needed when you use an external authority instead. A Compose file that works against `latest-development` fails against `latest` for exactly this reason. See [what makes a build a production build](/chronicle/hosting/production/#what-makes-a-build-a-production-build).
+</Aside>
+
 ## Release and deployment
 
-- Pin package versions and Docker image tags.
+- Pin package versions and Docker image tags. Use a specific Chronicle release tag, not `latest`, and never a `latest-development` image outside development and CI.
 - Keep environment-specific configuration outside images.
-- Run the full build and docs/test gates before release.
+- Run the full build, specs, and documentation gates before release.
 - Keep a rollback plan for application code, projections, configuration, and infrastructure.
 - Record which Chronicle, Arc, Components, CLI, and app versions are deployed together.
 
 ## Storage and data
 
 - Choose the Chronicle storage engine deliberately: MongoDB, PostgreSQL, Microsoft SQL Server, or SQLite.
-- Configure backups and restore drills for the chosen store.
+- Run MongoDB as a replica set, even with a single node. Chronicle uses MongoDB transactions, which a standalone `mongod` rejects. See [storage requirements](/chronicle/hosting/production/#storage-requirements).
+- Back up the encryption certificates, the storage backend, and the compliance key store together, and practice restoring them in the documented order. A database backup alone is not restorable. See [backup and restore](/chronicle/hosting/production/#backup-and-restore).
+- Plan how a restore re-applies erasures made after the backup was taken: restoring a pre-erasure backup brings deleted PII keys back. See [key lifecycle](/chronicle/compliance/key-lifecycle/).
+- If you move compliance keys to a dedicated store on a system that already runs, set `migrateFromDefaultStorage`. Without it, existing `[PII]` values silently read back as empty strings. See [compliance storage](/chronicle/hosting/configuration/compliance-storage/#migrating-from-the-default-storage).
+- Declare read-model indexes with `[Index]` instead of creating them by hand; Chronicle recreates read-model containers during replay, and hand-made indexes do not survive that. See [indexing read models](/chronicle/read-models/indexing/).
 - Decide retention for replay-generated read model versions.
 - Plan how projection rebuilds and event replays are executed and monitored.
-- Keep event type migrations tested before old event generations reach production.
+- Test event type migrations before old event generations reach production.
 
 ## Security and identity
 
-- Use TLS for service-to-service and client connections, or document where TLS is terminated.
-- Store secrets in a real secret manager or platform secret store.
+- Use TLS for service-to-service and client connections, and configure real certificates, not self-signed development ones.
+- Store secrets and certificate passwords in a real secret manager or platform secret store.
 - Configure authentication, admin bootstrap, clients, and identity-provider certificates intentionally.
-- Avoid development-only passwords, certificates, and generated secrets in staging or production.
+- Avoid development-only passwords, client credentials, certificates, and generated secrets in staging or production.
+- In a multi-tenant application, reject requests without a valid tenant when default-namespace access is not allowed. See [auth and compliance](/auth-and-compliance/).
 - Follow the private reporting path on [Security](/security/) for vulnerabilities.
 
 ## Operations
 
 - Enable OpenTelemetry where your environment can collect traces and metrics.
+- Configure health checks for your orchestrator.
 - Decide who watches failed partitions, jobs, observers, projections, and subscriptions.
 - Install and configure the [CLI](/cli/) for production diagnostics.
 - Keep runbooks for replaying projections, retrying failed partitions, and verifying appended events.
-- Define escalation paths: community, GitHub issue, or [Work with us](/work-with-us/) for dedicated support.
+- Define escalation paths: [community](/community/), GitHub issues, or [professional help](/professional-help/).
 
 ## User-facing application
 

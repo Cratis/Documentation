@@ -13,6 +13,34 @@ This FAQ answers the questions that usually come up before a team commits to Cra
   <LinkCard title="Ask the community" description="Bring open questions to Discord when the answer depends on your context." href="/community/" />
 </CardGrid>
 
+## Where do I start if I want to build something today?
+
+It depends on what you want to see working first:
+
+- **A full-stack .NET application:** follow [Build a full-stack feature](/build-a-full-app/). It scaffolds an app from the Cratis template and adds one slice from command to live React screen.
+- **Only the event store:** follow [Chronicle getting started](/chronicle/get-started/). It starts a local kernel and shows one event reaching a projection and a reactor in each client language.
+- **A reading order for your role:** pick a route from [Learning paths](/learning-paths/).
+
+## What do I need installed to try it?
+
+Chronicle runs as a separate kernel that your application connects to. For local development the quickest route is Chronicle's development container image, which bundles MongoDB and the Workbench, so you need Docker. [Choose an application host model](/chronicle/get-started/choose-hosting-model/) also covers Docker Compose and .NET Aspire.
+
+The rest depends on your language:
+
+| You are building | You need |
+| --- | --- |
+| The C# full-stack web template | The .NET 10 SDK, Node.js for the React frontend, and Docker |
+| The Kotlin or Java full-stack template | JDK 17 or newer, Node.js 20 or newer, and Docker |
+| A standalone TypeScript, Kotlin/Java, or Elixir client | Your client's toolchain (see its setup guide) and a running kernel |
+
+To scaffold, you need either the .NET SDK (for `dotnet new`) or the [Cratis CLI](/cli/getting-started/) (for `cratis new`). The CLI is available as a native binary on macOS and Linux, so a Kotlin or Java project can be scaffolded there without the .NET SDK. On Windows the CLI installs as a .NET global tool, which needs the SDK. Building and running a C# project always needs the .NET SDK.
+
+## Do I have to use .NET?
+
+No. Chronicle's kernel speaks gRPC, and it ships TypeScript, Kotlin/Java, and Elixir clients in addition to the .NET SDK; [Which languages can talk to Chronicle?](#which-languages-can-talk-to-chronicle) lists the packages. Arc has Kotlin and Java backends on Spring Boot, and the [Cratis Kotlin](/templates/cratis-kotlin/) and [Cratis Java](/templates/cratis-java/) templates scaffold a full-stack application with them. On macOS and Linux, the Cratis CLI's [`cratis new`](/cli/new/) can scaffold those projects without the .NET SDK installed.
+
+The .NET SDK remains the first-class Chronicle client, and some pages document C# only.
+
 ## Is Cratis only for event sourcing?
 
 No. Chronicle is the event-sourcing engine, but Arc can be used without Chronicle for CQRS over current-state storage. Components can be used with Arc-generated proxies, and Fundamentals provides shared .NET and TypeScript utilities.
@@ -59,15 +87,19 @@ See [Chronicle storage](/chronicle/hosting/configuration/storage/), [Arc MongoDB
 
 Cratis is not a single library replacement. Chronicle is an event-sourcing engine; Arc is a CQRS and proxy-generation framework; Components is a React library built around those generated contracts. The comparisons are about architecture shape more than API surface.
 
-Start with [MediatR, MVC, and Arc](/arc/backend/csharp/coming-from-mediatr-and-mvc/) and [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/).
+- Comparing event stores: [Compare event sourcing for .NET](/compare-event-sourcing-dotnet/) covers KurrentDB, Marten, and Chronicle, and [Compare event sourcing on the JVM](/compare-event-sourcing-jvm/) covers Axon Framework, KurrentDB, and Chronicle. Both name the versions they compared.
+- Coming from MediatR or MVC controllers: [MediatR, MVC, and Arc](/arc/backend/csharp/coming-from-mediatr-and-mvc/).
+- Coming from EF Core and tables: [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/).
+
+Wolverine appears in the .NET comparison as the Critter Stack's messaging and web framework next to Marten; there is no separate Wolverine-to-Arc comparison.
 
 ## What does Cratis cost, and what license is it under?
 
-Everything Cratis publishes today is MIT licensed and free to use — Chronicle, Arc, Components, the CLI, the clients, and the supporting libraries. There is no paid tier for the software itself. If you want dedicated, private help, see [Work with us](/work-with-us/).
+Everything Cratis publishes today is MIT licensed and free to use — Chronicle, Arc, Components, the CLI, the clients, and the supporting libraries. There is no paid tier for the software itself. If you want dedicated, private help, see [Professional help](/professional-help/).
 
 ## Where do I ask for help?
 
-Use [Community and help](/community/) for open questions, [Feedback and suggestions](/feedback/) for product and docs feedback, GitHub issues for durable bugs and feature requests, and [Work with us](/work-with-us/) when you need private, dedicated time.
+Use [Community and help](/community/) for open questions, [Feedback and suggestions](/feedback/) for product and docs feedback, GitHub issues for durable bugs and feature requests, and [Professional help](/professional-help/) when you need private, dedicated time.
 
 ## Where do I see what changed?
 

@@ -8,12 +8,12 @@ import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
 <TopicHero icon="list-format" eyebrow="The Cratis Stack" title="Design the flow before you write the code">
-The hard part of an event-sourced system isn't the plumbing — it's deciding *what the events are*, where commands come from, and which read model each screen needs. Get that wrong and you find out late, in code. **Event modeling** is a way to lay the whole flow out on a single timeline first. And because that timeline's pieces are exactly Cratis's building blocks, the model you draw *is* the blueprint for your slices.
+The hard part of an event-sourced system is not the plumbing. It is deciding *what the events are*, where commands come from, and which read model each screen needs. Get that wrong and you find out late, in code. **Event modeling** lays the whole flow out on one timeline first, and because the timeline's pieces map onto Cratis's building blocks, the model you draw becomes the blueprint for your slices.
 </TopicHero>
 
 ## What it is
 
-[Event modeling](https://eventmodeling.org/) describes a system as a **timeline of information moving between people and machines** — you read it left to right, like a comic strip. A user does something on a **screen**, that issues a **command**, the command records an **event**, and events are projected into **read models** that feed the next screen. Nothing else. The whole notation is five kinds of sticky note:
+[Event modeling](https://eventmodeling.org/) describes a system as a **timeline of information moving between people and machines** — you read it left to right, like a comic strip. A user does something on a **screen**, that issues a **command**, the command records an **event**, and events are projected into **read models** that feed the next screen. The core notation is five kinds of sticky note:
 
 ```mermaid
 eventmodeling
@@ -30,10 +30,10 @@ tf 08 evt Inventory.StockDecreased
 
 Read it as a story. A reader reserves a book on a **screen** (`ui`); that fires the `ReserveBook` **command** (`cmd`), which records the `BookReserved` **event** (`evt`) — an immutable fact. That fact is projected into an `Availability` **read model** (`rmo`) that the catalog screen reads. And a **processor** (`pcr`) watching reservations quietly issues a follow-up command to decrease stock. The rows are **swimlanes** — one per bounded context (`Reservations`, `Inventory`).
 
-That's the entire vocabulary: **wireframe, command, event, read model, processor.** No class diagrams, no database schemas — just the flow of facts.
+The vocabulary is small: **wireframe, command, event, read model, processor.** There are no class diagrams and no database schemas, only the flow of facts.
 
 <Aside type="tip" title="Why past tense matters">
-Events are named in the **past tense** — `BookReserved`, not `ReserveBook` — because they are facts that already happened and can never be un-happened. If you catch yourself wanting a nullable field on an event ("reserved-or-maybe-cancelled"), that's the model telling you it's really *two* events.
+Events are named in the **past tense** — `BookReserved`, not `ReserveBook` — because they are facts that already happened and can never be un-happened. If you catch yourself wanting a nullable field on an event ("reserved-or-maybe-cancelled"), the model is usually telling you it is really *two* events. Chronicle's analyzers warn about nullable event properties for the same reason.
 </Aside>
 
 ## Why it's useful
@@ -42,11 +42,11 @@ A timeline this plain does three things a box-and-arrows architecture diagram ca
 
 - **It's a shared language.** A domain expert and an engineer read the *same* picture. The expert can point at `BookReserved` and say "no, that only happens after payment" — a correction that would otherwise surface as a bug three sprints later.
 - **It forces completeness.** Every event must trace back to a command; every command to a screen or a processor; every screen must read a real read model. Walk the timeline and the gaps light up — a screen with no data behind it, an event nothing produces. You find the holes on a whiteboard, not in production.
-- **There are only four shapes.** Every connection in a correct model is one of four repeating patterns. Once you can see them, you can see *any* feature as a handful of small, known pieces.
+- **It comes down to four shapes.** The connections in a model repeat one of four patterns. Once you can see them, a feature becomes a handful of small, known pieces.
 
 ## The four patterns
 
-These four shapes are the whole grammar. Every slice of every system is built from them:
+These four shapes are the grammar most models are built from:
 
 | Pattern | Shape | What it does |
 |---|---|---|
@@ -55,7 +55,7 @@ These four shapes are the whole grammar. Every slice of every system is built fr
 | **Automation** | `evt ➜ pcr ➜ cmd` | A processor reacts to a fact and issues a command on its own. |
 | **Translation** | external `evt ➜ pcr ➜ cmd` | A fact from another context is adapted into this one's commands. |
 
-The first two are the everyday CQRS loop. The last two are how work flows *between* contexts without anything being directly coupled — a processor watches for a fact and acts. A translation begins on a **reset frame** (`rf`) because its triggering event comes from somewhere else:
+The first two are the everyday CQRS loop. The last two are how work flows *between* contexts without direct coupling: a processor watches for a fact and acts. A translation begins on a **reset frame** (`rf`) because its triggering event comes from somewhere else:
 
 ```mermaid
 eventmodeling
@@ -68,7 +68,7 @@ tf 04 evt Orders.OrderConfirmed
 
 ## Why it fits Cratis almost one-to-one
 
-Here's the part that makes event modeling more than a whiteboard exercise for Cratis: **every block is a real Cratis primitive,** and the four patterns are *literally* the four kinds of [vertical slice](/arc/vertical-slices/) Cratis already organizes code around. The model isn't a sketch you translate — it's the slice, drawn.
+This is what makes event modeling more than a whiteboard exercise for Cratis: **each block has a Cratis primitive,** and the four patterns match the four kinds of [vertical slice](/arc/vertical-slices/) Cratis organizes code around. You still write the code, but you do not have to invent its shape.
 
 | Event-model block | What it means | In Cratis |
 |---|---|---|
@@ -88,10 +88,14 @@ And the patterns line up exactly with how a Cratis slice is classified:
 | Automation | **Automation** — a reactor that decides and acts |
 | Translation | **Translation** — a reactor that adapts events across slices |
 
-This is not a coincidence — both come from the same idea, that **events are the source of truth and everything else is derived from them.** A `[Command]`'s `Handle()` returns the event it records; a `[ReadModel]` declares the events it's built from; an `IReactor` reacts to a fact and issues the next command. Draw the timeline and you've named your commands, your events, your read models, and your reactors — in the order they happen.
+Both come from the same idea: **events are the source of truth and everything else is derived from them.** With Arc and Chronicle together, a `[Command]`'s `Handle()` can return the event it records; a `[ReadModel]` declares the events it is built from; an `IReactor` reacts to a fact and triggers the next step. Draw the timeline and you have named your commands, events, read models, and reactors, in the order they happen.
+
+<Aside type="caution" title="Processors run again on replay">
+A reactor that issues a command is a side effect. Chronicle re-delivers events to a reactor when it is replayed, so the follow-up command would run again. Mark such a handler `[OnceOnly]` to skip it during replays; Arc's `ARCCHR0006` analyzer warns when you forget. `[OnceOnly]` excludes replays only. It is not exactly-once delivery: recovering a failed partition delivers the event again, so make the follow-up safe to repeat. See [OnceOnly](/chronicle/reactors/once-only/) and [delivery identity](/chronicle/reactors/delivery-identity/).
+</Aside>
 
 <Aside type="note" title="The model is the column, the slice is the code">
-Read a single vertical column of an event model — one screen, its command, the event, the read model behind the next screen — and you're looking at one [vertical slice](/arc/vertical-slices/): one feature folder with the command, event, projection, and React component that implement it. The [full-stack walkthrough](/build-a-full-app/) builds exactly that column, block by block.
+Read a single vertical column of an event model (one screen, its command, the event, the read model behind the next screen) and you are looking at one [vertical slice](/arc/vertical-slices/): one feature folder with the command, event, projection, and React component that implement it. The [full-stack walkthrough](/build-a-full-app/) builds exactly that column, block by block.
 </Aside>
 
 ## The model is also the test
@@ -104,13 +108,13 @@ Event modeling already has the given/when/then shape baked in. The left side of 
 | Command or reactor in the column | **When** |
 | New event, projected read model, or side effect | **Then** |
 
-That is why Cratis uses BDD-style specifications so heavily. `Cratis.Specifications.XUnit` gives xUnit the `Establish()` / `Because()` / `[Fact]` lifecycle, while Arc and Chronicle add scenarios that speak the same language: `CommandScenario<TCommand>` for the command, `EventScenario.Given` for past facts, `ReadModelScenario<TReadModel>` for projections, and `ReactorScenario<TReactor>` for automation.
+That is why Cratis leans on BDD-style specifications. `Cratis.Specifications.XUnit` gives xUnit the `Establish()` / `Because()` / `[Fact]` lifecycle, and Arc and Chronicle add scenarios in the same language: `CommandScenario<TCommand>` for the command, `EventScenario` with `Given` for past facts, `ReadModelScenario<TReadModel>` for projections, and `ReactorScenario<TReactor>` for automation.
 
 [Testing with Cratis](/testing-with-cratis/) shows a concrete event-model column translated into an executable stack spec.
 
 ## When it's the wrong fit
 
-Event modeling earns its keep when behavior is interesting — when facts accumulate, screens derive state from history, and work flows between contexts. It's overkill when there isn't much of a story to tell: a settings form that reads and writes a single row, a static lookup table, a pure request/response with no meaningful event worth keeping. If a feature is honestly just CRUD over one record, model it as CRUD. Reach for event modeling when the *flow* — not the storage — is where the complexity lives.
+Event modeling earns its keep when behavior is interesting: facts accumulate, screens derive state from history, and work flows between contexts. It is overkill when there is not much of a story to tell: a settings form that reads and writes a single row, a static lookup table, a pure request/response with no meaningful event worth keeping. If a feature is honestly just CRUD over one record, model it as CRUD. Reach for event modeling when the *flow* — not the storage — is where the complexity lives.
 
 ## Go deeper
 

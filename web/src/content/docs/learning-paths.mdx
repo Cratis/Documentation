@@ -1,62 +1,93 @@
 ---
 title: Learning paths
-description: Role-based paths through Cratis for event-sourcing beginners, full-stack builders, evaluators, operators, frontend developers, and contributors.
+description: Ordered routes through the Cratis documentation for event-sourcing beginners, full-stack builders, developers on other languages, evaluators, operators, frontend developers, and contributors.
 ---
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-The docs are broad because Cratis is a stack. Use a path when you want sequence: what to read first, what to build, and where to go next.
+Cratis covers an event store, an application framework, a UI library, and the tools around them, so the documentation is wide. A path gives you an order to read it in. Each one says who it is for, what you can do when you finish, and which pages to read or build along the way.
+
+Paths share pages, and you can switch at any point. If none of them fits, [Adopting Cratis](/adopting-cratis/) helps you pick a starting product first.
 
 <CardGrid>
-  <LinkCard title="New to event sourcing" description="Understand why facts, projections, consistency, and event modeling matter." href="#new-to-event-sourcing" />
-  <LinkCard title="Build a full-stack app" description="Follow the command to event to read model to React loop." href="#build-a-full-stack-app" />
-  <LinkCard title="Operate Chronicle" description="Run, inspect, diagnose, replay, and harden a Chronicle deployment." href="#operate-chronicle" />
+  <LinkCard title="New to event sourcing" description="Understand facts, projections, and consistency before you commit to a design." href="#new-to-event-sourcing" />
+  <LinkCard title="Build a full-stack app" description="Scaffold an app and follow a command through an event and a read model to a live React screen." href="#build-a-full-stack-app" />
+  <LinkCard title="Use Chronicle from another language" description="Start from the TypeScript, Kotlin/Java, or Elixir client instead of .NET." href="#use-chronicle-from-another-language" />
+  <LinkCard title="Evaluate Cratis" description="Decide whether the stack, or one product from it, fits your system." href="#evaluate-cratis" />
+  <LinkCard title="Operate Chronicle" description="Run, inspect, diagnose, replay, and upgrade a Chronicle deployment." href="#operate-chronicle" />
+  <LinkCard title="Frontend developer" description="Work with generated proxies and Components on an existing Arc backend." href="#frontend-developer" />
+  <LinkCard title="Contributor" description="Change Cratis itself: code, documentation, or design proposals." href="#contributor" />
 </CardGrid>
 
 ## New to event sourcing
 
-1. Read [Why event sourcing](/chronicle/why-event-sourcing/).
-2. Read [Event modeling](/event-modeling/).
-3. Build the [Chronicle tutorial](/chronicle/tutorial/).
+**For** developers who have built CRUD applications and want to know what changes when events become the source of truth. **When you finish**, you can model a small domain as facts, explain how read models are derived from them, and say where event sourcing is the wrong tool.
+
+1. Read [Why event sourcing](/chronicle/why-event-sourcing/) for the argument, then [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/) to map tables and `SaveChanges` onto events.
+2. Read [Event modeling](/event-modeling/). It gives you the notation the rest of the docs use for commands, events, and read models.
+3. Build the [Chronicle tutorial](/chronicle/tutorial/). It adds one concept at a time to a small library domain.
 4. Read [Consistency](/chronicle/concepts/consistency/) and [When to use event sourcing](/chronicle/concepts/when-to-use-event-sourcing/).
-5. Use [Community and help](/community/) when your domain model raises questions.
+5. Bring your first real model to [Community and help](/community/). A modeling question with the business decision and the facts you already have usually gets a useful answer.
 
 ## Build a full-stack app
 
-1. Start with [Get started](/chronicle/get-started/).
-2. Follow [Build a full-stack feature](/build-a-full-app/).
-3. Learn [Arc vertical slices](/arc/vertical-slices/).
-4. Add screens with [Components getting started](/components/getting-started/).
-5. Run the [Samples](/samples/) beside the docs.
+**For** .NET developers starting a new information system with Chronicle, Arc, and Components together. **When you finish**, you have a running application with one slice you wrote yourself, and you know where the command, event, projection, query, and screen for a feature live.
+
+1. Follow [Build a full-stack feature](/build-a-full-app/). It scaffolds an application from the Cratis template and adds one slice end to end.
+2. Read [Vertical slices](/arc/vertical-slices/) to see why the feature lives in one folder.
+3. Work through the [Arc tutorial](/arc/tutorial/) for validation, related slices, live queries, and authorization. It runs over a plain database, which keeps the focus on commands, queries, and generated proxies.
+4. Read [Add event sourcing to an Arc slice](/arc/backend/csharp/chronicle/add-event-sourcing/) to see what changes when a slice's writes move to Chronicle, and what does not.
+5. Continue with the [vertical slices scenario](/scenarios/vertical-slices/) for the state view, automation, and translation patterns, and [Testing with Cratis](/testing-with-cratis/) for specs.
+
+Building on Kotlin or Java instead? The [Cratis Kotlin](/templates/cratis-kotlin/) and [Cratis Java](/templates/cratis-java/) templates scaffold the same full-stack shape on Spring Boot, and the Arc tutorial shows its main slice examples in Kotlin as well as C#. Some backend snippets are C# only.
+
+## Use Chronicle from another language
+
+**For** developers whose services are not written in .NET. **When you finish**, your service appends events to Chronicle and a projection or reactor responds to them.
+
+1. Read [Chronicle in your language](/chronicle-clients/) to see which clients are published and where each is documented.
+2. Start a local kernel and follow the shared loop on [Chronicle getting started](/chronicle/get-started/). Its examples have a tab for each client that implements them.
+3. Follow your client's setup guide: [TypeScript](/chronicle/clients/typescript/getting-started/), [Kotlin and Java](/chronicle/clients/kotlin/get-started/), or [Elixir](/chronicle/clients/elixir/get-started/).
+4. Build the [Chronicle tutorial](/chronicle/tutorial/) and pick your client's tab where one exists.
+
+The Python client is pre-release and not published yet; [Event sourcing in Python](/event-sourcing/python/) tracks it.
 
 ## Evaluate Cratis
 
-1. Read [Why developers choose Cratis](/why-cratis/).
-2. Read [Adopting Cratis](/adopting-cratis/).
-3. Check [FAQ](/faq/) and [Version compatibility](/compatibility/).
-4. Review [Production readiness](/production-readiness/).
-5. Ask adoption questions in [Community and help](/community/), or [Work with us](/work-with-us/) for a dedicated review.
+**For** architects and team leads deciding whether to adopt Cratis. **When you finish**, you can name the product you would start with, the first slice you would move, and the version and production questions you still need answered.
+
+1. Read [Why developers choose Cratis](/why-cratis/), including when it is not a good fit.
+2. Read [Adopting Cratis](/adopting-cratis/) to pick an entry point for a new or existing system.
+3. If you are comparing event stores, read [Compare event sourcing for .NET](/compare-event-sourcing-dotnet/) or [Compare event sourcing on the JVM](/compare-event-sourcing-jvm/).
+4. Check the [FAQ](/faq/), [Version compatibility](/compatibility/), and [Production readiness](/production-readiness/).
+5. Run one [sample](/samples/) that matches the shape you would build.
+6. Ask adoption questions in [Community and help](/community/), or [Work with us](/work-with-us/) for a dedicated review.
 
 ## Operate Chronicle
 
-1. Read [Chronicle hosting](/chronicle/hosting/).
-2. Review [Chronicle configuration](/chronicle/hosting/configuration/).
-3. Learn the [CLI](/cli/) and its operational scenarios.
+**For** people who deploy and run Chronicle. **When you finish**, you can host Chronicle with storage and TLS you chose deliberately, find a failed partition, and plan an upgrade.
+
+1. Read [Chronicle hosting](/chronicle/hosting/) and [Production hosting](/chronicle/hosting/production/).
+2. Review [Chronicle configuration](/chronicle/hosting/configuration/), including [storage](/chronicle/hosting/configuration/storage/).
+3. Learn the [CLI](/cli/) and the [Workbench](/chronicle/workbench/), then keep [Chronicle troubleshooting](/chronicle/troubleshooting/) close.
 4. Use [Production readiness](/production-readiness/) as the cross-stack checklist.
-5. Keep [Security](/security/) and [What's new](/whats-new/) in your release process.
+5. Before each upgrade, use [Plan an upgrade](/upgrade-path/) and [What's new](/whats-new/). Follow [Security](/security/) for vulnerability reporting.
 
 ## Frontend developer
 
-1. Read [Arc frontend](/arc/frontend/).
-2. Learn [generated proxies](/arc/understanding-the-proxy-boundary/).
-3. Use [Components](/components/) for command forms, dialogs, data tables, and styling.
-4. Browse [Storybook](/components/storybook/).
-5. Use [Samples](/samples/) to see the screen and backend together.
+**For** React developers joining a team that already has an Arc backend. **When you finish**, you can call commands and queries through generated proxies and build forms, dialogs, and live tables with Components.
+
+1. Read [Understanding the proxy boundary](/arc/understanding-the-proxy-boundary/) to see where the generated TypeScript comes from and why you never edit it.
+2. Read [Arc frontend](/arc/frontend/).
+3. Build the [Components tutorial](/components/tutorial/), then use [Choosing a component](/components/choosing-a-component/) for new screens.
+4. Browse [Storybook](/components/storybook/) for live examples. Coming from PrimeReact? Read [Coming from PrimeReact](/components/coming-from-primereact/).
+5. Run a [sample](/samples/) with a React frontend to see the screen and backend together.
 
 ## Contributor
 
-1. Read [Contributing](/contributing/).
-2. Read [Governance](/governance/).
-3. Find product docs and issues in the repository that owns the behavior.
-4. Use [Feedback and suggestions](/feedback/) for early ideas.
-5. Run the relevant build and docs checks before a pull request.
+**For** people changing Cratis itself. **When you finish**, you know where a change belongs and what a pull request needs before review.
+
+1. Read [Contributing](/contributing/) and [Governance](/governance/).
+2. Find the repository that owns the behavior. Product pages are written in each product repository's `Documentation/` folder; only site-level pages such as this one live in the Documentation repository.
+3. Use [Feedback and suggestions](/feedback/) or Discord for early ideas before opening a large proposal.
+4. Run the owning repository's build, specs, and documentation checks before opening a pull request.

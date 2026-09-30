@@ -5,31 +5,50 @@ description: "Do event sourcing in Elixir with Cratis Chronicle: an open-source 
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-Chronicle is an open-source (MIT) event-sourcing database and processing runtime, and `cratis_chronicle` is its idiomatic Elixir client. It exposes OTP-native constructs — `use Chronicle.EventType`, `use Chronicle.ReadModel`, `use Chronicle.Reactor`, `use Chronicle.Reducer`, and `use Chronicle.Seeder` — plus model-bound constraints, context-aware appends with process-scoped identity, correlation, and causation metadata, optimistic concurrency, transactions, jobs and webhooks, and automatic reconnection with exponential backoff. The client supervises a connection to the Chronicle kernel as part of your application's supervision tree.
+Chronicle is an open-source (MIT) event-sourcing database and processing runtime, and `cratis_chronicle` is its idiomatic Elixir client. It exposes OTP-native constructs (`use Chronicle.Events.EventType`, `use Chronicle.ReadModels.ReadModel`, `use Chronicle.Reactors.Reactor`, `use Chronicle.Reducers.Reducer`, and `use Chronicle.Seeding.Seeder`) plus model-bound constraints, context-aware appends with process-scoped identity, correlation, and causation metadata, optimistic concurrency, transactions, jobs and webhooks, and automatic reconnection with exponential backoff. The client supervises a connection to the Chronicle kernel as part of your application's supervision tree.
 
-With event sourcing, every state change is captured as an immutable event rather than an update in place. Chronicle stores those events, and read models are derived from them — declared model-bound projections execute server-side, or you can fold events into read models in your own process with a reducer.
+With event sourcing, every state change is captured as an immutable event instead of an update in place. Chronicle stores those events, and read models are derived from them: declared model-bound projections execute server-side, or you can fold events into read models in your own process with a reducer.
 
-The event store is not BEAM-only: Chronicle's kernel exposes a language-agnostic gRPC/protobuf boundary, and the same store is reachable from the [.NET, TypeScript, and Kotlin/Java clients](/chronicle-clients/) as well. Storage is pluggable — MongoDB by default, with PostgreSQL, SQL Server, SQLite, and in-memory providers implemented in the kernel.
+The event store is not BEAM-only. Chronicle's kernel exposes a language-agnostic gRPC/protobuf boundary, and the same store is reachable from the [.NET, TypeScript, and Kotlin/Java clients](/chronicle-clients/) as well. Storage is pluggable: MongoDB by default, with PostgreSQL, SQL Server, SQLite, and in-memory providers implemented in the kernel.
 
 ## Install
+
+Add `cratis_chronicle` to your dependencies in `mix.exs`, using the current version from [Hex](https://hex.pm/packages/cratis_chronicle):
 
 ```elixir
 # mix.exs
 defp deps do
   [
-    {:cratis_chronicle, "~> 0.0"}
+    {:cratis_chronicle, "~> <version>"}
   ]
 end
 ```
 
+`mix hex.info cratis_chronicle` prints the current version and the matching dependency line. Then run `mix deps.get`.
+
 ## A taste
 
-An event type, a supervised client, and an append — from the client repository's quick example:
+An event type, a read model projected from it, a supervised client, and an append, from the client repository's quick example. It assumes a Chronicle kernel on `localhost:35000`; [Get started with Chronicle](/chronicle/get-started/) shows how to run one locally, and the [Elixir client docs](/chronicle/clients/elixir/) cover connection settings, including the development kernel's TLS certificate.
 
 ```elixir
 defmodule MyApp.Events.AccountOpened do
-  use Chronicle.EventType, id: "account-opened-v1"
+  use Chronicle.Events.EventType, id: "account-opened-v1"
   defstruct [:account_id, :owner_name, :initial_balance]
+end
+
+defmodule MyApp.ReadModels.Account do
+  use Chronicle.ReadModels.ReadModel
+
+  alias MyApp.Events.AccountOpened
+
+  defstruct account_id: nil, owner_name: nil, balance: 0
+
+  from AccountOpened,
+    set: [
+      account_id: :event_source_id,
+      owner_name: :owner_name,
+      balance: :initial_balance
+    ]
 end
 
 defmodule MyApp.Application do
@@ -53,9 +72,16 @@ end
   owner_name: "Alice",
   initial_balance: 1000
 })
+
 ```
 
-For a local kernel to append to, the development Docker image is the quickest path: `docker run -p 35000:35000 cratis/chronicle:latest-development`.
+The append's success does not mean the projection has caught up. Keep the supervised client running. Later, once the projection has processed the event, query the model:
+
+```elixir
+{:ok, account} = Chronicle.read_model(MyApp.ReadModels.Account, "account-42")
+```
+
+An immediate read can return no model or an older value. In an automated check, wait for the expected account state with a bounded timeout; inspect the projection or failed partition if that timeout expires.
 
 ## Where to go next
 
