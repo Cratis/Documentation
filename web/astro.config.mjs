@@ -22,7 +22,7 @@ import starlightSidebarTopics from 'starlight-sidebar-topics';
 // One topic per product, generated from each product's toc.yml by
 // scripts/sync-content.mjs. starlight-sidebar-topics renders these as an icon
 // rail at the top of the sidebar (the aspire.dev pattern).
-/** @typedef {{ id?: string, label: string, link?: string, icon?: string, items: any[] }} ProductTopic */
+/** @typedef {{ id?: string, label: string, link: string, icon?: string, items: any[] }} ProductTopic */
 /** @type {ProductTopic[]} */
 let productTopics;
 try {
@@ -151,7 +151,7 @@ const overviewTopic = {
                 { label: 'Event sourcing in Python', slug: 'event-sourcing/python', badge: { text: 'Soon', variant: 'tip' } },
             ],
         },
-        { label: 'Studio', slug: 'studio', badge: { text: 'Soon', variant: 'tip' } },
+        { label: 'Studio', slug: 'studio', badge: { text: 'Experimental', variant: 'caution' } },
         { label: 'Event Modeling', slug: 'event-modeling' },
         { label: 'Screenplay', link: '/screenplay/' },
         { label: 'Prologue', link: '/prologue/' },

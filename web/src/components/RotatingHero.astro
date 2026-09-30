@@ -87,7 +87,7 @@ const panes: Pane[] = [
         label: 'The Stack',
         title: 'Chronicle, Arc, Components, and the tools — working as one',
         tagline:
-            'The Cratis Stack assembles into a cohesive whole: Chronicle — the event-sourcing database with clients for .NET, TypeScript, Kotlin/Java, and Elixir — owns the event log and read models, Arc carries a command through generated proxies to a live React screen, Components keeps the UI consistent, and Studio, the CLI, and Workbench complete the picture — all sharing identity, tenancy, and conventions so every piece reinforces the others.',
+            'The Cratis Stack assembles into a cohesive whole: Chronicle — the event-sourcing database with clients for .NET, TypeScript, Kotlin/Java, and Elixir — owns the event log and read models, Arc carries a command through generated proxies to a live React screen, Components keeps the UI consistent, and the CLI and Workbench support operations, with an experimental Studio modeling layer in development — all sharing identity, tenancy, and conventions so every piece reinforces the others.',
         actions: [
             getStarted,
             { text: 'Learn more', link: '/cratis-stack/', variant: 'minimal', icon: 'open-book' },
@@ -136,7 +136,7 @@ const panes: Pane[] = [
         label: 'Studio',
         title: 'Model the domain together, generate the code',
         tagline:
-            'Cratis Studio is a collaborative Event Modeling canvas: map a flow as commands, events, and read models with your team, keep the model alive as the system grows, and generate type-safe C# straight from the diagram.',
+            'Cratis Studio is an experimental environment for designing and editing Screenplay event models with your team. Map commands, events, and read models before implementation. Studio and the model-first toolchain are in early development; review their current limits before planning a project around them.',
         actions: [
             getStarted,
             { text: 'Learn more', link: '/studio/', variant: 'minimal', icon: 'open-book' },
@@ -149,7 +149,7 @@ const panes: Pane[] = [
         label: 'Screenplay',
         title: 'Write a whole bounded context as one script',
         tagline:
-            'Screenplay is the Cratis modeling language: describe the events, commands, queries, projections, screens, and rules of a bounded context in a single declarative .play file. Stage runs it as a live application, Studio visualizes the same model, and the C# it generates is the code you ship.',
+            'Screenplay is an experimental modeling language for events, commands, queries, projections, screens, and rules in declarative .play files. Studio edits the model and Stage renders it into an application. The model-first toolchain is in early development; generated output still needs review and verification.',
         actions: [
             getStarted,
             { text: 'Learn more', link: '/screenplay/', variant: 'minimal', icon: 'open-book' },
@@ -162,7 +162,7 @@ const panes: Pane[] = [
         label: 'Prologue',
         title: 'Inherit a system? Capture what it actually does',
         tagline:
-            'Prologue stands beside an existing system — no Cratis constructs required — and watches its real HTTP commands, database changes, and telemetry. It correlates what it sees and interprets it into an event model and a Screenplay .play file: a starting point evidenced by real traffic, not a guess reverse-engineered from code nobody trusts anymore.',
+            'Prologue is an experimental tool for learning from an existing system’s HTTP activity, database changes, and telemetry. It correlates observations into candidate event models and Screenplay files for you to review. Captured traffic is evidence of observed behavior, not a complete account of the business rules.',
         actions: [
             getStarted,
             { text: 'Learn more', link: '/prologue/', variant: 'minimal', icon: 'open-book' },
