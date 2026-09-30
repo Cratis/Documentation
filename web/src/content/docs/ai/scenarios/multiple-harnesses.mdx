@@ -1,38 +1,44 @@
 ---
 title: "Scenario: multiple harnesses"
-description: Configure several AI tools from one managed Cratis AI corpus and one repository-owned selection.
+description: Configure several AI coding tools from one managed Cratis AI corpus and one repository-owned selection.
 ---
 
-Use the managed path when several harnesses work in the same repository.
+Your team uses more than one coding tool in the same repository: some people in
+Claude Code, some in Cursor, CI in Codex. You want all of them to follow the same
+Cratis guidance. Use the managed install.
 
 ## Configure the repository
 
 ```bash
 cratis ai install \
   --harnesses claude,codex,copilot,cursor,opencode,pi \
-  --profiles cratis/application \
+  --profiles cratis/application/csharp \
   --languages csharp,typescript
 ```
 
+Selecting a harness nobody uses only adds an unused adapter, so most
+repositories select all of them.
+
 Commit `.cratis/ai.json`, `.cratis/ai.manifest.json`, the managed `.cratis/ai`
-content, and the harness adapters your team wants to share.
+content, and the harness adapters.
 
 ## What you get
 
-- **One corpus.** Every adapter points to `.cratis/ai`; no harness receives a
+- **One corpus.** Every adapter points into `.cratis/ai`; no harness gets a
   separately maintained copy.
 - **One selection.** Profiles and languages are resolved once for all selected
   harnesses.
-- **Native folders.** Team members still use `.claude`, `.cursor`, `.opencode`,
-  `.pi`, and the other folders they expect.
-- **Safe updates.** `cratis ai update` stops before overwriting a locally changed
-  managed file or integration. User-owned files remain untouched.
+- **Native folders.** Each tool still reads `.claude`, `.cursor`, `.opencode`,
+  `.pi`, or whichever folders it expects.
+- **Protected edits.** `cratis ai update` stops before overwriting a locally
+  edited managed file, and never touches files Cratis did not install.
 
-Run `cratis ai status` before an update and `cratis ai uninstall` when removing
-the managed integration.
+Run `cratis ai status` before an update and `cratis ai uninstall` when you
+remove the managed integration.
 
 ## Native plugins remain optional
 
-A developer can still install a native marketplace plugin or `@cratis/pi`
-without the CLI. That single-harness path does not create the shared corpus,
-configure the other harnesses, or provide hash-protected lifecycle management.
+A developer can still install a marketplace plugin or `@cratis/pi` on their own
+machine without the CLI. That path covers one harness, and the marketplace
+plugins carry skills only. It does not configure the other harnesses or protect
+local edits.

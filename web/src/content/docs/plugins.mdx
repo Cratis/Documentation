@@ -1,6 +1,6 @@
 ---
 title: AI skills and plugins
-description: Cratis authors one set of framework-aware AI skills and generates passive, host-native packages for Claude Code, Codex, GitHub Copilot, Cursor, Kiro, Junie, Gemini CLI, and Pi.
+description: What the Cratis AI corpus contains (rules, skills, prompts, agents, and hooks) and which of them each Cratis plugin and install channel delivers.
 ---
 
 import { CardGrid, Aside } from '@astrojs/starlight/components';
@@ -8,126 +8,139 @@ import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
 <TopicHero icon="puzzle" eyebrow="The Cratis Stack" title="Teach your assistant the Cratis way">
-A general-purpose assistant knows C# and TypeScript, but it does not automatically know why a Cratis command lives beside its fact, why a projection consumes events instead of another read model, or why generated proxies should never be hand-edited. Cratis skills provide that missing framework context as reviewed workflows instead of another prompt you have to remember.
+A general-purpose assistant knows C# and TypeScript. It does not know why a Cratis command returns its event from `Handle()`, why a projection consumes events instead of another read model, or why generated proxies are never hand-edited. Cratis AI supplies that framework context as reviewed guidance, so you do not have to repeat it in every prompt.
 </TopicHero>
 
-## One behavior, several native packages
+## What the corpus contains
 
-Cratis authors canonical skills in [`Cratis/AI`](https://github.com/Cratis/AI).
-Four committed marketplace manifests — for Claude Code, Codex, GitHub Copilot,
-and Cursor — point hosts straight at the `skills/` and `engineering/`
-directories on the repository's default branch, so what a host installs is
-exactly what a reviewer reads there.
+Cratis authors everything in one place, [Cratis/AI](https://github.com/Cratis/AI),
+under `.cratis/ai`. It holds five kinds of content:
+
+| Kind | What it does | Example |
+| --- | --- | --- |
+| **Rules** | Standing guidance the harness loads without being asked; some apply to every file, some only to matching paths | C# and TypeScript conventions, the vertical-slice rules for applications |
+| **Skills** | A focused workflow the agent loads when a task matches | `cratis-chronicle-projection` |
+| **Prompts** | A slash command that starts a workflow | `new-vertical-slice` |
+| **Agents** | Subagent definitions a harness can delegate to | `spec-writer`, `security-reviewer` |
+| **Hooks** | Scripts that run the repository's quality gates at points in an agent session | The Cratis quality gate |
+
+Skills are Markdown instructions and references. They contain no executable
+code. Hooks run commands, so they only arrive through channels that install
+them into your repository or Pi.
+
+<span id="one-behavior-several-native-packages"></span>
+
+## Which channel delivers what
 
 ```mermaid
 flowchart LR
-    A[Cratis/AI<br/>canonical skills and profiles] --> C[Claude Code / Codex]
-    A --> K[Copilot / Cursor]
-    A --> N[npm and Pi packages]
-    C --> P[Your repository]
-    K --> P
-    N --> P
-    X[.cratis/PROJECT.md<br/>project-owned context] --> P
+    A[Cratis/AI<br/>.cratis/ai] -->|cratis ai install| R[Your repository<br/>rules, skills, prompts, agents, hooks]
+    A -->|marketplace manifests| M[Claude Code, Codex,<br/>Copilot, Cursor plugin<br/>skills only]
+    A -->|npm release| P["@cratis/pi<br/>skills, rules, prompts, agents, hooks"]
+    X[.cratis/ai/rules/project.md<br/>your project context] --> R
 ```
 
-This avoids behavior forks. A projection skill should not teach one architecture
-in Claude and another in Copilot merely because their package manifests differ.
+| Channel | Rules | Skills | Prompts | Agents | Hooks | Version |
+| --- | --- | --- | --- | --- | --- | --- |
+| `cratis ai install` | Yes, by profile and language | Yes, by profile | Yes | Yes | Yes | Current `main`, or a `--source` checkout |
+| Marketplace plugin (`cratis@cratis`) | No | All | No | No | No | Default branch, unpinned |
+| `@cratis/pi` | Yes | Yes, by `.cratis/ai.json` if present | Yes | Yes | Yes | npm version |
 
-<Aside type="note" title="Status">
-Marketplace installation and the published npm package are real. The npm
-package is a supported stable release; marketplace installs follow the
-`Cratis/AI` default branch and do not carry a versioned support claim.
-</Aside>
-
-## Public packages stay passive
-
-The planned public package contains portable Agent Skills and their static
-references, assets, and licenses. It excludes executable extensions, lifecycle
-scripts, credentials, project facts, authoring evals, engineering hooks, agents,
-prompts, and repository tooling.
-
-Executable Chronicle operations belong to the documented CLI and Chronicle MCP
-surfaces, with their own authorization and confirmation boundaries. They are not
-smuggled into a passive coding-skills package.
+Every channel reads the same skill files, so a projection skill teaches the
+same thing in Claude Code as in Copilot. The
+[agent harness guide](/ai/harnesses/) has the install command for each tool, and
+[Cratis AI distribution](/ai/trust-and-distribution/) explains the versioning.
 
 ## Skills guide complete workflows
 
-Skills are the high-value pieces: your assistant invokes one when a request
-matches and follows a Cratis workflow instead of improvising.
+A skill is used when a request matches it; the agent then follows a Cratis
+workflow instead of improvising. The skill names start with `cratis-`:
 
-- **`event-modeling`** — settle commands, facts, streams, state views, reactions,
-  compliance, and scenarios before implementation.
-- **`new-vertical-slice`** — build an application behavior end to end through
-  backend, specs, frontend, documentation, and gates.
-- **`add-concept`**, **`add-projection`**, **`add-reactor`**,
-  **`add-business-rule`**, **`add-ef-migration`** — implement one focused Cratis
-  artifact by convention.
-- **`write-specs`**, **`write-documentation`** — preserve behavior or explain the
-  product through the repository's preferred structure.
-- **`review-code`**, **`review-security`**, **`review-performance`** — review
-  against Cratis architecture and quality boundaries.
-- **`diagnose-slice`** and **`inspect-running-chronicle`** — separate source-code
-  diagnosis from authorized running-store inspection.
+- **Model before you build**: `cratis-chronicle-event-modeling`,
+  `cratis-event-model-diagram`, and the `cratis-screenplay-*` skills for
+  Screenplay models.
+- **Build one artifact by convention**: `cratis-arc-command`,
+  `cratis-arc-command-validation`, `cratis-chronicle-read-model`,
+  `cratis-chronicle-projection`, `cratis-chronicle-reducer`,
+  `cratis-chronicle-reactor`, `cratis-chronicle-event-constraints`,
+  `cratis-fundamentals-concept`, `cratis-arc-react-page`.
+- **Change what already exists**: `cratis-chronicle-event-type-migration`,
+  `cratis-arc-ef-core-migration`.
+- **Compliance and tenancy**: `cratis-chronicle-compliance`,
+  `cratis-chronicle-multi-tenancy`,
+  `cratis-arc-authentication-authorization-and-identity`.
+- **Specs**: `cratis-application-slice-specifications`,
+  `cratis-chronicle-event-specifications`,
+  `cratis-chronicle-read-model-specifications`, `cratis-specifications-csharp`,
+  `cratis-specifications-typescript`.
+- **Review**: `cratis-code-review`, `cratis-security-review`,
+  `cratis-performance-review`.
+- **Operate a running store**: `cratis-chronicle-cli-operations`,
+  `cratis-chronicle-mcp-inspection`, `cratis-cli-terminal-workbench`,
+  `cratis-chronicle-web-workbench`.
+- **Client languages**: `cratis-chronicle-client-dotnet`,
+  `cratis-chronicle-client-typescript`, `cratis-chronicle-client-kotlin`,
+  `cratis-chronicle-client-elixir`, and the Kotlin Arc skills.
 
-Framework and client repositories select a different profile from Cratis
-applications. A skill reads the repository profile before applying application
-vertical-slice conventions.
+Prompts start larger workflows: `new-vertical-slice`, `scaffold-feature`,
+`add-concept`, `add-projection`, `add-reactor`, `add-reducer`,
+`add-business-rule`, `add-ef-migration`, `write-specs`, `write-documentation`,
+`code-review`, and `review-pr`. They come with the managed install and
+`@cratis/pi`, not with the marketplace plugin.
 
-## Internal engineering behavior is separate
+A Cratis framework repository selects an engineering profile instead of an
+application profile, so the application vertical-slice rules are not installed
+there. [Profiles](/ai/profiles/) explains the choice.
 
-Cratis maintainers currently have repository-local rules, agents, prompts, and
-hooks in Cratis-owned repositories. Those engineering artifacts can coordinate
-specialists, enforce repository gates, and carry contribution conventions, but
-they are not part of the planned public passive package.
+<span id="public-packages-stay-passive"></span>
 
-See [Using AI as a Cratis maintainer](/ai/cratis-maintainers/) for that workflow.
+## Operating a live store is a separate surface
+
+Executable Chronicle operations live in the documented [CLI](/cli/) and the
+[Chronicle MCP server](/chronicle-mcp/), each with its own authentication and
+confirmation boundaries. The skills describe how to use those tools; they do
+not carry their own way into your store.
 
 ## Do not copy configuration between repositories
 
-The old all-to-all propagation model is frozen. Copying `.ai`, `.claude`,
-`.github`, `.agents`, or `.pi` trees creates mixed versions and lets a consuming
-repository become an accidental distributor.
+Do not copy `.cratis/ai`, `.claude`, `.github`, `.agents`, or `.pi` trees from one
+repository to another. A copy goes stale without anyone noticing, and a
+consuming repository must not become an accidental distributor of the corpus.
+Install through a channel instead, and keep only your project's own context in
+the repository.
 
-The replacement is ordinary versioned distribution: hosts install the plugin
-from the `Cratis/AI` marketplace, or repositories subscribe to profiles at exact
-versions. A consuming repository owns only its project context and minimal host
-bootstraps. Updating or rolling back changes the shared version without
-overwriting project facts.
+<span id="internal-engineering-behavior-is-separate"></span>
 
-[Profiles](/ai/profiles/) explains how to select a narrower scope than the whole
-bundle, and [Trust and distribution](/ai/trust-and-distribution/) explains the
-approval, release, and rollback gates in detail.
+<Aside type="note" title="Maintaining Cratis itself?">
+Cratis-owned repositories use the same managed install with an engineering
+profile. See [Use AI as a Cratis maintainer](/ai/cratis-maintainers/).
+</Aside>
 
 ## Get the skills and the operating tools today
 
-Everything is installable now, in two halves:
-
-1. **Coding skills** — add `Cratis/AI` as a marketplace and install the `cratis`
-   plugin ([commands per host](/ai/getting-started/)), or install the published
-   [`@cratis/pi`](/ai/profiles/) package through Pi.
-2. **Operating tools** — run `cratis init` in your project to generate the
-   supported CLI context, then connect [Chronicle MCP](/chronicle-mcp/) when your
-   host and authorization policy allow it.
-
-Read [Start using AI with Cratis](/ai/getting-started/) for the guided setup and
-[AI ecosystem support](/ai/ecosystems/) for host-by-host status.
+1. **Coding guidance**: run `cratis ai install` in the repository
+   ([Start using Cratis AI](/ai/getting-started/)), or install a
+   [plugin for one tool](/ai/harnesses/).
+2. **Operating tools**: run `cratis init` in your project to give the assistant
+   the CLI catalog, then connect [Chronicle MCP](/chronicle-mcp/) when your host
+   and authorization policy allow it.
 
 ## Where to go next
 
 <CardGrid>
   <SimpleCard title="Start using AI" icon="rocket" link="/ai/getting-started/">
-    Install the skills through your host's marketplace and set up the operating tools.
+    Install Cratis AI into a repository and confirm your agent sees it.
   </SimpleCard>
-  <SimpleCard title="Profiles" icon="seti:checkbox" link="/ai/profiles/">
-    Subscribe a repository to exactly the products, languages, and architectures it needs.
+  <SimpleCard title="Profiles" icon="list-format" link="/ai/profiles/">
+    Choose application, engineering, or documentation guidance for a repository.
   </SimpleCard>
   <SimpleCard title="Ecosystem support" icon="puzzle" link="/ai/ecosystems/">
-    Compare host-by-host installation status and the gates behind support claims.
+    What each coding tool receives through each channel.
   </SimpleCard>
   <SimpleCard title="Cratis maintainers" icon="seti:folder" link="/ai/cratis-maintainers/">
-    Use repository-local skills and gates without restarting propagation.
+    Work on Cratis repositories with an agent, without copying the corpus.
   </SimpleCard>
   <SimpleCard title="Code analysis" icon="seti:json" link="/code-analysis/">
-    See the compiler and lint gates that verify contracts independently of the assistant.
+    The compiler and lint rules that check contracts whether or not an agent wrote the code.
   </SimpleCard>
 </CardGrid>

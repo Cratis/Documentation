@@ -1,60 +1,119 @@
 ---
 title: Start using Cratis AI
-description: Configure selected Cratis rules and skills for one or more AI coding harnesses.
+description: Install Cratis rules, skills, agents, and prompts into a repository with the Cratis CLI, or add the skills to a single coding tool through its native plugin.
 ---
 
 import { Aside, Steps } from '@astrojs/starlight/components';
 
-Cratis AI has a canonical corpus of reusable **rules** and **skills**. Rules are
-always-on repository guidance; skills are focused task workflows. Your repository
-selects the Cratis profiles, languages, and harnesses it needs.
+You want your coding agent to write Cratis code the way the framework expects:
+commands with `Handle()` on the record, model-bound projections, `ConceptAs<T>`
+instead of raw primitives. Cratis AI is the shared guidance that teaches it
+that. This page gets it into a repository and shows how to tell it worked.
+
+The guidance comes in four kinds. **Rules** are standing instructions; some load
+for every file, others only for matching paths such as `**/*.cs`. **Skills** are
+focused task workflows the agent loads when a task matches. **Prompts** are
+slash commands such as `new-vertical-slice`, and **agents** are subagent
+definitions.
+
+## Pick a channel
+
+| You want | Use | What you get |
+| --- | --- | --- |
+| One consistent setup for a repository, its team, and several coding tools | `cratis ai install` (this page) | Rules, skills, prompts, agents, and hooks, filtered by profile and committed to the repository |
+| Cratis skills in one tool on your own machine | The tool's [native plugin](/ai/harnesses/#claude-code-plugin) | Skills only |
+| Cratis guidance in Pi, pinned to a package version | [`@cratis/pi`](/ai/harnesses/#pi-package) | Skills, rules, prompts, agents, and quality hooks |
+
+[Cratis AI distribution](/ai/trust-and-distribution/) explains how the three
+channels are versioned and why the CLI path is the only one that manages a
+shared repository copy.
 
 ## Complete repository setup
 
-Install the Cratis CLI, then run this from the repository root:
+**Prerequisites:** the [Cratis CLI](/cli/getting-started/), and `git` with
+network access to GitHub. The CLI clones the current `main` branch of
+[Cratis/AI](https://github.com/Cratis/AI) on each install and update, unless you
+point it at a local checkout with `--source`.
 
 <Steps>
 
-1. Run `cratis ai install`.
-2. Select one or more harnesses, profiles, and languages when prompted.
-3. Commit `.cratis/ai.json`, review the generated `.cratis/ai` content, and run your
-   normal repository checks.
+1. From the repository root, preview what would be written:
+
+   ```bash
+   cratis ai install --dry-run
+   ```
+
+   In a terminal, the CLI asks you to pick harnesses (your coding tools),
+   profiles, and languages. The choices come from the corpus's own
+   `.cratis/ai/manifest.json`, so they always match what is published.
+
+2. Run the same command without `--dry-run`. In a script, CI, or an agent's
+   terminal there is no prompt, so pass the selection explicitly:
+
+   ```bash
+   cratis ai install \
+     --harnesses claude,codex,copilot,cursor,opencode,pi \
+     --profiles cratis/application/csharp,cratis/documentation \
+     --languages csharp,typescript
+   ```
+
+   [Choose Cratis AI profiles](/ai/profiles/) explains which profile fits your
+   repository. Name your languages: rules scoped to C# or TypeScript files are
+   installed only for the languages you list.
+
+3. Check the result:
+
+   ```bash
+   cratis ai status
+   ```
+
+   It prints the selected profiles, harnesses, and languages, the corpus
+   revision installed, and whether any managed file was changed locally.
+
+4. Commit `.cratis/ai.json`, `.cratis/ai.manifest.json`, the `.cratis/ai/` tree,
+   and the harness adapters (`AGENTS.md`, `CLAUDE.md`, `.claude/`, `.pi/` and so
+   on). Everyone on the team and every CI run then reads the same guidance.
 
 </Steps>
 
-For automation, provide the selections explicitly:
+To confirm the agent actually sees it, start your coding tool from the
+repository root and ask it to list the Cratis skills or prompts it can use. The
+names start with `cratis-`, for example `cratis-arc-command` and
+`cratis-chronicle-projection`.
 
-```bash
-cratis ai install \
-  --harnesses claude,cursor,opencode,pi \
-  --profiles cratis/chronicle,cratis/arc \
-  --languages csharp,typescript
-```
+<Aside type="note" title="Scaffolded from a template?">
+The Cratis `dotnet new` templates already contain a `.cratis/ai.json`. Skip
+`install` and run `cratis ai update` once to download the guidance it selects.
+`cratis new` runs that step for you.
+</Aside>
 
-The command reads the AI repository's `.cratis/ai/manifest.json` first, so the
-interactive choices always reflect the harnesses, profiles, and languages that
-the corpus currently offers. It then records the selection in `.cratis/ai.json`,
-resolves the matching corpus, installs only Cratis-managed files under `.cratis/ai`, and
-configures each selected harness. Pi receives native `.pi` agents, prompts,
-skills, and extensions. The managed `cratis-rules` extension loads general,
-profile-specific, and project-owned rules directly from `.cratis/ai/rules`; no
-Pi package is required. Cursor and OpenCode receive their
-native project folders. No harness decides which profiles
-or languages apply.
+### What the installer writes
 
-<Aside type="note" title="Your files remain yours">
-Every installed text file carries a `cratis-ai-managed` marker and is recorded
-with its installed hash. Add your own rules and skills anywhere under `.cratis/ai`.
-An update or uninstall stops before changing anything when a managed file hash no
-longer matches. Review the reported paths, or explicitly use `--force` to replace
-or remove the modified managed files.
+The CLI copies the selected corpus into `.cratis/ai/`, records each installed
+file and its hash in `.cratis/ai.manifest.json`, and creates native adapters for
+each selected harness. Most adapters are symbolic links into `.cratis/ai/`, so
+every tool reads the same copy. The [agent harness guide](/ai/harnesses/)
+lists what each harness receives.
+
+Pi is configured directly from the managed copy. The managed `cratis-rules`
+extension loads general, profile-specific, and project-owned rules from
+`.cratis/ai/rules`; you do not need the `@cratis/pi` package as well.
+
+<Aside type="caution" title="Where your own files can go">
+The installer never overwrites a file it did not install. If one of your files
+sits where a Cratis file would go, the run reports a conflict and changes
+nothing, even with `--force`. Rename your file or move it.
+
+Adapter folders such as `.claude/skills` are links into `.cratis/ai/`. A file
+you create inside a linked folder lands in the shared managed tree and is seen
+by every harness. Keep tool-private files outside the linked folders.
 </Aside>
 
 ## Share project-specific guidance
 
-Put project-owned guidance in `.cratis/ai/rules/project.md`. When the guidance
-covers several concerns, keep the index short and place each concern in its own
-file:
+Put guidance that belongs to this repository alone in
+`.cratis/ai/rules/project.md`. When it covers several concerns, keep that file a
+short index and give each concern its own file:
 
 ```text
 .cratis/ai/rules/
@@ -66,68 +125,69 @@ file:
     └── deployment.md
 ```
 
-`project.md` tells context-file harnesses to read every concern. Native rule
-adapters and Pi's managed rules extension discover the concern files directly.
-The CLI points new `AGENTS.md`, `CLAUDE.md`, and Copilot instruction adapters at
-the shared project index.
+`project.md` tells harnesses that read one context file to read every concern.
+Native rule adapters and Pi's rules extension discover the concern files
+directly. The CLI creates `AGENTS.md` and `CLAUDE.md` as links to `project.md`
+when those paths are free.
 
-During installation, the CLI detects `.cratis/PROJECT.md`, `.ai/PROJECT.md`, and
-`.agents/PROJECT.md`. It copies and splits their headings into the shared project
-index and concern files without deleting or claiming the legacy source. Review
-the split, remove the legacy file and any bootstrap that points to it, then run
-`cratis ai update` once more to create the shared adapters. Existing user-owned
-instruction files are never overwritten.
+If `AGENTS.md` or `CLAUDE.md` already exists as your own file, the CLI leaves it
+alone. Your existing file then does not mention the managed rules; add a line
+that tells the agent to read `.cratis/ai/rules/project.md`.
+
+### Moving from a legacy project file
+
+The installer detects `.cratis/PROJECT.md`, `.ai/PROJECT.md`, and
+`.agents/PROJECT.md`. It copies their headings into `project.md` and one concern
+file per heading, without deleting the original. Review the split, remove the
+legacy file and anything that points to it, and run `cratis ai update` again so
+the shared adapters are created.
 
 ## Maintain the installation
 
 ```bash
-cratis ai status
-cratis ai update
-cratis ai uninstall
-cratis ai update --force
+cratis ai status              # read-only; exits non-zero if a managed file was edited
+cratis ai update --dry-run    # what an update would change
+cratis ai update              # take the current corpus for the recorded selection
+cratis ai uninstall           # remove unchanged Cratis-managed content and adapters
 ```
 
-`status` shows selections, installed corpus information, and local conflicts.
-`update` adds, changes, moves, and removes only unchanged Cratis-owned content;
-both commands stop before any change when they find a modified managed file.
-Use `--force` only after reviewing the conflict; it deliberately replaces or
-removes modified managed content. `uninstall` otherwise preserves it and all
-user-owned files.
+`update` re-reads `.cratis/ai.json` and takes whatever the corpus `main` branch
+holds now. There is no version pin on this channel. To change the selection,
+run `install` again with new options.
+
+`update` and `uninstall` act only on files the manifest records as
+Cratis-managed. When one of those files was edited locally, both stop before
+changing anything and list the paths. Restore the file, or pass `--force` once
+you have decided the local edit can be replaced or removed.
+
+Because `status` exits non-zero on local edits, you can run it in CI to catch
+drift in managed guidance. [Updates and rollback](/ai/scenarios/updates-and-rollback/)
+covers previewing, pinning with `--source`, and going back.
 
 ## Choose the integration that fits your repository
 
 ### Managed by Cratis
 
-Use `cratis ai install` when a repository uses multiple harnesses or wants one
-reviewable source for shared guidance. The CLI resolves the selection, writes
-managed rules and skills into `.cratis/ai`, creates harness links, and records
-hashes in `.cratis/ai.manifest.json`. Pi is configured directly by the CLI; it
-does not require the Pi package. Update and uninstall stop on local changes
-unless you explicitly pass `--force`.
-
-You keep full control: add, edit, or delete your own content under
-`.cratis/ai`. Only paths recorded in the manifest are Cratis-managed.
+Use `cratis ai install` when several people or several coding tools work in the
+repository, or when you want the guidance reviewed and committed like code. It
+is the only channel that installs rules for every harness, filters by profile,
+and protects local edits on update and uninstall.
 
 ### Native plugin or marketplace
 
-Use a harness plugin when you want the familiar, harness-specific path instead.
-For example, `pi install -l npm:@cratis/pi` installs the Pi integration. It reads
-`.cratis/ai.json`, resolves the selected Pi skills and rules, and contributes
-packaged prompts, agents, subagent support, and quality hooks. Without a
-configuration file it exposes the complete packaged corpus. This path is
-intentionally independent of the CLI.
-
-A plugin gives one harness configuration-aware packaged content, but not the
-complete **multi-harness managed lifecycle**. It does **not** create a shared
-local corpus, configure other harnesses, install every harness-specific artifact,
-or provide managed update/uninstall hash protection. In a single-harness
-repository, add your own rules, agents, prompts, and skills directly in that
-harness's normal folder exactly as you do today; `.cratis/ai` is optional unless
-you choose the managed path.
+Use a native plugin when one developer wants Cratis skills in one tool without
+touching the repository. The Claude Code, Codex, GitHub Copilot, and Cursor
+marketplace plugins deliver the skills only, from the current `Cratis/AI`
+default branch. `@cratis/pi` also contributes rules, prompts, agents, a subagent
+tool, and quality hooks, and it is versioned on npm. Neither creates
+`.cratis/ai`, configures other harnesses, or protects local edits. The
+[agent harness guide](/ai/harnesses/) has the commands.
 
 ## Contribute and verify skills
 
-Skills may include executable verification scenarios. The verification runner
-discovers them, applies deterministic assertions, and emits a pass/fail report
-locally and in CI. Verification answers whether a skill behaves as intended;
-it is not an authorship or provenance gate.
+Skills are authored and reviewed in [Cratis/AI](https://github.com/Cratis/AI).
+A skill can carry a `verification.json` with an example input and assertions
+that the skill contains the guidance that input needs. These checks are static:
+they do not run the input through a model, compile the skill's examples, or
+judge its writing. Judging how an agent behaves with a skill still takes a real
+task and a review of the output.
