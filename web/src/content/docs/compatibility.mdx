@@ -29,7 +29,7 @@ Cratis spans .NET packages, TypeScript packages, JVM and Elixir clients, Docker 
 | React | `@cratis/arc.react` declares React 18 or 19 as a peer. `@cratis/components` declares React 19 (`^19.0.0`). |
 | TypeScript | The web template's frontend build uses the TypeScript 7 compiler (`@typescript/native`), with a TypeScript 6 alias kept for tooling. The Components and Fundamentals repositories build with TypeScript 6; the Arc repository builds with TypeScript 7. |
 | Chronicle Kotlin/Java client | The JVM client (`io.cratis:chronicle` on Maven Central) builds with a JVM 17 toolchain and ships a Spring Boot starter (`io.cratis:chronicle-spring-boot-starter`) and a testing library. |
-| Chronicle Elixir client | The Elixir client (`cratis_chronicle` on Hex) declares Elixir `~> 1.14` and installs through `mix`. |
+| Chronicle Elixir client | The Elixir client (`cratis_chronicle` on Hex) declares Elixir `~> 1.18` (Elixir 1.18 or later, which its `googleapis` dependency requires) and installs through `mix`. |
 | Chronicle storage | MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite are documented storage choices. |
 | Arc persistence | MongoDB and Entity Framework Core integrations are documented for C#; Spring Data MongoDB and Spring Data JPA for Kotlin and Java. |
 
