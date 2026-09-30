@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow does not build or publish it, and its code is not maintained. The maintained version is [Vertical Slices](https://www.cratis.io/scenarios/vertical-slices/). See [why this folder is kept](../../../README.md).
+
 # Vertical Slices
 
 This series of tutorials builds a **Library system** end to end, one behaviour at a time. Each tutorial corresponds to one of the four slice patterns from [Event Modeling](https://novanet.no/stop-guessing-start-modeling/), and each one builds on the previous.

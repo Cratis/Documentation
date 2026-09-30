@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The current site does not process `{{snippet:name}}` placeholders. Language-specific examples now come from client-owned snippet files configured in [`web/variant-docs.yml`](../../../web/variant-docs.yml). See [why this folder is kept](../../README.md).
+
 # Code Snippets
 
 The Cratis documentation uses a snippet system to include code samples

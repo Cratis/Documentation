@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow does not build or publish it, and its code is not maintained. The maintained version is [State Change — Register an Author](https://www.cratis.io/scenarios/vertical-slices/state-change/). See [why this folder is kept](../../../README.md).
+
 # State Change — Register an Author
 
 This tutorial builds the **Register Author** slice of the Library system. It is a **State Change** — the most fundamental pattern in Event Modeling.

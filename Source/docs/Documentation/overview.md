@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow no longer runs the build pipeline it describes, and the site is not published from it. The current pipeline is described in [the site README](../../../web/README.md). See [why this folder is kept](../../README.md).
+
 # Overview
 
 The Cratis documentation system is designed to provide comprehensive,
@@ -14,7 +17,7 @@ Storybook front matter and builds any referenced Storybook projects.
 This allows interactive component documentation to be embedded directly
 in the docs.
 
-See [Storybook Integration](storybook-integration.md) for details.
+See [Storybook Integration](../storybook-integration.md) for details.
 
 ### 2. TypeScript Documentation
 

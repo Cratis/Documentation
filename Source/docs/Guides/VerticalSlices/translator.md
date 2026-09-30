@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow does not build or publish it, and its code is not maintained. The maintained version is [Translation — Import Members from HR](https://www.cratis.io/scenarios/vertical-slices/translator/). See [why this folder is kept](../../../README.md).
+
 # Translation — Import Members from HR
 
 This tutorial builds the **Member Import** slice of the Library system. It is a **Translation** — a pattern for integrating with external systems without letting their language leak into your domain.
