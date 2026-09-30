@@ -41,13 +41,23 @@ The CLI creates adapters only for the harnesses you select:
 | GitHub Copilot | `.github/copilot-instructions.md`, plus `.github` instructions, agents, prompts, and skills |
 | Cursor | `.cursor` rules, agents, commands, and skills |
 | OpenCode | `AGENTS.md`, plus `.opencode` agents, commands, and skills |
-| Pi | `AGENTS.md`, plus `.pi` extensions (rules loading, subagents, quality hooks), agents, prompts, and skills |
+| Pi | `AGENTS.md`, plus `.pi` extensions (rules loading, path guidance, Screenplay MCP, subagents, quality hooks), agents, prompts, and skills |
 
 Most adapters are symbolic links into `.cratis/ai`, so no harness gets its own
 diverging copy. `AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md`
 are created only when you do not already have your own file at that path.
 Run `cratis ai status` to see local edits to managed files, and
 `cratis ai uninstall` to remove the integrations the CLI created.
+
+<Aside type="note" title="The Screenplay profile also registers an MCP server">
+When a selected profile resolves to `cratis/screenplay`, the CLI also adds a managed
+`screenplay` MCP server entry (`cratis screenplay mcp`) to each harness's MCP
+configuration, next to your own entries: `.mcp.json` (Claude Code),
+`.vscode/mcp.json` (Copilot), `.cursor/mcp.json`, `.codex/config.toml` and
+`opencode.json`. Pi reaches the same server through its managed `cratis-mcp`
+extension. To turn it off, set `mcpServers.screenplay.enabled` to `false` in
+`.cratis/ai.json`.
+</Aside>
 
 <Aside type="note" title="Your harness folders remain yours">
 The installer refuses to overwrite a file it did not install. You can add your

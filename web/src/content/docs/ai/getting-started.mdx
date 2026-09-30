@@ -96,8 +96,10 @@ every tool reads the same copy. The [agent harness guide](/ai/harnesses/)
 lists what each harness receives.
 
 Pi is configured directly from the managed copy. The managed `cratis-rules`
-extension loads general, profile-specific, and project-owned rules from
-`.cratis/ai/rules`; you do not need the `@cratis/pi` package as well.
+extension puts the universal rules from `.cratis/ai/rules` into the system
+prompt, and `cratis-path-guidance` attaches path-scoped rules and skill hints the
+first time a matching file is touched. You do not need the `@cratis/pi` package
+as well.
 
 <Aside type="caution" title="Where your own files can go">
 The installer never overwrites a file it did not install. If one of your files
@@ -107,6 +109,11 @@ nothing, even with `--force`. Rename your file or move it.
 Adapter folders such as `.claude/skills` are links into `.cratis/ai/`. A file
 you create inside a linked folder lands in the shared managed tree and is seen
 by every harness. Keep tool-private files outside the linked folders.
+
+Selecting a Screenplay profile also writes a managed `screenplay` MCP entry into
+each harness's MCP configuration, including files you already own, alongside your
+own entries. Set `mcpServers.screenplay.enabled` to `false` in `.cratis/ai.json`
+to disable it. The [agent harness guide](/ai/harnesses/) lists the files.
 </Aside>
 
 ## Share project-specific guidance

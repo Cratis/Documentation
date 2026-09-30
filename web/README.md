@@ -19,7 +19,7 @@ Find the owner before you edit. Every product page on the live site has an edit 
 | `variant-docs.yml` | Language tabs and client/backend variant mounts for Chronicle and Arc. | Yes. |
 | `content-redirects.yml` | Redirects for moved site routes. | Yes. |
 | `src/components/`, `src/styles/`, `scripts/` | Site components, styling and build tooling. | Yes. |
-| `src/generated/` | `topics.json`, `samples.json` and `upgrade-paths.json`, written by `npm run sync`. Gitignored. | No. |
+| `src/generated/` | `topics.json`, `samples.json`, `upgrade-paths.json` and `release-digests.json`, written by a full `npm run sync` (a targeted `node scripts/sync-content.mjs <product>` does not write `release-digests.json`). Gitignored. | No. |
 | `public/api/`, `public/storybook/`, `public/storybook-arc/` | API reference and Storybook builds. Gitignored. | No. Rebuild them. |
 | `api-build/` | DocFX input for the .NET API reference. Git tracks only `docfx.json`, `toc.yml` and `index.md`. The build generates everything else there. | Only the three tracked files. |
 | `dist/` | Production build output. | No. |
@@ -173,7 +173,7 @@ Project context starts at `AGENTS.md` (a link to `.cratis/ai/rules/project.md`, 
 
 The documentation rules in `.cratis/ai/rules/` apply to `**/Documentation/**/*.{md,mdx}`: `documentation.md`, `writing-cratis-docs.md`, `documentation-structure-and-formatting.md`, `editing-cratis-docs.md` and `writing-correct-examples.md`. The `write-documentation` and `check-doc-drift` prompts are available as commands in harnesses that support them.
 
-Files marked `cratis-ai-managed` are updated through `cratis ai update`, after `cratis ai status` has shown what would change. Do not edit them by hand. `.cratis/ai/rules/project.md`, `.cratis/ai/rules/project/` and the `chronicle-client-docs` skill belong to this repository.
+Files marked `cratis-ai-managed` are updated through `cratis ai update`, after `cratis ai update --dry-run` has shown what would change. Do not edit them by hand. `.cratis/ai/rules/project.md`, `.cratis/ai/rules/project/` and the `chronicle-client-docs` skill belong to this repository.
 
 ## API reference and Storybook
 

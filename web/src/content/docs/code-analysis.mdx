@@ -35,12 +35,13 @@ conventions; the build gates enforce them.
 
 The Arc analyzers come in as dependencies of the Arc packages they check:
 reference the package and the rules are active on your next build. The Chronicle
-analyzers are published as their own package, and the Architecture analyzers are
-a separate, opt-in package.
+analyzers arrive the same way with `Cratis.Chronicle` (and with
+`Cratis.Chronicle.AspNetCore`) from 19.4.8. Only the Architecture analyzers are a
+separate, opt-in package.
 
 <CardGrid>
   <SimpleCard title="Chronicle: CHR####" icon="seti:db" link="/chronicle/code-analysis/">
-    Rules for events, projections, reactors, reducers, and other event-sourcing constructs. Published as <code>Cratis.Chronicle.CodeAnalysis</code>; reference it at the same version as <code>Cratis.Chronicle</code>.
+    Rules for events, projections, reactors, reducers, and other event-sourcing constructs. Arrives with <code>Cratis.Chronicle</code> and <code>Cratis.Chronicle.AspNetCore</code> from 19.4.8. Older versions need <code>Cratis.Chronicle.CodeAnalysis</code> added at the client's version.
   </SimpleCard>
   <SimpleCard title="Arc core: ARC####" icon="puzzle" link="/arc/backend/csharp/code-analysis/">
     Rules for command, query, validation, and concept declarations. Arrives with <code>Cratis.Arc.Core</code> through <code>Cratis.Arc.Core.CodeAnalysis</code>. Does not need Chronicle.

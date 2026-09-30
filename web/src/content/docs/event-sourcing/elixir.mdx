@@ -28,60 +28,61 @@ end
 
 ## A taste
 
-An event type, a read model projected from it, a supervised client, and an append, from the client repository's quick example. It assumes a Chronicle kernel on `localhost:35000`; [Get started with Chronicle](/chronicle/get-started/) shows how to run one locally, and the [Elixir client docs](/chronicle/clients/elixir/) cover connection settings, including the development kernel's TLS certificate.
+An event type, a read model projected from it, a supervised client, and an append, from the client repository's quick example. It assumes the Chronicle development kernel on `localhost:35000`; [Get started with Chronicle](/chronicle/get-started/) shows how to run one locally, and the [Elixir client docs](/chronicle/clients/elixir/) cover connection settings, including the development kernel's TLS certificate.
 
 ```elixir
 defmodule MyApp.Events.AccountOpened do
-  use Chronicle.Events.EventType, id: "account-opened-v1"
-  defstruct [:account_id, :owner_name, :initial_balance]
+  use Chronicle.Events.EventType, id: "account-opened"
+
+  # Typed defaults: the client derives the event's JSON schema from them.
+  defstruct owner: "", balance: 0
 end
 
 defmodule MyApp.ReadModels.Account do
   use Chronicle.ReadModels.ReadModel
 
-  alias MyApp.Events.AccountOpened
+  defstruct id: "", owner: "", balance: 0
 
-  defstruct account_id: nil, owner_name: nil, balance: 0
-
-  from AccountOpened,
-    set: [
-      account_id: :event_source_id,
-      owner_name: :owner_name,
-      balance: :initial_balance
-    ]
+  # owner and balance are mapped by name; id comes from the event source id.
+  from MyApp.Events.AccountOpened, set: [id: :event_source_id]
 end
 
 defmodule MyApp.Application do
   use Application
 
+  @impl true
   def start(_type, _args) do
     children = [
       {Chronicle.Client,
-        connection_string: "chronicle://localhost:35000",
-        event_store: "my-app",
-        otp_app: :my_app}
+       # Development-only credentials for the local development kernel.
+       connection_string: "chronicle://chronicle-dev-client:chronicle-dev-secret@localhost:35000",
+       event_store: "my-app",
+       otp_app: :my_app}
     ]
 
-    Supervisor.start_link(children, strategy: :one_for_one)
+    Supervisor.start_link(children, strategy: :one_for_one, name: MyApp.Supervisor)
   end
 end
-
-# Append an event
-:ok = Chronicle.append("account-42", %MyApp.Events.AccountOpened{
-  account_id: "account-42",
-  owner_name: "Alice",
-  initial_balance: 1000
-})
-
 ```
 
-The append's success does not mean the projection has caught up. Keep the supervised client running. Later, once the projection has processed the event, query the model:
+The connection string carries the development kernel's well-known credentials. Never use them outside local development.
+
+Then, with the application running (for example in `iex -S mix`), wait for the client to register and append:
 
 ```elixir
+alias Chronicle.Connections.Lifecycle
+
+# The client connects and registers in the background; until then, calls return
+# {:error, :not_connected}.
+:ok = Lifecycle.wait_until(Lifecycle.name_for(Chronicle.Client), :registered)
+
+:ok = Chronicle.append("account-42", %MyApp.Events.AccountOpened{owner: "Alice", balance: 1000})
+
+# Projections run asynchronously: this can be {:ok, nil} until the projection catches up.
 {:ok, account} = Chronicle.read_model(MyApp.ReadModels.Account, "account-42")
 ```
 
-An immediate read can return no model or an older value. In an automated check, wait for the expected account state with a bounded timeout; inspect the projection or failed partition if that timeout expires.
+The append's success does not mean the projection has caught up, so an immediate read can return no model or an older value. In an automated check, wait for the expected account state with a bounded timeout; inspect the projection or failed partition if that timeout expires.
 
 ## Where to go next
 

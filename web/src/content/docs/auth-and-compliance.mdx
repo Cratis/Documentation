@@ -73,15 +73,17 @@ This is the operational boundary:
 | Resolve the tenant | AuthProxy or Arc tenancy resolvers | One tenant id for the request |
 | Carry tenant through command/query handling | Arc | Commands, queries, filters, identity, and generated endpoints see the same tenant context |
 | Isolate event-sourced state | Arc + Chronicle integration | Chronicle uses the tenant as the event-store namespace |
-| Scope your own storage access | You | Direct MongoDB or EF Core queries you write need their own tenant scoping |
+| Isolate MongoDB storage | Arc MongoDB integration | The injected `IMongoDatabase` and `IMongoCollection<T>` resolve a tenant-specific database (`{Database}+{TenantId}` for non-default tenants) |
+| Isolate EF Core storage | You | Arc does not append the tenant to the connection string; you choose and implement relational isolation |
+| Check tenant membership | You | Resolution selects a tenant; your services and policies verify that this caller may use it |
 
-<Aside type="caution" title="The tenant resolver is the security boundary">
-Isolation is only as good as the tenant id the resolver produces. A request that arrives without a
+<Aside type="caution" title="A correct resolver is not membership authorization">
+Keep three decisions apart: selection resolves the tenant id, membership authorization checks whether this caller may use it, and storage isolation decides where reads and writes go. None of them replaces the others, and a resolver that produces the right tenant id does not prove the authenticated user belongs to that tenant. Enforce membership in your application services and policies. Isolation is also only as good as the tenant id the resolver produces. A request that arrives without a
 tenant does not fail: Arc maps a missing or default tenant to Chronicle's **default** namespace. In a
 multi-tenant application, decide whether any caller may reach default-namespace data, and reject requests
 without a valid tenant when they may not. Trust tenant headers only when they come from AuthProxy or
 another component you control. [Tenancy with Chronicle](/arc/backend/csharp/chronicle/tenancy/) describes
-the mapping.
+the mapping, and [database isolation](/arc/backend/csharp/tenancy/database-resolvers/) covers MongoDB and EF Core.
 </Aside>
 
 ## Compliance subject decides the PII key

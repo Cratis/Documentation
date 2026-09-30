@@ -62,7 +62,7 @@ The point is not that Cratis has many packages. The point is that the packages a
 | Runtime scale | Chronicle runs its kernel on .NET Orleans, so event sequences, observers, jobs, and long-running processing live on a distributed actor runtime |
 | Authentication and tenant resolution | AuthProxy handles the edge and forwards trusted identity and tenant context into the app |
 | Authorization | Arc gates commands and queries at the boundary, with identity details available in backend and React |
-| Tenant isolation | Arc resolves the tenant per request and routes Chronicle work to that tenant's namespace; the tenant resolver is the security boundary, and your own direct database queries need their own tenant scoping ([details](/auth-and-compliance/#tenant-context-follows-the-request-into-chronicle)) |
+| Tenant isolation | Arc resolves the tenant per request and routes Chronicle work to that tenant's namespace; tenant selection, membership authorization, and storage isolation are separate decisions, so you still check that a caller belongs to the tenant they select. Arc MongoDB resolves a tenant-specific database, while EF Core isolation is yours to implement ([details](/auth-and-compliance/#tenant-context-follows-the-request-into-chronicle)) |
 | Operations and observability | Workbench, CLI, OpenTelemetry, recommendations, replay, jobs, failed partitions, and diagnostics expose what the runtime is doing |
 | Testing | Cratis Specifications, Arc command scenarios, and Chronicle in-process scenarios turn an event-model column into executable given/when/then specs |
 | AI assistance | Cratis AI rules and skills in `.cratis/ai`, analyzers, the CLI catalog, and the Chronicle MCP server give agents the same rails developers use |

@@ -23,11 +23,11 @@ Cratis spans .NET packages, TypeScript packages, JVM and Elixir clients, Docker 
 | Frontend packages in the web template | `package.json` uses caret ranges, such as `^22.10.4` for the `@cratis/arc` packages and `^4.1.1` for `@cratis/components`. Your package manager resolves the newest release inside each range when it installs, independently of the NuGet versions the backend was pinned to. |
 | Kotlin and Java templates | The templates use `latest.release` for the Arc Gradle plugin and the `io.cratis:cratis` meta package, with dependency management enabled. Inspect the resolved dependencies before choosing production versions. |
 | CLI | The `cratis` CLI targets `net10.0`. |
-| Node.js for applications | The full-stack web template's README asks for Node.js 20.19+, 22.13+, or 24+. Individual [samples](/samples/) list their own Node.js requirement. |
+| Node.js for applications | The full-stack web template's README asks for Node.js `^20.19.0` or `>=22.12.0`. Individual [samples](/samples/) list their own Node.js requirement. |
 | Node.js for contributors | The Arc, Components, and Fundamentals repositories declare `node >=23.0.0` for their own workspaces. |
 | Package manager | The JavaScript repositories use Yarn 4 and pin the exact version in each repository's `packageManager` field. The web template works with yarn, pnpm, or npm. |
 | React | `@cratis/arc.react` declares React 18 or 19 as a peer. `@cratis/components` declares React 19 (`^19.0.0`). |
-| TypeScript | The web template compiles with TypeScript 6. The Components and Fundamentals repositories build with TypeScript 6; the Arc repository builds with TypeScript 7. |
+| TypeScript | The web template's frontend build uses the TypeScript 7 compiler (`@typescript/native`), with a TypeScript 6 alias kept for tooling. The Components and Fundamentals repositories build with TypeScript 6; the Arc repository builds with TypeScript 7. |
 | Chronicle Kotlin/Java client | The JVM client (`io.cratis:chronicle` on Maven Central) builds with a JVM 17 toolchain and ships a Spring Boot starter (`io.cratis:chronicle-spring-boot-starter`) and a testing library. |
 | Chronicle Elixir client | The Elixir client (`cratis_chronicle` on Hex) declares Elixir `~> 1.14` and installs through `mix`. |
 | Chronicle storage | MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite are documented storage choices. |
