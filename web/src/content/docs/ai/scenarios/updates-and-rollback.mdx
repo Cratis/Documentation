@@ -1,44 +1,87 @@
 ---
 title: "Scenario: updates and rollback"
-description: How Cratis AI guidance changes under you — today install from main, in the published world reviewed pin bumps with rollback by version.
+description: How Cratis AI guidance changes for each channel, how to preview an update, and how to get back to a known-good state.
 ---
 
-How Cratis AI guidance changes under you — and how to get back.
+import { Aside } from '@astrojs/starlight/components';
 
-## Today: install from `main`
+An update to Cratis AI changes what your agent is told to do, so you want to
+see it coming and be able to undo it. How you do that depends on the channel
+you installed through.
 
-Until the first governed release, marketplace installs follow the
-`Cratis/AI` default branch
-([Cratis/AI#264](https://github.com/Cratis/AI/issues/264)). Updating means
-reinstalling or updating the plugin; rolling back means uninstalling. There is
-no version to pin yet, and the published `@cratis/pi` npm
-package — the whole public bundle — is a supported stable release:
+<span id="today-install-from-main"></span>
+
+| Channel | What an update takes | How to go back |
+| --- | --- | --- |
+| Managed install | The current `main` of `Cratis/AI` | Reinstall from a checkout of a known-good commit with `--source`, or revert the commit that updated it |
+| `@cratis/pi` | A published npm version | Install the earlier version |
+| Marketplace plugins | The current default branch of `Cratis/AI` | Uninstall the plugin |
+
+## Managed install
+
+`cratis ai update` is not pinned. It takes whatever the source holds when it
+runs. Preview first:
 
 ```bash
-pi install -l npm:@cratis/pi   # install / update
-# rollback: reinstall the previously recorded version
+cratis ai status               # installed revision, available revision, local edits
+cratis ai update --dry-run     # the actions an update would take, without writing
+cratis ai update
 ```
 
-## The published world (designed, not yet live)
+Because the managed content is committed, an update arrives as a diff you can
+review in a pull request, run your gates against, and merge like any other
+change.
 
-The versioned flow is fully designed and validated by the `Cratis/AI`
-tooling, but no versioned profile package has been published yet. When it is:
+To stay on a specific revision, or to roll back after an update you do not
+want, point the CLI at a local checkout of that commit:
 
-- Every profile carries its own exact SemVer stamp, and the release train is
-  atomic — one immutable release covers every profile that changed.
-- A consuming repository updates by merging a **reviewed pull request** that
-  bumps the pin in `.cratis/ai.json` and the host lock files. Nothing changes
-  under your feet outside a merged PR.
-- **Rollback is the same operation at the previous version**: restore the old
-  pin in one more reviewed PR and rerun your gates. There is no floating
-  `latest` to race against — floating versions are rejected outright.
-- Removing a package never touches `.cratis/ai`, `AGENTS.md`, or your
-  repository-local skills.
+```bash
+git clone https://github.com/Cratis/AI ../cratis-ai
+git -C ../cratis-ai checkout <known-good-commit>
+cratis ai update --source ../cratis-ai --dry-run
+cratis ai update --source ../cratis-ai
+```
 
-## When you don't need this
+The source commit of the current install is recorded in
+`.cratis/ai.manifest.json`. If the update is still an unmerged branch,
+discard it; if it was merged, reverting that commit restores the previous files
+as well.
 
-If you installed the plugin as a solo developer and never pinned anything,
-"update" is just "update the plugin" — nothing else applies to you.
+<Aside type="caution" title="Edited managed files block updates">
+If someone edited a managed file, `update` stops before changing anything.
+Decide whether the edit should be kept (and proposed to `Cratis/AI`) or
+replaced, then restore it or use `--force`.
+</Aside>
 
-See [Trust and distribution](/ai/trust-and-distribution/) for the complete
-versioning and authority model.
+<span id="the-published-world-designed-not-yet-live"></span>
+
+## `@cratis/pi`
+
+The Pi package is the one channel with real version numbers:
+
+```bash
+pi install -l npm:@cratis/pi                    # latest release
+pi install -l npm:@cratis/pi@<version>          # a specific release, pinned
+npm view @cratis/pi versions                    # what has been published
+```
+
+To roll back, install the version you last trusted. A versioned source stays at
+that version until you change it.
+
+<span id="when-you-dont-need-this"></span>
+
+## Marketplace plugins
+
+The Claude Code, Codex, GitHub Copilot, and Cursor plugins read the current
+default branch of `Cratis/AI`. There is no version to pin. Updating means
+updating the plugin in your harness; the only way back is to uninstall it. If
+you need a fixed version, use the managed install with `--source` instead.
+
+## Uninstalling
+
+`cratis ai uninstall` removes unchanged Cratis-managed files and the adapters
+the CLI created. It never removes files you created yourself, such as your own
+`.cratis/ai` rules and skills or an `AGENTS.md` you wrote. Run it with `--dry-run` first to see the list.
+
+See [Cratis AI distribution](/ai/trust-and-distribution/) for the channels and
+ownership rules.

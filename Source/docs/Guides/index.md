@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow does not build or publish it, and its links use the old `/docs/` routes. The maintained version is [Scenarios](https://www.cratis.io/scenarios/). See [why this folder is kept](../../README.md).
+
 # Guides
 
 Guides are end-to-end tutorials that show you how to build real software using the full Cratis stack — from event-sourced backend to reactive frontend — with concrete, working examples.

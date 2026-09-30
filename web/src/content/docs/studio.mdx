@@ -1,83 +1,83 @@
 ---
 title: Studio
-description: Cratis Studio is a collaborative Event Modeling and Event Storming platform — design your domain on a shared canvas, align your team, and generate type-safe C# straight from the model. Coming soon.
+description: Cratis Studio is an experimental, collaborative environment for designing, visualizing, and editing Screenplay event models. It is in early development.
 tableOfContents: false
 ---
 
 import TopicHero from '@components/TopicHero.astro';
-import SimpleCard from '@components/SimpleCard.astro';
 import StackDiagram from '@components/StackDiagram.astro';
-import { Aside } from '@astrojs/starlight/components';
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
 
-<TopicHero
-    eyebrow="Studio · Coming soon"
-    title="Model your domain. Ship with confidence."
-    tagline="Cratis Studio is a collaborative platform for event modeling — align your whole team around how your system behaves before a single line of production code is written, then generate type-safe C# straight from the model."
-    primaryHref="https://cratis.studio"
-    primaryText="Visit cratis.studio"
-    secondaryHref="/why-cratis/"
-    secondaryText="Why choose Cratis?"
-/>
+<TopicHero icon="pencil" eyebrow="Studio · Experimental" title="Model your domain before you build it">
+Studio is a shared place to design, visualize, and edit [Screenplay](/screenplay/) event models: the commands people issue, the events they produce, and the read models people look at. Follow its progress at [cratis.studio](https://cratis.studio).
+</TopicHero>
 
-<Aside type="note" title="Coming soon">
-    Studio is in active development. This page previews where it's headed — visit
-    [cratis.studio](https://cratis.studio) to follow along. Studio stands on its own as a design tool;
-    when you build on the Cratis Stack, it closes the loop by generating the code your model describes.
+<Aside type="caution" title="Experimental">
+Studio is part of the Cratis model-first layer (Studio, Screenplay, Stage, Scene,
+and Prologue), which is experimental and in early development. Features,
+formats, and behavior can change between releases. Do not plan production work
+around it yet; the stable path today is building with [Arc](/arc/) and
+[Chronicle](/chronicle/) directly.
 </Aside>
 
 ## Design before you build
 
-Most teams write the code first and discover the domain later — by the time everyone finally agrees on
-what "an order" really is, half of it is already built the wrong way. Event modeling flips that around:
-you map out *what happens* in the system — the commands people issue, the events those produce, the read
-models people look at — as a shared picture, **before** committing anyone to an implementation.
+Teams often write the code first and discover the domain afterwards. By the
+time everyone agrees on what "an order" is, half of it has been built around a
+different idea. Event modeling turns that around: you map out *what happens* in
+the system as a shared picture before anyone commits to an implementation.
 
-Studio is the canvas for that conversation. Developers, domain experts, and product owners shape the same
-living model together, in real time — no merge conflicts, no stale diagrams rotting in a wiki.
+Studio is meant to be the canvas for that conversation, where developers, domain
+experts, and product owners work on the same model instead of trading
+diagrams.
 
-## What Studio will do
+<span id="what-studio-will-do"></span>
 
-<div class="sl-card-grid">
-    <SimpleCard icon="🧠" title="Event Brainstorming">
-        Run a digital Event Storming session — drop sticky notes on an infinite canvas, cluster ideas, and
-        discover the events that really drive your domain.
-    </SimpleCard>
-    <SimpleCard icon="🗺️" title="Event Modeling">
-        Lay out commands, events, and read models on a collaborative timeline, and visualize every state
-        change in your system before you write a line of code.
-    </SimpleCard>
-    <SimpleCard icon="🔗" title="Read model projections">
-        Connect events to read models on the canvas, so everyone can see exactly which events feed every
-        projection — by design, not by archaeology.
-    </SimpleCard>
-    <SimpleCard icon="👥" title="Team collaboration">
-        Invite developers, domain experts, and product owners to edit the same model in real time. One
-        shared source of truth, always current.
-    </SimpleCard>
-    <SimpleCard icon="⚙️" title="Code generation">
-        Generate type-safe C# commands, events, and projections directly from your model — so your design
-        and your Cratis codebase stay perfectly in step.
-    </SimpleCard>
-    <SimpleCard icon="🧩" title="Spec-driven development">
-        The model *is* the spec. Start from a shared design, generate the slices, and build on a foundation
-        the whole team already agreed on.
-    </SimpleCard>
-</div>
+## What Studio works with
+
+<CardGrid>
+    <Card icon="random" title="Event brainstorming">
+        Boards for a digital Event Storming session: collect ideas and find the
+        events that drive your domain.
+    </Card>
+    <Card icon="list-format" title="Event models">
+        Commands, events, and read models organized into modules, features, and
+        slices, stored as a Screenplay model.
+    </Card>
+    <Card icon="puzzle" title="Projections">
+        Which events feed which read model, visible in the model itself.
+    </Card>
+    <Card icon="comment-alt" title="Agents over MCP">
+        An organization's agents can read and change its event models through
+        Studio's own MCP server.
+    </Card>
+</CardGrid>
+
+Rendering a model into a running application is [Stage](/screenplay/faq/#what-are-stage-and-studio)'s
+job. Stage is part of the same experimental layer, so treat generated output as
+something to review, not as finished production code.
 
 ## Where it fits
 
-Studio is an **independent top layer** — a design surface you can use on its own to model any event-driven
-system. Used *with* the Cratis Stack, it closes the loop: the commands, events, and projections you model
-become the type-safe C# you build on with [Arc](/arc/) and [Chronicle](/chronicle/).
+Studio is an **independent top layer**. You can use it to model an event-driven
+system without adopting the rest of the stack. With the Cratis Stack, the model
+describes the commands, events, and projections you build with
+[Arc](/arc/) and [Chronicle](/chronicle/).
 
 <StackDiagram current="studio" />
 
-It's the *front* of the development funnel — design and align in Studio, generate the slices, then build
-them out. To *inspect and operate* a system that's already running, you reach for the [CLI](/cli/) and
-Workbench instead.
+Studio sits at the *front* of development: design and agree on the model there,
+then build. To *inspect and operate* a system that is already running, use the
+[CLI](/cli/) and the Chronicle Workbench.
 
-## Until then
+<span id="until-then"></span>
 
-- Visit [cratis.studio](https://cratis.studio) to follow Studio's progress.
-- New to event modeling? Start with [Why developers choose Cratis](/why-cratis/) and the [Chronicle tutorial](/chronicle/tutorial/).
-- Want to model the Cratis way by hand today? See [vertical slices](/arc/vertical-slices/) and [modeling events](/chronicle/concepts/modeling-events/).
+## What you can use today
+
+- Follow Studio's progress at [cratis.studio](https://cratis.studio).
+- Write a model as text with [Screenplay](/screenplay/getting-started/), which
+  Studio edits. It is experimental as well.
+- New to event modeling? Read [Event modeling](/event-modeling/) and work
+  through the [Chronicle tutorial](/chronicle/tutorial/).
+- Model the Cratis way by hand with [vertical slices](/arc/vertical-slices/) and
+  [modeling events](/chronicle/concepts/modeling-events/).

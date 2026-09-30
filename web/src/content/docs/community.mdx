@@ -1,21 +1,25 @@
 ---
 title: Community and help
-description: Join the Cratis Discord community, ask questions, report issues, and find the right source for help.
+description: Join the Cratis Discord community, ask questions, report issues in the right repository, and find the right source for help.
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
 You do not need to be a customer, a contributor, or an event-sourcing expert to ask for help. Cratis is an open community, and we are glad to help people who are evaluating the stack, building their first slice, debugging a running store, or trying to understand the model.
 
-The fastest place to start a conversation is the [Cratis Discord community](https://discord.gg/kt4AMpV8WV). Bring the question you have, even if it is not polished yet. There, [Prompter](/prompter/) — the community's documentation assistant — takes the first swing automatically, answering from these docs with citations, or handing you to a human when the docs do not cover it.
+The place to start a conversation is the [Cratis Discord community](https://discord.gg/kt4AMpV8WV). Bring the question you have, even if it is not polished yet. In the help forum and the dedicated ask channel, [Prompter](/prompter/), the community's documentation assistant, answers first on its own, from these docs and with citations, and hands you to a human when the docs do not cover it. Elsewhere on the server, mention it or use `/ask`. Community help from people is best-effort.
+
+<Aside type="caution" title="What you post to Prompter leaves Discord">
+To answer, Prompter sends your question text to external AI services (Anthropic and Voyage AI). It does not store the question, but do not paste secrets, credentials, customer data, or logs that contain personal data. See [Prompter privacy](/prompter/concepts/privacy/).
+</Aside>
 
 <CardGrid>
   <LinkCard title="Join the Cratis Discord" description="Ask questions, talk through designs, get help choosing a path, and meet the people building and using Cratis." href="https://discord.gg/kt4AMpV8WV" />
-  <LinkCard title="Ask Prompter" description="The community's docs assistant on Discord — @mention it, use /ask, or open a help-forum thread and it answers grounded in these docs, with citations, in seconds." href="/prompter/" />
+  <LinkCard title="Ask Prompter" description="The community's docs assistant on Discord. Mention it, use /ask, or post in the help forum, and it answers from these docs with citations." href="/prompter/" />
   <LinkCard title="Share feedback" description="Tell us what is confusing, missing, rough, or worth improving in the products and docs." href="/feedback/" />
-  <LinkCard title="Work with us" description="Event modeling, adoption, architecture review, implementation help, and training — direct from the people who build Cratis." href="/work-with-us/" />
+  <LinkCard title="Professional help" description="Private, dedicated help from the people who build Cratis, and how it differs from community support." href="/professional-help/" />
   <LinkCard title="Report security privately" description="Use the security page for vulnerability reports and responsible disclosure." href="/security/" />
-  <LinkCard title="Browse the Cratis source" description="Find Chronicle, Arc, Components, CLI, Fundamentals, samples, and the documentation repositories on GitHub." href="https://github.com/cratis" />
+  <LinkCard title="Browse the Cratis source" description="Find Chronicle, Arc, Components, the CLI, the clients, samples, and the documentation repositories on GitHub." href="https://github.com/cratis" />
   <LinkCard title="Run the samples" description="Choose a focused example or explore the larger Library application." href="/samples/" />
 </CardGrid>
 
@@ -23,30 +27,38 @@ The fastest place to start a conversation is the [Cratis Discord community](http
 
 | When you need... | Start with... |
 |---|---|
-| A grounded, cited answer to a docs question in seconds | [Prompter on Discord](/prompter/) |
+| A cited answer to a documentation question | [Prompter on Discord](/prompter/) |
 | Help deciding whether Cratis fits your system | [Cratis Discord](https://discord.gg/kt4AMpV8WV) |
 | A second pair of eyes on an event model, projection, command, or slice | [Cratis Discord](https://discord.gg/kt4AMpV8WV) |
 | Help with a tutorial, sample, local setup, or first application | [Cratis Discord](https://discord.gg/kt4AMpV8WV) |
-| A reproducible bug in a product | The matching GitHub issue tracker |
+| A reproducible bug in a product | The matching [GitHub issue tracker](#github-issue-trackers) |
 | A feature request or design proposal | GitHub issues, with Discord for early discussion |
 | Suggestions, rough edges, or documentation gaps | [Feedback and suggestions](/feedback/) |
 | Private, dedicated, or commercial help | [Work with us](/work-with-us/) |
 | To understand how dedicated help differs from community help | [Professional help](/professional-help/) |
-| A suspected vulnerability | [Security](/security/) |
+| A suspected vulnerability | [Security](/security/), never a public issue |
 | Contribution workflow, coding standards, or build setup | [Contributing](/contributing/) |
 
-If you are not sure which product owns the problem, ask in Discord first. We can help route it to Chronicle, Arc, Components, CLI, Fundamentals, or the documentation.
+If you are not sure which product owns the problem, ask in Discord first. We can help route it to the right repository.
 
 ## GitHub issue trackers
 
-Use issues when the work needs a durable record: reproducible bugs, feature requests, regression reports, or documentation fixes. For open-ended questions, Discord is usually better.
+Use issues when the work needs a durable record: reproducible bugs, feature requests, regression reports, or documentation fixes. For open-ended questions, Discord is usually better. Each client and tool has its own repository, so file the issue where the code lives:
 
 | Area | Issue tracker |
 |---|---|
-| Chronicle event store, clients, Workbench, and hosting | [Chronicle issues](https://github.com/Cratis/Chronicle/issues) |
-| Arc commands, queries, proxy generation, validation, and backend/frontend integration | [Arc issues](https://github.com/Cratis/Arc/issues) |
+| Chronicle kernel, .NET client, Workbench, and hosting | [Chronicle issues](https://github.com/Cratis/Chronicle/issues) |
+| Chronicle TypeScript client | [Chronicle.TypeScript issues](https://github.com/Cratis/Chronicle.TypeScript/issues) |
+| Chronicle Kotlin/Java client | [Chronicle.Kotlin issues](https://github.com/Cratis/Chronicle.Kotlin/issues) |
+| Chronicle Elixir client | [Chronicle.Elixir issues](https://github.com/Cratis/Chronicle.Elixir/issues) |
+| Chronicle MCP server | [Chronicle.Mcp issues](https://github.com/Cratis/Chronicle.Mcp/issues) |
+| Arc for C#: commands, queries, proxy generation, validation, and backend/frontend integration | [Arc issues](https://github.com/Cratis/Arc/issues) |
+| Arc for Kotlin and Java | [Arc.Kotlin issues](https://github.com/Cratis/Arc.Kotlin/issues) |
 | React components, forms, dialogs, tables, styling, and Storybook | [Components issues](https://github.com/Cratis/Components/issues) |
-| CLI commands, diagnostics, and AI command catalogs | [CLI issues](https://github.com/Cratis/cli/issues) |
+| AuthProxy | [AuthProxy issues](https://github.com/Cratis/AuthProxy/issues) |
+| CLI commands, diagnostics, `cratis ai`, and `cratis init` | [CLI issues](https://github.com/Cratis/cli/issues) |
+| `dotnet new` project templates | [Templates issues](https://github.com/Cratis/Templates/issues) |
+| Cratis AI rules, skills, and plugins | [AI issues](https://github.com/Cratis/AI/issues) |
 | Fundamentals libraries and shared .NET/TypeScript helpers | [Fundamentals issues](https://github.com/Cratis/Fundamentals/issues) |
 | Documentation site, guides, examples, and broken links | [Documentation issues](https://github.com/Cratis/Documentation/issues) |
 
@@ -59,7 +71,9 @@ You can ask early. When you have the details, include the parts that make the pr
 - The package or Docker image versions, if you know them.
 - The command, event, projection, query, component, or configuration involved.
 - The expected behavior and what happened instead.
-- Logs, error messages, screenshots, or a small repository when the problem depends on runtime behavior.
+- Error messages, trimmed logs, screenshots, or a small repository when the problem depends on runtime behavior.
+
+Remove connection strings, tokens, certificates, and personal or customer data from anything you post. Discord threads and GitHub issues are public.
 
 <Aside type="tip" title="Design questions are welcome">
 If the question is more about modeling than a specific exception, describe the business decision you need to make and the facts you already have. That is often enough for a useful event-sourcing conversation.

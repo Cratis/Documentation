@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow does not build or publish it, and its code is not maintained. The maintained version is [Real-Time Chat — Incremental Pushes](https://www.cratis.io/scenarios/chat/incremental-pushes/). See [why this folder is kept](../../../README.md).
+
 # Real-Time Chat — Incremental Pushes
 
 The three previous guides all emit the **full message history** on every `OnNext()` call. Arc's delta mode compresses this down to a `ChangeSet` over the wire, but the backend still accumulates and sends a growing list.

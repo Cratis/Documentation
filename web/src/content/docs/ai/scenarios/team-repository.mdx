@@ -1,47 +1,53 @@
 ---
 title: "Scenario: team repository"
-description: Commit one managed AI corpus and configuration so every supported harness sees the same selected guidance.
+description: Commit one managed Cratis AI corpus and selection so everyone on the team, in every supported harness, sees the same guidance.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-A shared repository can support several people and several agent harnesses from
-one committed source: `.cratis/ai`.
+Several people work in one repository, and you want every one of them, and CI,
+to get the same Cratis guidance. Commit it with the code.
 
 ## What you do
 
-Run `cratis ai install` in the repository root, select the required harnesses,
-profiles, and languages, then review and commit the generated configuration and
-corpus.
+Run `cratis ai install` in the repository root, select the harnesses, profiles,
+and languages the repository needs, then review and commit the result.
 
 | Path | What it carries |
 | --- | --- |
 | `.cratis/ai.json` | The selected harnesses, profiles, and languages. |
-| `.cratis/ai/` | Cratis-managed rules and skills plus user-owned additions. |
-| `.cratis/ai.manifest.json` | Managed source identities and installed hashes. |
-| Harness adapters | Symlinks or settings references pointing to `.cratis/ai`. |
+| `.cratis/ai/` | Cratis-managed rules, skills, prompts, agents, and hooks, plus anything you add. |
+| `.cratis/ai.manifest.json` | The source commit, and each managed file's source identity and installed hash. |
+| Harness adapters | Symbolic links or configuration entries pointing to `.cratis/ai`. |
 
 A configuration can select more than one harness and profile:
 
 ```json
 {
+  "schemaVersion": "1.0",
   "harnesses": ["claude", "codex", "pi"],
-  "profiles": ["cratis/chronicle", "cratis/arc"],
+  "profiles": ["cratis/application/csharp", "cratis/documentation"],
   "languages": ["csharp", "typescript"]
 }
 ```
 
 ## What you get
 
-- **One source.** Harness integrations point to `.cratis/ai`; they do not copy
-  divergent skill directories.
-- **Safe lifecycle.** The local manifest hashes every managed file. Update and
-  uninstall stop before changing anything if one was modified locally.
-- **User extensions.** Add local rules and skills under `.cratis/ai`; they are
-  never claimed, deleted, or overwritten by Cratis.
+- **One source.** Harness integrations point to `.cratis/ai`; they do not carry
+  diverging skill folders.
+- **Reviewable updates.** An update is a diff in a pull request. Run
+  `cratis ai update --dry-run` first to see what will change.
+- **Protected edits.** The manifest hashes every managed file. Update and
+  uninstall stop before changing anything if one was edited locally.
+- **Your own extensions.** Local rules and skills under `.cratis/ai` are never
+  claimed, deleted, or overwritten by Cratis.
+
+To catch hand edits to managed guidance in CI, run `cratis ai status`; it exits
+non-zero when a managed file was modified.
 
 <Aside type="note" title="Resolving a modified managed file">
-Run `cratis ai status` to see the paths whose hashes changed. Restore the intended
-file or use `cratis ai update --force` / `cratis ai uninstall --force` only when
-you deliberately want to replace or remove that modified managed content.
+Run `cratis ai status` to see which paths changed. Restore the file, or use
+`cratis ai update --force` or `cratis ai uninstall --force` only when you
+deliberately want to replace or remove that edited managed content. If the edit
+is an improvement others would want, propose it to `Cratis/AI`.
 </Aside>

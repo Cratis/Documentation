@@ -13,15 +13,19 @@ Chronicle's kernel runs on Microsoft Orleans and stores events in pluggable stor
 
 ## Install
 
+For an ASP.NET Core application, which is what the example below uses:
+
 ```bash
-dotnet add package Cratis.Chronicle
+dotnet add package Cratis.Chronicle.AspNetCore
 ```
 
-For ASP.NET Core applications, use the `Cratis.Chronicle.AspNetCore` package instead.
+It brings in the core `Cratis.Chronicle` SDK. A console app or worker service uses `Cratis.Chronicle` on its own; the [get started](/chronicle/get-started/) guides cover each hosting model.
 
 ## A taste
 
-Hook Chronicle into an ASP.NET Core application, define an event, and append it:
+This excerpt shows the shape of the API. It assumes a Chronicle server is running locally; [Get started with Chronicle](/chronicle/get-started/aspnetcore/) walks through starting one and building a complete app.
+
+Hook Chronicle into an ASP.NET Core application:
 
 ```csharp
 var builder = WebApplication.CreateBuilder(args)
@@ -32,13 +36,16 @@ app.UseCratisChronicle();
 app.Run();
 ```
 
+Define an event as a record:
+
 ```csharp
 [EventType]
 public record UserOnboarded(string Name, string Email);
 ```
 
+Append it through an injected `IEventLog`, for example in a minimal API endpoint:
+
 ```csharp
-// Inject IEventLog or grab it from the event store
 await eventLog.Append(Guid.NewGuid(), new UserOnboarded("Jane Doe", "jane@example.com"));
 ```
 

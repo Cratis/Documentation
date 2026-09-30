@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The current site ignores `storybook:` front matter; it embeds Storybook with the `StorybookEmbed` component and builds it with `npm run build:storybook`. See [the site README](../../web/README.md#api-reference-and-storybook), the [Components Storybook page](https://www.cratis.io/components/storybook/), and [why this folder is kept](../README.md).
+
 # Storybook Quick Start
 
 Quick reference for adding Storybook to your documentation pages.

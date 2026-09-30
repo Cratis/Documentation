@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow does not build or publish it, and its code is not maintained. The maintained version is [Real-Time Chat — In-Memory](https://www.cratis.io/scenarios/chat/in-memory/). See [why this folder is kept](../../../README.md).
+
 # Real-Time Chat — In-Memory
 
 This guide builds a real-time chat room backed entirely by an in-memory service. It demonstrates the core observable query pattern: the frontend subscribes once and receives updates as they arrive — no polling, no manual WebSocket setup.

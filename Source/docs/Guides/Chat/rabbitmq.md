@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow does not build or publish it, and its code is not maintained. The maintained version is [Real-Time Chat — With RabbitMQ](https://www.cratis.io/scenarios/chat/rabbitmq/). See [why this folder is kept](../../../README.md).
+
 # Real-Time Chat — With RabbitMQ
 
 This guide extends the chat pattern from the [in-memory guide](./in-memory.md) by replacing the in-process state with two external systems: a **persistence layer** that loads message history on startup, and **RabbitMQ** that delivers new messages to all connected server instances in real time.

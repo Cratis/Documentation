@@ -3,7 +3,7 @@ title: API reference
 description: Where to find the generated .NET and TypeScript API reference, and how it's produced.
 ---
 
-The narrative documentation — guides, concepts, tutorials — is what you're reading here. The **API reference** is the exhaustive, generated description of every public type and member, produced directly from the source so it never drifts.
+Use this page to find an exact API signature when a guide does not cover your case. The generated references describe documented public APIs at the version built by the site; check your installed package version when a signature differs.
 
 ## .NET / C\#
 
@@ -11,19 +11,16 @@ The .NET API reference is generated with **DocFX** from the XML documentation co
 
 **[Browse the .NET API reference →](/api/)** — public types and members from the Chronicle clients, Arc (including Arc.Core and MongoDB), and Fundamentals, organized by namespace. Shared extension classes list their contributing assemblies; existing per-library type and member URLs redirect to the canonical pages.
 
-While you're coding, the same XML docs power **IntelliSense** in your IDE — so the reference is right there as you type. On NuGet:
-
-- [`Cratis.Chronicle`](https://www.nuget.org/packages/Cratis.Chronicle) — the Chronicle client SDK
-- [`Cratis.Arc`](https://www.nuget.org/packages/Cratis.Arc) — the Arc application framework
+XML comments also appear in IDE IntelliSense. Relevant NuGet packages include [`Cratis.Chronicle`](https://www.nuget.org/packages/Cratis.Chronicle), [`Cratis.Arc`](https://www.nuget.org/packages/Cratis.Arc), [`Cratis`](https://www.nuget.org/packages/Cratis), [`Cratis.Testing`](https://www.nuget.org/packages/Cratis.Testing), [`Cratis.Arc.MongoDB`](https://www.nuget.org/packages/Cratis.Arc.MongoDB), and [`Cratis.Specifications.XUnit`](https://www.nuget.org/packages/Cratis.Specifications.XUnit). Install only the packages your application needs.
 
 ## TypeScript
 
 The TypeScript API reference is generated with **TypeDoc** from the `@cratis/*` packages and surfaced alongside the rest of the site:
 
 - [`@cratis/arc`](/api/arc/javascript/arc/) — the Arc client core
-- [`@cratis/arc` React bindings](/api/arc/javascript/arc.react/) — hooks and components
-- [`@cratis/arc` MVVM](/api/arc/javascript/arc.react.mvvm/) — the MVVM layer
-- [`@cratis/arc` Vite plugin](/api/arc/javascript/arc.vite/) — build-time proxy generation
+- [`@cratis/arc.react`](/api/arc/javascript/arc.react/) — React hooks and bindings
+- [`@cratis/arc.react.mvvm`](/api/arc/javascript/arc.react.mvvm/) — the MVVM layer
+- [`@cratis/arc.vite`](/api/arc/javascript/arc.vite/) — Vite integration for metadata and queries; the .NET build generates proxies
 - [`@cratis/fundamentals`](/api/fundamentals/javascript/) — shared utilities and concepts
 
 ## How it's produced (for contributors)

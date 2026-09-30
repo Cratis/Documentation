@@ -21,6 +21,7 @@ Cratis is an open-source project, but not every decision belongs in the same cha
 | Reproducible bug | Product issue, then pull request |
 | Small feature | Product issue with motivation and expected behavior |
 | Cross-product design | Discord discussion, then a durable GitHub issue or design note |
+| Architectural decision later work must follow | A decision record in the owning repository, where it keeps one |
 | Breaking change | Design discussion, migration notes, release note, and documentation update |
 | Security fix | Private report first, public disclosure only after coordination |
 
@@ -32,9 +33,13 @@ Cratis is an open-source project, but not every decision belongs in the same cha
 4. Link related docs, examples, issues, and pull requests.
 5. Update documentation and release notes when behavior changes.
 
+## Where decisions are recorded
+
+Some repositories keep decision records, for example Chronicle and Arc in a top-level `decisions/` folder and Components under `Documentation/decisions/`. Where a repository has one, a decision that later work must obey is written there and reviewed like any other change. Where it does not, the issue or pull request that settled the question is the record. Check the owning repository before assuming either.
+
 ## Maintainer judgment
 
-Maintainers may ask for narrower scope, more context, tests, documentation, migration guidance, or a different product boundary. The goal is to keep Cratis coherent across Chronicle, Arc, Components, CLI, Fundamentals, tools, and the docs.
+Maintainers may ask for narrower scope, more context, tests, documentation, migration guidance, or a different product boundary. The goal is to keep Cratis coherent across Chronicle and its clients, Arc, Components, the CLI, Fundamentals, the tools, and the docs. Review happens on a best-effort basis; there is no guaranteed turnaround for issues or pull requests.
 
 <Aside type="note" title="The project favors connected changes">
 Cratis spans backend, frontend, storage, operations, and documentation. A good proposal explains where the change lands in that loop and what it means for users.

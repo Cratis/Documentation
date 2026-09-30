@@ -24,21 +24,18 @@ A good spec should read like the behavior it protects. When a new developer open
 | `Cratis.Specifications.XUnit` | xUnit `Specification` base class plus `Should*` assertion extensions over xUnit assertions. |
 | `Cratis.Specifications.NUnit` | NUnit `Specification` base class plus `Should*` assertion extensions over NUnit assertions. |
 
-Most Cratis repositories use central package versions. In that setup, a spec project only needs the package reference:
+Most Cratis repositories use central package versions. A runnable xUnit test project also needs the .NET test SDK, xUnit v2 and its Visual Studio runner; with central versions, reference them without version attributes:
 
 ```xml
 <ItemGroup>
+  <PackageReference Include="Microsoft.NET.Test.Sdk" />
+  <PackageReference Include="xunit" />
+  <PackageReference Include="xunit.runner.visualstudio" />
   <PackageReference Include="Cratis.Specifications.XUnit" />
 </ItemGroup>
 ```
 
-Use the NUnit package when the project runs on NUnit:
-
-```xml
-<ItemGroup>
-  <PackageReference Include="Cratis.Specifications.NUnit" />
-</ItemGroup>
-```
+For NUnit, use the test SDK, `NUnit`, `NUnit3TestAdapter` and `Cratis.Specifications.NUnit` instead. Outside a centrally versioned repository, pin compatible versions in the project or its central package file. From the test project directory, run `dotnet test`; a discovered successful run reports a nonzero count of passing tests.
 
 Both packages use the `Cratis.Specifications` namespace.
 
@@ -61,7 +58,7 @@ Put the behavior under test in `Because()`, store the result in a field, and let
 
 ## xUnit example
 
-Start with the behavior. A security service authenticates a user and returns a token with the user's role and session id.
+Start with the behavior. This example assumes your application supplies `SecurityService`, `UserToken`, `Roles` and `UserMustBeSpecified`; it is an excerpt of a spec for those domain types, not a standalone test project. A security service authenticates a user and returns a token with the user's role and session id.
 
 ```csharp
 using Cratis.Specifications;
@@ -118,7 +115,14 @@ public class when_authenticating_without_a_user : Specification
 }
 ```
 
-For async behavior, `Catch.Exception(Func<Task>)` returns the exception from the awaited callback.
+For async behavior, `Catch.Exception(Func<Task>)` returns a `Task<Exception>`; await it in an async `Because()` method:
+
+```csharp
+async Task Because() =>
+    _result = await Catch.Exception(() => _subject.AuthenticateAsync(null!, null!));
+```
+
+This excerpt assumes `AuthenticateAsync` returns `Task` and the same `_subject` and `_result` fields as above.
 
 ## Reusable contexts
 
@@ -196,7 +200,7 @@ public class when_authenticating_an_admin_user : Specification
 |---|---|
 | Reference `Cratis.Specifications.XUnit`. | Reference `Cratis.Specifications.NUnit`. |
 | Facts use `[Fact]`. | Facts use `[Test]`. |
-| The package integrates with xUnit through `IAsyncLifetime`. | The package integrates with NUnit through `[TestFixture]`, `[OneTimeSetUp]`, and `[OneTimeTearDown]`. |
+| The default xUnit lifecycle creates a new spec instance and calls `Establish` / `Because` per fact. | NUnit's setup and teardown run once for the fixture; facts can share its state. |
 | Fact methods can be non-public in the Cratis style. | NUnit test methods should be `public`. |
 
 ## Assertions
@@ -231,7 +235,7 @@ Specs favor readable names over normal production-code naming conventions.
 | Simple behavior file | `when_<action>.cs` | `when_authenticating_without_a_user.cs` |
 | Fact method | `should_<outcome>` | `should_require_a_user` |
 
-This naming deliberately triggers some analyzer and style warnings. Spec projects commonly suppress warnings such as underscore naming and missing XML documentation for spec classes.
+Choose a spec-project analyzer policy that explicitly supports readable BDD names; do not silence build warnings just to make a copied example pass.
 
 ## When to use Specifications
 

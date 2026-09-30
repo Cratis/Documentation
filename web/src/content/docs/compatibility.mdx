@@ -1,15 +1,15 @@
 ---
 title: Version compatibility
-description: Runtime, package, framework, storage, and tooling compatibility for the current Cratis documentation baseline.
+description: Runtime, package, framework, storage, and tooling compatibility for the current Cratis documentation baseline, and which cross-product pairings are and are not verified.
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
-Cratis spans .NET packages, TypeScript packages, Docker images, storage engines, React components, Storybook, and documentation tooling. This page gives the current compatibility baseline used by the documentation site. For exact released package versions, use the package manager and repository release pages linked from [What's new](/whats-new/).
+Cratis spans .NET packages, TypeScript packages, JVM and Elixir clients, Docker images, storage engines, and React components. This page records the baseline the current product sources declare, and how the products constrain each other's versions. For exact released package versions, use the package manager and the repository release pages linked from [What's new](/whats-new/).
 
 <CardGrid>
   <LinkCard title="Review releases" description="Use curated release digests and repository releases for exact published versions." href="/whats-new/" />
-  <LinkCard title="Check production readiness" description="Use the operational checklist before deploying Chronicle or the full stack." href="/production-readiness/" />
+  <LinkCard title="Plan an upgrade" description="See every Chronicle major boundary between the version you run and the one you want." href="/upgrade-path/" />
   <LinkCard title="Ask about a version" description="Use Discord when a specific runtime or package version matters to your project." href="/community/" />
 </CardGrid>
 
@@ -17,37 +17,55 @@ Cratis spans .NET packages, TypeScript packages, Docker images, storage engines,
 
 | Area | Baseline |
 |---|---|
-| .NET local development | .NET 10 is the current development target in Chronicle, Arc, Fundamentals, and CLI source. |
-| .NET package targeting | Arc and Fundamentals package across `net8.0`, `net9.0`, and `net10.0` in release configuration. Chronicle packaging also carries `net8.0`, `net9.0`, and `net10.0` where configured. |
-| CLI | The `cratis` CLI targets `net10.0` in the current source tree. |
-| Node | Arc, Components, and Fundamentals JavaScript workspaces declare `node >=23.0.0`. |
-| Package manager | The JavaScript workspaces use Yarn 4.5.3. |
-| React | Arc React declares React 18 or 19 peer compatibility. Components is currently built and documented around the React 19 workspace. |
-| TypeScript | Current JavaScript workspaces use TypeScript 6. |
+| .NET local development | .NET 10 is the development target in Chronicle, Arc, Fundamentals, and CLI source. |
+| .NET package targeting | Arc and Fundamentals package for `net8.0`, `net9.0`, and `net10.0`. Chronicle's packaging configuration targets the same three frameworks. |
+| .NET web template | The current `dotnet new cratis` template targets `net10.0` and requires the .NET 10 SDK. In the template source, the Cratis package references use `Version="*"`. When you scaffold, the template's post-actions run `dotnet add package` for those packages, which writes the then-current released version into your project file. A new project therefore starts pinned to concrete NuGet versions, not floating ones. Library multi-targeting does not mean the template supports every target. |
+| Frontend packages in the web template | `package.json` uses caret ranges, such as `^22.10.4` for the `@cratis/arc` packages and `^4.1.1` for `@cratis/components`. Your package manager resolves the newest release inside each range when it installs, independently of the NuGet versions the backend was pinned to. |
+| Kotlin and Java templates | The templates use `latest.release` for the Arc Gradle plugin and the `io.cratis:cratis` meta package, with dependency management enabled. Inspect the resolved dependencies before choosing production versions. |
+| CLI | The `cratis` CLI targets `net10.0`. |
+| Node.js for applications | The full-stack web template's README asks for Node.js `^20.19.0` or `>=22.12.0`. Individual [samples](/samples/) list their own Node.js requirement. |
+| Node.js for contributors | The Arc, Components, and Fundamentals repositories declare `node >=23.0.0` for their own workspaces. |
+| Package manager | The JavaScript repositories use Yarn 4 and pin the exact version in each repository's `packageManager` field. The web template works with yarn, pnpm, or npm. |
+| React | `@cratis/arc.react` declares React 18 or 19 as a peer. `@cratis/components` declares React 19 (`^19.0.0`). |
+| TypeScript | The web template's frontend build uses the TypeScript 7 compiler (`@typescript/native`), with a TypeScript 6 alias kept for tooling. The Components and Fundamentals repositories build with TypeScript 6; the Arc repository builds with TypeScript 7. |
 | Chronicle Kotlin/Java client | The JVM client (`io.cratis:chronicle` on Maven Central) builds with a JVM 17 toolchain and ships a Spring Boot starter (`io.cratis:chronicle-spring-boot-starter`) and a testing library. |
-| Chronicle Elixir client | The Elixir client (`cratis_chronicle` on Hex) declares Elixir `~> 1.14` and installs through `mix`. |
+| Chronicle Elixir client | The Elixir client (`cratis_chronicle` on Hex) declares Elixir `~> 1.18` (Elixir 1.18 or later, which its `googleapis` dependency requires) and installs through `mix`. |
 | Chronicle storage | MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite are documented storage choices. |
-| Arc persistence | MongoDB and Entity Framework Core integrations are documented. |
-| Docs site | Astro Starlight, generated product content, Storybook builds, API reference builds, and `/llms.txt` exports are part of the documentation site. |
+| Arc persistence | MongoDB and Entity Framework Core integrations are documented for C#; Spring Data MongoDB and Spring Data JPA for Kotlin and Java. |
 
 ## Product relationships
 
 | Product | Common dependency relationship |
 |---|---|
-| Chronicle | Uses Fundamentals and Arc packages internally, exposes a first-class .NET client plus TypeScript, Kotlin/Java, and Elixir clients over gRPC/protobuf contracts, and can be inspected through CLI and Workbench. |
+| Chronicle | Uses Fundamentals and Arc packages internally, exposes a first-class .NET client plus TypeScript, Kotlin/Java, and Elixir clients over gRPC/protobuf contracts, and can be inspected through the CLI and Workbench. |
 | Arc | Uses Fundamentals and can integrate with Chronicle, MongoDB, Entity Framework Core, ASP.NET Core, OpenAPI, Swagger, and generated TypeScript proxies. |
-| Components | Depends on Arc-generated frontend contracts and React; wraps PrimeReact-oriented UI patterns. |
-| CLI | Talks to Chronicle and produces AI command catalogs through `cratis init`. |
+| Components | Renders Arc's generated command and query proxies in React. Since Components 4 it owns its markup, types, and styling contract and uses React Aria internally; it no longer depends on PrimeReact. See [UI foundation](/components/ui-foundation/). |
+| CLI | Talks to Chronicle, installs managed AI guidance with `cratis ai`, and writes a CLI command catalog for AI assistants with `cratis init`. |
 | Documentation | Aggregates product `Documentation/` folders and builds Storybook/API reference artifacts into the site. |
+
+## Which pairings are verified
+
+There is no single numbered matrix that says which Chronicle kernel, Chronicle client, Arc, and Components versions work together. These are the constraints the products state today:
+
+| Pairing | What is established |
+|---|---|
+| Chronicle kernel and the .NET client | The .NET client shares the kernel's version number. Within one major version, Chronicle verifies that the current build serves every released minor of that major. Across a major boundary, move the kernel and the client together unless the upgrade guide says the boundary is wire-compatible. [Upgrading across major versions](/chronicle/upgrading/major-versions/) lists every boundary, and marks the ones it cannot describe as unknown. |
+| Chronicle kernel and the TypeScript, Kotlin/Java, and Elixir clients | These clients have their own version numbers, so a client's major version says nothing about which kernel major it matches. Instead, the client sends its compiled contract descriptors when it connects, and the kernel compares them structurally with its own. Additions on the server side are allowed; a removed or changed service, message, or field fails the connection with an incompatibility error. There is no published table pairing a given client release with kernel versions. See [the wire-compatibility handshake](/chronicle/building-a-client/clustering-and-connection-lifecycle/#the-wire-compatibility-handshake). |
+| Components and Arc | Components states its supported Arc range in its `peerDependencies`. In the current Components 4 source, that is `@cratis/arc` and `@cratis/arc.react` `>=20.3.1 <23`, with `@cratis/fundamentals` `^7.10.3`. Check the `package.json` of the Components version you install. |
+| Arc, Chronicle, and the JVM templates | The Kotlin and Java templates resolve the Cratis meta package and Arc Gradle plugin dynamically. Their source does not establish a fixed, verified Arc/Chronicle version pairing. |
+| Arc and Chronicle on .NET | The `Cratis` meta package brings a matching Arc and Chronicle client together; the .NET templates add its latest release when you scaffold. Other version combinations are not documented as verified. |
+
+If your combination is not in this table, treat it as unverified rather than as known to work or known to fail, and ask in [Community and help](/community/) before depending on it.
 
 ## How to verify your stack
 
-1. Check the package versions you plan to install.
+1. Check the package versions you plan to install, including the peer ranges your package manager reports.
 2. Check the matching release notes in [What's new](/whats-new/).
-3. Check the product guide for runtime-specific setup.
-4. Pin container images and package versions in production.
-5. Ask in [Community and help](/community/) if your runtime combination is not listed.
+3. For Chronicle, check [Plan an upgrade](/upgrade-path/) for any major boundary between the kernel and the client versions you run.
+4. Check the product guide for runtime-specific setup.
+5. Pin container images and package versions in production.
+6. Ask in [Community and help](/community/) if your runtime combination is not listed.
 
 <Aside type="caution" title="Do not rely on latest tags in production">
-Use explicit package versions and Docker image tags for deployed systems. The Chronicle hosting docs also recommend specific version tags for production deployments.
+Use explicit package versions and Docker image tags for deployed systems. The Chronicle hosting docs also recommend specific version tags for production deployments. The .NET templates pin concrete NuGet versions when you scaffold, but the frontend caret ranges and the JVM templates' `latest.release` still float. Commit a lockfile and pin the resolved packages and plugins before you deploy.
 </Aside>

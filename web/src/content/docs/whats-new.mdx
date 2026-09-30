@@ -1,35 +1,49 @@
 ---
 title: "What's new"
-description: Curated release digests and links to Cratis product releases across Chronicle, Arc, Components, CLI, Fundamentals, AuthProxy, and tools.
+description: Weekly release digests across the Cratis repositories, and links to each product's and client's own releases.
 ---
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+import releaseDigests from '../../generated/release-digests.json';
 
-Cratis moves across several repositories, so a single product release page rarely tells the whole story. The release digests collect changes across the stack and link back to the source releases and pull requests.
+Cratis moves across several repositories, and the clients and tools release on their own schedules, so no single release page tells the whole story. The weekly release digests collect changes across the stack and link back to the source releases and pull requests.
 
 <CardGrid>
-  <LinkCard title="Latest release digest" description="Changes collected from September 7, 2026 to September 14, 2026." href="/release-digests/2026-09-07-to-2026-09-14/" />
-  <LinkCard title="Previous release digest" description="Changes collected from August 31, 2026 to September 7, 2026." href="/release-digests/2026-08-31-to-2026-09-07/" />
+  {releaseDigests.slice(0, 2).map((digest, index) => (
+    <LinkCard title={index === 0 ? 'Latest release digest' : 'Previous release digest'} description={digest.label} href={`/release-digests/${digest.slug}/`} />
+  ))}
   <LinkCard title="Roadmap" description="What is stable, what is being hardened, what is being explored, and where feedback helps." href="/roadmap/" />
 </CardGrid>
 
-Every weekly digest, newest first, is available from the **Release Digests** section at the bottom of this sidebar.
+Every weekly digest, newest first, is listed in the **Release Digests** section of the sidebar.
 
 ## Product releases
 
+Each repository publishes its own releases with exact versions and notes. The clients and tools are versioned independently of the Chronicle kernel and of Arc.
+
 | Product | Releases |
 |---|---|
-| Chronicle | [Chronicle releases](https://github.com/Cratis/Chronicle/releases) |
-| Arc | [Arc releases](https://github.com/Cratis/Arc/releases) |
+| Chronicle kernel and .NET client | [Chronicle releases](https://github.com/Cratis/Chronicle/releases) |
+| Chronicle TypeScript client | [Chronicle.TypeScript releases](https://github.com/Cratis/Chronicle.TypeScript/releases) |
+| Chronicle Kotlin/Java client | [Chronicle.Kotlin releases](https://github.com/Cratis/Chronicle.Kotlin/releases) |
+| Chronicle Elixir client | [Chronicle.Elixir releases](https://github.com/Cratis/Chronicle.Elixir/releases) |
+| Chronicle MCP server | [Chronicle.Mcp releases](https://github.com/Cratis/Chronicle.Mcp/releases) |
+| Arc for C# | [Arc releases](https://github.com/Cratis/Arc/releases) |
+| Arc for Kotlin and Java | [Arc.Kotlin releases](https://github.com/Cratis/Arc.Kotlin/releases) |
 | Components | [Components releases](https://github.com/Cratis/Components/releases) |
 | CLI | [CLI releases](https://github.com/Cratis/cli/releases) |
+| Project templates | [Templates releases](https://github.com/Cratis/Templates/releases) |
+| Cratis AI (`@cratis/pi`) | [AI releases](https://github.com/Cratis/AI/releases) |
 | Fundamentals | [Fundamentals releases](https://github.com/Cratis/Fundamentals/releases) |
 | AuthProxy | [AuthProxy releases](https://github.com/Cratis/AuthProxy/releases) |
+| Narrator (VS Code) | [Narrator releases](https://github.com/Cratis/Narrator/releases) |
+| Lens (browser extension) | [Lens releases](https://github.com/Cratis/Lens/releases) |
 | Samples | [Samples repository](https://github.com/Cratis/Samples) |
 
 ## How to read changes
 
-- Use release digests when you want the cross-stack picture.
+- Use release digests when you want the cross-stack picture for a week.
 - Use product releases when you need exact package tags or repository-specific details.
+- Use [Plan an upgrade](/upgrade-path/) before you cross a Chronicle major version.
 - Use [Version compatibility](/compatibility/) when deciding which runtime and package versions belong together.
 - Use [Feedback and suggestions](/feedback/) when a release note leaves an adoption question unanswered.

@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow does not build or publish it, and its code is not maintained. The maintained version is [Real-Time Chat — Frontend-Managed State](https://www.cratis.io/scenarios/chat/change-stream/). See [why this folder is kept](../../../README.md).
+
 # Real-Time Chat — Frontend-Managed State
 
 The two previous guides use `ForRoom.use()`, which applies Arc's delta `ChangeSet` transparently and always gives the component a complete `messagesResult.data` array. That is the right default for most UIs.

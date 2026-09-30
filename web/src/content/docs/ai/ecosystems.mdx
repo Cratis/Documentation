@@ -1,41 +1,51 @@
 ---
 title: AI ecosystem support
-description: See how the managed Cratis AI corpus and native plugins reach Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, and Pi.
+description: Which Cratis AI content reaches Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, and Pi through the managed install and through each native plugin.
 ---
 
-Cratis authors one corpus and exposes it through native harness adapters. The
-adapter changes discovery, not the rule or skill body.
+Cratis authors one corpus and exposes it through each harness's native folders.
+The adapter changes how a harness discovers the content, not what the rule or
+skill says. What a harness receives depends on the channel you install through.
 
-## Managed support
+<span id="managed-support"></span>
+<span id="native-distribution"></span>
 
-`cratis ai install` supports these harness values:
+## Support matrix
 
-| Harness | Project resources |
-| --- | --- |
-| Claude Code | `.claude` |
-| OpenAI Codex | `AGENTS.md`, `.agents/skills` |
-| GitHub Copilot | `.github` |
-| Cursor | `.cursor` |
-| OpenCode | `AGENTS.md`, `.opencode` |
-| Pi | `AGENTS.md`, `.pi` |
+| Harness | Managed install (`cratis ai install`) | Native channel | Native channel content |
+| --- | --- | --- | --- |
+| Claude Code | `CLAUDE.md`, `.claude` | `cratis` marketplace plugin | Skills |
+| OpenAI Codex | `AGENTS.md`, `.agents/skills` | `cratis` marketplace plugin | Skills |
+| GitHub Copilot | `.github` | `cratis` marketplace plugin | Skills |
+| Cursor | `.cursor` | `cratis` marketplace plugin | Skills |
+| OpenCode | `AGENTS.md`, `.opencode` | None | Use the managed install |
+| Pi | `AGENTS.md`, `.pi` | `@cratis/pi` on npm | Skills, rules, prompts, agents, subagent tool, quality hooks |
 
-The CLI resolves profiles and languages once, installs the result in
-`.cratis/ai`, and points every selected harness there. This is the recommended
-multi-harness path.
+The managed install gives each selected harness the integrations it supports (rules, skills, prompts, and agents; Codex gets only `AGENTS.md` and skills) from one committed copy, filtered by profile and language. It is the
+recommended path for a repository that more than one tool or person works in.
+The [agent harness guide](/ai/harnesses/) lists exactly what it creates for each
+harness.
 
-## Native distribution
+Harnesses not in this table are not supported by the CLI or the marketplace
+manifests. A tool that reads `AGENTS.md` may still pick up the root
+instructions, but Cratis does not test or document that.
 
-Claude Code, Codex, GitHub Copilot, and Cursor can install the `cratis` plugin
-from the `Cratis/AI` marketplace manifests. Pi can install `@cratis/pi` from npm.
-OpenCode can consume standard project folders directly.
+## Versions
 
-Native installation is intentionally independent of the CLI. It is convenient
-for one harness, but it does not create a shared corpus or provide managed,
-hash-protected updates and uninstall.
+| Channel | Where it reads from | Can you pin it? |
+| --- | --- | --- |
+| Managed install | Current `main` of `Cratis/AI`, or a local checkout with `--source` | Only by pointing `--source` at a checkout of a known commit |
+| Marketplace plugins | Current default branch of `Cratis/AI` | No |
+| `@cratis/pi` | Published npm releases | Yes, by package version |
+
+[Cratis AI distribution](/ai/trust-and-distribution/) explains the ownership and
+update rules behind these channels.
 
 ## Quality
 
-The repository verifies corpus structure, profile composition, skill scenarios,
-harness adapters, and the Pi package from `Source/Verification`. It does not use
-provenance ledgers, generated inventories, or evidence chains as substitutes for
-behavior checks.
+The `Cratis/AI` repository checks corpus structure, profile composition, the
+harness adapters, and the Pi package in CI, and loads the corpus through Pi's
+resource loader to prove the skills, prompts, and extensions are discovered.
+Per-skill checks are static: they confirm that a skill contains required
+guidance. They do not run a model against the skill, compile its examples, or
+measure how well an agent performs with it.

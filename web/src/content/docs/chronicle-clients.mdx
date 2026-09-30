@@ -18,6 +18,8 @@ The .NET SDK is the first-class Chronicle client: typed access to event stores, 
 dotnet add package Cratis.Chronicle
 ```
 
+In an ASP.NET Core application, add `Cratis.Chronicle.AspNetCore` instead; it brings in the core SDK and the `AddCratisChronicle` / `UseCratisChronicle` hosting integration.
+
 - [Event sourcing in .NET](/event-sourcing/dotnet/) — the dedicated landing page
 - [.NET client docs](/chronicle/clients/dotnet/) · [Get started](/chronicle/get-started/)
 - [`Cratis.Chronicle` on NuGet](https://www.nuget.org/packages/Cratis.Chronicle)
@@ -28,8 +30,10 @@ dotnet add package Cratis.Chronicle
 `@cratis/chronicle` is the idiomatic TypeScript client for Chronicle, with support for transactions, jobs, webhooks, compliance/PII, and OpenTelemetry. It builds on the `@cratis/chronicle.contracts` gRPC contracts package.
 
 ```bash
-npm install @cratis/chronicle
+npm install @cratis/chronicle reflect-metadata
 ```
+
+The client uses decorators, so your project also needs `experimentalDecorators` and `emitDecoratorMetadata` enabled and must be an ES module project. The [TypeScript landing page](/event-sourcing/typescript/) lists the setup.
 
 - [Event sourcing in TypeScript and Node.js](/event-sourcing/typescript/) — the dedicated landing page
 - [TypeScript client docs](/chronicle/clients/typescript/)
@@ -49,6 +53,8 @@ dependencies {
 }
 ```
 
+Replace `<version>` with the current release from Maven Central.
+
 - [Event sourcing in Kotlin and Java](/event-sourcing/kotlin/) — the dedicated landing page
 - [Kotlin/Java client docs](/chronicle/clients/kotlin/)
 - [`io.cratis:chronicle` on Maven Central](https://central.sonatype.com/artifact/io.cratis/chronicle)
@@ -62,10 +68,12 @@ dependencies {
 # mix.exs
 defp deps do
   [
-    {:cratis_chronicle, "~> 0.0"}
+    {:cratis_chronicle, "~> <version>"}
   ]
 end
 ```
+
+Use the current version from Hex; `mix hex.info cratis_chronicle` prints it.
 
 - [Event sourcing in Elixir](/event-sourcing/elixir/) — the dedicated landing page
 - [Elixir client docs](/chronicle/clients/elixir/)
@@ -86,6 +94,8 @@ The Python client is pre-alpha. APIs will change, and no package has been publis
 ## Any language, one contract
 
 Every client speaks the same gRPC/protobuf contracts, so any language with a gRPC implementation can talk to Chronicle. If your runtime is not listed above, you can implement the contracts directly.
+
+The clients other than .NET are released on their own schedules, and their major version numbers do not match the kernel's. [Compatibility](/compatibility/) explains how to pair a client with a kernel.
 
 <CardGrid>
   <LinkCard title="Building a client" description="Implement the Chronicle gRPC contracts for a new language or runtime." href="/chronicle/building-a-client/" />

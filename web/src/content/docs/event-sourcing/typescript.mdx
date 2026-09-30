@@ -14,8 +14,16 @@ The event store itself is not tied to Node.js: Chronicle's kernel exposes a lang
 ## Install
 
 ```bash
-npm install @cratis/chronicle
+npm install @cratis/chronicle reflect-metadata
 ```
+
+The client relies on TypeScript decorators and runtime type metadata. Your project needs:
+
+- `reflect-metadata`, imported once at the top of your entry point;
+- `"experimentalDecorators": true` and `"emitDecoratorMetadata": true` in `tsconfig.json`;
+- an ES module project (`"type": "module"` in `package.json`, a matching `module` setting), since the package is published as ESM and the example below uses top-level `await`.
+
+The [Console sample's `tsconfig.json`](https://github.com/Cratis/Chronicle.TypeScript/blob/main/Samples/Console/tsconfig.json) is a working reference.
 
 ## A taste
 
@@ -37,7 +45,7 @@ console.log(`Appended at sequence number ${result.sequenceNumber.value}`);
 client.dispose();
 ```
 
-For a local kernel to append to, the development Docker image is the quickest path: `docker run -p 35000:35000 cratis/chronicle:latest-development`.
+`ChronicleOptions.development()` connects to a local development kernel. [Get started with Chronicle](/chronicle/get-started/) shows how to run one, and the [TypeScript client docs](/chronicle/clients/typescript/) cover connection strings for anything else.
 
 ## Where to go next
 

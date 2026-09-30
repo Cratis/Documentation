@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow does not build or publish it, and its code is not maintained. The maintained version is [State View — List Authors](https://www.cratis.io/scenarios/vertical-slices/state-view/). See [why this folder is kept](../../../README.md).
+
 # State View — List Authors
 
 This tutorial builds the **List Authors** slice of the Library system. It is a **State View** — the read side of Event Modeling.

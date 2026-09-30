@@ -1,41 +1,48 @@
 ---
 title: "Scenario: Cratis maintainer"
-description: Configure a Cratis repository with shared framework guidance and its native agent harness folders.
+description: Configure a Cratis framework or product repository with the engineering profiles and its native agent harness folders.
 ---
 
-You contribute to a Cratis framework or product repository rather than building
-an application on it.
+You contribute to a Cratis framework or product repository instead of building
+an application on it. The framework-contributor rules apply; the application
+vertical-slice rules do not.
 
 ## Configure the repository
 
-Use the managed installer and select the products, languages, and harnesses that
-the repository actually uses:
+Use the managed installer with a `cratis/engineering/<language>` profile for
+each language the repository contains. Add `cratis/documentation` when it has
+documentation, and a product profile when you also want that product's skills:
 
 ```bash
 cratis ai install \
   --harnesses claude,codex,copilot,cursor,opencode,pi \
-  --profiles cratis/arc \
+  --profiles cratis/engineering/csharp,cratis/engineering/typescript,cratis/documentation,cratis/arc \
   --languages csharp,typescript
 ```
 
-Start the agent from the repository root so it reads `AGENTS.md`, the selected
-Cratis corpus, and product-local guidance.
+A product profile such as `cratis/arc` on its own brings skills but neither the
+engineering nor the application rules. See
+[Choose Cratis AI profiles](/ai/profiles/).
+
+Start the agent from the repository root so it reads `AGENTS.md`, the installed
+Cratis rules, and the repository's own guidance.
 
 ## Keep repository guidance local
 
-Put product-specific or confidential guidance in the owning repository. You can
-add rules and skills under `.cratis/ai` or directly in one harness's native
-folder. The managed manifest records only files installed by Cratis, so these
-additions survive update and uninstall.
+Put product-specific or confidential guidance in the owning repository, in
+`.cratis/ai/rules/project.md` and its concern files. Add your own skills under
+`.cratis/ai/skills/` with names that do not start with `cratis-`. The managed
+manifest records only the files Cratis installed, so your additions survive
+update and uninstall.
 
-Generalize reusable guidance before proposing it to `Cratis/AI`; do not move
-private product facts into the shared corpus.
+Generalize reusable guidance before proposing it to `Cratis/AI`, and leave
+private product facts out of the shared corpus.
 
 ## Use a native plugin for one harness
 
-A maintainer who uses one harness can install the `cratis` marketplace plugin or
-`@cratis/pi` instead. That path provides packaged guidance but not the shared
-multi-harness corpus or managed lifecycle.
+A maintainer who works in one harness on their own machine can install the
+`cratis` marketplace plugin (skills only) or `@cratis/pi` instead. Neither
+installs the engineering rules into the repository for the rest of the team.
 
-See [Using AI as a Cratis maintainer](/ai/cratis-maintainers/) for the complete
+See [Use AI as a Cratis maintainer](/ai/cratis-maintainers/) for the complete
 workflow.

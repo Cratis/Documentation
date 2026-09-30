@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow no longer runs the `yarn build` process below, and nothing it produces is published. To work on the current site, read [the site README](../../../web/README.md). See [why this folder is kept](../../README.md).
+
 # Contributing to Documentation
 
 This section covers how to contribute to the Cratis documentation,
@@ -7,7 +10,7 @@ including conventions, tools, and best practices.
 | ------- | ----------- |
 | [Overview](overview.md) | Understanding how the documentation system works |
 | [Code Snippets](code-snippets.md) | How to include code samples from the Samples repository |
-| [Storybook Integration](storybook-integration.md) | How to embed interactive Storybook components |
+| [Storybook Integration](../storybook-integration.md) | How to embed interactive Storybook components |
 
 ## Documentation Structure
 

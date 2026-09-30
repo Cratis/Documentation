@@ -39,7 +39,7 @@ Each Build Kit is a real-time Claude agent you install into a Cratis project. On
 4. **Generates** the vertical slice following Cratis conventions for that language
 5. **Builds and tests** it, then **updates the board to `Done`**
 
-All without you opening an editor. See [The Loop and Triggers](#pick-your-language) in each kit's documentation for the exact mechanics, and [Event Modeling](/event-modeling/) for why the four slice types map onto Cratis so directly.
+All without you opening an editor. Each kit's *The Loop and Triggers* page has the exact mechanics: [C#](/eventmodelers-ai/csharp/understand/the-loop/), [Kotlin](/eventmodelers-ai/kotlin/understand/the-loop/), and [Java](/eventmodelers-ai/java/understand/the-loop/). [Event Modeling](/event-modeling/) explains why the four slice types map onto Cratis so directly.
 
 ## Pick your language
 
@@ -57,11 +57,17 @@ Three Build Kits exist today, one per Cratis client stack. Each is a separate, i
   </SimpleCard>
 </CardGrid>
 
-Every kit follows the same install → connect → run shape:
+For the **C# kit**, you need Node.js 18 or later, Claude Code (or its documented Ollama runner), and an EventModelers.ai account with a board. Its installation follows these steps. For Kotlin or Java, follow the language-specific guide linked above; prerequisites and installer behavior may differ.
 
-1. **Install** — `npx github:Cratis/Eventmodelers-Build-Kit-<language> install` scaffolds a Cratis starter app and the agent loop into your project.
-2. **Connect a board** — give the kit your EventModelers.ai organization, board, and API token (from [app.eventmodelers.ai/account](https://app.eventmodelers.ai/account)).
-3. **Run the loop** — `node .build-kit/ralph-claude.js`, then mark a slice `Planned` on your board and watch it land as tested code.
+1. **Install** in a new, empty directory: `npx github:Cratis/Eventmodelers-Build-Kit-CSharp install`. It copies a Cratis starter app into the project root and the agent loop into `.build-kit/`.
+2. **Connect a board** by giving the kit your EventModelers.ai organization, board, and API token (from [app.eventmodelers.ai/account](https://app.eventmodelers.ai/account)).
+3. **Run the loop** with `node .build-kit/ralph-claude.js`, then mark a slice `Planned` on your board and watch it land as tested code.
+
+<Aside type="caution" title="Before you install the C# kit">
+The C# installer writes the starter app's files (such as `CLAUDE.md`, `package.json`, and the project and solution files) into the current directory and overwrites files with the same names. Run it in a new directory, not in an existing project.
+
+Your API token is saved in `.eventmodelers/config.json` in the project root. The installer adds `.build-kit/` to `.gitignore`, but not that file. Add `.eventmodelers/` to `.gitignore` yourself before you commit, so the token does not end up in your repository.
+</Aside>
 
 ## See also
 

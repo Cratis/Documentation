@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow does not build or publish it, and its code is not maintained. The maintained version is [Automation — Cancel Expired Reservations](https://www.cratis.io/scenarios/vertical-slices/automation/). See [why this folder is kept](../../../README.md).
+
 # Automation — Cancel Expired Reservations
 
 This tutorial builds the **Cancel Expired Reservations** slice of the Library system. It is an **Automation** — a pattern that runs entirely in the background, with no direct user interaction.

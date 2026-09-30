@@ -1,15 +1,15 @@
 ---
 title: Roadmap
-description: "Directional roadmap for Cratis: what is stable, what is being hardened, what is being explored, and where feedback helps."
+description: "Directional roadmap for Cratis: what is stable, what is being hardened, what is experimental or being explored, and where feedback helps."
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
-The roadmap is directional, not a delivery contract. Cratis is open source, and priorities move when real adoption uncovers sharper needs. Treat this page as a map of intent: what you can rely on, what is being strengthened, and where feedback will shape the work.
+The roadmap is directional, not a delivery contract. Cratis is open source, and priorities move when real adoption uncovers sharper needs. Treat this page as a map of intent: what you can rely on, what is being strengthened, what is experimental, and where feedback will shape the work.
 
 <CardGrid>
   <LinkCard title="Share roadmap feedback" description="Tell us what would unblock adoption, production use, training, or contribution." href="/feedback/" />
-  <LinkCard title="Watch what changed" description="Read curated release digests across the Cratis repositories." href="/whats-new/" />
+  <LinkCard title="Watch what changed" description="Read weekly release digests across the Cratis repositories." href="/whats-new/" />
   <LinkCard title="Ask before depending on a future item" description="Use Discord when a planned or exploratory item matters to your project." href="/community/" />
 </CardGrid>
 
@@ -19,7 +19,7 @@ These are the core areas the documentation treats as the current Cratis foundati
 
 | Area | Direction |
 |---|---|
-| Chronicle | Event log, event types, projections, reducers, reactors, subscriptions, storage choices, hosting, CLI inspection, and testing helpers — with a first-class .NET SDK and TypeScript, Kotlin/Java, and Elixir clients |
+| Chronicle | Event log, event types, projections, reducers, reactors, subscriptions, storage choices, hosting, CLI inspection, and testing helpers, with a first-class .NET SDK |
 | Arc | Commands, queries, validation, generated TypeScript proxies, backend integrations, identity, tenancy, and CQRS without mandatory event sourcing |
 | Components | Command forms, dialogs, data tables, styling, Storybook, and typed React screens over Arc proxies |
 | Fundamentals | Concepts, serialization, type discovery, diagnostics helpers, and TypeScript utilities |
@@ -27,22 +27,28 @@ These are the core areas the documentation treats as the current Cratis foundati
 
 ## Being hardened
 
+These ship today and are in use, but their coverage, documentation, or guarantees are still being filled in:
+
+- The TypeScript, Kotlin/Java, and Elixir Chronicle clients and their documentation. Not every documented workflow is available in every client yet; the client tabs on each page say which.
 - Production guidance across the full stack.
-- The TypeScript, Kotlin/Java, and Elixir Chronicle clients and their documentation.
-- Compatibility documentation across .NET, Node, React, storage engines, and package versions.
+- Compatibility documentation across .NET, Node, React, storage engines, and package versions, including a clearer statement of which client and kernel versions pair.
+- Cratis AI rules, skills, and plugins, and the CLI's AI command catalog.
 - API reference and Storybook publishing.
-- CLI diagnostics and AI command catalogs.
-- Documentation coverage for common adoption paths and migration paths.
+- Documentation coverage for common adoption and migration paths.
 - Testing guidance from unit-level specs to full workflow specs.
+
+## Experimental
+
+- **The model-first layer:** [Studio](/studio/), [Screenplay](/screenplay/), Stage, Scene, and [Prologue](/prologue/). These are experimental and in early development; formats and behavior can change between releases.
+- **Developer tools in early releases:** [Lens](/tools/lens/), the browser extension for Arc apps.
 
 ## Being explored
 
-- Studio and richer visual operations around a running system.
-- A Python Chronicle client — coming soon; pre-release and not yet published.
-- Ensemble, deterministic expert workflows for AI agents building with the Cratis stack — coming soon; pre-release, and free and MIT licensed like the rest of Cratis.
-- Lens and developer tools that make event models and running systems easier to inspect.
+- A Python Chronicle client. It is pre-alpha and not published.
+- Ensemble, deterministic expert workflows for AI agents building with the Cratis stack. It is pre-release, and free and MIT licensed like the rest of Cratis.
+- Richer visual operations around a running system.
 - More reference architectures and runnable sample applications.
-- Professional help, workshops, and training material around Cratis and event sourcing.
+- More workshop and training material around Cratis and event sourcing. [Professional help](/professional-help/) is available today.
 - A clearer RFC path for larger design proposals.
 
 ## Feedback wanted

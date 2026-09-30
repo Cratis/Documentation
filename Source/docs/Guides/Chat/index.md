@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow does not build or publish it, and its code is not maintained. The maintained version is [Real-Time Chat](https://www.cratis.io/scenarios/chat/). See [why this folder is kept](../../../README.md).
+
 # Real-Time Chat
 
 These guides build a real-time multi-room chat application using Arc's [observable queries](/docs/Arc/backend/queries/). They share a common shape — a `ChatMessage` read model with a `ForRoom` observable query, a `SendMessage` command, and a React page component — but each one explores a different dimension of the pattern.

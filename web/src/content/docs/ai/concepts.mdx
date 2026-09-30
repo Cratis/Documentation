@@ -1,26 +1,29 @@
 ---
 title: Cratis AI concepts
-description: Understand the corpus, configuration, profiles, managed ownership, harness adapters, and native plugins.
+description: The terms used across the Cratis AI pages, including corpus, profile, rule, skill, prompt, managed manifest, harness adapter, and native plugin.
 ---
+
+The Cratis AI pages use a small set of terms. This page defines them in one
+place.
 
 | Concept | Meaning |
 | --- | --- |
-| **Corpus** | The reusable rules, agents, prompts, skills, hooks, and harness assets under `.cratis/ai`. |
-| **Configuration** | `.cratis/ai.json`, the repository-owned selection of harnesses, profiles, and languages. |
-| **Profile** | A product-oriented selection such as `cratis/application`, `cratis/arc`, or `cratis/chronicle`. |
-| **Skill** | An Agent Skills package containing `SKILL.md` and optional references, scripts, and assets. |
-| **Rule** | Persistent repository guidance that the selected harness loads through its native adapter. |
-| **Managed manifest** | `.cratis/ai.manifest.json`, which records every Cratis-owned installed file, harness integration, and hash. |
-| **Harness adapter** | A native `.claude`, `.cursor`, `.opencode`, `.pi`, `.github`, or `.agents` path that points to the shared corpus. |
-| **Native plugin** | A single-harness installation independent of the managed CLI lifecycle. |
+| **Corpus** | The shared rules, skills, prompts, agents, hooks, and harness assets. It is authored in [Cratis/AI](https://github.com/Cratis/AI) and installed into a repository under `.cratis/ai`. |
+| **Configuration** | `.cratis/ai.json`, the repository's own record of which harnesses, profiles, and languages it selected. It has no version field. |
+| **Profile** | A named selection. `cratis/application/*` profiles are for building applications on Cratis, `cratis/engineering/*` for contributing to the framework, `cratis/documentation` for documentation. Product profiles such as `cratis/arc` select skills for one product. See [Choose Cratis AI profiles](/ai/profiles/). |
+| **Rule** | Standing guidance the harness loads without being asked. Some rules apply to every file; others are scoped to paths such as `**/*.cs`. |
+| **Skill** | A folder with a `SKILL.md` and optional references that the agent loads when a task matches. Cratis skill names start with `cratis-`, for example `cratis-arc-command`. |
+| **Prompt** | A slash command that starts a workflow, such as `new-vertical-slice` or `add-projection`. |
+| **Agent** | A subagent definition, such as a spec writer or a security reviewer, that a harness with subagent support can delegate to. |
+| **Managed manifest** | `.cratis/ai.manifest.json`, which records the corpus source revision and every Cratis-installed file and harness integration with its hash. |
+| **Harness** | The coding tool that runs the agent: Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, or Pi. |
+| **Harness adapter** | A native path such as `.claude/skills`, `.cursor/rules`, `.pi/extensions`, or `AGENTS.md` that points into `.cratis/ai`, usually as a symbolic link. |
+| **Native plugin** | A single-harness install that bypasses the CLI: the `cratis` marketplace plugin (skills only) or the `@cratis/pi` npm package. |
 
-The repository owns its configuration and every file it adds. The installer owns
-only paths listed in the managed manifest. An unknown path is never claimed or
-overwritten, even with `--force`.
-
-Profiles and languages decide which skills are installed. Shared rules, agents,
-prompts, and supporting assets remain available through each selected harness's
-native integration.
+The repository owns its configuration and every file it adds. The installer
+owns only the paths listed in the managed manifest. A file it did not install is
+never claimed or overwritten, even with `--force`; if such a file is in the way,
+the run reports a conflict and changes nothing.
 
 Use [Start using Cratis AI](/ai/getting-started/) for the managed workflow and
 the [agent harness guide](/ai/harnesses/) to compare native plugins.

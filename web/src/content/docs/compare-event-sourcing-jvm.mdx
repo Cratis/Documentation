@@ -30,6 +30,10 @@ Axon Framework is the application-framework option; Axon Server is optional even
 The table records released, documented capabilities at named versions. Sources come from each product's own documentation, repository, license, or package registry and were checked on 2026-08-30. A listed capability is not a claim about performance, maturity, reliability, production suitability, or feature parity.
 </Aside>
 
+<Aside type="caution" title="This is a dated comparison">
+The rows below describe the named versions as documented on 2026-08-30. Chronicle and its clients have released since then: the .NET client and server are on the 19.x line, the TypeScript and Kotlin/Java clients on 6.x, and the Elixir client on 3.x. The other products may have moved too. This page has not been re-verified against those releases, so do not read a row as a statement about current capabilities or about which versions work together. Arc has also added Kotlin and Java backends on Spring Boot since then ([Arc for Kotlin and Java](/arc/backend/kotlin/)). For current Cratis pairings, see [Version compatibility](/compatibility/).
+</Aside>
+
 | Tool | Compared version | Version source |
 | --- | --- | --- |
 | Axon Framework | 5.3.1; Axon Server documentation from the current installation and 2026.1 reference series where applicable | [Axon Framework 5.3.1 on Maven Central](https://central.sonatype.com/artifact/org.axonframework/axon-messaging/5.3.1), [Axon 5.3 reference](https://docs.axoniq.io/axon-framework-reference/5.3/) |
@@ -64,7 +68,7 @@ Examine KurrentDB closely when you want the event store to be dedicated infrastr
 
 ### Cratis Chronicle
 
-Examine Chronicle closely when you want event storage and event processing behind a separate runtime while declaring typed JVM artifacts through Kotlin, Java, or Spring Boot. Chronicle's broader Cratis application ecosystem is currently centered on .NET and React; JVM teams should evaluate the Chronicle JVM client and Spring Boot starter on their own documented behavior rather than assuming parity with that .NET application path.
+Examine Chronicle closely when you want event storage and event processing behind a separate runtime while declaring typed JVM artifacts through Kotlin, Java, or Spring Boot. At the compared versions, Chronicle's broader Cratis application ecosystem was centered on .NET and React; JVM teams should evaluate the Chronicle JVM client and Spring Boot starter on their own documented behavior rather than assuming parity with that .NET application path. Arc's Kotlin and Java backends, released since, are outside this comparison.
 
 ## Questions to answer before choosing
 

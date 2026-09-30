@@ -1,41 +1,56 @@
 ---
 title: Choose Cratis AI profiles
-description: Select Cratis products and languages for a managed multi-harness repository or a native single-harness plugin.
+description: Pick the Cratis AI profiles and languages that match what your repository builds, so the agent gets application, framework, or documentation guidance and not the wrong set.
 ---
 
 import { Aside, Steps } from '@astrojs/starlight/components';
 
-Profiles select the product guidance a repository needs. Languages narrow a
-composed profile so, for example, a TypeScript Chronicle client does not receive
-C#-only skills.
+A profile decides which Cratis guidance a repository receives. The choice that
+matters is *what the repository builds*: an application on Cratis, part of the
+Cratis framework itself, or documentation. Get that wrong and the agent follows
+rules written for a different kind of project.
 
 ## Choose the profile
 
 | Repository | Profile |
 | --- | --- |
-| Arc + Chronicle application | `cratis/application` |
-| Arc without Chronicle | `cratis/arc` |
-| Chronicle client or service | `cratis/chronicle` |
+| .NET application on Arc and Chronicle, with a React frontend | `cratis/application/csharp` |
+| .NET application on Arc without Chronicle | `cratis/application/arc-only` |
+| Application on the Kotlin clients | `cratis/application/kotlin` |
+| Application on the TypeScript Chronicle client | `cratis/application/typescript` |
+| A Cratis framework repository (library, kernel, client SDK) | `cratis/engineering/<language>`, for example `cratis/engineering/csharp` |
+| Any repository with documentation | add `cratis/documentation` |
 
-The AI repository's `.cratis/ai/manifest.json` is authoritative for the profiles,
-languages, and harnesses currently offered by `cratis ai install`.
+`cratis/application` composes every application language profile. Prefer the
+language-specific one unless the repository really spans them.
+
+Only a `cratis/application*` profile brings in the application rules: vertical
+slices, model-bound commands and read models, the MVVM frontend. Only a
+`cratis/engineering*` profile brings in the framework-contributor rules. The
+product profiles, such as `cratis/arc` or `cratis/chronicle`, select skills for
+that product but deliver neither rule set on their own.
+
+The corpus's `.cratis/ai/manifest.json` is the authoritative list of the
+profiles, languages, and harnesses `cratis ai install` accepts. An unknown value
+fails validation with the rejected value. Use the profile table above and the [CLI reference](/cli/ai/) to choose a supported selection.
 
 ## Configure the repository
 
 <Steps>
 
-1. Run the interactive installer:
+1. Run the installer. In a terminal it prompts for each choice:
 
    ```bash
    cratis ai install
    ```
 
-2. Or provide every selection for automation:
+2. Or pass every selection, which is required in scripts, CI, and agent
+   terminals:
 
    ```bash
    cratis ai install \
      --harnesses claude,cursor,opencode,pi \
-     --profiles cratis/chronicle \
+     --profiles cratis/application/typescript \
      --languages typescript
    ```
 
@@ -45,49 +60,57 @@ languages, and harnesses currently offered by `cratis ai install`.
    {
      "schemaVersion": "1.0",
      "harnesses": ["claude", "cursor", "opencode", "pi"],
-     "profiles": ["cratis/chronicle"],
+     "profiles": ["cratis/application/typescript"],
      "languages": ["typescript"]
    }
    ```
 
 </Steps>
 
-The CLI resolves composed profiles using the selected languages, installs the
-matching skills, installs shared rules and supporting assets, and creates the
-selected harness adapters.
+The CLI expands composed profiles, keeps the language-specific parts that match
+your languages, and installs the matching skills. Agents, prompts, and hooks are
+always installed. Rules are filtered by profile and by language.
+
+<Aside type="caution" title="Always list your languages">
+`--languages` narrows the skills a profile composes, and omitting it leaves the
+skills unconstrained. Rules behave differently: a rule scoped to C# or
+TypeScript files is installed only when that language is listed. Name every
+language the repository uses.
+</Aside>
 
 <Aside type="note" title="Configuration is not ownership">
-`.cratis/ai.json` records what your repository wants. `.cratis/ai.manifest.json`
-records exactly which installed files and integrations Cratis owns, including
-their hashes. User-created files are never claimed merely because they live in a
-managed or harness directory.
+`.cratis/ai.json` records what your repository asked for. There is no version
+field: the corpus version is whatever the CLI read at install or update time.
+`.cratis/ai.manifest.json` records which installed files and integrations Cratis
+owns, with their hashes. A file you create is never claimed because it lives
+in a managed or harness folder.
 </Aside>
 
 ## Update or change a selection
 
-Edit `.cratis/ai.json` when the repository's products, languages, or harnesses
-change, then run:
+To change products, languages, or harnesses, run `install` again with the new
+options. To pick up a newer corpus for the selection you already have, run:
 
 ```bash
 cratis ai update
 ```
 
-The update adds newly selected content, removes obsolete Cratis-owned content,
-and reconfigures harness links. It stops before making changes if a managed file
-or integration was modified locally. Review the conflict before using
+The update adds newly selected content, removes Cratis-owned content that is no
+longer selected, and reconnects the harness links. It stops before changing
+anything if a managed file was edited locally. Review that edit before you use
 `cratis ai update --force`.
 
 ## Use a native plugin instead
 
-A native plugin is independent of the managed path. It is useful when one person
-uses one harness and wants to keep content in that harness's familiar folders.
-For Pi:
+A native plugin is independent of the managed path. It suits one person using
+one harness. The Claude Code, Codex, GitHub Copilot, and Cursor plugins deliver
+every Cratis skill and do not read profiles. The Pi package does:
 
 ```bash
 pi install -l npm:@cratis/pi
 ```
 
-The Pi package reads `.cratis/ai.json` when it exists and exposes the selected
-skills; without it, the package exposes all skills. Native plugins do not create
-the shared `.cratis/ai` corpus, configure other harnesses, or provide the CLI's
-hash-protected lifecycle.
+`@cratis/pi` reads `.cratis/ai.json` when it exists and exposes the skills for
+those profiles and languages; without it, the package exposes all skills.
+Neither kind of plugin creates the shared `.cratis/ai` corpus, configures other
+harnesses, or protects local edits.

@@ -1,14 +1,15 @@
 ---
 title: Use AI as a Cratis maintainer
-description: Follow the Cratis repository profile, managed AI corpus, skill, verification, review, and shipping workflow without copying the shared AI corpus between repositories.
+description: Work on a Cratis framework or product repository with an AI agent, using the engineering profiles, the repository's own context, fresh verification, and reviewed pull requests.
 ---
 
 import { Steps, Aside } from '@astrojs/starlight/components';
 
-Cratis maintainers do not ask a general assistant to guess the framework. Each
-Cratis repository already carries the instructions and host adapters needed for
-its current development workflow. Your job is to start in the right repository,
-state the outcome, and require fresh verification before shipping.
+You maintain a Cratis repository (Arc, Chronicle, a client SDK, Components, the
+CLI, this documentation) and want an agent to do real work in it. The agent
+should not guess how the framework works; the repository already carries the
+instructions it needs. Your part is to start it in the right place, state the
+outcome, and insist on fresh verification before anything ships.
 
 ## Work from the repository root
 
@@ -16,64 +17,83 @@ state the outcome, and require fresh verification before shipping.
 
 1. **Start the assistant in the repository you intend to change**
 
-   The root `AGENTS.md` identifies whether the repository is a Cratis
-   application, framework, client, documentation site, or another supported
-   profile. Profile selection matters: application vertical-slice rules do not
-   apply to Chronicle, Arc, Components, or client-library source repositories.
+   The root `AGENTS.md` (or `CLAUDE.md`) links to the repository's own
+   instructions and the installed Cratis rules. Profile selection matters:
+   application vertical-slice rules do not apply to Chronicle, Arc, Components,
+   or client-library source. A framework repository installs a
+   `cratis/engineering/<language>` profile, for example:
+
+   ```bash
+   cratis ai install \
+     --harnesses claude,codex,copilot,cursor,opencode,pi \
+     --profiles cratis/engineering/csharp,cratis/engineering/typescript,cratis/documentation \
+     --languages csharp,typescript
+   ```
+
+   Add a product profile such as `cratis/arc` or `cratis/chronicle` when you want
+   that product's skills as well. [Choose Cratis AI profiles](/ai/profiles/)
+   explains the split.
 
 2. **Read project-owned context**
 
-   If the repository has project-specific context, preserve it. Current
-   repositories may still use `.cratis/ai`; the controlled migration
-   design uses `.cratis/ai` with small host bootstraps. Never replace,
+   Project-specific instructions live in `.cratis/ai/rules/project.md` and the
+   concern files it lists. Some repositories still carry a legacy
+   `.cratis/PROJECT.md`; the installer can split it into the new layout. Keep
+   that context in the repository you are working in. Never replace,
    concatenate, or copy another repository's managed AI corpus.
 
 3. **Ask for the outcome, not an implementation pattern**
 
-   Good requests name the behavior and constraints:
+   Good requests name the behavior and the constraints:
 
    - "Model the registration flow before implementation."
    - "Add a strongly typed invoice number."
    - "Diagnose why this projection stopped updating."
    - "Review this change for Cratis architecture and security."
 
-   The matching skill chooses the Cratis workflow. If you know the skill, you
-   can invoke it explicitly using your host's skill picker or mention syntax.
+   A matching skill guides the workflow. If you know the skill or prompt, name
+   it through your harness's skill picker or slash command.
 
 4. **Let the repository answer routine questions**
 
    The assistant should inspect local rules, source, generated patterns, and
-   specs before interrupting you. Stop only for product choices, unavailable
-   authority, credentials, risky production actions, or genuinely conflicting
-   evidence.
+   specs before interrupting you. It should stop for product choices, missing
+   authority, credentials, risky production actions, or evidence that genuinely
+   conflicts.
 
 5. **Require fresh gates**
 
-   Compilation is not behavior evidence. Run the repository's current build,
-   specs, lint, generated-file, and documentation gates. Re-run the failing gate
-   after a correction.
+   Compilation is not evidence of behavior. Run the repository's current build,
+   specs, lint, generated-file, and documentation checks, and run the failing
+   check again after a fix.
 
 6. **Ship through a reviewed pull request**
 
-   Use logical commits, green CI, and the repository's merge policy. When a task
-   creates a new Cratis repository, register it through a linked
-   `Cratis/Strategy` issue so Strategy can establish ownership, metadata, and AI
-   setup with its own rules.
+   Use logical commits, green CI, and the repository's merge policy. When the
+   work creates a new repository in the Cratis organization, prepare a Strategy
+   intake proposal with the facts Strategy needs (purpose, owner, lifecycle,
+   dependencies, release and security expectations). The proposal is a draft
+   for a maintainer to route; an agent does not open, comment on, or link
+   `Cratis/Strategy` issues on its own.
 
 </Steps>
 
 ## Common maintainer workflows
 
-| Intent | Skill or capability |
+Skills are installed when a selected profile includes them; the marketplace
+plugins carry all of them. Prompts are installed with every managed profile.
+
+| Intent | Skill or prompt |
 | --- | --- |
-| Design unsettled commands, facts, streams, views, or reactions | `event-modeling` |
-| Build a complete application behavior | `new-vertical-slice` |
-| Add a command, read model, projection, reactor, reducer, or concept | The matching focused Cratis skill |
-| Diagnose source behavior | `diagnose-slice` |
-| Inspect a running Chronicle store | `inspect-running-chronicle` and the CLI |
-| Review correctness, architecture, security, or performance | The matching review skill |
-| Write product or site documentation | The Cratis documentation skills |
-| Commit, push, open, monitor, and merge a PR | `ship-changes` |
+| Design commands, events, streams, views, or reactions before building | `cratis-chronicle-event-modeling`, or `cratis-screenplay-event-modeling` for a `.play` model |
+| Build a complete application behavior | `new-vertical-slice` prompt |
+| Add a command, read model, projection, reactor, reducer, or concept | `cratis-arc-command`, `cratis-chronicle-read-model`, `cratis-chronicle-projection`, `cratis-chronicle-reactor`, `cratis-chronicle-reducer`, `cratis-fundamentals-concept`; or the `add-projection`, `add-reactor`, `add-reducer`, `add-concept` prompts |
+| Diagnose a stale read model or a stopped reactor | `cratis-chronicle-projection`, `cratis-chronicle-reactor` |
+| Inspect a running Chronicle store | `cratis-chronicle-cli-operations`, `cratis-chronicle-mcp-inspection`, `cratis-cli-terminal-workbench` |
+| Review correctness, architecture, security, or performance | `cratis-code-review`, `cratis-security-review`, `cratis-performance-review`; or the `code-review` and `review-pr` prompts |
+| Write product or site documentation | `cratis-documentation-writing`, `cratis-engineering-docs-authoring`, `cratis-technical-examples` |
+| Record an architectural decision | `cratis-engineering-decision-record` |
+| Commit, push, open, monitor, and merge a pull request | `ship-changes` prompt |
 
 <Aside type="note" title="Skills guide the work; analyzers still enforce contracts">
 The AI workflow does not replace Arc or Chronicle analyzers, compiler errors,
@@ -83,31 +103,36 @@ maintainer would use.
 
 ## Do not propagate the corpus
 
-Do **not** copy shared `.ai`, `.claude`, `.github`, `.agents`, or `.pi` trees from
-one repository to another. The old all-to-all propagation model is frozen
-because it created mixed versions, ownership ambiguity, and accidental fan-out.
+Do **not** copy shared `.cratis/ai`, `.claude`, `.github`, `.agents`, or `.pi`
+trees from one repository to another. Copying created mixed versions, unclear
+ownership, and changes that fanned out by accident, so it is no longer done.
 
-The replacement model is:
+Shared guidance reaches a repository through one of three channels instead:
 
-1. author and approve canonical capabilities in `Cratis/AI`;
-2. generate immutable, host-native artifacts into `Cratis/AI.Distribution`;
-3. install or pin one reviewed version through the host or organization scope;
-4. keep only project facts and minimal host bootstraps in the consuming
-   repository;
-5. canary updates, observe failures, and roll back by version.
+1. `cratis ai install` and `cratis ai update`, which copy the current `main` of
+   `Cratis/AI` (or a `--source` checkout) and record the source commit and file
+   hashes;
+2. the `@cratis/pi` npm package, versioned per release; or
+3. the native marketplace plugins, which carry skills only.
 
-Existing repository-local AI files remain in place until the replacement has
-real canary and rollback evidence. Do not delete them early, and do not restart
-legacy propagation.
+Change shared guidance in `Cratis/AI` through a reviewed pull request, then
+update consuming repositories through their channel. Roll back by reinstalling
+from a known-good commit with `--source`, or by pinning an earlier `@cratis/pi`
+version. [Cratis AI distribution](/ai/trust-and-distribution/) describes the
+channels in full.
+
+Some repositories still carry repository-local AI files from before the managed
+install. Leave them in place unless a reviewed change retires them, and do not
+restart copying between repositories.
 
 ## Keep shared and project knowledge separate
 
 Shared skills own Cratis conventions and reusable workflows. The consuming
-repository owns architecture decisions, commands, environments, credentials,
-fixtures, and verification details. That separation lets a shared package
-update without overwriting the facts that make one project different from
-another.
+repository owns architecture decisions, commands, environments, how credentials
+are obtained, fixtures, and verification details. Keeping them apart lets the
+shared corpus update without overwriting the facts that make one project
+different from another. Remove private or project-specific facts before you
+propose a reusable improvement to `Cratis/AI`.
 
-Read [Trust and distribution](/ai/trust-and-distribution/) for the complete
-boundary and [Start using AI with Cratis](/ai/getting-started/) for the public
-setup status.
+Read [Cratis AI distribution](/ai/trust-and-distribution/) for the ownership
+rules and [Start using Cratis AI](/ai/getting-started/) for the setup steps.

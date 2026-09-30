@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Historical page from the retired DocFX site.** The active docs workflow does not build or publish it, and its code is not maintained. The maintained version is [Configure camel casing for Chronicle and MongoDB](https://www.cratis.io/scenarios/camel-casing/). See [why this folder is kept](../../../README.md).
+
 # Configure camel casing for Chronicle and MongoDB
 
 This how-to shows how to configure camel casing when you use the Cratis meta package setup in an ASP.NET Core app.

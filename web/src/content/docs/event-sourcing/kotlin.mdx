@@ -13,6 +13,8 @@ The event store is not JVM-only: Chronicle's kernel exposes a language-agnostic 
 
 ## Install
 
+Replace `<version>` with the current release from [Maven Central](https://central.sonatype.com/artifact/io.cratis/chronicle):
+
 ```kotlin
 // build.gradle.kts
 dependencies {
@@ -50,12 +52,38 @@ class EmployeeStateReducer {
 }
 ```
 
-No registration code is needed. Append an event and the read model is there:
+Connect, wait for the first registration pass, and append an event. Registration does not mean the reducer has processed the append: read models update asynchronously. This example keeps the client alive while it waits up to ten seconds for the model, then fails on timeout rather than printing a missing result. It assumes a Chronicle kernel running locally in development mode; [Get started with Chronicle](/chronicle/get-started/) shows how to start one.
 
 ```kotlin
-store.eventLog.append("employee-1", EmployeeHired("Ada", "Lovelace", "Engineer"))
-val ada = store.readModels.getInstanceByKey(EmployeeState::class, "employee-1")
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+
+fun main() = runBlocking {
+    val client = ChronicleClient(ChronicleOptions.development())
+    try {
+        val store = client.getEventStore("MyApp")
+        store.awaitRegistration()
+        store.eventLog.append("employee-1", EmployeeHired("Ada", "Lovelace", "Engineer"))
+
+        val ada = withTimeout(10_000) {
+            var state = store.readModels.getInstanceByKey(EmployeeState::class, "employee-1")
+            while (state == null) {
+                delay(100)
+                state = store.readModels.getInstanceByKey(EmployeeState::class, "employee-1")
+            }
+            state
+        }
+        println(ada)
+    } finally {
+        client.dispose()
+    }
+}
 ```
+
+Use a fresh event store for this exercise so `employee-1` has no older read model. The ten-second limit is a demo timeout, not a processing-time guarantee. If it expires, inspect reducer registration and failed partitions instead of treating the append as a completed projection.
+
+Chronicle imports are omitted; the [Kotlin/Java client docs](/chronicle/clients/kotlin/) show the full setup, including the Spring Boot starter, which connects for you.
 
 The same surface is available from Java, with events as records and blocking bridges in place of suspending calls.
 

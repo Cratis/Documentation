@@ -1,41 +1,43 @@
 ---
 title: Security
-description: How to report Cratis security vulnerabilities and what to include in a responsible disclosure.
+description: How to report a suspected Cratis security vulnerability privately, what to put in the first message, and what the reporting route does and does not commit to.
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
-Security reports need a private path. Please do not report suspected vulnerabilities in public GitHub issues, pull requests, Discord threads, or public discussions.
+Security reports need a private path. Do not report a suspected vulnerability in a public GitHub issue, pull request, discussion, or Discord thread.
 
 <CardGrid>
-  <LinkCard title="Report a vulnerability" description="Email the maintainers with the affected product, impact, reproduction steps, and any proof of concept." href="mailto:oss@cratis.io?subject=Security%20report%20for%20Cratis" />
+  <LinkCard title="Report a vulnerability" description="Email the maintainers with Security: at the start of the subject." href="mailto:oss@cratis.io?subject=Security%3A" />
   <LinkCard title="Check production guidance" description="Review the operational checklist for TLS, secrets, storage, observability, and deployment." href="/production-readiness/" />
-  <LinkCard title="Browse product repositories" description="Find the repository that owns the affected code once a fix is ready to be coordinated." href="https://github.com/cratis" />
+  <LinkCard title="Browse product repositories" description="Find the repository that owns the affected code." href="https://github.com/cratis" />
 </CardGrid>
 
 ## Report privately
 
-Use the private vulnerability reporting feature in the affected GitHub repository if it is enabled. If you are not sure where the issue belongs, email [oss@cratis.io](mailto:oss@cratis.io?subject=Security%20report%20for%20Cratis) with a subject that starts with `Security:`.
+Email [oss@cratis.io](mailto:oss@cratis.io?subject=Security%3A) with `Security:` at the start of the subject. Include only what is needed to route and reproduce the report:
 
-Include:
+- The affected Cratis repository, package, or Docker image, and the exact version, tag, or commit.
+- The behavior you observed and the behavior you expected.
+- Bounded reproduction steps or a minimal reproducer.
+- The conditions required to reach the behavior.
+- The potential impact as you understand it: what an attacker could read, change, disrupt, or escalate.
+- A safe way to contact you for follow-up.
 
-- The affected product: Chronicle, Arc, Components, CLI, Fundamentals, AuthProxy, Studio, tools, or documentation.
-- The affected version, Docker image tag, package version, branch, or commit if known.
-- The kind of issue: authentication, authorization, data exposure, remote execution, injection, dependency vulnerability, unsafe default, or another category.
-- Reproduction steps and any configuration required to trigger the issue.
-- Impact: what an attacker can read, change, disrupt, or escalate.
-- Any proof of concept, logs, screenshots, or sample repository you can safely share.
+<Aside type="caution" title="Keep sensitive data out of the first message">
+Do not put credentials, tokens, customer data, personal data, production data, or sensitive logs in the first email. If more evidence is needed, ask for a private way to transfer it.
+</Aside>
 
 ## What not to share publicly
 
-Do not post exploit details, secrets, tokens, customer data, private logs, or reproduction repositories in public channels. If you have already opened a public issue, remove sensitive details and email the maintainers with a link to the issue.
+Do not post exploit details, secrets, tokens, customer data, private logs, private topology, or reproduction repositories in public channels. If you already opened a public issue, remove the sensitive details and email the maintainers with a link to it.
 
-## Supported versions
+Ordinary defects and feature requests that contain no sensitive security information belong in the affected repository's public issue tracker; see [GitHub issue trackers](/community/#github-issue-trackers).
 
-Security fixes normally target actively maintained releases and the current development line. If a vulnerability affects an older release, include the version you are using so we can assess the practical fix path.
+## What this route commits to
 
-For package and runtime compatibility, see [Version compatibility](/compatibility/). For operational hardening, see [Production readiness](/production-readiness/).
+This is a private reporting route. It does not create a response-time commitment, service-level agreement, support plan, disclosure deadline, or bug bounty, and it is not a statement about the security posture of any Cratis product. A public issue, build, release, or package does not establish that a product is secure, compliant, supported, or suitable for a particular environment.
 
-<Aside type="note" title="No bounty program">
-Cratis does not currently run a bug bounty program. We still appreciate responsible disclosure and will coordinate fixes as quickly as practical.
-</Aside>
+<span id="supported-versions"></span>
+
+When you report a problem in an older release, include the version you run so the maintainers can judge the practical fix path. For package and runtime compatibility, see [Version compatibility](/compatibility/). For operational hardening, see [Production readiness](/production-readiness/).

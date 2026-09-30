@@ -8,7 +8,8 @@ import { Aside, CardGrid, LinkCard } from '@astrojs/starlight/components';
 Security in a Cratis application is not one feature in one package. A request crosses the edge, becomes
 an Arc command or query, writes events through Chronicle, builds read models, and comes back to a React
 screen. Authentication, authorization, tenant isolation, and compliance each belong to a different part
-of that journey, and the stack is designed so each concern has one clear owner.
+of that journey, and the stack is designed so each concern has one clear owner. This page follows one
+request through those owners and points out where your own decisions still matter.
 
 The short version: **AuthProxy authenticates and resolves tenant context, Arc authorizes the operation,
 Chronicle stores events in the right namespace and encrypts PII by compliance subject, and Arc releases
@@ -62,8 +63,8 @@ on the UI hiding a button as the only access-control layer.
 
 In a multi-tenant Cratis application, the tenant resolved at the edge becomes application context in Arc.
 When Arc is integrated with Chronicle, that tenant context is used as the Chronicle namespace. Events,
-projections, reducers, and read models for one tenant stay separated from another tenant without every
-command manually choosing a namespace.
+projections, reducers, and read models for one tenant go to that tenant's namespace without every
+command manually choosing one.
 
 This is the operational boundary:
 
@@ -72,6 +73,18 @@ This is the operational boundary:
 | Resolve the tenant | AuthProxy or Arc tenancy resolvers | One tenant id for the request |
 | Carry tenant through command/query handling | Arc | Commands, queries, filters, identity, and generated endpoints see the same tenant context |
 | Isolate event-sourced state | Arc + Chronicle integration | Chronicle uses the tenant as the event-store namespace |
+| Isolate MongoDB storage | Arc MongoDB integration | The injected `IMongoDatabase` and `IMongoCollection<T>` resolve a tenant-specific database (`{Database}+{TenantId}` for non-default tenants) |
+| Isolate EF Core storage | You | Arc does not append the tenant to the connection string; you choose and implement relational isolation |
+| Check tenant membership | You | Resolution selects a tenant; your services and policies verify that this caller may use it |
+
+<Aside type="caution" title="A correct resolver is not membership authorization">
+Keep three decisions apart: selection resolves the tenant id, membership authorization checks whether this caller may use it, and storage isolation decides where reads and writes go. None of them replaces the others, and a resolver that produces the right tenant id does not prove the authenticated user belongs to that tenant. Enforce membership in your application services and policies. Isolation is also only as good as the tenant id the resolver produces. A request that arrives without a
+tenant does not fail: Arc maps a missing or default tenant to Chronicle's **default** namespace. In a
+multi-tenant application, decide whether any caller may reach default-namespace data, and reject requests
+without a valid tenant when they may not. Trust tenant headers only when they come from AuthProxy or
+another component you control. [Tenancy with Chronicle](/arc/backend/csharp/chronicle/tenancy/) describes
+the mapping, and [database isolation](/arc/backend/csharp/tenancy/database-resolvers/) covers MongoDB and EF Core.
+</Aside>
 
 ## Compliance subject decides the PII key
 
@@ -100,19 +113,46 @@ Read models keep that protection:
 | Reducer | The read model must mark PII properties explicitly, because reducer logic is arbitrary C#. |
 | Arc query response | Arc releases the read model before serving it, so clients receive decrypted values when the subject key exists. |
 
-Managed read-model documents also carry Chronicle's reserved `_subject` field so the correct key can be
-used during release. Do not model your own `_subject` property.
+Managed read-model documents also carry Chronicle's reserved `__subject` field (and a `__subjects` map
+when properties belong to different subjects) so the correct key can be used during release. Do not
+declare your own properties named `_subject`, `__subject`, or `__subjects`; Chronicle reserves all three.
 
-## Erasure is key deletion plus rebuild
+## Commands leave a permanent record
+
+With Arc and Chronicle together, a command's name and property values are written into the causation
+chain of the events it appends. That chain lives in the event log and is as permanent as the events, and
+it is **not** covered by event encryption. Mark top-level command properties `[PII]` or `[NotAudited]`
+to keep them out of it. The exclusion is not recursive: a marked member inside a nested object or
+collection is still written. Exclude the containing property, its type, or the whole command when nested
+data is sensitive. See [causation](/arc/backend/csharp/chronicle/commands/causation/).
+
+<span id="erasure-is-key-deletion-plus-rebuild"></span>
+
+## Erasure and its limits
 
 The event log can stay structurally immutable while protected values become unreadable. For GDPR-style
 erasure, Chronicle deletes the subject's PII encryption key. After that, PII encrypted with that key
-cannot be decrypted.
+cannot be decrypted by the running system.
 
-For read models, finish the erasure by re-projecting or re-reducing affected models. Until then, stored
-read-model documents may still contain ciphertext. The key is gone, so the value is unreadable, but
-rebuilding the read model removes the remaining encrypted payload from the query store. If an entire
-event payload must be removed, combine key deletion with [event redaction](/chronicle/events/redaction/).
+Erasure also records a fence that prevents Chronicle from silently creating a replacement key for
+that subject in the affected namespace. It does not automatically remove stored ciphertext. Do not
+assume a replay or rebuild will clean it up: processing a protected value for an erased subject can
+fail with `EncryptionKeyErased`. Follow the [subject-erasure procedure](/chronicle/compliance/erasing-a-subject/)
+for the affected namespaces and read models. Authorizing a new key is a separate decision, not a step
+needed to finish erasure. If an entire event payload must be removed, review
+[event redaction](/chronicle/events/redaction/) as a separate operation.
+
+Key deletion only reaches what Chronicle's key store protects. Plan for the rest:
+
+- **Backups.** A backup taken before the erasure still holds the key. Restoring it brings the key back,
+  so a restore needs its own procedure to re-apply erasures made since the backup.
+- **Copies outside Chronicle.** Decrypted values in exports, warehouses, search indexes, logs, caches, and
+  anything a reactor sent to another system are outside the erasure.
+- **Unmarked data.** Values that were never marked `[PII]`, including command values recorded in causation,
+  were never encrypted and are not affected.
+
+[Erasing a subject](/chronicle/compliance/erasing-a-subject/) and
+[key lifecycle](/chronicle/compliance/key-lifecycle/) cover the full procedure.
 
 ## What to decide up front
 
@@ -123,7 +163,8 @@ event payload must be removed, combine key deletion with [event redaction](/chro
 | Operation access | Which roles or policies can run each command or query? | [Arc authorization](/arc/backend/csharp/core/authorization/) |
 | Compliance subject | Whose personal data does this event contain? | [Arc Chronicle subject](/arc/backend/csharp/chronicle/compliance/subject/) |
 | PII modeling | Which event properties or concepts are personal data? | [Chronicle compliance](/chronicle/compliance/) |
-| Erasure | What must be key-deleted, re-projected, or redacted? | [Chronicle read models and PII](/chronicle/compliance/read-models/) |
+| Command audit | Which command values must stay out of the permanent causation record? | [Arc causation](/arc/backend/csharp/chronicle/commands/causation/) |
+| Erasure | What must be key-deleted, re-projected, redacted, or handled outside Chronicle? | [Erasing a subject](/chronicle/compliance/erasing-a-subject/) |
 
 ## Go deeper
 

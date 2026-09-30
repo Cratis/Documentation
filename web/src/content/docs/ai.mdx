@@ -1,6 +1,6 @@
 ---
 title: AI-native development
-description: Cratis combines framework-aware AI workflows you can install today with documented CLI and MCP operating tools. Learn what is installable now, what stays gated, and where each agent ecosystem fits.
+description: Give your coding agent Cratis conventions through Cratis AI rules and skills, and let it inspect a running Chronicle store through the CLI and the Chronicle MCP server.
 slug: ai
 ---
 
@@ -9,53 +9,70 @@ import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
 <TopicHero icon="rocket" eyebrow="The Cratis Stack" title="Build and operate with AI agents">
-Cratis is designed to give an AI assistant the same domain vocabulary, framework boundaries, and verification gates your team uses. Install the framework-aware skills today from the Cratis AI marketplace or as version-pinned profile packages; the CLI and Chronicle MCP provide the documented operating side now.
+Give your coding agent the same conventions, framework boundaries, and checks your team works to. Install the Cratis AI rules and skills into a repository with the Cratis CLI, or add the skills to one tool through its plugin. Then connect the agent to a running Chronicle store through the CLI and the Chronicle MCP server.
 </TopicHero>
 
 ## Why "AI-native"
 
-An AI assistant is only as good as what it knows about your framework and your system. Drop a general-purpose agent into a Cratis codebase and it will *guess* — inventing handler classes, missing the vertical-slice conventions, hand-writing the API client you don't need. Point it at a running event store and it has no idea how to read the log or recover a stuck observer.
+An assistant is only as good as what it knows about your framework and your
+system. Drop a general-purpose agent into a Cratis codebase and it guesses: it
+invents handler classes, misses the vertical-slice conventions, and hand-writes
+the API client that proxy generation already produces. Point it at a running
+event store and it has no idea how to read the log or find a failed partition.
 
-Cratis closes the operating gap with documented CLI and MCP setup today. For coding workflows, it separates what any developer installs — the marketplace plugin and published profile packages — from the repository-local setup used by Cratis maintainers, and from the supported tier that still has to pass its release gates.
+Cratis addresses both halves. On the build side, Cratis AI gives the agent the
+conventions. On the operate side, the CLI and the Chronicle MCP server give it a
+documented way into the store.
 
 ## Build with AI: skills that know the Cratis way
 
-The **Cratis AI configuration** teaches an assistant the conventions—vertical
-slices, `[Command]` with `Handle()` on the record, model-bound projections, and
-`ConceptAs<T>` instead of raw primitives.
+**Cratis AI** is a shared corpus of rules, skills, prompts, and subagents that
+teaches an assistant the conventions: vertical slices, `[Command]` with
+`Handle()` on the record, model-bound projections, and `ConceptAs<T>` instead of
+raw primitives. It is authored in [Cratis/AI](https://github.com/Cratis/AI) and
+reaches you through one of three channels:
 
-You can install it today: add `Cratis/AI` as a marketplace in Claude Code, Codex,
-GitHub Copilot, or Cursor and install the `cratis` plugin, or install the
-published `@cratis/pi` npm package through Pi — a supported
-stable release carrying the same public skill set the marketplace delivers.
-The versioned per-profile tier waits on release gates, not on packaging.
-Cratis-owned repositories additionally carry repository-local rules and host
-adapters, so maintainers can use these workflows in place.
+| Channel | What you get | Versioning |
+| --- | --- | --- |
+| `cratis ai install` | Rules, skills, prompts, agents, and hooks for every selected coding tool, filtered by profile and committed to your repository | Takes the current `main`; `--source` reads a checkout of a known commit |
+| `@cratis/pi` on npm | Skills, rules, prompts, agents, and hooks inside Pi | Versioned per release |
+| `cratis` marketplace plugin for Claude Code, Codex, GitHub Copilot, or Cursor | Skills only | Follows the default branch |
 
-Among the workflows available to Cratis maintainers:
+A few of what you get, by name:
 
-- **`new-vertical-slice`** — scaffold a whole feature end to end: command, events, projection, query, React, and specs.
-- **`cratis-command`**, **`cratis-readmodel`**, **`add-projection`**, **`add-reactor`**, **`add-concept`** — build one artifact correctly, by convention.
-- **`scaffold-feature`**, **`write-specs`**, **`review-code`** — set up a feature folder, cover it with BDD specs, and review the result against the project's standards.
+- **`new-vertical-slice`** (prompt) scaffolds a whole feature end to end:
+  command, events, projection, query, React, and specs.
+- **`cratis-arc-command`**, **`cratis-chronicle-read-model`**,
+  **`cratis-chronicle-projection`**, **`cratis-chronicle-reactor`**, and
+  **`cratis-fundamentals-concept`** (skills) build one artifact by convention.
+  The `add-projection`, `add-reactor`, and `add-concept` prompts start the same
+  work as a slash command.
+- **`scaffold-feature`** and **`write-specs`** (prompts) and
+  **`cratis-code-review`** (skill) set up a feature folder, cover it with BDD
+  specs, and review the result against the project's standards.
 
-Because the skills encode the conventions, an agent that uses them produces slices that look like the rest of your codebase — not a layered approximation of it. (The canonical source is the `Cratis/AI` repository; a repository that needs a narrower scope subscribes to [profiles](/ai/profiles/) — per product, per language, pinned.)
+Prompts come with the managed install and `@cratis/pi`; the marketplace plugin
+has the skills only. Because the skills encode the conventions, an agent that
+uses them produces slices that look like the rest of your codebase instead of a
+layered approximation of it.
 
-Start with [Start using Cratis AI](/ai/getting-started/) — one command per
-host installs the plugin. The [agent harness guide](/ai/harnesses/) walks
-every harness type with exact commands, the [scenarios](/ai/scenarios/solo-developer/)
-pages cover solo, team, and multi-harness setups, and the
-[ecosystem support matrix](/ai/ecosystems/) shows what is verified and what
-remains gated. [Profiles](/ai/profiles/) explains how to select exactly the
-guidance a repository needs, while the [code-analysis gates](/code-analysis/)
-enforce framework contracts during the build.
+Start with [Start using Cratis AI](/ai/getting-started/). The
+[agent harness guide](/ai/harnesses/) has the command for each coding tool,
+[profiles](/ai/profiles/) explains how to choose the guidance a repository
+needs, and the [scenarios](/ai/scenarios/solo-developer/) cover solo, team, and
+multi-tool setups. The [code-analysis rules](/code-analysis/) enforce the same
+framework contracts during the build, whether or not an agent wrote the code.
 
-<Aside type="tip" title="Model first, then generate">
-Pair this with [Studio](/studio/) or [Screenplay](/screenplay/): model the feature on the canvas or as a declarative `.play` script, generate the C# shapes, then let an agent flesh out the slices around them. Design → generate → build, with AI at each step.
+<Aside type="tip" title="Model first, then build">
+You can pair this with [Studio](/studio/) or [Screenplay](/screenplay/): model the
+feature, then let an agent build the slices around it. Both belong to the
+model-first layer, which is experimental and in early development.
 </Aside>
 
 ## Operate with AI: teach your assistant your store
 
-Building is only half the loop. The other half is *operating* what you built — and Cratis makes the running store legible to an assistant two ways.
+Building is half the loop. The other half is *operating* what you built. Cratis
+gives an assistant two ways into a running store.
 
 ### `cratis init` — the CLI, made AI-aware
 
@@ -65,37 +82,54 @@ Run it once inside your project:
 cratis init
 ```
 
-It writes a **`CHRONICLE.md`** describing every command the CLI can run, installs instruction files for **Claude Code, GitHub Copilot, Cursor, and Windsurf**, and adds a **`chronicle-diagnose`** slash command. From then on your assistant knows how to browse events, watch observers, and diagnose a stuck partition through the [CLI](/cli/) — because the whole command catalog is in its context. Refresh it after a CLI upgrade with `cratis init --refresh`. The [CLI getting started](/cli/getting-started/) guide walks through it in full.
+It writes a **`CHRONICLE.md`** describing every command the CLI can run, adds
+instruction files for the AI tools it detects (Claude Code, GitHub Copilot,
+Cursor, Windsurf, and Pi), and adds a **`chronicle-diagnose`** slash command.
+Detection looks at the project's files and at environment variables each tool
+sets. If it detects none, it configures none; pass `--tool <name>` to target one.
+
+From then on your assistant can browse events, watch observers, and diagnose a
+failed partition through the [CLI](/cli/), because the command catalog is in its
+context. After a CLI upgrade, refresh the catalog with `cratis init --refresh`.
+The [CLI getting started](/cli/getting-started/) guide covers it in full.
 
 ### The Chronicle MCP server — an agent, connected to the store
 
-For tools that speak the **Model Context Protocol**, Cratis publishes a containerized MCP server that connects straight to a running Chronicle store. Point your tool at it with an `mcp.json`:
+For tools that speak the **Model Context Protocol**, Cratis publishes the
+[Chronicle MCP server](/chronicle-mcp/) as the `cratis/chronicle-mcp` container
+image. It connects straight to a running Chronicle server. The setup depends on
+your MCP host; [Chronicle MCP getting started](/chronicle-mcp/getting-started/)
+has a working configuration and [configuration](/chronicle-mcp/configuration/)
+covers connection strings and credentials.
 
-```json
-{
-    "servers": {
-        "Chronicle": {
-            "type": "stdio",
-            "command": "docker",
-            "args": ["run", "-i", "--rm",
-                "-eCratis__Chronicle__Mcp__ConnectionString=chronicle://host.docker.internal:35000",
-                "cratis/chronicle-mcp"]
-        }
-    }
-}
-```
+<Aside type="caution" title="Local defaults">
+Without configuration, the server uses Chronicle's development client
+credentials and `localhost:35000`. Those defaults are for a local development
+store only. Give it real credentials, or an API key, before you point it at
+anything shared.
+</Aside>
 
-With it connected, your assistant can — in plain language — do things like:
+Once connected, your assistant can:
 
-- **Explore** — list event stores and sequences, show event types and their schemas, and read the event log or the events for a single event source.
-- **Run observers** — list observers, replay an observer or one partition, and recover a failed partition.
-- **Act on recommendations** — list, perform, or ignore the store's recommendations.
-- **Manage jobs** — resume, stop, or delete a running job.
+- **Explore**: list event stores, namespaces, event types, projections, and read
+  models; read events and the tail sequence number; look at read model
+  instances.
+- **Check observer health**: list observers and failed partitions, get one
+  observer's state, and list the recommendations the store has raised.
+- **Manage jobs**: list jobs and their steps, and stop, resume, or delete a job.
+- **Design against real data**: describe the system and its event types, build
+  an event catalog, find event types nothing consumes, trace why an event
+  source ended up in its state, run an ad-hoc projection, suggest next event
+  types, and scaffold a read model.
 
-It needs a Chronicle server running; everything it does, it does against the live store.
+To replay an observer or recover a failed partition, use the
+[CLI](/cli/chronicle/) or the Workbench after the agent has helped you diagnose
+the cause.
 
-<Aside type="note" title="Operate, not mutate">
-The MCP server and the CLI are *operate-and-inspect* tools — the agent reads the log and manages observers and jobs. To change application state you still go through commands and events. History stays honest.
+<Aside type="note" title="Operate, not change history">
+The MCP server and the CLI inspect and operate the store: they read the log and
+manage observers and jobs. To change application state you still go through
+commands and events, so history stays honest.
 </Aside>
 
 ## The whole loop, AI-accelerated
@@ -103,7 +137,7 @@ The MCP server and the CLI are *operate-and-inspect* tools — the agent reads t
 ```mermaid
 flowchart LR
     subgraph Build["Build with AI"]
-        SK["Cratis AI skills<br/>model · build · review"]
+        SK["Cratis AI<br/>rules · skills · prompts"]
     end
     subgraph Operate["Operate with AI"]
         IN["cratis init<br/>CLI command catalog"]
@@ -111,35 +145,38 @@ flowchart LR
     end
     SK -->|scaffold slices| APP["Your Cratis app"]
     APP -->|run it| OP["Running Chronicle store"]
-    IN -.->|inspect & diagnose| OP
-    MCP -.->|browse · replay · recover| OP
+    IN -.->|inspect, diagnose, replay| OP
+    MCP -.->|browse, check health, manage jobs| OP
 ```
 
 ## Where to go next
 
 <CardGrid>
   <SimpleCard title="Get started with AI" icon="rocket" link="/ai/getting-started/">
-    Set up the operating tools today and understand the coding-skills release status.
+    Install Cratis AI into a repository and confirm your agent sees it.
   </SimpleCard>
   <SimpleCard title="Ecosystem support" icon="puzzle" link="/ai/ecosystems/">
-    See generated formats and verification status across supported AI hosts.
+    Which coding tools get what, through the managed install and each plugin.
   </SimpleCard>
-  <SimpleCard title="Trust and distribution" icon="approve-check" link="/ai/trust-and-distribution/">
-    Learn how approvals, generated bytes, canaries, rollback, and project context fit together.
+  <SimpleCard title="Distribution" icon="approve-check" link="/ai/trust-and-distribution/">
+    The three channels, how each is versioned, and how your own guidance stays yours.
   </SimpleCard>
   <SimpleCard title="The Cratis Stack" icon="rocket" link="/cratis-stack/">
-    How design, build, and operate fit together end to end — AI accelerates every step.
+    How design, build, and operate fit together end to end.
   </SimpleCard>
   <SimpleCard title="CLI getting started" icon="rocket" link="/cli/getting-started/">
     Install the CLI, connect to your store, and run `cratis init` to set up AI tooling.
   </SimpleCard>
-  <SimpleCard title="Plugins" icon="puzzle" link="/plugins/">
-    The agents, skills, and coding rules in detail — and how each AI assistant loads them.
+  <SimpleCard title="Chronicle MCP" icon="puzzle" link="/chronicle-mcp/">
+    The operate-side and design-time tools an agent gets against a live store.
+  </SimpleCard>
+  <SimpleCard title="Skills and plugins" icon="puzzle" link="/plugins/">
+    What the corpus contains, and which channel delivers rules, skills, prompts, and hooks.
   </SimpleCard>
   <SimpleCard title="Code analysis" icon="approve-check" link="/code-analysis/">
     The Roslyn analyzers and ESLint rules that enforce the same conventions during the build.
   </SimpleCard>
   <SimpleCard title="Vertical slices" icon="seti:folder" link="/arc/vertical-slices/">
-    The convention the build-side skills follow — everything for a feature in one folder.
+    The convention the build-side skills follow: everything for a feature in one folder.
   </SimpleCard>
 </CardGrid>

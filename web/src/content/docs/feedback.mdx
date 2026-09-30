@@ -22,9 +22,10 @@ Use this page when you want to suggest an improvement, report that something was
 | Feedback | Best place |
 |---|---|
 | "This concept confused me" | [Cratis Discord](https://discord.gg/kt4AMpV8WV), then a [Documentation issue](https://github.com/Cratis/Documentation/issues) if the docs need a change |
-| "This API or workflow feels awkward" | [Cratis Discord](https://discord.gg/kt4AMpV8WV) for discussion, then the matching product issue tracker |
+| "This API or workflow feels awkward" | [Cratis Discord](https://discord.gg/kt4AMpV8WV) for discussion, then the [matching product issue tracker](/community/#github-issue-trackers) |
 | "The docs are missing an example" | [Documentation issues](https://github.com/Cratis/Documentation/issues) |
-| "This bug is reproducible" | The matching product issue tracker |
+| "This bug is reproducible" | The [matching product issue tracker](/community/#github-issue-trackers) |
+| "I found a security problem" | [Security](/security/), privately, never a public issue |
 | "I have an idea for a feature" | [Cratis Discord](https://discord.gg/kt4AMpV8WV) for early shaping, then a GitHub issue when the proposal is concrete |
 | "I want to understand what is planned" | [Roadmap](/roadmap/) |
 | "I want to propose a larger design change" | [Governance](/governance/) |
@@ -34,14 +35,7 @@ If you are not sure where the feedback belongs, start in [Community and help](/c
 
 ## Product issue trackers
 
-| Area | Issue tracker |
-|---|---|
-| Chronicle event store, clients, Workbench, and hosting | [Chronicle issues](https://github.com/Cratis/Chronicle/issues) |
-| Arc commands, queries, proxy generation, validation, and backend/frontend integration | [Arc issues](https://github.com/Cratis/Arc/issues) |
-| React components, forms, dialogs, tables, styling, and Storybook | [Components issues](https://github.com/Cratis/Components/issues) |
-| CLI commands, diagnostics, and AI command catalogs | [CLI issues](https://github.com/Cratis/cli/issues) |
-| Fundamentals libraries and shared .NET/TypeScript helpers | [Fundamentals issues](https://github.com/Cratis/Fundamentals/issues) |
-| Documentation site, guides, examples, and broken links | [Documentation issues](https://github.com/Cratis/Documentation/issues) |
+Each product, client, and tool has its own repository, and the issue belongs where the code lives. The full list, including the TypeScript, Kotlin/Java, and Elixir clients, Arc for Kotlin and Java, AuthProxy, the templates, and Cratis AI, is in [GitHub issue trackers](/community/#github-issue-trackers). Documentation feedback goes to [Documentation issues](https://github.com/Cratis/Documentation/issues).
 
 ## Useful feedback
 
@@ -53,7 +47,7 @@ The most useful feedback tells us what happened in context:
 - What happened instead, or where you got stuck.
 - What would have made the next step obvious.
 
-For documentation feedback, a short note like "I reached this page looking for X, but found Y" is enough. For product feedback, include the package version, runtime, command, API, or component involved when you know it.
+For documentation feedback, a short note like "I reached this page looking for X, but found Y" is enough. For product feedback, include the package version, runtime, command, API, or component involved when you know it. Leave out secrets and personal or customer data; issues and Discord threads are public.
 
 <Aside type="tip" title="Real examples beat polished proposals">
 If you can share the event, command, projection, screen, CLI command, or paragraph that caused the friction, start there. We can help turn the observation into a concrete issue or improvement.
