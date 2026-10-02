@@ -474,7 +474,7 @@ test('a missing snippet omits only that tab, while no snippet at all is a hard e
     const root = await fixture(context);
     const csharp = path.join(root, 'csharp');
     const kotlin = path.join(root, 'kotlin');
-    await put(csharp, 'partial.mdx', '<!-- Copyright (c) Cratis. All rights reserved. -->\n\n```csharp\nstore.Connect();\n```\n');
+    await put(csharp, 'partial.mdx', '<!-- Copyright (c) Cratis. All rights reserved. -->\n<!-- Licensed under the MIT license. -->\n\n```csharp\nstore.Connect();\n```\n');
     await fs.mkdir(kotlin, { recursive: true });
     const ctx = conversionContext(root, {
         basename: 'page.mdx',
@@ -491,7 +491,7 @@ test('a missing snippet omits only that tab, while no snippet at all is a hard e
     const expanded = await convertFile('<ChronicleClientTabs snippet="partial" />\n', ctx);
     assert.match(expanded, /<TabItem label="C#">/);
     assert.doesNotMatch(expanded, /<TabItem label="Kotlin">/);
-    assert.doesNotMatch(expanded, /Copyright/);
+    assert.doesNotMatch(expanded, /Copyright|Licensed under the MIT license/);
 
     await assert.rejects(
         convertFile('<ChronicleClientTabs snippet="nowhere" />\n', ctx),
