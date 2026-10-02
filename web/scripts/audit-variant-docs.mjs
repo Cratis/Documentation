@@ -16,6 +16,7 @@ import { loadVariantDocsConfig, webRoot } from './variant-docs-config.mjs';
 import { fenceRangesAndLanguages } from './variant-docs-fences.mjs';
 import { auditSitePages, checkMacros, compareFenceBaseline as compareBaseline } from './variant-docs-site-audit.mjs';
 import { GENERATED_CONTENT_ROUTES } from './sync-content.mjs';
+import { countProductFences } from './variant-docs-product-fences.mjs';
 
 const MESSAGE_PREFIX = '[variant-docs]';
 
@@ -66,7 +67,7 @@ async function* markdownFiles(root, skipDirs, mountRoutes, current = root) {
 }
 
 async function collectAxisAudit(product, axis) {
-    const directFences = new Map();
+    const pageFences = new Map();
     const placeholders = [];
     const missingSnippets = [];
     const missingRoots = [];
@@ -85,20 +86,16 @@ async function collectAxisAudit(product, axis) {
     for await (const file of markdownFiles(product.sharedDocsRoot, skipDirs, mountRoutes)) {
         const body = await fs.readFile(file, 'utf8');
         const rel = path.relative(product.sharedDocsRoot, file).replace(/\\/g, '/');
-        const { ranges, fences } = fenceRangesAndLanguages(body, file, axis.ratchetLanguageAliases);
-
-        for (const fence of fences) {
-            const fileEntry = directFences.get(rel) ?? {};
-            fileEntry[fence.lang] = (fileEntry[fence.lang] ?? 0) + 1;
-            directFences.set(rel, fileEntry);
-        }
+        const { ranges, fences } = fenceRangesAndLanguages(body, file, axis.ratchetLanguageAliases, { includeValue: true });
+        pageFences.set(rel, fences);
 
         const macros = await checkMacros(body, rel, ranges, axis);
         placeholders.push(...macros.placeholders);
         missingSnippets.push(...macros.missingSnippets);
     }
 
-    return { directFences, placeholders, missingSnippets, missingRoots };
+    const counted = countProductFences(pageFences, axis.exemptFences, `${product.key}/${axis.key}`);
+    return { ...counted, placeholders, missingSnippets, missingRoots };
 }
 
 function directFenceBaselineMap(directFences) {
@@ -168,13 +165,14 @@ for (const product of config.products) {
         const scope = `${product.key}/${axis.key}`;
         console.log(`${MESSAGE_PREFIX} ${scope}: checked ${axis.variants.length} variants`);
         console.log(`${MESSAGE_PREFIX} ${scope}: found ${audit.placeholders.length} ${axis.macro} placeholders`);
-        console.log(`${MESSAGE_PREFIX} ${scope}: found ${directFenceCount} direct variant-language fences in shared docs`);
+        console.log(`${MESSAGE_PREFIX} ${scope}: found ${directFenceCount} direct variant-language fences in shared docs (${audit.exemptedFences} exempted fences)`);
 
         if (directFenceCount > 0) {
             console.warn(`${MESSAGE_PREFIX} ${scope}: top shared-doc files still needing snippet migration:`);
             printTopDirectFences(current);
         }
 
+        failures.push(...audit.problems);
         failures.push(...audit.missingRoots.map((message) => `${scope}: missing root: ${message}`));
         failures.push(...audit.missingSnippets.map((message) => `${scope}: ${message}`));
 
