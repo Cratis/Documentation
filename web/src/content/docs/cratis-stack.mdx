@@ -16,7 +16,7 @@ Most stacks are assembled parts you bolt together and then spend the whole proje
 
 Each product is strong on its own — you can [use them separately](/why-cratis/). The reason to reach for the *whole* stack is that the seams disappear: CQRS shapes information going in and out, event sourcing keeps the facts underneath, and everywhere you'd normally hand-write glue, Cratis generates it.
 
-- You **model** the domain, visually in [Studio](/studio/) or as a declarative `.play` script in [Screenplay](/screenplay/), and the model describes the commands, events, and read models you build. *(Experimental, see below.)*
+- You **model** the domain, visually in [Studio](/studio/) or as a declarative `.play` script in [Screenplay](/screenplay/), and the model describes the commands, events, and read models you build. Studio is live in beta.
 - Or you **start from a system that already exists**, and [Prologue](/prologue/) captures selected HTTP, database, and telemetry signals from it and proposes the same kind of model for you to review. *(Experimental.)*
 - You **secure the edge**, and [AuthProxy](/authproxy/) authenticates, resolves the tenant, enriches identity, and routes requests.
 - You **write a command** in C#, Kotlin, Java, or TypeScript (a source preview), and [Arc](/arc/) generates the [typed TypeScript proxy](/arc/understanding-the-proxy-boundary/) for it.
@@ -27,8 +27,8 @@ Each product is strong on its own — you can [use them separately](/why-cratis/
 
 From Arc down, nothing in that list is a thing *you* keep in sync. The build does.
 
-<Aside type="caution" title="The model-first layer is experimental">
-Studio, Screenplay, Stage, Scene, and Prologue form the model-first layer. It is experimental and in early development: formats and behavior can change between releases, and generated output needs review. Arc, Chronicle, and Components do not depend on it, so you can build without it.
+<Aside type="caution" title="Model-first tools have different maturity levels">
+Studio, Screenplay, Stage, Scene, and Prologue form the model-first layer. Studio is live in beta; Stage, Scene, and Prologue remain experimental and in early development. Generated output needs review. Arc, Chronicle, and Components do not depend on this layer, so you can build without it.
 </Aside>
 
 In .NET, wiring the stack into one host is a single call: the [`Cratis` package](/arc/backend/csharp/chronicle/cratis-package/) brings Arc and Chronicle up together with `AddCratis`/`UseCratis`, sharing storage, identity, and hosting. Kotlin, Java, and TypeScript backends wire Arc and Chronicle through their own hosts: `io.cratis:cratis` is the single dependency for a Spring Boot application, and [`@cratis/cratis`](/arc/backend/typescript/chronicle/cratis-package/) registers both with one builder call in Node.js (experimental, and not published to npm). [Arc backends](/arc/backend/) compares the hosts.
@@ -120,7 +120,7 @@ Cratis ships first-class tooling so an AI agent can build *and* operate the stac
 - **`cratis init`** writes the CLI's command catalog and assistant instruction files into your project, so an agent knows how to browse events, watch observers, and diagnose a stuck partition through the CLI.
 - The **Chronicle MCP server** lets an agent connect to a running store, inspect events, observers, and read models, and manage jobs — the same window the CLI gives you, handed to your assistant.
 
-Model in Screenplay (or Studio, once it is available), generate the slices, build them, and inspect the result. Screenplay and Studio are experimental, so review what gets generated. An agent can take part at every step. [AI-native development](/ai/) covers the setup and exactly what an agent can do.
+Model in Screenplay or Studio (live in beta), generate the slices, build them, and inspect the result. Stage remains experimental, so review what gets generated. An agent can take part at every step. [AI-native development](/ai/) covers the setup and exactly what an agent can do.
 
 And when you or a teammate gets stuck, [Prompter](/prompter/) — the community's Discord assistant — answers Cratis questions grounded in this same documentation, with citations, right where your team already talks.
 
@@ -128,10 +128,10 @@ And when you or a teammate gets stuck, [Prompter](/prompter/) — the community'
 
 <CardGrid>
   <SimpleCard title="Studio — design" icon="open-book" link="/studio/">
-    Design, visualize, and edit Screenplay event models together. *(Experimental, early development.)*
+    Design, visualize, and edit Screenplay event models together. Studio is live in beta.
   </SimpleCard>
   <SimpleCard title="Screenplay — model as code" icon="pencil" link="/screenplay/">
-    The modeling language: a whole bounded context — events, commands, queries, projections, screens, and rules — in one declarative `.play` file that Stage renders and Studio edits. *(Experimental.)*
+    The modeling language: a whole bounded context — events, commands, queries, projections, screens, and rules — in one declarative `.play` file that Stage renders and Studio edits.
   </SimpleCard>
   <SimpleCard title="Prologue — capture" icon="magnifier" link="/prologue/">
     Point it at an existing system — no Cratis constructs required — and it captures selected HTTP, database, and telemetry signals, then proposes an event model and a Screenplay for you to review. *(Experimental.)*
