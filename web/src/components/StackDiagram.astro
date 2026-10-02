@@ -1,6 +1,6 @@
 ---
 // The Cratis Stack, as a layered visual (mirrors the cratis.io landing). Each layer
-// links to its product overview; Studio carries an "experimental" badge. Pass
+// links to its product overview; Studio carries a "beta" badge. Pass
 // `current="chronicle"` to highlight the active layer when embedding on a product page.
 //
 // Usage (in .mdx):
@@ -11,7 +11,7 @@ const { current = '' } = Astro.props;
 
 // Top → bottom: what a developer touches first sits highest; the foundation sits last.
 const layers = [
-    { key: 'studio', name: 'Studio', role: 'Design and edit Screenplay event models', href: '/studio/', icon: '🎛️', experimental: true },
+    { key: 'studio', name: 'Studio', role: 'Design and edit Screenplay event models', href: '/studio/', icon: '🎛️', beta: true },
     { key: 'components', name: 'Components', role: 'React UI toolkit wired to your typed backend', href: '/components/', icon: '🧩' },
     { key: 'arc', name: 'Arc', role: 'Full-stack CQRS framework — backend to React, typed', href: '/arc/', icon: '🏛️' },
     { key: 'chronicle', name: 'Chronicle', role: 'The event sourcing engine at the core', href: '/chronicle/', icon: '📜' },
@@ -30,7 +30,7 @@ const layers = [
             <span class="cr-stack__text">
                 <span class="cr-stack__name">
                     {layer.name}
-                    {layer.experimental && <span class="cr-stack__badge">Experimental</span>}
+                    {layer.beta && <span class="cr-stack__badge">Beta</span>}
                 </span>
                 <span class="cr-stack__role">{layer.role}</span>
             </span>

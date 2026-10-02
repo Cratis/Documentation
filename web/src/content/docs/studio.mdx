@@ -1,6 +1,6 @@
 ---
 title: Studio
-description: Cratis Studio is an experimental, collaborative environment for designing, visualizing, and editing Screenplay event models. It is live in beta.
+description: Cratis Studio is a collaborative environment for designing, visualizing, and editing Screenplay event models. It is live in beta.
 tableOfContents: false
 ---
 
@@ -8,15 +8,14 @@ import TopicHero from '@components/TopicHero.astro';
 import StackDiagram from '@components/StackDiagram.astro';
 import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
 
-<TopicHero icon="pencil" eyebrow="Studio · Experimental" title="Model your domain before you build it">
+<TopicHero icon="pencil" eyebrow="Studio · Beta" title="Model your domain before you build it">
 Studio is a shared place to design, visualize, and edit [Screenplay](/screenplay/) event models: the commands people issue, the events they produce, and the read models people look at. Studio is live in beta at [app.cratis.studio](https://app.cratis.studio). Open sign-up is coming soon at [cratis.studio](https://cratis.studio), with a 14-day free trial.
 </TopicHero>
 
-<Aside type="caution" title="Experimental">
-Studio is part of the Cratis model-first layer (Studio, Screenplay, Stage, Scene,
-and Prologue), which is experimental and in early development. Features,
-formats, and behavior can change between releases. Do not plan production work
-around it yet; the stable path today is building with [Arc](/arc/) and
+<Aside type="caution" title="Live beta">
+Studio is live in beta. Features and behavior can change between releases.
+Stage, Scene, and Prologue remain experimental and in early development.
+The stable path for building applications today is [Arc](/arc/) and
 [Chronicle](/chronicle/) directly.
 </Aside>
 
@@ -54,7 +53,7 @@ diagrams.
 </CardGrid>
 
 Rendering a model into a running application is [Stage](/screenplay/faq/#what-are-stage-and-studio)'s
-job. Stage is part of the same experimental layer, so treat generated output as
+job. Stage remains experimental, so treat generated output as
 something to review, not as finished production code.
 
 ## Where it fits
@@ -78,7 +77,7 @@ then build. To *inspect and operate* a system that is already running, use the
   sign-up is coming soon at [cratis.studio](https://cratis.studio), with a
   14-day free trial.
 - Write a model as text with [Screenplay](/screenplay/getting-started/), which
-  Studio edits. It is experimental as well.
+  Studio edits.
 - New to event modeling? Read [Event modeling](/event-modeling/) and work
   through the [Chronicle tutorial](/chronicle/tutorial/).
 - Model the Cratis way by hand with [vertical slices](/arc/vertical-slices/) and
