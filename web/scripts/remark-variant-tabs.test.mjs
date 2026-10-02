@@ -88,6 +88,26 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
         assert.equal(await readFile(f.sitePath, 'utf8'), source);
     });
 
+    test(`${productKey} Markdown snippet comments compile in synced and render-time MDX without editing sources`, async (t) => {
+        const f = await fixture(productKey, axisKey);
+        t.after(() => rm(f.root, { recursive: true, force: true }));
+        const snippetFile = path.join(f.variants[0].src, f.snippet + '.md');
+        const snippet = '<!-- Copyright (c) Cratis. All rights reserved. -->\n\nUse this example.\n\n```html\n<!-- literal in code -->\n```\n';
+        await writeFile(snippetFile, snippet);
+        const source = `<${f.axis.macro} snippet="${f.snippet}" />\n`;
+        const synced = await convertFile(source, {
+            basename: 'capstone.mdx', dir: path.dirname(f.sitePath), srcPath: f.sitePath,
+            product: { key: productKey, src: path.dirname(f.sitePath) },
+            variantAxes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
+        });
+        assert.match(synced, /\{\/\* Copyright \(c\) Cratis\. All rights reserved\. \*\/\}/);
+        assert.ok(synced.includes('```html\n<!-- literal in code -->\n```'));
+        await compile(synced);
+        const rendered = await render(source, f);
+        assert.ok(rendered.children.some(node => node.name === 'Tabs'));
+        assert.equal(await readFile(snippetFile, 'utf8'), snippet);
+    });
+
     test(`${productKey} site-owned macro expands in Markdown mirrors alongside synced product tabs`, async (t) => {
         const f = await fixture(productKey, axisKey);
         t.after(() => rm(f.root, { recursive: true, force: true }));

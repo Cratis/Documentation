@@ -21,6 +21,7 @@ import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { assertPublicDocPath, assertPublicDocSource, isPrivateDocPath } from './private-doc-paths.mjs';
 import { parseMarkdownCode } from './markdown-code-ranges.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
+import { markdownCommentsForMdx } from './markdown-comments-for-mdx.mjs';
 import { sourceEditUrl, sourceViewUrl } from './source-edit-url.mjs';
 import { reposRootFor, resolveRepoCandidate } from './repos-root.mjs';
 
@@ -568,7 +569,8 @@ async function readVariantSnippet(source, snippet) {
             }
             const raw = await fs.readFile(candidate, 'utf8');
             const { body } = splitFrontmatter(raw);
-            return { content: body.trim(), filePath: candidate };
+            const content = ext === '.md' ? markdownCommentsForMdx(body) : body;
+            return { content: content.trim(), filePath: candidate };
         }
     }
     return null;
