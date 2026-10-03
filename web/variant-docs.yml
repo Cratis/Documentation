@@ -247,7 +247,11 @@ products:
         #   - migrate-append-routing.md: a Kotlin/Java-client-only breaking-change
         #     migration guide for the next major client's routing defaults — no
         #     shared or other per-client equivalent page exists for this migration.
-        kotlin: 10
+        #   - event-sources.md: documents Kotlin/Java @EventSource registration,
+        #     append-through-definition APIs and client compatibility. Like the
+        #     .NET clients/dotnet/event-sources page, this is SDK reference; the
+        #     shared event-source concept and event-source-id pages do not cover it.
+        kotlin: 11
         elixir: 0
         typescript: 0
 
