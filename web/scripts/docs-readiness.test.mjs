@@ -9,7 +9,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
-import { PRODUCTS, applyAfterBucketInjections, variantSidebarInjections, applyBuckets, bucketsWithInjectedSections, collectSlugs, convertFile, entryToItem, tocToSidebar, walk } from './sync-content.mjs';
+import { PRODUCTS, applyAfterBucketInjections, variantSidebarInjections, applyBuckets, bucketsWithInjectedSections, collectSlugs, convertFile, entryToItem, nestedUnder, tocToSidebar, walk } from './sync-content.mjs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { emitDocArtifacts } from './emit-doc-artifacts.mjs';
 import { DOC_ARTIFACTS_INTEGRATION, docArtifactsIntegration } from './doc-artifacts-integration.mjs';
@@ -70,6 +70,38 @@ test('converted product pages link editing to their authored repository, not the
         product: { key: 'chronicle', src: path.dirname(source) },
     });
     assert.match(converted, /editUrl: https:\/\/github\.com\/Cratis\/Chronicle\/edit\/main\/Documentation\/get-started\/index\.mdx/);
+});
+
+test('a nested product syncs after the product whose output folder contains it', () => {
+    assert.equal(nestedUnder('fundamentals/go', 'fundamentals'), true);
+    assert.equal(nestedUnder('fundamentals', 'fundamentals'), false);
+    assert.equal(nestedUnder('fundamentalsx/go', 'fundamentals'), false);
+    const keys = PRODUCTS.map(product => product.key);
+    for (const [index, key] of keys.entries()) {
+        const parent = keys.findIndex(candidate => nestedUnder(key, candidate));
+        if (parent !== -1) assert.ok(parent < index, `${key} must follow ${keys[parent]} so its sync does not clear it`);
+    }
+});
+
+test('link rewriting leaves fenced code literal while still resolving prose links', async () => {
+    const source = path.join(reposRootFor(webRoot), 'Fundamentals.Go/Documentation/dependency-injection.md');
+    const body = [
+        '---', 'title: DI', '---', '',
+        'See [Recipes](recipes.md).', '',
+        '```go',
+        'value, err := di.Resolve[*report](ctx, s)',
+        '_ = `<a href="relative.md">`',
+        '```', '',
+    ].join('\n');
+    const converted = await convertFile(body, {
+        dir: path.dirname(source),
+        basename: path.basename(source),
+        srcPath: source,
+        product: { key: 'fundamentals/go', src: path.dirname(source) },
+    });
+    assert.match(converted, /\[Recipes\]\(\/fundamentals\/go\/recipes\/\)/);
+    assert.match(converted, /di\.Resolve\[\*report\]\(ctx, s\)/);
+    assert.match(converted, /href="relative\.md"/);
 });
 
 test('every configured product, family, and variant source has a real repository edit route', async () => {

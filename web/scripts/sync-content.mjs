@@ -237,6 +237,20 @@ export const PRODUCTS = [
             path.join(docRepoRoot, 'Fundamentals', 'Documentation')),
     },
     {
+        // Fundamentals.Go — the Go counterpart of Fundamentals, published under
+        // /fundamentals/go/. It must stay after `fundamentals`: that product's sync
+        // clears its whole output folder, and a targeted `fundamentals` sync re-runs
+        // this nested product (see nestedUnder). astro.config.mjs nests the generated
+        // topic inside the Fundamentals topic rather than giving it an icon-rail entry.
+        // project-context.md is AI/contributor session context for the repository,
+        // not developer documentation, so it is not published.
+        key: 'fundamentals/go', label: 'Fundamentals.Go', icon: 'seti:go', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Fundamentals.Go', 'Documentation'),
+            path.join(docRepoRoot, 'Fundamentals.Go', 'Documentation')),
+        excludeRootFiles: ['project-context.md'],
+    },
+    {
         // The Cratis/.github org repo (submodule "GitHubLanding") holds the Contributing docs.
         key: 'contributing', label: 'Contributing', icon: 'heart', sidebarMode: 'toc',
         src: firstExisting(
@@ -493,12 +507,21 @@ function resolveInternalLink(ctx, target) {
 }
 
 function fixLinks(body, ctx) {
+    // Fenced code is literal: Go generics such as `di.Resolve[*T](ctx, s)` look
+    // like Markdown link syntax and must not be rewritten into site routes.
+    const ranges = codeRanges(body, ctx.srcPath ?? ctx.basename);
+    const inCode = (offset) => ranges.some(([start, end]) => offset >= start && offset < end);
+
     // Markdown links/images: ](target)
-    let out = body.replace(/\]\(([^)]+)\)/g, (whole, target) => '](' + resolveInternalLink(ctx, target) + ')');
+    let out = body.replace(/\]\(([^)]+)\)/g, (whole, target, offset) =>
+        inCode(offset) ? whole : '](' + resolveInternalLink(ctx, target) + ')');
 
     // MDX/HTML attributes used by Starlight cards and authored links. These do
     // not appear in Markdown link syntax, so they must be normalized separately.
-    out = out.replace(/\bhref=(["'])([^"']+)\1/g, (_whole, quote, target) => {
+    // Offsets refer to `body`; the first pass can change lengths, so re-parse.
+    const attributeRanges = out === body ? ranges : codeRanges(out, ctx.srcPath ?? ctx.basename);
+    out = out.replace(/\bhref=(["'])([^"']+)\1/g, (whole, quote, target, offset) => {
+        if (attributeRanges.some(([start, end]) => offset >= start && offset < end)) return whole;
         return `href=${quote}${resolveInternalLink(ctx, target)}${quote}`;
     });
 
@@ -818,6 +841,8 @@ export async function walk(srcDir, outDir, product, options = {}) {
         // Nested documentation pages named agents.md, claude.md, or gemini.md
         // elsewhere in the tree remain valid authored content.
         if (isProductRoot && REPO_BOOTSTRAP_FILES.has(entry.name.toLowerCase())) continue;
+        // Product-declared root files that are repository context, not site pages.
+        if (isProductRoot && product.excludeRootFiles?.some((name) => name.toLowerCase() === entry.name.toLowerCase())) continue;
         const ext = path.extname(entry.name).toLowerCase();
         const srcPath = path.join(srcDir, entry.name);
         if (ext === '.md' || ext === '.mdx') {
@@ -1418,7 +1443,7 @@ function assertNoDroppedSidebarEntries() {
     // A targeted sync regenerates one product, so drops belonging to products
     // that were never generated in this run are expected and not a defect.
     const relevant = only
-        ? droppedSidebarEntries.filter((entry) => entry.product === only)
+        ? droppedSidebarEntries.filter((entry) => entry.product === only || nestedUnder(entry.product, only))
         : droppedSidebarEntries;
     const skipped = droppedSidebarEntries.length - relevant.length;
     if (skipped > 0) {
@@ -1434,7 +1459,9 @@ function assertNoDroppedSidebarEntries() {
 }
 
 async function main() {
-    const targets = only ? PRODUCTS.filter((p) => p.key === only) : PRODUCTS;
+    // A targeted sync clears the product's whole output folder, so it must also
+    // regenerate any product nested beneath it (e.g. fundamentals/go).
+    const targets = only ? PRODUCTS.filter((p) => p.key === only || nestedUnder(p.key, only)) : PRODUCTS;
     if (only && targets.length === 0) {
         console.error(`Unknown product "${only}". Known: ${PRODUCTS.map((p) => p.key).join(', ')}`);
         process.exit(1);
@@ -1472,6 +1499,10 @@ async function main() {
     await generateSidebar();
     await clearStaleAstroContentCache();
     assertNoDroppedSidebarEntries();
+}
+
+export function nestedUnder(key, parentKey) {
+    return key.startsWith(`${parentKey}/`);
 }
 
 async function countFiles(dir) {

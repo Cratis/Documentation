@@ -15,7 +15,7 @@ const publicCheckouts = new Set([
     'Chronicle', 'Chronicle.Elixir', 'Chronicle.Kotlin', 'Chronicle.Mcp',
     'Chronicle.TypeScript', 'CLI', 'cli', 'Components',
     'Eventmodelers-Build-Kit-CSharp', 'Eventmodelers-Build-Kit-Kotlin',
-    'Eventmodelers-Build-Kit-Java', 'Fundamentals', 'Prologue', 'Prompter',
+    'Eventmodelers-Build-Kit-Java', 'Fundamentals', 'Fundamentals.Go', 'Prologue', 'Prompter',
     'Screenplay', 'Screenplay.CritterStack', 'Screenplay.Generation',
     'Stage', 'Templates',
 ]);

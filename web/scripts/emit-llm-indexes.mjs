@@ -82,8 +82,14 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
             console.warn(`[postbuild] skipping ${key}: source or synchronized pages unavailable`);
             continue; // Never advertise an optional product left stale by a partial sync.
         }
+        // A product nested inside this one's folder (e.g. fundamentals/go) is
+        // indexed as its own product, so its pages are not repeated here.
+        const nested = products.filter(product => product.key.startsWith(`${key}/`))
+            .map(product => path.join(docsRoot, product.key) + path.sep);
         const pages = [];
-        for await (const file of markdownFiles(directory)) pages.push(file);
+        for await (const file of markdownFiles(directory)) {
+            if (!nested.some(prefix => file.startsWith(prefix))) pages.push(file);
+        }
         if (!pages.length) throw new Error(`Empty product documentation: ${key}`);
         const areas = new Map();
         for (const file of pages) {

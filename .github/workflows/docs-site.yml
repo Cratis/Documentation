@@ -170,6 +170,16 @@ jobs:
           persist-credentials: false
           path: Fundamentals
 
+      # Fundamentals.Go publishes from main only (no docs-overhaul branch); read-only checkout.
+      - name: Checkout Fundamentals.Go
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Fundamentals.Go
+          ref: main
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          path: Fundamentals.Go
+
       - name: Checkout cli
         uses: actions/checkout@v4
         with:

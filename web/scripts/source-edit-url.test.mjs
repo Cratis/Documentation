@@ -19,6 +19,8 @@ it('links a product page to its authored sibling checkout', () => {
         'https://github.com/Cratis/Arc.Kotlin/edit/main/Documentation/guides/command.md');
     assert.equal(edit(path.join(repos, 'Arc.TypeScript/Documentation/commands/model-bound/index.md')),
         'https://github.com/Cratis/Arc.TypeScript/edit/main/Documentation/commands/model-bound/index.md');
+    assert.equal(edit(path.join(repos, 'Fundamentals.Go/Documentation/getting-started.md')),
+        'https://github.com/Cratis/Fundamentals.Go/edit/main/Documentation/getting-started.md');
 });
 
 it('links explicitly overridden Arc worktrees to their public owning repositories', () => {
