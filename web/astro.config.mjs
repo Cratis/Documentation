@@ -72,6 +72,25 @@ const eventModelersKotlinTopic = productTopics.find((topic) => topic.id === 'eve
 const eventModelersJavaTopic = productTopics.find((topic) => topic.id === 'eventmodelers-ai/java');
 productTopics = productTopics.filter((topic) => !topic.id?.startsWith('eventmodelers-ai/'));
 
+// Fundamentals.Go is generated as its own topic (sourced from Cratis/Fundamentals.Go)
+// but surfaces as a "Go" section inside the Fundamentals topic, beside C# and
+// TypeScript, rather than as a separate icon-rail entry.
+const fundamentalsGoTopic = productTopics.find((topic) => topic.id === 'fundamentals/go');
+function withFundamentalsGo(items) {
+    const goSection = { label: 'Go', collapsed: true, items: fundamentalsGoTopic.items };
+    // Placement follows the 'TypeScript' label in Cratis/Fundamentals' toc.yml; if
+    // that entry is renamed or removed, Go is appended at the end instead.
+    const typeScriptIndex = items.findIndex((item) => item.label === 'TypeScript');
+    return typeScriptIndex === -1
+        ? [...items, goSection]
+        : [...items.slice(0, typeScriptIndex + 1), goSection, ...items.slice(typeScriptIndex + 1)];
+}
+productTopics = productTopics
+    .filter((topic) => topic.id !== 'fundamentals/go')
+    .map((topic) => topic.id === 'fundamentals' && fundamentalsGoTopic
+        ? { ...topic, items: withFundamentalsGo(topic.items) }
+        : topic);
+
 // The first topic gathers the site-level, cross-product pages (hand-authored in
 // web/, not owned by any product): the "why", the capstone, samples, tools.
 const overviewTopic = {

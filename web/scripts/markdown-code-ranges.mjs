@@ -40,17 +40,22 @@ export function parseMarkdownCode(body, srcPath, messagePrefix = 'sync', hasFron
 
     const ranges = [];
     const codes = [];
+    // Inline code spans are reported separately: link rewriting must skip them,
+    // but variant-fence and macro checks only concern code blocks/expressions.
+    const inlineRanges = [];
     const pending = [tree];
     while (pending.length) {
         const node = pending.pop();
         if (node.type === 'code') {
             ranges.push([node.position.start.offset, node.position.end.offset]);
             codes.push(node);
+        } else if (node.type === 'inlineCode') {
+            inlineRanges.push([node.position.start.offset, node.position.end.offset]);
         } else if (mdx && ['mdxFlowExpression', 'mdxTextExpression', 'mdxjsEsm'].includes(node.type)) {
             ranges.push([node.position.start.offset, node.position.end.offset]);
         } else if (node.children) {
             pending.push(...node.children);
         }
     }
-    return { ranges, codes };
+    return { ranges, codes, inlineRanges };
 }

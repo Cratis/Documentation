@@ -15,7 +15,7 @@ const publicCheckouts = new Set([
     'Chronicle', 'Chronicle.Elixir', 'Chronicle.Kotlin', 'Chronicle.Mcp',
     'Chronicle.TypeScript', 'CLI', 'cli', 'Components',
     'Eventmodelers-Build-Kit-CSharp', 'Eventmodelers-Build-Kit-Kotlin',
-    'Eventmodelers-Build-Kit-Java', 'Fundamentals', 'Prologue', 'Prompter',
+    'Eventmodelers-Build-Kit-Java', 'Fundamentals', 'Fundamentals.Go', 'Prologue', 'Prompter',
     'Screenplay', 'Screenplay.CritterStack', 'Screenplay.Generation',
     'Stage', 'Templates',
 ]);
@@ -55,4 +55,9 @@ export function sourceEditUrl(sourcePath, reposRoot, docRepoRoot) {
 /** Return the original Cratis repository's view URL for a source file, or false when it has no public owner. */
 export function sourceViewUrl(sourcePath, reposRoot, docRepoRoot) {
     return sourceUrl('blob', sourcePath, reposRoot, docRepoRoot);
+}
+
+/** Return the original Cratis repository's view URL for a source directory, or false when it has no public owner. */
+export function sourceTreeUrl(sourcePath, reposRoot, docRepoRoot) {
+    return sourceUrl('tree', sourcePath, reposRoot, docRepoRoot);
 }

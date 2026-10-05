@@ -51,6 +51,19 @@ it('publishes product and area indexes with valid routes and rendered sets', asy
     assert.equal(readFileSync(path.join(dist, 'llms.txt'), 'utf8').match(/## Product documentation/g)?.length, 1);
 });
 
+it('indexes a nested product once, as its own product', async () => {
+    source('chronicle/go/index.md', '---\ntitle: Chronicle for Go\n---\nGo\n');
+    file('chronicle/go.md', '---\ntitle: Chronicle for Go\n---\nGo\n');
+    file('chronicle/go/index.html', '<h1>Go</h1>');
+    source('chronicle/go/getting-started.md', '---\ntitle: Getting started\n---\nStart\n');
+    file('chronicle/go/getting-started.md', '---\ntitle: Getting started\n---\nStart\n');
+    file('chronicle/go/getting-started/index.html', '<h1>Getting started</h1>');
+    const nested = [...products, { key: 'chronicle/go', label: 'Chronicle.Go' }];
+    assert.deepEqual(await emitLlmIndexes(dist, nested, sets, docsRoot), { indexedPages: 5, products: 2, areas: 1 });
+    assert.doesNotMatch(readFileSync(path.join(dist, 'chronicle/llms.txt'), 'utf8'), /chronicle\/go\//);
+    assert.match(readFileSync(path.join(dist, 'chronicle/go/llms.txt'), 'utf8'), /## Start here\n\n- \[Getting started\]\(https:\/\/www\.cratis\.io\/chronicle\/go\/getting-started\/\)/);
+});
+
 it('links a single-page area directly without an unnecessary index', async () => {
     source('chronicle/architecture.md', '---\ntitle: Runtime architecture\n---\nArchitecture\n');
     file('chronicle/architecture.md', '---\ntitle: Runtime architecture\n---\nArchitecture\n');

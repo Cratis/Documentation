@@ -16,13 +16,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { assertPublicDocPath, assertPublicDocSource, isPrivateDocPath } from './private-doc-paths.mjs';
 import { parseMarkdownCode } from './markdown-code-ranges.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 import { markdownCommentsForMdx } from './markdown-comments-for-mdx.mjs';
-import { sourceEditUrl, sourceViewUrl } from './source-edit-url.mjs';
+import { sourceEditUrl, sourceTreeUrl, sourceViewUrl } from './source-edit-url.mjs';
 import { reposRootFor, resolveRepoCandidate } from './repos-root.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -238,6 +238,20 @@ export const PRODUCTS = [
             path.join(docRepoRoot, 'Fundamentals', 'Documentation')),
     },
     {
+        // Fundamentals.Go — the Go counterpart of Fundamentals, published under
+        // /fundamentals/go/. It must stay after `fundamentals`: that product's sync
+        // clears its whole output folder, and a targeted `fundamentals` sync re-runs
+        // this nested product (see nestedUnder). astro.config.mjs nests the generated
+        // topic inside the Fundamentals topic rather than giving it an icon-rail entry.
+        // project-context.md is AI/contributor session context for the repository,
+        // not developer documentation, so it is not published.
+        key: 'fundamentals/go', label: 'Fundamentals.Go', icon: 'seti:go', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Fundamentals.Go', 'Documentation'),
+            path.join(docRepoRoot, 'Fundamentals.Go', 'Documentation')),
+        excludeRootFiles: ['project-context.md'],
+    },
+    {
         // The Cratis/.github org repo (submodule "GitHubLanding") holds the Contributing docs.
         key: 'contributing', label: 'Contributing', icon: 'heart', sidebarMode: 'toc',
         src: firstExisting(
@@ -303,6 +317,7 @@ const RELEASE_DIGESTS_SRC = firstExisting(
     path.join(reposRoot, '.github', 'release-digests'),
     path.join(docRepoRoot, 'GitHubLanding', 'release-digests'));
 
+const RAW_IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp']);
 const ASSET_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.html', '.js', '.css', '.json']);
 const SKIP_DIRS = new Set([
     'node_modules', 'obj', 'bin', '.git', 'storybook-static', '.vitepress',
@@ -458,13 +473,71 @@ function withTrailingSlash(urlPath) {
     return urlPath.endsWith('/') ? urlPath : urlPath + '/';
 }
 
+function decodedLinkPath(pathPart) {
+    try {
+        return decodeURIComponent(pathPart);
+    } catch {
+        return pathPart;
+    }
+}
+
+// The owning repository's GitHub URL for a file or directory outside a
+// product's docs folder (tree/ for an existing directory, blob/ otherwise),
+// using the same repository/branch mapping as edit links. Null without a
+// public owner.
+function repositoryUrlFor(ctx, absoluteTarget, urlSuffix = '') {
+    const repos = ctx.reposRoot ?? reposRoot;
+    const docs = ctx.docRepoRoot ?? docRepoRoot;
+    let isDirectory = false;
+    try {
+        isDirectory = statSync(absoluteTarget).isDirectory();
+    } catch {
+        // A missing target is still linked as a file; GitHub reports it.
+    }
+    const url = isDirectory ? sourceTreeUrl(absoluteTarget, repos, docs) : sourceViewUrl(absoluteTarget, repos, docs);
+    if (!url) return null;
+    // Private work paths (.ai-work, .git, ...) are never linked; .github is a
+    // public repository directory and is the one private-looking name kept.
+    const repoPath = url.replace(/^https:\/\/github\.com\/Cratis\/[^/]+\/(?:blob|tree)\/[^/]+\//, '');
+    const hasPrivateSegment = repoPath.split('/').some((segment) => {
+        const name = decodeURIComponent(segment);
+        return name.toLowerCase() !== '.github' && isPrivateDocPath(name);
+    });
+    if (hasPrivateSegment) return null;
+    // Images need the raw form to render rather than the GitHub file viewer.
+    const finalUrl = !isDirectory && RAW_IMAGE_EXT.has(path.extname(absoluteTarget).toLowerCase())
+        ? url.replace('/blob/', '/raw/')
+        : url;
+    return finalUrl + urlSuffix;
+}
+
 function resolveInternalLink(ctx, target) {
     const { url, suffix: titleSuffix } = splitLinkTarget(target);
     if (!url || isExternalOrSpecial(url)) return target;
-    assertPublicDocPath(url);
 
     const { pathPart: originalPathPart, suffix: urlSuffix } = splitUrlSuffix(url);
     if (!originalPathPart) return target;
+
+    if (!originalPathPart.startsWith('/')) {
+        // Relative targets: a link that escapes the product's content root (for
+        // example to a repository-root CONTRIBUTING.md or decisions/ file) never
+        // becomes a site route and would be a dead relative URL on the site, so
+        // it opens the file in its owning repository on GitHub. Nothing behind
+        // such a link is copied into the site, so private-looking segments
+        // (e.g. .github) are not refused here; they get the same GitHub URL as
+        // any other repository file. Without a public owner it stays as authored.
+        const contentRoot = ctx.contentRoot ?? ctx.product.src;
+        const absoluteTarget = path.resolve(ctx.dir, decodedLinkPath(originalPathPart));
+        const relToProduct = path.relative(contentRoot, absoluteTarget).replace(/\\/g, '/');
+        if (relToProduct === '..' || relToProduct.startsWith('../') || path.isAbsolute(relToProduct)) {
+            const repositoryUrl = repositoryUrlFor(ctx, absoluteTarget, urlSuffix);
+            return repositoryUrl ? repositoryUrl + titleSuffix : target;
+        }
+        // In-root targets, assets included, must not name private work paths.
+        assertPublicDocPath(relToProduct);
+    } else {
+        assertPublicDocPath(originalPathPart);
+    }
     if (ASSET_EXT.has(path.extname(originalPathPart).toLowerCase())) return target;
 
     const strippedPath = stripDocTarget(originalPathPart);
@@ -485,7 +558,6 @@ function resolveInternalLink(ctx, target) {
         const slugBase = ctx.slugBase ?? ctx.product.key;
         const absoluteTarget = path.resolve(ctx.dir, strippedPath || '.');
         const relToProduct = path.relative(contentRoot, absoluteTarget).replace(/\\/g, '/');
-        if (relToProduct.startsWith('..') || path.isAbsolute(relToProduct)) return target;
         const slug = slugifyPath(relToProduct).replace(/^\/+|\/+$/g, '');
         resolvedPath = withTrailingSlash('/' + slugBase + (slug ? '/' + slug : ''));
     }
@@ -493,13 +565,30 @@ function resolveInternalLink(ctx, target) {
     return resolvedPath + urlSuffix + titleSuffix;
 }
 
+// Code blocks, MDX expressions and inline code spans: everything link rewriting
+// must leave literal.
+function literalCodeRanges(body, srcPath) {
+    const { ranges, inlineRanges } = parseMarkdownCode(body, srcPath);
+    return [...ranges, ...inlineRanges];
+}
+
 function fixLinks(body, ctx) {
+    // Code is literal: Go generics such as `di.Resolve[*T](ctx, s)`, in a code
+    // block or an inline code span, look like Markdown link syntax and must not
+    // be rewritten into site routes.
+    const ranges = literalCodeRanges(body, ctx.srcPath ?? ctx.basename);
+    const inCode = (offset) => ranges.some(([start, end]) => offset >= start && offset < end);
+
     // Markdown links/images: ](target)
-    let out = body.replace(/\]\(([^)]+)\)/g, (whole, target) => '](' + resolveInternalLink(ctx, target) + ')');
+    let out = body.replace(/\]\(([^)]+)\)/g, (whole, target, offset) =>
+        inCode(offset) ? whole : '](' + resolveInternalLink(ctx, target) + ')');
 
     // MDX/HTML attributes used by Starlight cards and authored links. These do
     // not appear in Markdown link syntax, so they must be normalized separately.
-    out = out.replace(/\bhref=(["'])([^"']+)\1/g, (_whole, quote, target) => {
+    // Offsets refer to `body`; the first pass can change lengths, so re-parse.
+    const attributeRanges = out === body ? ranges : literalCodeRanges(out, ctx.srcPath ?? ctx.basename);
+    out = out.replace(/\bhref=(["'])([^"']+)\1/g, (whole, quote, target, offset) => {
+        if (attributeRanges.some(([start, end]) => offset >= start && offset < end)) return whole;
         return `href=${quote}${resolveInternalLink(ctx, target)}${quote}`;
     });
 
@@ -821,6 +910,8 @@ export async function walk(srcDir, outDir, product, options = {}) {
         // Nested documentation pages named agents.md, claude.md, or gemini.md
         // elsewhere in the tree remain valid authored content.
         if (isProductRoot && REPO_BOOTSTRAP_FILES.has(entry.name.toLowerCase())) continue;
+        // Product-declared root files that are repository context, not site pages.
+        if (isProductRoot && product.excludeRootFiles?.some((name) => name.toLowerCase() === entry.name.toLowerCase())) continue;
         const ext = path.extname(entry.name).toLowerCase();
         const srcPath = path.join(srcDir, entry.name);
         if (ext === '.md' || ext === '.mdx') {
@@ -989,10 +1080,29 @@ function resolvedTocSlug(href, slugBase) {
     return slugify(joined);
 }
 
+// A product's own excludeRootFiles (e.g. project-context.md) are deliberately
+// never generated (see `walk`'s isProductRoot check); a root toc.yml entry
+// pointing at one is not a broken link, so it must not trip the dropped-entry
+// gate.
+export function isExcludedRootTocHref(href, dirAbs, products = PRODUCTS) {
+    // Compare the whole normalised href, so only the product-root file itself
+    // matches; a nested page of the same name (nested/project-context.md) does not.
+    const normalized = href.split(/[#?]/)[0].replace(/\\/g, '/').replace(/^(\.\/)+/, '').toLowerCase();
+    return products.some((product) => product.src && product.excludeRootFiles?.length
+        && path.resolve(dirAbs) === path.resolve(product.src)
+        && product.excludeRootFiles.some((excluded) => excluded.toLowerCase() === normalized));
+}
+
+/** The toc entries dropped so far in this process (a copy). */
+export function droppedSidebarEntriesSnapshot() {
+    return droppedSidebarEntries.map((entry) => ({ ...entry }));
+}
+
 function pageTocItem(label, href, slugBase, slugs, dirAbs) {
     const pageSlug = resolvedTocSlug(href, slugBase);
     if (!pageSlug) return null;
     if (!slugs.has(pageSlug)) {
+        if (isExcludedRootTocHref(href, dirAbs)) return null;
         // Record what was dropped and where it was declared, so the failure the
         // gate raises in `main` names a toc entry someone can go and fix.
         droppedSidebarEntries.push({
@@ -1421,7 +1531,7 @@ function assertNoDroppedSidebarEntries() {
     // A targeted sync regenerates one product, so drops belonging to products
     // that were never generated in this run are expected and not a defect.
     const relevant = only
-        ? droppedSidebarEntries.filter((entry) => entry.product === only)
+        ? droppedSidebarEntries.filter((entry) => entry.product === only || nestedUnder(entry.product, only))
         : droppedSidebarEntries;
     const skipped = droppedSidebarEntries.length - relevant.length;
     if (skipped > 0) {
@@ -1437,7 +1547,9 @@ function assertNoDroppedSidebarEntries() {
 }
 
 async function main() {
-    const targets = only ? PRODUCTS.filter((p) => p.key === only) : PRODUCTS;
+    // A targeted sync clears the product's whole output folder, so it must also
+    // regenerate any product nested beneath it (e.g. fundamentals/go).
+    const targets = only ? PRODUCTS.filter((p) => p.key === only || nestedUnder(p.key, only)) : PRODUCTS;
     if (only && targets.length === 0) {
         console.error(`Unknown product "${only}". Known: ${PRODUCTS.map((p) => p.key).join(', ')}`);
         process.exit(1);
@@ -1475,6 +1587,10 @@ async function main() {
     await generateSidebar();
     await clearStaleAstroContentCache();
     assertNoDroppedSidebarEntries();
+}
+
+export function nestedUnder(key, parentKey) {
+    return key.startsWith(`${parentKey}/`);
 }
 
 async function countFiles(dir) {
