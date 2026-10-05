@@ -226,6 +226,23 @@ test('links escaping a product docs folder open the file in its owning repositor
     assert.ok(converted.includes('](/fundamentals/go/getting-started/)'), converted);
 });
 
+test('escaping links to private work paths stay as written and escaping images use the raw form', async (context) => {
+    const root = await fixture(context);
+    const repo = path.join(root, 'Fundamentals.Go');
+    const docs = path.join(repo, 'Documentation');
+    await put(repo, '.ai-work/notes.md', 'x');
+    await put(repo, '.git/config', 'x');
+    await put(repo, 'images/shot.png', 'png');
+    const body = '[a](../.ai-work/notes.md) [b](../.git/config) ![s](../images/shot.png?x=1)';
+    const converted = await convertFile(body, {
+        dir: docs, basename: 'index.md', srcPath: path.join(docs, 'index.md'),
+        product: { key: 'fundamentals/go', src: docs }, reposRoot: root, docRepoRoot: path.join(root, 'Documentation'),
+    });
+    assert.ok(converted.includes('](../.ai-work/notes.md)'), converted);
+    assert.ok(converted.includes('](../.git/config)'), converted);
+    assert.ok(converted.includes('](https://github.com/Cratis/Fundamentals.Go/raw/main/images/shot.png?x=1)'), converted);
+});
+
 test('in-root private assets and absolute private links are refused', async (context) => {
     const root = await fixture(context);
     await put(root, '.ai-work/x.png', 'png');

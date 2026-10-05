@@ -317,6 +317,7 @@ const RELEASE_DIGESTS_SRC = firstExisting(
     path.join(reposRoot, '.github', 'release-digests'),
     path.join(docRepoRoot, 'GitHubLanding', 'release-digests'));
 
+const RAW_IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp']);
 const ASSET_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.html', '.js', '.css', '.json']);
 const SKIP_DIRS = new Set([
     'node_modules', 'obj', 'bin', '.git', 'storybook-static', '.vitepress',
@@ -494,7 +495,20 @@ function repositoryUrlFor(ctx, absoluteTarget, urlSuffix = '') {
         // A missing target is still linked as a file; GitHub reports it.
     }
     const url = isDirectory ? sourceTreeUrl(absoluteTarget, repos, docs) : sourceViewUrl(absoluteTarget, repos, docs);
-    return url ? url + urlSuffix : null;
+    if (!url) return null;
+    // Private work paths (.ai-work, .git, ...) are never linked; .github is a
+    // public repository directory and is the one private-looking name kept.
+    const repoPath = url.replace(/^https:\/\/github\.com\/Cratis\/[^/]+\/(?:blob|tree)\/[^/]+\//, '');
+    const hasPrivateSegment = repoPath.split('/').some((segment) => {
+        const name = decodeURIComponent(segment);
+        return name.toLowerCase() !== '.github' && isPrivateDocPath(name);
+    });
+    if (hasPrivateSegment) return null;
+    // Images need the raw form to render rather than the GitHub file viewer.
+    const finalUrl = !isDirectory && RAW_IMAGE_EXT.has(path.extname(absoluteTarget).toLowerCase())
+        ? url.replace('/blob/', '/raw/')
+        : url;
+    return finalUrl + urlSuffix;
 }
 
 function resolveInternalLink(ctx, target) {
@@ -515,7 +529,7 @@ function resolveInternalLink(ctx, target) {
         const contentRoot = ctx.contentRoot ?? ctx.product.src;
         const absoluteTarget = path.resolve(ctx.dir, decodedLinkPath(originalPathPart));
         const relToProduct = path.relative(contentRoot, absoluteTarget).replace(/\\/g, '/');
-        if (relToProduct.startsWith('..') || path.isAbsolute(relToProduct)) {
+        if (relToProduct === '..' || relToProduct.startsWith('../') || path.isAbsolute(relToProduct)) {
             const repositoryUrl = repositoryUrlFor(ctx, absoluteTarget, urlSuffix);
             return repositoryUrl ? repositoryUrl + titleSuffix : target;
         }
