@@ -3,7 +3,8 @@
 // Two severities:
 //   ERRORS (fail the build) — defects we never want shipped:
 //     1. Non-descriptive link text ("here", "click here", "see documentation").
-//     2. Leftover DocFX-isms the converter should have handled (xref:, [!INCLUDE], raw alerts).
+//     2. Leftover DocFX-isms the converter should have handled (xref:, [!INCLUDE], raw alerts)
+//        in prose; mentions inside inline code spans are allowed.
 //     3. Leftover authoring markers (TODO/FIXME/TBD, "lorem ipsum").
 //   WARNINGS (reported, don't fail) — style-guide nudges from the Google and Microsoft
 //     developer writing style guides, applied to prose only (code fences are skipped):
@@ -54,6 +55,20 @@ let errors = 0;
 let warnings = 0;
 let apiWarnings = 0;
 let filesChecked = 0;
+
+// Strip inline code spans so a line that only *mentions* syntax (e.g. DocFX `xref:`, or
+// `TODO(cratis-codemod)` in migration guidance) is not mistaken for a real leftover.
+function stripInlineCode(line) {
+    return line.replace(/`[^`]*`/g, '');
+}
+
+// DocFX leftovers are real only in prose: `[Foo](xref:Ns.Foo)`, `<xref:Ns.Foo>`,
+// `[!INCLUDE ...]` and `> [!NOTE]` all stay errors, but naming the syntax inside an
+// inline code span (as release digests and docs-about-docs do) is legitimate.
+export function hasDocfxLeftover(line) {
+    const prose = stripInlineCode(line);
+    return DOCFX_LEFTOVERS.some((re) => re.test(prose));
+}
 
 function fenceRun(line) {
     const match = line.match(/^\s*(`{3,}|~{3,})/);
@@ -147,15 +162,13 @@ function checkFile(file, raw) {
 
         // Inline code may deliberately name an authoring marker, as migration guidance
         // does with `TODO(cratis-codemod)`. Only prose should trigger marker errors.
-        const prose = line.replace(/`[^`]*`/g, '');
+        const prose = stripInlineCode(line);
 
         // Errors
         for (const re of NONDESCRIPTIVE) {
             if (re.test(line)) { console.error(`  [link-text] ${at}  ${line.trim()}`); errors++; }
         }
-        for (const re of DOCFX_LEFTOVERS) {
-            if (re.test(line)) { console.error(`  [docfx] ${at}  ${line.trim()}`); errors++; }
-        }
+        if (hasDocfxLeftover(line)) { console.error(`  [docfx] ${at}  ${line.trim()}`); errors++; }
         for (const re of AUTHORING_MARKERS) {
             if (re.test(prose)) { console.error(`  [marker] ${at}  ${line.trim()}`); errors++; }
         }
