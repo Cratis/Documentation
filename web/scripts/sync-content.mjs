@@ -550,6 +550,12 @@ async function fileExists(filePath) {
 // Returns null when the variant repo has no snippet for this id — that just
 // means the tab is omitted, not an error. A product's shared docs don't track
 // which variants apply to a given example; that's discovered from disk.
+function withoutLeadingHtmlComments(content) {
+    // Client snippets carry ordinary Markdown copyright comments. They become invalid JSX when a
+    // snippet is expanded into an MDX <TabItem>, while the source file keeps its own header.
+    return content.replace(/^(?:<!--[\s\S]*?-->\s*)+/, '');
+}
+
 async function readVariantSnippet(source, snippet) {
     assertPublicDocPath(snippet);
     // Snippet IDs are relative to their owning repository, never filesystem paths.
@@ -569,7 +575,8 @@ async function readVariantSnippet(source, snippet) {
             }
             const raw = await fs.readFile(candidate, 'utf8');
             const { body } = splitFrontmatter(raw);
-            const content = ext === '.md' ? markdownCommentsForMdx(body) : body;
+            const trimmed = withoutLeadingHtmlComments(body.trim());
+            const content = ext === '.md' ? markdownCommentsForMdx(trimmed) : trimmed;
             return { content: content.trim(), filePath: candidate };
         }
     }
