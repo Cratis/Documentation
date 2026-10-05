@@ -19,7 +19,7 @@ import { sourceEditUrl } from './source-edit-url.mjs';
 import { reposRootFor } from './repos-root.mjs';
 import { checkExternalLinks, externalLinkArguments } from './check-external-links.mjs';
 import { lintProse } from './lint-prose.mjs';
-import { findSiteSyntaxErrors } from './lint-docs.mjs';
+import { findSiteSyntaxErrors, hasDocfxLeftover } from './lint-docs.mjs';
 
 const webRoot = fileURLToPath(new URL('../', import.meta.url));
 const fixturesRoot = path.resolve(webRoot, '../.ai-work/docs-readiness');
@@ -761,6 +761,26 @@ test('site syntax lint rejects Markdown imports and unknown asides outside fence
         '~~~',
     ].join('\n');
     assert.deepEqual(findSiteSyntaxErrors(path.join(root, 'example.md'), fenced, root), []);
+});
+
+test('DocFX leftover lint flags real xref links and alerts but not syntax named in inline code', () => {
+    for (const leftover of [
+        'See [IEventLog](xref:Cratis.Chronicle.EventSequences.IEventLog).',
+        'See <xref:Cratis.Chronicle.EventSequences.IEventLog>.',
+        'See [`IEventLog`](xref:Cratis.Chronicle.EventSequences.IEventLog).',
+        '[!INCLUDE [shared](../shared.md)]',
+        '> [!NOTE]',
+    ]) {
+        assert.equal(hasDocfxLeftover(leftover), true, leftover);
+    }
+
+    for (const mention of [
+        '- **AI**: The documentation rules state that DocFX `xref:` symbol links are not supported: the site converts them to plain text',
+        'Replace `[!INCLUDE]` and `> [!NOTE]` with Starlight equivalents.',
+        'Use a normal link, not `<xref:Some.Type>`.',
+    ]) {
+        assert.equal(hasDocfxLeftover(mention), false, mention);
+    }
 });
 
 test('link conversion normalizes table padding after rewrite, never the source file', async (context) => {
