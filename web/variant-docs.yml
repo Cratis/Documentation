@@ -298,19 +298,6 @@ products:
             aliases: [kt, kts]
           - name: java
 
-        # These two migration examples configure .NET-only hosting APIs, not
-        # shared backend behavior. Each exemption must match exactly one fence;
-        # moving/removing/translating it requires removing the exemption too.
-        exemptFences:
-          - page: upgrading/secure-defaults.md
-            language: csharp
-            contains: builder.AddCratis(options => options.TrustForwardedIdentityHeaders = true);
-            reason: Opt-in for the .NET forwarded-header authentication handlers; remove when this example moves to .NET docs or becomes tabbed.
-          - page: upgrading/secure-defaults.md
-            language: csharp
-            contains: builder.AddCratisArc(options => options.Introspection.RequireAuthentication = false);
-            reason: Opt-in for .NET host discovery endpoints; remove when this example moves to .NET docs or becomes tabbed.
-
         # Every backend here is expected to answer every shared snippet, so a
         # missing one is an oversight worth hearing about rather than a language
         # that quietly has no tab.

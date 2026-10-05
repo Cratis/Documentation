@@ -234,7 +234,6 @@ function normalizeAxis(r, productKey, axisKey, value, name) {
         sidebar: normalizeSidebar(r, node.sidebar, `${name}.sidebar`),
         ratchetLanguages: languages,
         ratchetLanguageAliases: aliases,
-        exemptFences: normalizeExemptFences(r, node.exemptFences, `${name}.exemptFences`),
         // Whether a registered variant with no snippet for a given macro should be
         // reported. An axis that has genuinely uneven coverage — Chronicle's, where
         // most snippets are C#-only — leaves this off and relies on the tab simply
@@ -372,22 +371,19 @@ function normalizeSitePages(r, value, axesByScope, name) {
         };
     });
 
-    const exemptFences = normalizeExemptFences(r, node.exemptFences, `${name}.exemptFences`);
+    const exemptFences = (node.exemptFences ? r.array(node.exemptFences, `${name}.exemptFences`) : [])
+        .map((entry, index) => {
+            const itemName = `${name}.exemptFences[${index}]`;
+            const item = r.object(entry, itemName);
+            return {
+                page: r.string(item.page, `${itemName}.page`),
+                language: r.string(item.language, `${itemName}.language`),
+                contains: r.string(item.contains, `${itemName}.contains`),
+                reason: reason(r, item.reason, `${itemName}.reason`),
+            };
+        });
 
     return { root, groups, exclude, exemptFences };
-}
-
-function normalizeExemptFences(r, entries, name) {
-    return (entries ? r.array(entries, name) : []).map((entry, index) => {
-        const itemName = `${name}[${index}]`;
-        const item = r.object(entry, itemName);
-        return {
-            page: r.string(item.page, `${itemName}.page`),
-            language: r.string(item.language, `${itemName}.language`),
-            contains: r.string(item.contains, `${itemName}.contains`),
-            reason: reason(r, item.reason, `${itemName}.reason`),
-        };
-    });
 }
 
 /**

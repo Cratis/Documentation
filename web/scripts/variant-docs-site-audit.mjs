@@ -116,18 +116,18 @@ export function compareFenceBaseline(current, baseline) {
     return regressions;
 }
 
-export function applyExemptions(page, fences, exemptions, problems, scope = 'sitePages.exemptFences') {
+function applyExemptions(page, fences, exemptions, problems) {
     const exempt = new Set();
     for (const exemption of exemptions) {
         const matches = fences.filter((fence) =>
             fence.lang === exemption.language && fence.value.includes(exemption.contains));
         if (matches.length === 0) {
             problems.push(
-                `${scope}: ${page} has no counted ${exemption.language} fence containing ` +
+                `sitePages.exemptFences: ${page} has no counted ${exemption.language} fence containing ` +
                 `"${exemption.contains}"; remove the stale exemption`);
         } else if (matches.length > 1) {
             problems.push(
-                `${scope}: ${page} has ${matches.length} ${exemption.language} fences containing ` +
+                `sitePages.exemptFences: ${page} has ${matches.length} ${exemption.language} fences containing ` +
                 `"${exemption.contains}"; make "contains" match exactly one fence`);
         } else {
             exempt.add(matches[0]);
