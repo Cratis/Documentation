@@ -16,12 +16,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { assertPublicDocPath, assertPublicDocSource, isPrivateDocPath } from './private-doc-paths.mjs';
 import { parseMarkdownCode } from './markdown-code-ranges.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
-import { sourceEditUrl, sourceViewUrl } from './source-edit-url.mjs';
+import { sourceEditUrl, sourceTreeUrl, sourceViewUrl } from './source-edit-url.mjs';
 import { reposRootFor, resolveRepoCandidate } from './repos-root.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -471,12 +471,58 @@ function withTrailingSlash(urlPath) {
     return urlPath.endsWith('/') ? urlPath : urlPath + '/';
 }
 
+function decodedLinkPath(pathPart) {
+    try {
+        return decodeURIComponent(pathPart);
+    } catch {
+        return pathPart;
+    }
+}
+
+// The owning repository's GitHub URL for a file or directory outside a
+// product's docs folder (tree/ for an existing directory, blob/ otherwise),
+// using the same repository/branch mapping as edit links. Null without a
+// public owner.
+function repositoryUrlFor(ctx, absoluteTarget, urlSuffix = '') {
+    const repos = ctx.reposRoot ?? reposRoot;
+    const docs = ctx.docRepoRoot ?? docRepoRoot;
+    let isDirectory = false;
+    try {
+        isDirectory = statSync(absoluteTarget).isDirectory();
+    } catch {
+        // A missing target is still linked as a file; GitHub reports it.
+    }
+    const url = isDirectory ? sourceTreeUrl(absoluteTarget, repos, docs) : sourceViewUrl(absoluteTarget, repos, docs);
+    return url ? url + urlSuffix : null;
+}
+
 function resolveInternalLink(ctx, target) {
     const { url, suffix: titleSuffix } = splitLinkTarget(target);
     if (!url || isExternalOrSpecial(url)) return target;
 
     const { pathPart: originalPathPart, suffix: urlSuffix } = splitUrlSuffix(url);
     if (!originalPathPart) return target;
+
+    if (!originalPathPart.startsWith('/')) {
+        // Relative targets: a link that escapes the product's content root (for
+        // example to a repository-root CONTRIBUTING.md or decisions/ file) never
+        // becomes a site route and would be a dead relative URL on the site, so
+        // it opens the file in its owning repository on GitHub. Nothing behind
+        // such a link is copied into the site, so private-looking segments
+        // (e.g. .github) are not refused here; they get the same GitHub URL as
+        // any other repository file. Without a public owner it stays as authored.
+        const contentRoot = ctx.contentRoot ?? ctx.product.src;
+        const absoluteTarget = path.resolve(ctx.dir, decodedLinkPath(originalPathPart));
+        const relToProduct = path.relative(contentRoot, absoluteTarget).replace(/\\/g, '/');
+        if (relToProduct.startsWith('..') || path.isAbsolute(relToProduct)) {
+            const repositoryUrl = repositoryUrlFor(ctx, absoluteTarget, urlSuffix);
+            return repositoryUrl ? repositoryUrl + titleSuffix : target;
+        }
+        // In-root targets, assets included, must not name private work paths.
+        assertPublicDocPath(relToProduct);
+    } else {
+        assertPublicDocPath(originalPathPart);
+    }
     if (ASSET_EXT.has(path.extname(originalPathPart).toLowerCase())) return target;
 
     const strippedPath = stripDocTarget(originalPathPart);
@@ -485,7 +531,6 @@ function resolveInternalLink(ctx, target) {
     if (strippedPath.startsWith('/')) {
         // Product-doc links should follow Astro's slug rules. Generated assets and
         // reference sites under /api and /storybook already have literal paths.
-        assertPublicDocPath(strippedPath);
         if (/^\/(?:api|storybook|storybook-arc)(?:\/|$)/i.test(strippedPath)) {
             resolvedPath = strippedPath;
         } else {
@@ -498,11 +543,6 @@ function resolveInternalLink(ctx, target) {
         const slugBase = ctx.slugBase ?? ctx.product.key;
         const absoluteTarget = path.resolve(ctx.dir, strippedPath || '.');
         const relToProduct = path.relative(contentRoot, absoluteTarget).replace(/\\/g, '/');
-        // A link that escapes the product's content root (e.g. to a repo-root
-        // file outside Documentation/) never becomes a site route; leave it as
-        // authored rather than map it or reject it as a private path.
-        if (relToProduct.startsWith('..') || path.isAbsolute(relToProduct)) return target;
-        assertPublicDocPath(relToProduct);
         const slug = slugifyPath(relToProduct).replace(/^\/+|\/+$/g, '');
         resolvedPath = withTrailingSlash('/' + slugBase + (slug ? '/' + slug : ''));
     }
@@ -1027,11 +1067,18 @@ function resolvedTocSlug(href, slugBase) {
 // never generated (see `walk`'s isProductRoot check); a root toc.yml entry
 // pointing at one is not a broken link, so it must not trip the dropped-entry
 // gate.
-function isExcludedRootTocHref(href, dirAbs) {
-    const product = PRODUCTS.find((p) => p.key === currentSidebarProduct);
-    if (!product?.excludeRootFiles?.length || path.resolve(dirAbs) !== path.resolve(product.src)) return false;
-    const name = href.split(/[\\/]/).pop();
-    return product.excludeRootFiles.some((excluded) => excluded.toLowerCase() === name.toLowerCase());
+export function isExcludedRootTocHref(href, dirAbs, products = PRODUCTS) {
+    // Compare the whole normalised href, so only the product-root file itself
+    // matches; a nested page of the same name (nested/project-context.md) does not.
+    const normalized = href.split(/[#?]/)[0].replace(/\\/g, '/').replace(/^(\.\/)+/, '').toLowerCase();
+    return products.some((product) => product.src && product.excludeRootFiles?.length
+        && path.resolve(dirAbs) === path.resolve(product.src)
+        && product.excludeRootFiles.some((excluded) => excluded.toLowerCase() === normalized));
+}
+
+/** The toc entries dropped so far in this process (a copy). */
+export function droppedSidebarEntriesSnapshot() {
+    return droppedSidebarEntries.map((entry) => ({ ...entry }));
 }
 
 function pageTocItem(label, href, slugBase, slugs, dirAbs) {

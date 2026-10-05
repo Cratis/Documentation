@@ -56,3 +56,8 @@ export function sourceEditUrl(sourcePath, reposRoot, docRepoRoot) {
 export function sourceViewUrl(sourcePath, reposRoot, docRepoRoot) {
     return sourceUrl('blob', sourcePath, reposRoot, docRepoRoot);
 }
+
+/** Return the original Cratis repository's view URL for a source directory, or false when it has no public owner. */
+export function sourceTreeUrl(sourcePath, reposRoot, docRepoRoot) {
+    return sourceUrl('tree', sourcePath, reposRoot, docRepoRoot);
+}

@@ -9,7 +9,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
-import { PRODUCTS, applyAfterBucketInjections, variantSidebarInjections, applyBuckets, bucketsWithInjectedSections, collectSlugs, convertFile, entryToItem, nestedUnder, tocToSidebar, walk } from './sync-content.mjs';
+import { PRODUCTS, applyAfterBucketInjections, variantSidebarInjections, applyBuckets, bucketsWithInjectedSections, collectSlugs, convertFile, droppedSidebarEntriesSnapshot, entryToItem, isExcludedRootTocHref, nestedUnder, tocToSidebar, walk } from './sync-content.mjs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { emitDocArtifacts } from './emit-doc-artifacts.mjs';
 import { DOC_ARTIFACTS_INTEGRATION, docArtifactsIntegration } from './doc-artifacts-integration.mjs';
@@ -188,12 +188,70 @@ test('private includes, link rewrites, and aliased includes fail closed', async 
     assert.equal(await fs.readFile(privateFile, 'utf8'), '# Private\n\nDo not publish.\n');
 });
 
-test('a link escaping the content root to a repo-infra file is left untouched, not rejected', async (context) => {
+test('a link escaping the content root without a public owning repository is left as authored', async (context) => {
     const root = await fixture(context);
-    const docs = path.join(root, 'Documentation');
+    // `Unlisted` is not an allowed public checkout, so there is no repository URL.
+    const docs = path.join(root, 'Unlisted', 'Documentation');
     const body = '[`.github/go-modules.json`](../.github/go-modules.json) is the allow-list.';
-    const converted = await convertFile(body, conversionContext(docs, { product: { key: 'fundamentals/go', src: docs } }));
+    const converted = await convertFile(body, conversionContext(docs, {
+        product: { key: 'fixture', src: docs }, reposRoot: root, docRepoRoot: path.join(root, 'Documentation'),
+    }));
     assert.match(converted, /\]\(\.\.\/\.github\/go-modules\.json\)/);
+});
+
+test('links escaping a product docs folder open the file in its owning repository on GitHub', async (context) => {
+    const root = await fixture(context);
+    const repo = path.join(root, 'Fundamentals.Go');
+    const docs = path.join(repo, 'Documentation');
+    await put(repo, 'CONTRIBUTING.md', '# Contributing\n');
+    await put(repo, 'decisions/0001-decision.md', '# Decision\n');
+    // .github is a private segment for site content, but nothing behind an escaping
+    // link is copied into the site and the file is public on GitHub, so it gets the
+    // same repository URL as any other repository file.
+    await put(repo, '.github/go-modules.json', '{}\n');
+    const body = [
+        'See [contributing](../CONTRIBUTING.md#checks "Checks"), [decisions](../decisions/),',
+        '[the decision](../decisions/0001-decision.md), [modules](../.github/go-modules.json)',
+        'and [getting started](getting-started.md).',
+    ].join('\n');
+    const converted = await convertFile(body, {
+        dir: docs, basename: 'index.md', srcPath: path.join(docs, 'index.md'),
+        product: { key: 'fundamentals/go', src: docs }, reposRoot: root, docRepoRoot: path.join(root, 'Documentation'),
+    });
+    const base = 'https://github.com/Cratis/Fundamentals.Go';
+    assert.ok(converted.includes(`](${base}/blob/main/CONTRIBUTING.md#checks "Checks")`), converted);
+    assert.ok(converted.includes(`](${base}/tree/main/decisions)`), converted);
+    assert.ok(converted.includes(`](${base}/blob/main/decisions/0001-decision.md)`), converted);
+    assert.ok(converted.includes(`](${base}/blob/main/.github/go-modules.json)`), converted);
+    assert.ok(converted.includes('](/fundamentals/go/getting-started/)'), converted);
+});
+
+test('in-root private assets and absolute private links are refused', async (context) => {
+    const root = await fixture(context);
+    await put(root, '.ai-work/x.png', 'png');
+    for (const body of ['![shot](.ai-work/x.png)', '[x](/.ai-work/x.md)']) {
+        await assert.rejects(convertFile(body, conversionContext(root)), /private documentation path/, body);
+    }
+});
+
+test('a root toc entry for an excluded file is not a dropped entry, unlike nested or ordinary missing pages', async (context) => {
+    const root = await fixture(context);
+    const product = { key: 'fixture-excluded', src: root, excludeRootFiles: ['project-context.md'] };
+    assert.equal(isExcludedRootTocHref('project-context.md', root, [product]), true);
+    assert.equal(isExcludedRootTocHref('./project-context.md#purpose', root, [product]), true);
+    assert.equal(isExcludedRootTocHref('nested/project-context.md', root, [product]), false);
+    assert.equal(isExcludedRootTocHref('project-context.md', path.join(root, 'nested'), [product]), false);
+
+    PRODUCTS.push(product);
+    context.after(() => PRODUCTS.splice(PRODUCTS.indexOf(product), 1));
+    const before = droppedSidebarEntriesSnapshot().length;
+    const slugs = new Set();
+    assert.equal(await entryToItem({ name: 'Contributor context', href: 'project-context.md' }, root, 'fixture-excluded', slugs), null);
+    assert.equal(droppedSidebarEntriesSnapshot().length, before);
+    await entryToItem({ name: 'Nested context', href: 'nested/project-context.md' }, root, 'fixture-excluded', slugs);
+    await entryToItem({ name: 'Missing', href: 'missing.md' }, root, 'fixture-excluded', slugs);
+    const dropped = droppedSidebarEntriesSnapshot().slice(before).map((entry) => entry.href);
+    assert.deepEqual(dropped, ['nested/project-context.md', 'missing.md']);
 });
 
 test('absolute public includes respect a trusted root with a private-named ancestor', async (context) => {
