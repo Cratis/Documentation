@@ -506,10 +506,18 @@ function resolveInternalLink(ctx, target) {
     return resolvedPath + urlSuffix + titleSuffix;
 }
 
+// Code blocks, MDX expressions and inline code spans: everything link rewriting
+// must leave literal.
+function literalCodeRanges(body, srcPath) {
+    const { ranges, inlineRanges } = parseMarkdownCode(body, srcPath);
+    return [...ranges, ...inlineRanges];
+}
+
 function fixLinks(body, ctx) {
-    // Fenced code is literal: Go generics such as `di.Resolve[*T](ctx, s)` look
-    // like Markdown link syntax and must not be rewritten into site routes.
-    const ranges = codeRanges(body, ctx.srcPath ?? ctx.basename);
+    // Code is literal: Go generics such as `di.Resolve[*T](ctx, s)`, in a code
+    // block or an inline code span, look like Markdown link syntax and must not
+    // be rewritten into site routes.
+    const ranges = literalCodeRanges(body, ctx.srcPath ?? ctx.basename);
     const inCode = (offset) => ranges.some(([start, end]) => offset >= start && offset < end);
 
     // Markdown links/images: ](target)
@@ -519,7 +527,7 @@ function fixLinks(body, ctx) {
     // MDX/HTML attributes used by Starlight cards and authored links. These do
     // not appear in Markdown link syntax, so they must be normalized separately.
     // Offsets refer to `body`; the first pass can change lengths, so re-parse.
-    const attributeRanges = out === body ? ranges : codeRanges(out, ctx.srcPath ?? ctx.basename);
+    const attributeRanges = out === body ? ranges : literalCodeRanges(out, ctx.srcPath ?? ctx.basename);
     out = out.replace(/\bhref=(["'])([^"']+)\1/g, (whole, quote, target, offset) => {
         if (attributeRanges.some(([start, end]) => offset >= start && offset < end)) return whole;
         return `href=${quote}${resolveInternalLink(ctx, target)}${quote}`;

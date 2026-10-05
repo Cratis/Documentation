@@ -78,6 +78,8 @@ productTopics = productTopics.filter((topic) => !topic.id?.startsWith('eventmode
 const fundamentalsGoTopic = productTopics.find((topic) => topic.id === 'fundamentals/go');
 function withFundamentalsGo(items) {
     const goSection = { label: 'Go', collapsed: true, items: fundamentalsGoTopic.items };
+    // Placement follows the 'TypeScript' label in Cratis/Fundamentals' toc.yml; if
+    // that entry is renamed or removed, Go is appended at the end instead.
     const typeScriptIndex = items.findIndex((item) => item.label === 'TypeScript');
     return typeScriptIndex === -1
         ? [...items, goSection]

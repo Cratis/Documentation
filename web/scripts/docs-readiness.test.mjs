@@ -104,6 +104,24 @@ test('link rewriting leaves fenced code literal while still resolving prose link
     assert.match(converted, /href="relative\.md"/);
 });
 
+test('link rewriting leaves inline code literal while still resolving prose links and MDX href', async () => {
+    const source = path.join(reposRootFor(webRoot), 'Fundamentals.Go/Documentation/getting-started.mdx');
+    const body = [
+        '---', 'title: Decode', '---', '',
+        'Call `events.Decode[E](store.EventTypes(), raw)` after reading [Recipes](recipes.md).', '',
+        '<a href="concepts.md">Concepts</a>', '',
+    ].join('\n');
+    const converted = await convertFile(body, {
+        dir: path.dirname(source),
+        basename: path.basename(source),
+        srcPath: source,
+        product: { key: 'fundamentals/go', src: path.dirname(source) },
+    });
+    assert.match(converted, /`events\.Decode\[E\]\(store\.EventTypes\(\), raw\)`/);
+    assert.match(converted, /\[Recipes\]\(\/fundamentals\/go\/recipes\/\)/);
+    assert.match(converted, /href="\/fundamentals\/go\/concepts\/"/);
+});
+
 test('every configured product, family, and variant source has a real repository edit route', async () => {
     const reposRoot = reposRootFor(webRoot);
     const docRepoRoot = path.resolve(webRoot, '..');
