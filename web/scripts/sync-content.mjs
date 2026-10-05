@@ -474,7 +474,6 @@ function withTrailingSlash(urlPath) {
 function resolveInternalLink(ctx, target) {
     const { url, suffix: titleSuffix } = splitLinkTarget(target);
     if (!url || isExternalOrSpecial(url)) return target;
-    assertPublicDocPath(url);
 
     const { pathPart: originalPathPart, suffix: urlSuffix } = splitUrlSuffix(url);
     if (!originalPathPart) return target;
@@ -486,6 +485,7 @@ function resolveInternalLink(ctx, target) {
     if (strippedPath.startsWith('/')) {
         // Product-doc links should follow Astro's slug rules. Generated assets and
         // reference sites under /api and /storybook already have literal paths.
+        assertPublicDocPath(strippedPath);
         if (/^\/(?:api|storybook|storybook-arc)(?:\/|$)/i.test(strippedPath)) {
             resolvedPath = strippedPath;
         } else {
@@ -498,7 +498,11 @@ function resolveInternalLink(ctx, target) {
         const slugBase = ctx.slugBase ?? ctx.product.key;
         const absoluteTarget = path.resolve(ctx.dir, strippedPath || '.');
         const relToProduct = path.relative(contentRoot, absoluteTarget).replace(/\\/g, '/');
+        // A link that escapes the product's content root (e.g. to a repo-root
+        // file outside Documentation/) never becomes a site route; leave it as
+        // authored rather than map it or reject it as a private path.
         if (relToProduct.startsWith('..') || path.isAbsolute(relToProduct)) return target;
+        assertPublicDocPath(relToProduct);
         const slug = slugifyPath(relToProduct).replace(/^\/+|\/+$/g, '');
         resolvedPath = withTrailingSlash('/' + slugBase + (slug ? '/' + slug : ''));
     }
@@ -1019,10 +1023,22 @@ function resolvedTocSlug(href, slugBase) {
     return slugify(joined);
 }
 
+// A product's own excludeRootFiles (e.g. project-context.md) are deliberately
+// never generated (see `walk`'s isProductRoot check); a root toc.yml entry
+// pointing at one is not a broken link, so it must not trip the dropped-entry
+// gate.
+function isExcludedRootTocHref(href, dirAbs) {
+    const product = PRODUCTS.find((p) => p.key === currentSidebarProduct);
+    if (!product?.excludeRootFiles?.length || path.resolve(dirAbs) !== path.resolve(product.src)) return false;
+    const name = href.split(/[\\/]/).pop();
+    return product.excludeRootFiles.some((excluded) => excluded.toLowerCase() === name.toLowerCase());
+}
+
 function pageTocItem(label, href, slugBase, slugs, dirAbs) {
     const pageSlug = resolvedTocSlug(href, slugBase);
     if (!pageSlug) return null;
     if (!slugs.has(pageSlug)) {
+        if (isExcludedRootTocHref(href, dirAbs)) return null;
         // Record what was dropped and where it was declared, so the failure the
         // gate raises in `main` names a toc entry someone can go and fix.
         droppedSidebarEntries.push({

@@ -188,6 +188,14 @@ test('private includes, link rewrites, and aliased includes fail closed', async 
     assert.equal(await fs.readFile(privateFile, 'utf8'), '# Private\n\nDo not publish.\n');
 });
 
+test('a link escaping the content root to a repo-infra file is left untouched, not rejected', async (context) => {
+    const root = await fixture(context);
+    const docs = path.join(root, 'Documentation');
+    const body = '[`.github/go-modules.json`](../.github/go-modules.json) is the allow-list.';
+    const converted = await convertFile(body, conversionContext(docs, { product: { key: 'fundamentals/go', src: docs } }));
+    assert.match(converted, /\]\(\.\.\/\.github\/go-modules\.json\)/);
+});
+
 test('absolute public includes respect a trusted root with a private-named ancestor', async (context) => {
     const root = await fixture(context);
     for (const name of ['.github', '.ai-work/public-docs']) {
