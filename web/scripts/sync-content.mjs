@@ -1015,10 +1015,22 @@ function resolvedTocSlug(href, slugBase) {
     return slugify(joined);
 }
 
+// A product's own excludeRootFiles (e.g. project-context.md) are deliberately
+// never generated (see `walk`'s isProductRoot check); a root toc.yml entry
+// pointing at one is not a broken link, so it must not trip the dropped-entry
+// gate.
+function isExcludedRootTocHref(href, dirAbs) {
+    const product = PRODUCTS.find((p) => p.key === currentSidebarProduct);
+    if (!product?.excludeRootFiles?.length || path.resolve(dirAbs) !== path.resolve(product.src)) return false;
+    const name = href.split(/[\\/]/).pop();
+    return product.excludeRootFiles.some((excluded) => excluded.toLowerCase() === name.toLowerCase());
+}
+
 function pageTocItem(label, href, slugBase, slugs, dirAbs) {
     const pageSlug = resolvedTocSlug(href, slugBase);
     if (!pageSlug) return null;
     if (!slugs.has(pageSlug)) {
+        if (isExcludedRootTocHref(href, dirAbs)) return null;
         // Record what was dropped and where it was declared, so the failure the
         // gate raises in `main` names a toc entry someone can go and fix.
         droppedSidebarEntries.push({
