@@ -92,7 +92,7 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
         const f = await fixture(productKey, axisKey);
         t.after(() => rm(f.root, { recursive: true, force: true }));
         const snippetFile = path.join(f.variants[0].src, f.snippet + '.md');
-        const snippet = '<!-- Copyright (c) Cratis. All rights reserved. -->\n\nUse this example.\n\n```html\n<!-- literal in code -->\n```\n';
+        const snippet = '<!-- Copyright (c) Cratis. All rights reserved. -->\n\nUse this example.\n\n<!-- reviewed note -->\n\n```html\n<!-- literal in code -->\n```\n';
         await writeFile(snippetFile, snippet);
         const source = `<${f.axis.macro} snippet="${f.snippet}" />\n`;
         const synced = await convertFile(source, {
@@ -100,7 +100,9 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
             product: { key: productKey, src: path.dirname(f.sitePath) },
             variantAxes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
         });
-        assert.match(synced, /\{\/\* Copyright \(c\) Cratis\. All rights reserved\. \*\/\}/);
+        // The leading header is dropped by the snippet reader; later comments become MDX comments.
+        assert.ok(!synced.includes('Copyright (c) Cratis'));
+        assert.match(synced, /\{\/\* reviewed note \*\/\}/);
         assert.ok(synced.includes('```html\n<!-- literal in code -->\n```'));
         await compile(synced);
         const rendered = await render(source, f);
