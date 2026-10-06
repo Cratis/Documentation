@@ -5,7 +5,7 @@
 // All writable fixtures stay in this repository's ignored .ai-work directory.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { promises as fs } from 'node:fs';
+import { existsSync, promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
@@ -503,17 +503,11 @@ test('an unbucketed Components toc section fails the coverage check', () => {
 
 test('every top-level section of the Components documentation sits in a bucket', async (context) => {
     const product = PRODUCTS.find(({ key }) => key === 'components');
-    let items;
-    try {
-        const slugs = new Set();
-        await collectSlugs(product.src, 'components', slugs);
-        items = await tocToSidebar(product.src, 'components', slugs);
-    } catch {
-        return context.skip('Components documentation is not available in this checkout');
-    }
-    // The companion Components change groups the recipes. Until the checkout carries it,
-    // the four flat recipe pages are not top-level sections this map can claim.
-    if (!items.some(({ label }) => label === 'Recipes')) return context.skip('Components documentation predates the Recipes group');
+    if (!existsSync(product.src)) return context.skip('Components documentation is not available in this checkout');
+    const slugs = new Set();
+    await collectSlugs(product.src, 'components', slugs);
+    const items = await tocToSidebar(product.src, 'components', slugs);
+    assert.ok(items.length, 'Components documentation must have top-level toc sections');
     assert.deepEqual(unbucketedSections(items, product.buckets), []);
 });
 
