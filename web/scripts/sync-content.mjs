@@ -105,16 +105,17 @@ export const PRODUCTS = [
         buckets: [
             { label: 'Start here', sections: ['Getting started', 'Tutorial', 'Choosing a component'] },
             { label: 'Design and styling', sections: ['Why Components', 'UI foundation', 'Coming from PrimeReact', 'Styling'] },
-            { label: 'Recipes', sections: ['Building a form', 'Displaying data', 'Multi-step form', 'A list screen with actions'] },
+            // The Components toc owns the group; adding or renaming a recipe there needs no change here.
+            { label: 'Recipes', sections: ['Recipes'] },
             {
                 label: 'Component library',
                 sections: [
                     'Storybook', 'Canvas', 'Chat', 'CommandDialog', 'CommandForm', 'CommandStepper', 'StepperCommandDialog', 'DataPage',
-                    'DataTables', 'Dialogs', 'Filter', 'Dropdown', 'Display', 'Notifications', 'Toolbar', 'ObjectNavigationalBar',
+                    'DataTables', 'Dialogs', 'ConfigurationEditor', 'Filter', 'Dropdown', 'IconPicker', 'MarkdownEditor', 'Display', 'Notifications', 'Toolbar', 'ObjectNavigationalBar',
                     'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common',
                 ],
             },
-            { label: 'Reference', sections: ['Architecture decisions', 'Renderer adapters', 'Types', 'Migration'] },
+            { label: 'Reference', sections: ['Architecture decisions', 'Renderer adapters', 'Types', 'Troubleshooting', 'Migration'] },
         ],
     },
     {
@@ -1191,7 +1192,8 @@ export async function tocToSidebar(dirAbs, slugBase, slugs = validSlugs) {
 // Re-group a product's flat top-level toc sections into Diátaxis buckets
 // (Get started / Understand / Guides / Reference) for navigation, without moving
 // any files. `buckets` maps section labels to a bucket; "Overview" stays loose at
-// the top and anything unmapped falls into a "More" group.
+// the top and anything unmapped stays a loose top-level group or link after the
+// buckets; `unbucketedSections` reports those so a test can reject them.
 export function applyBuckets(items, buckets) {
     const used = new Set();
     const result = [];
@@ -1217,6 +1219,14 @@ export function applyBuckets(items, buckets) {
     // Anything not assigned to a bucket stays as its own top-level group/link.
     for (const i of items) if (!used.has(i)) result.push(i);
     return result;
+}
+
+// Labels of top-level sections that no bucket claims, other than the loose Overview.
+export function unbucketedSections(items, buckets) {
+    const claimed = new Set(buckets.flatMap((bucket) => bucket.sections));
+    return items
+        .map((item) => item.label)
+        .filter((label) => label !== 'Overview' && !claimed.has(label));
 }
 
 // Decorative sidebar badges — the aspire.dev "Quickstart" / "Tutorial" pills.
