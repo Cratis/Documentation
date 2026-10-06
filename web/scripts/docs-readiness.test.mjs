@@ -5,11 +5,11 @@
 // All writable fixtures stay in this repository's ignored .ai-work directory.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { promises as fs } from 'node:fs';
+import { existsSync, promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
-import { PRODUCTS, applyAfterBucketInjections, variantSidebarInjections, applyBuckets, bucketsWithInjectedSections, collectSlugs, convertFile, droppedSidebarEntriesSnapshot, entryToItem, isExcludedRootTocHref, nestedUnder, tocToSidebar, walk } from './sync-content.mjs';
+import { PRODUCTS, applyAfterBucketInjections, variantSidebarInjections, applyBuckets, bucketsWithInjectedSections, collectSlugs, convertFile, droppedSidebarEntriesSnapshot, entryToItem, isExcludedRootTocHref, nestedUnder, tocToSidebar, unbucketedSections, walk } from './sync-content.mjs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { emitDocArtifacts } from './emit-doc-artifacts.mjs';
 import { DOC_ARTIFACTS_INTEGRATION, docArtifactsIntegration } from './doc-artifacts-integration.mjs';
@@ -467,6 +467,48 @@ test('Components buckets classify library and reference sections explicitly', ()
         bucketed.find(({ label }) => label === 'Reference').items.map(({ label }) => label),
         ['Architecture decisions', 'Renderer adapters']
     );
+});
+
+test('Components recipes bucket claims the Recipes group, not individual recipe titles', async (context) => {
+    const product = PRODUCTS.find(({ key }) => key === 'components');
+    const root = await fixture(context);
+    await put(root, 'toc.yml', [
+        '- name: Overview', '  href: index.md',
+        '- name: Recipes', '  items:',
+        '    - name: Building a form', '      href: building-a-form.md',
+        '    - name: A new recipe', '      href: a-new-recipe.md',
+        '- name: Troubleshooting', '  href: troubleshooting.md',
+    ].join('\n'));
+    for (const page of ['index', 'building-a-form', 'a-new-recipe', 'troubleshooting']) await put(root, `${page}.md`, `# ${page}\n`);
+    const slugs = new Set();
+    await collectSlugs(root, 'components', slugs);
+    const items = await tocToSidebar(root, 'components', slugs);
+    const bucketed = applyBuckets(items, product.buckets);
+    assert.deepEqual(unbucketedSections(items, product.buckets), []);
+    assert.deepEqual(
+        bucketed.find(({ label }) => label === 'Recipes').items.map(({ label }) => label),
+        ['Building a form', 'A new recipe']
+    );
+    assert.deepEqual(
+        bucketed.find(({ label }) => label === 'Reference').items.map(({ label }) => label),
+        ['Troubleshooting']
+    );
+});
+
+test('an unbucketed Components toc section fails the coverage check', () => {
+    const product = PRODUCTS.find(({ key }) => key === 'components');
+    const items = [{ label: 'Overview' }, { label: 'Chat' }, { label: 'Synthetic unbucketed section' }];
+    assert.deepEqual(unbucketedSections(items, product.buckets), ['Synthetic unbucketed section']);
+});
+
+test('every top-level section of the Components documentation sits in a bucket', async (context) => {
+    const product = PRODUCTS.find(({ key }) => key === 'components');
+    if (!existsSync(product.src)) return context.skip('Components documentation is not available in this checkout');
+    const slugs = new Set();
+    await collectSlugs(product.src, 'components', slugs);
+    const items = await tocToSidebar(product.src, 'components', slugs);
+    assert.ok(items.length, 'Components documentation must have top-level toc sections');
+    assert.deepEqual(unbucketedSections(items, product.buckets), []);
 });
 
 function variantAxis(overrides = {}) {
