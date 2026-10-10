@@ -303,9 +303,11 @@ export default defineConfig({
             // Default social-sharing metadata for every page. Starlight already
             // emits og:title/og:description; these add the image and card type.
             head: [
-                { tag: 'meta', attrs: { property: 'og:image', content: 'https://cratis.io/favicon-512.png' } },
-                { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary' } },
-                { tag: 'meta', attrs: { name: 'twitter:image', content: 'https://cratis.io/favicon-512.png' } },
+                { tag: 'meta', attrs: { property: 'og:image', content: 'https://www.cratis.io/og-image.jpg' } },
+                { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+                { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+                { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
+                { tag: 'meta', attrs: { name: 'twitter:image', content: 'https://www.cratis.io/og-image.jpg' } },
             ],
             logo: {
                 light: './src/assets/cratis-mark-light.svg',
