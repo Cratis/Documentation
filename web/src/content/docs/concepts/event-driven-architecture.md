@@ -1,6 +1,6 @@
 ---
 title: Event-driven architecture vs. event sourcing
-description: Event-driven architecture connects services by publishing events. Event sourcing stores events as the system of record. Learn how the two differ, how they combine, and when you need one, the other or both.
+description: "Event-driven architecture connects services with events; event sourcing stores them as the record. Learn how they differ, combine and when to use each."
 ---
 
 Event-driven architecture (EDA) and event sourcing both revolve around events, so they are often confused. They answer different questions.
@@ -88,7 +88,7 @@ public record BorrowBook(EventSourceId BookId, string MemberEmail, DateOnly DueD
 
 The command knows nothing about email or the loan list. It records the fact, and the rest follows from the event.
 
-Replaying a reactor repeats side effects, so decide what a replay should do. A confirmation that should go out once must not go out again when you rebuild a read model. Chronicle offers `[OnceOnly]` to skip a handler during replay. It does not give exactly-once delivery, so make the side effect safe to repeat. See [Reactors](/chronicle/reactors/) for replay and delivery rules.
+Replaying a reactor repeats side effects, so decide what a replay should do. A confirmation that should go out once must not go out again when you rebuild a read model. Chronicle offers `[OnceOnly]` for this. On a handler method, it skips that handler during replay. On the reactor class, it makes the whole reactor non-replayable, so a replay of its observer never starts. It does not give exactly-once delivery, so make the side effect safe to repeat. See [Reactors](/chronicle/reactors/) for replay and delivery rules.
 
 ## Benefits of combining them
 

@@ -1,6 +1,6 @@
 ---
 title: Concepts
-description: Plain-language explainers for event sourcing, CQRS, event stores, event modeling, projections and read models, and event-driven architecture, with examples in C# using Cratis Chronicle and Arc.
+description: "Concepts behind event-sourced systems: event sourcing, CQRS, event stores, event modeling, projections, read models and event-driven architecture."
 ---
 
 These pages explain the ideas behind event-sourced systems, independent of any product. Each one defines the concept, shows how it works, gives a short example, and says when not to use it. Examples use [Chronicle](/chronicle/) and [Arc](/arc/) so you can see the idea in real code.

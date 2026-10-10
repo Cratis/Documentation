@@ -1,11 +1,11 @@
 ---
 title: What is event sourcing?
-description: Event sourcing stores every change to your data as an immutable event instead of overwriting the current state. Learn how it works, what it costs, when not to use it, and how to try it in .NET with Cratis Chronicle.
+description: "Event sourcing stores every change as an immutable event instead of overwriting state. Learn how it works, its trade-offs and how to use it in .NET."
 ---
 
 Event sourcing is a way of storing data. Instead of keeping only the current state of a record and overwriting it on every change, you append each change as an immutable **event** to an append-only log. The current state is not stored as the truth; you derive it by replaying the events.
 
-A bank account is the classic example. A traditional table stores `Balance = 70`. An event-sourced account stores that it was opened, that 100 was deposited and that 30 was withdrawn, and the balance of 70 follows from those facts. You can answer "what is the balance?" and also "how did we get here?"
+A bank account is the classic example. A traditional table stores `Balance = 70`. An event-sourced account stores that it was opened with 100, that 50 was deposited and that 80 was withdrawn, and the balance of 70 follows from those facts. You can answer "what is the balance?" and also "how did we get here?"
 
 This page explains the idea, shows it in code, and is honest about where it costs more than it gives. It is the first of six concept pages: [CQRS](/concepts/cqrs/), [event store vs. a regular database](/concepts/event-store/), [event modeling](/concepts/event-modeling/), [projections and read models](/concepts/projections-and-read-models/), and [event-driven architecture vs. event sourcing](/concepts/event-driven-architecture/).
 
@@ -20,7 +20,7 @@ Four ideas carry the whole pattern:
 
 ```mermaid
 flowchart LR
-    A[Command: withdraw 30] --> B{Decide}
+    A[Command: withdraw 80] --> B{Decide}
     B -->|enough money| C[Append WithdrawalMade]
     C --> D[(Event log)]
     D --> E[Fold events in order]

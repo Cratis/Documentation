@@ -1,11 +1,11 @@
 ---
 title: "Event modeling: a practical guide"
-description: A practical guide to event modeling, the method for designing information systems on a timeline of events, commands and read models. Learn the steps, see an example, and turn the model into code with Cratis Studio, Arc and Chronicle.
+description: "Event modeling designs a system as a timeline of events, commands and read models. Learn the steps, see an example and turn the model into code."
 ---
 
 Event modeling is a method for designing an information system by drawing how information flows through it over time. You lay out a timeline from left to right. On it you place the screens people use, the commands they issue, the events those commands record and the read models the next screens display. The result is one picture that a domain expert, a designer and a developer can read in the same way.
 
-Adam Dymitruk created the method. It suits event-sourced systems because its building blocks are the same ones an event-sourced system is made of. This page is a practical guide to doing it. For how the blocks map onto Cratis, read [Event modeling in Cratis](/event-modeling/).
+Adam Dymitruk created the method, and its seven steps are described below. It suits event-sourced systems because its building blocks are the same ones an event-sourced system is made of. This page is a practical guide to doing it. For how the blocks map onto Cratis, read [Event modeling in Cratis](/event-modeling/).
 
 ## How event modeling works
 
@@ -16,10 +16,10 @@ An event model has a small vocabulary. You read it like a comic strip, one frame
 | Screen (wireframe) | What a person sees and does | Reserve book form |
 | Command | An intent to change something | `ReserveBook` |
 | Event | A fact that happened, in the past tense | `BookReserved` |
-| Read model | The information a screen needs | `Availability` |
+| Read model (also called a view) | The information a screen needs | `Availability` |
 | Processor | Automation that reacts to events | Update stock when a book is reserved |
 
-A command is never stored. An event is the record of the fact. A read model is derived from events. Those rules give the diagram its discipline: every screen must read something a read model provides, every read model must be fed by events, and every event must come from a command or from another system.
+These blocks combine into four patterns: **command** (screen, command, event), **view** (events into a read model into a screen), **automation** (an event triggers a processor that issues a command) and **translation** (an event from another system is adapted into a command). A command is never stored. An event is the record of the fact. A read model is derived from events. Those rules give the diagram its discipline: every screen must read something a read model provides, every read model must be fed by events, and every event must come from a command or from another system.
 
 ```mermaid
 eventmodeling
@@ -35,18 +35,18 @@ Read the model as a story. A reader reserves a book on a screen. That issues `Re
 
 ## The steps
 
-You can run these steps in a workshop with sticky notes, on a whiteboard, or in a tool.
+Dymitruk describes seven steps. You can run them in a workshop with sticky notes, on a whiteboard, or in a tool.
 
-1. **Brainstorm the events.** Ask what happens in the business. Write each answer as a past-tense event on a sticky note: `BookAdded`, `BookReserved`, `BookBorrowed`, `BookReturned`. Do not worry about order yet.
-2. **Order them into a plot.** Arrange the events on a timeline so the story reads from start to finish. Remove duplicates and merge near-synonyms. Gaps show up as missing steps in the story.
-3. **Add screens.** Storyboard the wireframes that people use along the timeline, from the first screen to the last. This keeps the model tied to real use.
-4. **Add commands.** For each event that a person causes, add the command that triggers it, placed between the screen and the event.
-5. **Add read models.** For each screen that shows information, add the read model that supplies it, and draw which events feed it.
-6. **Group into slices.** Cut the model into vertical slices, each one a command with its events or a read model with its screen. A slice is small enough to build and test on its own.
-7. **Add rules as examples.** For each command or read model, write a few given/when/then examples. Given these past events, when this command arrives, then this event is recorded, or a rejection.
-8. **Check for completeness.** Walk the timeline. Every screen shows data that exists, and every field in a read model comes from an event that carries it.
+1. **Brainstorming.** Ask what happens in the business. Write each answer as a past-tense event on a sticky note: `BookAdded`, `BookReserved`, `BookBorrowed`, `BookReturned`. Do not worry about order yet.
+2. **The plot.** Arrange the events on a timeline so the story reads from start to finish. Remove duplicates and merge near-synonyms. Gaps show up as missing steps in the story.
+3. **The storyboard.** Add the wireframes that people use along the timeline, from the first screen to the last. This keeps the model tied to real use.
+4. **Identify inputs.** These are the commands. For each event that a person causes, add the command that triggers it, placed between the screen and the event.
+5. **Identify outputs.** These are the read models, or views. For each screen that shows information, add the read model that supplies it, and draw which events feed it.
+6. **Apply Conway's Law.** Separate the model into swimlanes, one per system, team or bounded context, so each team owns its own part of the timeline. Then cut each swimlane into vertical slices, each one small enough to build and test on its own.
+7. **Elaborate scenarios.** Write the rules as examples. For each command or read model, write a few given/when/then examples. Given these past events, when this command arrives, then this event is recorded, or a rejection.
+Throughout, check for completeness: walk the timeline. Every screen shows data that exists, and every field in a read model comes from an event that carries it.
 
-The completeness check is where the method pays for itself. You find that a screen has no source for a number it displays, or that an event is missing the field a later screen needs, while the fix is still a sticky note.
+That check is where the method pays for itself. You find that a screen has no source for a number it displays, or that an event is missing the field a later screen needs, while the fix is still a sticky note.
 
 ## A concrete example: reserving a book
 
@@ -82,12 +82,14 @@ public record BookAdded(string Title, int Copies);
 public record BookAvailability(
     [Key] Guid Id,
     string Title,
-    [SetFrom<BookAdded>(nameof(BookAdded.Copies))] int AvailableCopies);
+    [SetFrom<BookAdded>(nameof(BookAdded.Copies))]
+    [Decrement<BookReserved>]
+    int AvailableCopies);
 ```
 
-Both are excerpts. They do not yet decrease the count when a book is reserved; that is a further `[SubtractFrom<BookReserved>]` mapping that needs a field on the event to subtract. In the model you would see this on the timeline, and that is the point. See [projections and read models](/concepts/projections-and-read-models/) for how projections work.
+Both are excerpts. `[Decrement<BookReserved>]` lowers `AvailableCopies` by one each time a `BookReserved` event is projected. See [projections and read models](/concepts/projections-and-read-models/) for how projections work.
 
-The model tells you which processors you need as well. If stock should drop when a book is reserved, that is an automation: a processor that reacts to `BookReserved`. In Chronicle that is a reactor class implementing `IReactor`.
+The model tells you which processors you need as well. If a separate inventory slice must act when a book is reserved, for example a `StockKeeper` processor that issues a `DecreaseStock` command, that is an automation: a processor that reacts to `BookReserved`. In Chronicle that is a reactor class implementing `IReactor`.
 
 ## Benefits
 
@@ -127,7 +129,7 @@ Not strictly. The method describes information flow and works for any system. It
 
 ### What tool should I use?
 
-A whiteboard or sticky notes work. Cratis Studio, at [cratis.studio](https://cratis.studio), is a collaborative environment for designing and editing event models. It is in beta; see [Studio](/studio/) for what it does today.
+A whiteboard or sticky notes work. Cratis Studio, at [cratis.studio](https://cratis.studio), is a collaborative environment for designing and editing event models. It is live in beta at [app.cratis.studio](https://app.cratis.studio); see [Studio](/studio/) for what it does today.
 
 ### How big should a model be?
 
@@ -140,7 +142,7 @@ Each block has a counterpart in code. [Event modeling in Cratis](/event-modeling
 ## Next steps
 
 - Read [Event modeling in Cratis](/event-modeling/) for the block-by-block mapping.
-- Try [Cratis Studio](https://cratis.studio) to model with your team.
+- Read about [Cratis Studio](/studio/), the beta modeling tool at [app.cratis.studio](https://app.cratis.studio), to model with your team.
 - Build a slice end to end with [Build a full-stack feature](/build-a-full-app/).
 - Understand the events behind the model in [what is event sourcing?](/concepts/event-sourcing/).
 - Learn how read models are built in [projections and read models](/concepts/projections-and-read-models/).

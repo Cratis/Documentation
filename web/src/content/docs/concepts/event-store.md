@@ -1,6 +1,6 @@
 ---
 title: Event store vs. a regular database
-description: An event store is a database built to append immutable events and read them back in order. Learn how it differs from a relational or document database, what it adds, what it lacks, and when to choose one.
+description: "An event store is a database for appending immutable events and reading them in order. See how it differs from a regular database and when to use one."
 ---
 
 An event store is a database designed for one job: appending immutable events in order and reading them back, either for one entity or across the whole log. It does not update or delete rows. It records what happened and keeps it.

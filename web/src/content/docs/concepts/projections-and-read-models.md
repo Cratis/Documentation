@@ -1,6 +1,6 @@
 ---
 title: Projections and read models
-description: A projection turns a stream of events into a read model, a queryable view shaped for one screen or question. Learn how projections and read models work, how they differ from reducers, and how to build them with Cratis Chronicle.
+description: "Projections turn events into read models, views shaped for one screen. Learn how they work, how they differ from reducers, and how to use them."
 ---
 
 A **read model** is a view of your data shaped for reading: one screen, one report or one API response. A **projection** is the rule that builds it. It watches events as they are appended and keeps the read model up to date.
@@ -83,13 +83,13 @@ public record BookStatus(
     bool IsBorrowed,
 
     [SetFrom<BookBorrowed>(nameof(BookBorrowed.MemberName))]
-    [SetValue<BookReturned>(null!)] // SetValue's constructor takes a non-nullable object
+    [ClearWith<BookReturned>]
     string? BorrowedBy);
 ```
 
-Chronicle finds the projection from the attributes. There is no registration code and no separate class. `Title` and `Isbn` map from the event property of the same name. `IsBorrowed` is set to a constant by each event. `BorrowedBy` is set from the borrow event and cleared by the return event.
+Chronicle finds the projection from the attributes. There is no registration code and no separate class. `Title` and `Isbn` map from the event property of the same name. `IsBorrowed` is set to a constant by each event. `BorrowedBy` is set from the borrow event and cleared by `[ClearWith<BookReturned>]` on the return event.
 
-When the mapping needs more control, the same read model can be defined as a projection class:
+When the mapping needs more control, the same read model can be defined as a projection class. AutoMap, the default for declarative projections, fills `Title` and `Isbn` from the event properties of the same name, so only the other members are mapped explicitly:
 
 ```csharp
 using Cratis.Chronicle.Projections;

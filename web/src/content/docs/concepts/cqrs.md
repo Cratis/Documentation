@@ -1,11 +1,11 @@
 ---
 title: CQRS explained
-description: CQRS (Command Query Responsibility Segregation) separates the model that changes data from the model that reads it. Learn how CQRS works, how it relates to event sourcing, when not to use it, and how to build it in .NET with Cratis Arc.
+description: "CQRS separates the model that changes data from the model that reads it. Learn how it works, how it relates to event sourcing, and how to build it in .NET."
 ---
 
 CQRS stands for Command Query Responsibility Segregation. It means you use one model to change data (**commands**) and a separate model to read it (**queries**). A command expresses an intent and changes state. A query returns data and changes nothing.
 
-The idea is older than any framework. Bertrand Meyer called the principle command-query separation: a method either does something or answers something, never both. CQRS applies it at the level of the application model, so the shape you write in can differ from the shape you read in.
+The idea is older than any framework. Bertrand Meyer described command-query separation: a method either does something or answers something, never both. Greg Young coined the name CQRS for applying that principle at the level of the application model, so the shape you write in can differ from the shape you read in.
 
 CQRS and event sourcing are often mentioned together, but they are independent. You can use CQRS over a plain relational or document database, and you can use event sourcing without a rich read side. This page covers CQRS on its own, then shows how the two combine. For the other half, see [what is event sourcing?](/concepts/event-sourcing/).
 
