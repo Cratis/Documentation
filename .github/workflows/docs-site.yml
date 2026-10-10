@@ -31,9 +31,13 @@ on:
 permissions:
   contents: read
 
+# Superseded pull-request builds are cancelled. A running main build is never cancelled:
+# product releases dispatch rebuilds faster than a build finishes, so cancelling would
+# starve the deploy. GitHub keeps only the newest pending run, so the latest content
+# still deploys next.
 concurrency:
   group: docs-site-${{ github.ref_name }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Product repos are checked out at docs-overhaul only for docs-overhaul validation.
 # Main pushes, manual runs from main, and repository_dispatch runs use main.
