@@ -331,6 +331,8 @@ export default defineConfig({
             // paint in a fallback and then reflow when the web font swaps in.
             components: {
                 Head: './src/components/Head.astro',
+                // Adds a labelled Community: Discord link under the default footer.
+                Footer: './src/components/Footer.astro',
             },
             favicon: '/favicon.ico',
             customCss: [
