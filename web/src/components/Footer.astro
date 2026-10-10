@@ -1,0 +1,19 @@
+---
+// Minimal override of Starlight's <Footer>: renders the default footer (edit
+// link, pagination) and adds a labelled Community link below it. The header
+// keeps its Discord icon.
+import Default from '@astrojs/starlight/components/Footer.astro';
+---
+
+<Default><slot /></Default>
+<p class="cratis-footer-community">
+    Community: <a href="https://discord.gg/kt4AMpV8WV">Discord</a>
+</p>
+
+<style>
+    .cratis-footer-community {
+        margin: 0;
+        font-size: var(--sl-text-sm);
+        color: var(--sl-color-gray-3);
+    }
+</style>
