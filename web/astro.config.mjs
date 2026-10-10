@@ -101,6 +101,19 @@ const overviewTopic = {
     items: [
         { label: 'The Cratis Stack', slug: 'cratis-stack' },
         { label: 'Why developers choose Cratis', slug: 'why-cratis' },
+        {
+            label: 'Concepts',
+            collapsed: true,
+            items: [
+                { label: 'Overview', slug: 'concepts' },
+                { label: 'What is event sourcing?', slug: 'concepts/event-sourcing' },
+                { label: 'CQRS explained', slug: 'concepts/cqrs' },
+                { label: 'Event store vs. a regular database', slug: 'concepts/event-store' },
+                { label: 'Event modeling: a practical guide', slug: 'concepts/event-modeling' },
+                { label: 'Projections and read models', slug: 'concepts/projections-and-read-models' },
+                { label: 'Event-driven architecture vs. event sourcing', slug: 'concepts/event-driven-architecture' },
+            ],
+        },
         { label: 'Compare event sourcing for .NET', slug: 'compare-event-sourcing-dotnet' },
         { label: 'Compare event sourcing on the JVM', slug: 'compare-event-sourcing-jvm' },
         { label: 'Adopting Cratis', slug: 'adopting-cratis' },
