@@ -14,7 +14,7 @@
 // build assets; the @fontsource index.css imports are removed in astro.config
 // so these are the only faces (no `swap` duplicate).
 import Default from '@astrojs/starlight/components/Head.astro';
-import { getEntry } from 'astro:content';
+import { getCollection } from 'astro:content';
 import { contextualTitle, pageDescription, structuredData, serializeStructuredData } from '../../scripts/page-metadata.mjs';
 import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import interLatinExt from '@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2?url';
@@ -24,7 +24,6 @@ import jbMonoLatinExt from '@fontsource-variable/jetbrains-mono/files/jetbrains-
 const route = Astro.locals.starlightRoute;
 const { entry, id } = route;
 const description = pageDescription(entry.data, entry.body, entry.filePath, id);
-const title = contextualTitle(entry.data.title, id);
 const escapeHtml = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 // Replace Starlight's site-wide description fallback without emitting duplicates.
 route.head = route.head.filter(({ tag, attrs }) => !(tag === 'meta' && (
@@ -35,20 +34,34 @@ route.head.push(
     { tag: 'meta', attrs: { property: 'og:description', content: description } },
     { tag: 'meta', attrs: { name: 'twitter:description', content: description } },
 );
-if (title) {
-    route.head = route.head.map((item) => item.tag === 'title' ? { ...item, content: escapeHtml(title) } : item);
-}
 const canonical = route.head.find(({ tag, attrs }) => tag === 'link' && attrs?.rel === 'canonical')?.attrs?.href;
 const url = typeof canonical === 'string' ? canonical : new URL(Astro.url.pathname, 'https://www.cratis.io').href;
 const breadcrumbs = [{ name: 'Cratis documentation', url: 'https://www.cratis.io/' }];
+const docs = await getCollection('docs', ({ data }) => !data.draft);
+const pagesById = new Map(docs.map((page) => [page.id, page]));
+const parents: string[] = [];
 const segments = id.split('/');
 for (let length = 1; length < segments.length; length++) {
     const ancestorId = segments.slice(0, length).join('/');
-    const ancestor = await getEntry('docs', ancestorId);
+    const ancestor = pagesById.get(ancestorId);
     // Only link real published pages, not folder names without a landing page.
     if (ancestor && !ancestor.data.draft) {
         breadcrumbs.push({ name: ancestor.data.title, url: `https://www.cratis.io/${ancestorId}/` });
+        parents.push(ancestor.data.title);
     }
+}
+// Repeated authored titles also need context, even when they aren't in the
+// standard generic-title list (for example Identity or Read Models).
+const isDuplicate = docs.some((page) => page.id !== entry.id && page.data.title.trim().toLowerCase() === entry.data.title.trim().toLowerCase());
+const title = contextualTitle(entry.data.title, id, parents, isDuplicate);
+if (title) {
+    route.head = route.head.filter(({ tag, attrs }) => !(tag === 'meta' && (
+        attrs?.property === 'og:title' || attrs?.name === 'twitter:title'
+    ))).map((item) => item.tag === 'title' ? { ...item, content: escapeHtml(title) } : item);
+    route.head.push(
+        { tag: 'meta', attrs: { property: 'og:title', content: title } },
+        { tag: 'meta', attrs: { name: 'twitter:title', content: title } },
+    );
 }
 if (id) breadcrumbs.push({ name: entry.data.title, url });
 const jsonLd = serializeStructuredData(structuredData({

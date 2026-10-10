@@ -24,9 +24,9 @@ function withoutAdmonitions(body) {
 }
 
 function proseText(node) {
-    if (node.type === 'text') return node.value;
+    if (node.type === 'text' || node.type === 'inlineCode') return node.value;
     if (node.type === 'break') return ' ';
-    // Formatting and link labels are prose; code, images, JSX attributes and
+    // Formatting, inline code and link labels are prose; images, JSX attributes and
     // expressions aren't. HTML tags disappear but surrounding text remains.
     if (['paragraph', 'emphasis', 'strong', 'delete', 'link', 'linkReference'].includes(node.type)) {
         return (node.children ?? []).map(proseText).join('');
@@ -71,10 +71,18 @@ export function pageSection(id) {
     return sections[id.split('/')[0].toLowerCase()] ?? 'Cratis Stack';
 }
 
-export function contextualTitle(title, id) {
-    return /^(glossary|configuration|overview|introduction|getting[ -]started|index)$/i.test(title.trim())
-        ? `${title} – ${pageSection(id)} | Cratis`
-        : undefined;
+const genericTitle = /^(glossary|configuration|overview|introduction|getting[ -]started|index|events|concepts|commands|queries|reference)$/i;
+const genericParent = /^(glossary|configuration|overview|introduction|getting[ -]started|index|concepts|reference|guides)$/i;
+
+/** Parents are published ancestor page titles, ordered from the product down. */
+export function contextualTitle(title, id, parents = [], isDuplicate = false) {
+    if (!genericTitle.test(title.trim()) && !isDuplicate) return undefined;
+    const parent = parents.findLast((name) => !genericParent.test(name.trim())
+        && name.trim().toLowerCase() !== title.trim().toLowerCase());
+    const parts = [title, parent, pageSection(id)].filter(Boolean);
+    const unique = parts.filter((part, index) => parts.findIndex((other) =>
+        other.trim().toLowerCase() === part.trim().toLowerCase()) === index);
+    return `${unique.join(' – ')} | Cratis`;
 }
 
 export function pageDescription(data, body, sourcePath, id) {

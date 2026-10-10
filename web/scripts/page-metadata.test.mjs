@@ -10,8 +10,14 @@ describe('page descriptions', () => {
         assert.equal(deriveDescription('# Heading\n\nFirst line\nwith   spaces.\n\nSecond paragraph.'), 'First line with spaces.');
     });
 
-    it('strips formatting, link destinations, images, inline code and HTML tags', () => {
-        assert.equal(deriveDescription('**Chronicle** stores *events* with [Cratis](https://cratis.no). ![image](image.png) `code` <em>Prose</em>.'), 'Chronicle stores events with Cratis. Prose.');
+    it('strips formatting, link destinations, images and HTML tags', () => {
+        assert.equal(deriveDescription('**Chronicle** stores *events* with [Cratis](https://cratis.no). ![image](image.png) `code` <em>Prose</em>.'), 'Chronicle stores events with Cratis. code Prose.');
+    });
+
+    it('keeps inline code as plain text in Markdown and MDX descriptions', () => {
+        for (const source of ['page.md', 'page.mdx']) {
+            assert.equal(deriveDescription('A layout has a `direction` and a `gap` — both control arrangement.', source), 'A layout has a direction and a gap — both control arrangement.');
+        }
     });
 
     it('ignores code blocks, headings, tables, lists, comments and blockquotes', () => {
@@ -65,6 +71,23 @@ describe('page metadata', () => {
         assert.equal(contextualTitle('Overview', 'cli'), 'Overview – CLI | Cratis');
         assert.equal(contextualTitle('Glossary', 'glossary'), 'Glossary – Cratis Stack | Cratis');
         assert.equal(contextualTitle('Store events', 'chronicle/events'), undefined);
+    });
+
+    it('uses the nearest meaningful parent and retains product context', () => {
+        assert.equal(contextualTitle('Configuration', 'chronicle/hosting/configuration', ['Chronicle', 'Kernel']), 'Configuration – Kernel – Chronicle | Cratis');
+        assert.equal(contextualTitle('Events', 'chronicle/projections/events', ['Chronicle', 'Projections']), 'Events – Projections – Chronicle | Cratis');
+        assert.equal(contextualTitle('Concepts', 'arc/backend/kotlin/concepts', ['Arc', 'Backend', 'Kotlin and Java', 'Overview']), 'Concepts – Kotlin and Java – Arc | Cratis');
+    });
+
+    it('falls back to the product when parents are generic or missing', () => {
+        assert.equal(contextualTitle('Configuration', 'chronicle/configuration', ['Overview', 'Reference']), 'Configuration – Chronicle | Cratis');
+        assert.equal(contextualTitle('Events', 'chronicle/events', ['Chronicle']), 'Events – Chronicle | Cratis');
+    });
+
+    it('contextualizes other repeated titles without repeating the current title', () => {
+        assert.equal(contextualTitle('Identity', 'arc/backend/typescript/identity', ['Arc', 'TypeScript'], true), 'Identity – TypeScript – Arc | Cratis');
+        assert.equal(contextualTitle('Chronicle', 'cli/chronicle', ['CLI'], true), 'Chronicle – CLI | Cratis');
+        assert.equal(contextualTitle('Events', 'chronicle/events/overview', ['Chronicle', 'Events']), 'Events – Chronicle | Cratis');
     });
 
     it('publishes organization and website data on home', () => {
