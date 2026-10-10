@@ -24,6 +24,7 @@ import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 import { markdownCommentsForMdx } from './markdown-comments-for-mdx.mjs';
 import { sourceEditUrl, sourceTreeUrl, sourceViewUrl } from './source-edit-url.mjs';
 import { reposRootFor, resolveRepoCandidate } from './repos-root.mjs';
+import { pageDescription } from './page-metadata.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..'); // Documentation/web
@@ -860,7 +861,7 @@ export async function convertFile(raw, ctx) {
     out = normalizeMarkdownTables(fixLinks(out, ctx));
 
     const fm = { title, editUrl: sourceEditUrl(ctx.srcPath, reposRoot, docRepoRoot) };
-    if (src.description) fm.description = src.description;
+    fm.description = pageDescription({ ...src, title }, out, ctx.srcPath ?? ctx.basename, ctx.product.key);
     if (src.sidebar) fm.sidebar = src.sidebar; // order/label/badge, when authors set it
     if (src.tableOfContents !== undefined) fm.tableOfContents = src.tableOfContents;
     const fmYaml = yaml.dump(fm, { lineWidth: -1 }).trimEnd();
