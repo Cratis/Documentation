@@ -15,7 +15,7 @@
 // so these are the only faces (no `swap` duplicate).
 import Default from '@astrojs/starlight/components/Head.astro';
 import { getCollection } from 'astro:content';
-import { contextualTitle, pageDescription, structuredData, serializeStructuredData } from '../../scripts/page-metadata.mjs';
+import { contextualTitle, hasDuplicateTitle, pageDescription, structuredData, serializeStructuredData } from '../../scripts/page-metadata.mjs';
 import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import interLatinExt from '@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2?url';
 import jbMonoLatin from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
@@ -52,7 +52,7 @@ for (let length = 1; length < segments.length; length++) {
 }
 // Repeated authored titles also need context, even when they aren't in the
 // standard generic-title list (for example Identity or Read Models).
-const isDuplicate = docs.some((page) => page.id !== entry.id && page.data.title.trim().toLowerCase() === entry.data.title.trim().toLowerCase());
+const isDuplicate = hasDuplicateTitle(entry, docs);
 const title = contextualTitle(entry.data.title, id, parents, isDuplicate);
 if (title) {
     route.head = route.head.filter(({ tag, attrs }) => !(tag === 'meta' && (
@@ -64,9 +64,10 @@ if (title) {
     );
 }
 if (id) breadcrumbs.push({ name: entry.data.title, url });
-const jsonLd = serializeStructuredData(structuredData({
-    home: !id, title: entry.data.title, description, url, breadcrumbs,
-}));
+const data = structuredData({
+    home: !id, notFound: id === '404', title: entry.data.title, description, url, breadcrumbs,
+});
+const jsonLd = data ? serializeStructuredData(data) : undefined;
 
 const LATIN =
     'U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD';
@@ -85,7 +86,7 @@ const fontCss = [
 ---
 
 <Default />
-<script is:inline type="application/ld+json" set:html={jsonLd}></script>
+{jsonLd && <script is:inline type="application/ld+json" set:html={jsonLd}></script>}
 <style is:inline set:html={fontCss}></style>
 <link rel="preload" href={interLatin} as="font" type="font/woff2" crossorigin="anonymous" />
 <link rel="preload" href={jbMonoLatin} as="font" type="font/woff2" crossorigin="anonymous" />
