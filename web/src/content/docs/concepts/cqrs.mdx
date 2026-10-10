@@ -54,31 +54,11 @@ A library application has a screen to register authors and a screen that lists t
 
 The command is a record. Its properties are its inputs, and the decision lives in `Handle()`. This example writes a document directly to MongoDB:
 
-```csharp
-using Cratis.Arc.Commands.ModelBound;
-using MongoDB.Driver;
-
-[Command]
-public record RegisterAuthor(Guid Id, string Name)
-{
-    public Task Handle(IMongoCollection<Author> authors) =>
-        authors.InsertOneAsync(new Author(Id, Name));
-}
-```
+<ArcBackendTabs snippet="site-concepts/cqrs/register-author-state" variants="csharp,kotlin,java" />
 
 The query side is a read model with a static method. Arc serves the method over HTTP and generates a typed proxy for the frontend:
 
-```csharp
-using Cratis.Arc.Queries.ModelBound;
-using MongoDB.Driver;
-
-[ReadModel]
-public record Author(Guid Id, string Name)
-{
-    public static IEnumerable<Author> AllAuthors(IMongoCollection<Author> authors) =>
-        authors.Find(_ => true).ToList();
-}
-```
+<ArcBackendTabs snippet="site-concepts/cqrs/author-read-model" variants="csharp,kotlin,java" />
 
 These are excerpts. A runnable project also needs the host and database configuration from [Arc's .NET getting started guide](/arc/backend/csharp/getting-started/).
 
@@ -86,19 +66,7 @@ Notice what the split gives you. The command never returns the author list, and 
 
 To event-source the same slice, only the command's body and the way the read model is filled change. The command returns a fact, and Chronicle appends it:
 
-```csharp
-using Cratis.Arc.Commands.ModelBound;
-using Cratis.Chronicle.Events;
-
-[Command]
-public record RegisterAuthor(EventSourceId Id, string Name)
-{
-    public AuthorRegistered Handle() => new(Name);
-}
-
-[EventType]
-public record AuthorRegistered(string Name);
-```
+<ArcBackendTabs snippet="testing-with-cratis/register-author" variants="csharp,kotlin,java" />
 
 The query keeps its signature. The projection that fills `Author` is described in [projections and read models](/concepts/projections-and-read-models/).
 

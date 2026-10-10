@@ -64,37 +64,13 @@ You can still answer "who has the book now?" by folding the events. You can also
 
 In Chronicle you define the events as records and append them to the event log:
 
-```csharp
-using Cratis.Chronicle.Events;
-using Cratis.Chronicle.EventSequences;
-
-[EventType]
-public record BookBorrowed(string Member, DateOnly DueDate);
-
-public class LendingService(IEventLog eventLog)
-{
-    public Task Lend(EventSourceId bookId, string member, DateOnly dueDate) =>
-        eventLog.Append(bookId, new BookBorrowed(member, dueDate));
-}
-```
+<ChronicleClientTabs snippet="site-concepts/event-store/lending-service" variants="csharp,kotlin,java" />
 
 This excerpt ignores the `AppendResult` for brevity. In real code, check `IsSuccess` as shown in [Appending events](/chronicle/events/appending/). It also assumes a registered Chronicle client; [Get started with Chronicle](/chronicle/get-started/) covers setup.
 
 To read the history of one book back, ask the event log for the events of that event source and the event types you care about:
 
-```csharp
-using System.Collections.Immutable;
-using Cratis.Chronicle.Events;
-using Cratis.Chronicle.EventSequences;
-
-public class BookHistoryReader(IEventLog eventLog)
-{
-    public Task<IImmutableList<AppendedEvent>> GetBorrowings(EventSourceId bookId) =>
-        eventLog.GetForEventSourceIdAndEventTypes(
-            bookId,
-            [typeof(BookBorrowed).GetEventType()]);
-}
-```
+<ChronicleClientTabs snippet="site-concepts/event-store/book-history-reader" variants="csharp,kotlin,java" />
 
 ## What an event store gives you that a regular database does not
 

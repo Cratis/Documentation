@@ -55,36 +55,13 @@ When a member borrows a book, three things happen:
 
 The event and the reactor in Chronicle look like this:
 
-```csharp
-using Cratis.Chronicle.Events;
-using Cratis.Chronicle.Reactors;
-
-[EventType]
-public record BookBorrowed(string MemberEmail, DateOnly DueDate);
-
-public class LoanConfirmationReactor : IReactor
-{
-    public Task Borrowed(BookBorrowed @event, EventContext context) =>
-        SendConfirmationAsync(@event.MemberEmail, @event.DueDate);
-
-    Task SendConfirmationAsync(string email, DateOnly dueDate) => Task.CompletedTask;
-}
-```
+<ArcBackendTabs snippet="site-concepts/event-driven-architecture/loan-confirmation-reactor" variants="csharp,kotlin,java" />
 
 This is an excerpt: the email sending is a placeholder, and it assumes a registered Chronicle client. Chronicle discovers the reactor and calls `Borrowed` when the event is appended. See [Reactors](/chronicle/reactors/).
 
 The command that records the fact in Arc returns the event, and Chronicle appends it:
 
-```csharp
-using Cratis.Arc.Commands.ModelBound;
-using Cratis.Chronicle.Events;
-
-[Command]
-public record BorrowBook(EventSourceId BookId, string MemberEmail, DateOnly DueDate)
-{
-    public BookBorrowed Handle() => new(MemberEmail, DueDate);
-}
-```
+<ArcBackendTabs snippet="site-concepts/event-driven-architecture/borrow-book" variants="csharp,kotlin,java" />
 
 The command knows nothing about email or the loan list. It records the fact, and the rest follows from the event.
 
