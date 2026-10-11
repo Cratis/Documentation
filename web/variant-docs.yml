@@ -432,18 +432,6 @@ sitePages:
       reason: The Kotlin and Java landing page for Chronicle; its code is JVM by design.
     - page: specifications.mdx
       reason: Documents Cratis.Specifications, a .NET-only library, so every example is C#.
-    - page: concepts/cqrs.md
-      reason: Language-neutral concept guide; its examples are short illustrative C# excerpts that link to the per-language how-to pages. Variant tabs are tracked in https://github.com/Cratis/Documentation/issues/180.
-    - page: concepts/event-driven-architecture.md
-      reason: Language-neutral concept guide; its examples are short illustrative C# excerpts that link to the per-language how-to pages. Variant tabs are tracked in https://github.com/Cratis/Documentation/issues/180.
-    - page: concepts/event-modeling.md
-      reason: Language-neutral concept guide; its examples are short illustrative C# excerpts that link to the per-language how-to pages. Variant tabs are tracked in https://github.com/Cratis/Documentation/issues/180.
-    - page: concepts/event-sourcing.md
-      reason: Language-neutral concept guide; its examples are short illustrative C# excerpts that link to the per-language how-to pages. Variant tabs are tracked in https://github.com/Cratis/Documentation/issues/180.
-    - page: concepts/event-store.md
-      reason: Language-neutral concept guide; its examples are short illustrative C# excerpts that link to the per-language how-to pages. Variant tabs are tracked in https://github.com/Cratis/Documentation/issues/180.
-    - page: concepts/projections-and-read-models.md
-      reason: Language-neutral concept guide; its examples are short illustrative C# excerpts that link to the per-language how-to pages. Variant tabs are tracked in https://github.com/Cratis/Documentation/issues/180.
 
   # A single fence allowed to stay single-language on an otherwise audited page.
   # `contains` must match exactly one counted fence of `language` on the page;

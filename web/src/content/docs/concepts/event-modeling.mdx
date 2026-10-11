@@ -54,38 +54,11 @@ Brainstorming a library gives you the events `BookAdded`, `BookReserved`, `Reser
 
 The slice for reserving a book then turns directly into code. In Arc and Chronicle, the command is a record whose `Handle()` returns the event:
 
-```csharp
-using Cratis.Arc.Commands.ModelBound;
-using Cratis.Chronicle.Events;
-
-[Command]
-public record ReserveBook(EventSourceId BookId, string Member)
-{
-    public BookReserved Handle() => new(Member);
-}
-
-[EventType]
-public record BookReserved(string Member);
-```
+<ArcBackendTabs snippet="site-concepts/event-modeling/reserve-book" variants="csharp,kotlin,java" />
 
 The read model that the catalog screen reads is described by the events that feed it. A model-bound projection uses attributes on the type itself:
 
-```csharp
-using Cratis.Chronicle.Events;
-using Cratis.Chronicle.Keys;
-using Cratis.Chronicle.Projections.ModelBound;
-
-[EventType]
-public record BookAdded(string Title, int Copies);
-
-[FromEvent<BookAdded>]
-public record BookAvailability(
-    [Key] Guid Id,
-    string Title,
-    [SetFrom<BookAdded>(nameof(BookAdded.Copies))]
-    [Decrement<BookReserved>]
-    int AvailableCopies);
-```
+<ArcBackendTabs snippet="site-concepts/event-modeling/book-availability" variants="csharp,kotlin,java" />
 
 Both are excerpts. `[Decrement<BookReserved>]` lowers `AvailableCopies` by one each time a `BookReserved` event is projected. See [projections and read models](/concepts/projections-and-read-models/) for how projections work.
 

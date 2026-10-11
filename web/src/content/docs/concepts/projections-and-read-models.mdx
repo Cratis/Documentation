@@ -53,99 +53,27 @@ Chronicle's [choose a read-model style](/chronicle/projections/choosing-a-read-m
 
 A library tracks whether each book is on the shelf or on loan. Three events carry the story:
 
-```csharp
-using Cratis.Chronicle.Events;
-
-[EventType]
-public record BookRegistered(string Title, string Isbn);
-
-[EventType]
-public record BookBorrowed(string MemberName);
-
-[EventType]
-public record BookReturned;
-```
+<ChronicleClientTabs snippet="site-concepts/projections-and-read-models/events" variants="csharp,kotlin,java" />
 
 The screen needs a small read model: the title, whether the book is on loan and who has it. In a model-bound projection, the read model describes how events fill it:
 
-```csharp
-using Cratis.Chronicle.Keys;
-using Cratis.Chronicle.Projections.ModelBound;
-
-public record BookStatus(
-    [Key] string Id,
-
-    [SetFrom<BookRegistered>] string Title,
-    [SetFrom<BookRegistered>] string Isbn,
-
-    [SetValue<BookBorrowed>(true)]
-    [SetValue<BookReturned>(false)]
-    bool IsBorrowed,
-
-    [SetFrom<BookBorrowed>(nameof(BookBorrowed.MemberName))]
-    [ClearWith<BookReturned>]
-    string? BorrowedBy);
-```
+<ChronicleClientTabs snippet="site-concepts/projections-and-read-models/model-bound" variants="csharp,kotlin,java" />
 
 Chronicle finds the projection from the attributes. There is no registration code and no separate class. `Title` and `Isbn` map from the event property of the same name. `IsBorrowed` is set to a constant by each event. `BorrowedBy` is set from the borrow event and cleared by `[ClearWith<BookReturned>]` on the return event.
 
 When the mapping needs more control, the same read model can be defined as a projection class. AutoMap, the default for declarative projections, fills `Title` and `Isbn` from the event properties of the same name, so only the other members are mapped explicitly:
 
-```csharp
-using Cratis.Chronicle.Projections;
-
-public class BookStatusProjection : IProjectionFor<BookStatus>
-{
-    public void Define(IProjectionBuilderFor<BookStatus> builder) => builder
-        .From<BookRegistered>(_ => _
-            .Set(m => m.Id).ToEventSourceId()
-            .Set(m => m.IsBorrowed).ToValue(false)
-            .Clear(m => m.BorrowedBy))
-        .From<BookBorrowed>(_ => _
-            .Set(m => m.IsBorrowed).ToValue(true)
-            .Set(m => m.BorrowedBy).To(e => e.MemberName))
-        .From<BookReturned>(_ => _
-            .Set(m => m.IsBorrowed).ToValue(false)
-            .Clear(m => m.BorrowedBy));
-}
-```
+<ChronicleClientTabs snippet="site-concepts/projections-and-read-models/fluent-projection" variants="csharp,kotlin,java" />
 
 Use one style per read model, not both. Both examples above are excerpts and assume a registered Chronicle client.
 
 When you want to fold state with ordinary code, a reducer receives the event, the current state and the event context, and returns the new state. A running balance is a good fit:
 
-```csharp
-using Cratis.Chronicle.Events;
-using Cratis.Chronicle.Reducers;
-
-[EventType]
-public record DepositMade(decimal Amount);
-
-[EventType]
-public record WithdrawalMade(decimal Amount);
-
-public record AccountBalance(decimal Balance, DateTimeOffset LastUpdated);
-
-public class AccountBalanceReducer : IReducerFor<AccountBalance>
-{
-    public AccountBalance Deposited(DepositMade @event, AccountBalance? current, EventContext context) =>
-        new((current?.Balance ?? 0m) + @event.Amount, context.Occurred);
-
-    public AccountBalance WithdrawalMade(WithdrawalMade @event, AccountBalance? current, EventContext context) =>
-        new((current?.Balance ?? 0m) - @event.Amount, context.Occurred);
-}
-```
+<ChronicleClientTabs snippet="site-concepts/projections-and-read-models/reducer" variants="csharp,kotlin,java" />
 
 To read the result, ask for the instance by key:
 
-```csharp
-BookStatus? status = await eventStore.ReadModels.GetInstanceById<BookStatus>(bookId);
-
-if (status is not null)
-{
-    Console.WriteLine($"{status.Title}: {(status.IsBorrowed ? status.BorrowedBy : "on the shelf")}");
-}
-```
+<ChronicleClientTabs snippet="site-concepts/projections-and-read-models/get-instance" variants="csharp,kotlin,java" />
 
 In an Arc application, the same read model carries a `[ReadModel]` attribute and a static query method, and the frontend gets a typed proxy. See [read models in Arc with Chronicle](/arc/backend/csharp/chronicle/read-models/).
 

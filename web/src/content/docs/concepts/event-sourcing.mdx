@@ -36,38 +36,11 @@ Replaying every event on every read gets slow for long histories, so real system
 
 Three events describe the life of an account. In Chronicle, an event is a C# record marked `[EventType]`:
 
-```csharp
-using Cratis.Chronicle.Events;
-
-[EventType]
-public record AccountOpened(string Owner, decimal InitialBalance);
-
-[EventType]
-public record DepositMade(decimal Amount);
-
-[EventType]
-public record WithdrawalMade(decimal Amount);
-```
+<ChronicleClientTabs snippet="site-concepts/event-sourcing/events" variants="csharp,kotlin,java" />
 
 You write by appending to the event log. `IEventLog` is the default event sequence in a Chronicle event store, and the event source id identifies the account:
 
-```csharp
-using Cratis.Chronicle.EventSequences;
-using Cratis.Chronicle.Events;
-
-public class AccountService(IEventLog eventLog)
-{
-    public async Task Withdraw(EventSourceId accountId, decimal amount)
-    {
-        var result = await eventLog.Append(accountId, new WithdrawalMade(amount));
-
-        if (!result.IsSuccess)
-        {
-            // Decide whether to retry or surface a conflict to the caller.
-        }
-    }
-}
-```
+<ChronicleClientTabs snippet="site-concepts/event-sourcing/account-service" variants="csharp,kotlin,java" />
 
 This is an excerpt: it assumes the Chronicle client is registered in your host. [Get started with Chronicle](/chronicle/get-started/) covers setup.
 
