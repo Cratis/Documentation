@@ -21,6 +21,9 @@
         },
         "tutorial/validation.mdx": {
           "csharp": 2
+        },
+        "upgrading/generated-values.md": {
+          "csharp": 3
         }
       }
     }
