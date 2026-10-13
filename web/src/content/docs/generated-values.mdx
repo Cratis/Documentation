@@ -44,7 +44,7 @@ Every snippet on this page is an excerpt of a file in the [`GeneratedValues/Shop
 - Clone [Cratis/Samples](https://github.com/Cratis/Samples) and work from `GeneratedValues/Shop`.
 - Install the .NET SDK that the repository's `global.json` asks for (10.0.100 or a later feature band).
 - Run `dotnet tool restore` in `GeneratedValues/Shop`. It installs the pinned Screenplay compiler (4.151.0) and Cratis CLI (3.59.0). Use these pinned tools: an older Cratis CLI, such as one installed with Homebrew, bundles a Screenplay that does not know `generate`.
-- You need no Docker, Chronicle or MongoDB. Every step below runs in memory. The sample pins Cratis.Fundamentals 7.24.0 and Arc 22.87.1.
+- You need no Docker, Chronicle or MongoDB. Every step below runs in memory. The sample pins Cratis.Fundamentals 7.24.0 and Arc 22.87.2.
 
 ```bash
 dotnet tool restore
@@ -71,7 +71,7 @@ concept InviteCode : String
   generate nanoid 10 alphabet "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
 
 // 32 random bytes as URL-safe base64 without padding: 256 random bits.
-// Screenplay cannot generate secrets yet; this declares only the value's shape.
+// Screenplay cannot mark it as a secret yet; the hand-written Shop adds [NotAudited].
 concept ApiKey : String
   generate bytes 32 base64url
 ```
@@ -165,7 +165,7 @@ Do not mark a value `generated` when:
 - **The same request must give the same id.** Random generation does not provide idempotency: a retry draws a different value.
 - **The number must be gapless.** Invoice numbers need an allocator, not randomness.
 - **It would authorize something.** A generated id identifies; it never proves who is calling.
-- **It is a secret.** Screenplay cannot generate secrets yet. `ApiKey` declares only the shape of the value; step 3 shows how Arc handles the secret.
+- **You expect the model to protect a secret.** `ApiKey` is generated like any other value, and its 256 random bits make it a good token. What the model cannot do yet is mark it as a secret: Screenplay has no `secret` classification for generated values, so neither the model nor the rendered code keeps the key out of the causation chain. Step 3 adds that by hand with `[NotAudited]`.
 
 The [choosing guide](/screenplay/generated-values/choosing/) has the full list and the reasoning.
 
