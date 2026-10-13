@@ -110,6 +110,7 @@ const overviewTopic = {
                 { label: 'CQRS explained', slug: 'concepts/cqrs' },
                 { label: 'Event store vs. a regular database', slug: 'concepts/event-store' },
                 { label: 'Event modeling: a practical guide', slug: 'concepts/event-modeling' },
+                { label: 'Keeping decisions correct', slug: 'concepts/keeping-decisions-correct' },
                 { label: 'Projections and read models', slug: 'concepts/projections-and-read-models' },
                 { label: 'Event-driven architecture vs. event sourcing', slug: 'concepts/event-driven-architecture' },
             ],
