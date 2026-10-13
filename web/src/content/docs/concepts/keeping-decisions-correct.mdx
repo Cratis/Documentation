@@ -23,7 +23,7 @@ Pick the lightest tool that makes the rule hold.
 
 - **Constraints** enforce uniqueness. Chronicle checks them as part of the append, so two requests cannot both claim the same value.
 - **Decision reads and protected decisions** guard a rule over state on one or more keys. The decision reads state in a way that records where in the event log it read, and the append fails if a relevant event arrived after that point.
-- **Stream decisions and aggregates** guard a rule by the events of a stream or of an aggregate's event source. The append fails if that stream or source changed since you loaded it.
+- **Stream decisions and aggregates** guard a rule by the events of a stream or of an aggregate's event source. The append fails if a relevant event was appended after you loaded it: any event in the stream for a stream decision, or an event of a type the aggregate handles on its event source.
 - **Repair** accepts that a rare violation can happen. You detect it afterwards and compensate with a new event. Use it only when a short-lived violation is acceptable to the business.
 
 A guarded decision that loses the race is rejected, not retried for you. The caller reads the new state and resubmits deliberately.
