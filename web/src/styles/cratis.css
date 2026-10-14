@@ -889,3 +889,174 @@ starlight-tabs[data-sync-key^='chronicle-client'] a[role='tab'][aria-selected='t
 .mermaid svg marker[id^='em-arrowhead'] polygon {
     fill: var(--cratis-dgm-edge) !important;
 }
+
+/* =====================================================================
+   Collapsible sidebar and table of contents (desktop only)
+   ---------------------------------------------------------------------
+   PageFrame.astro / PageSidebar.astro add the toggles; Head.astro restores
+   `data-sidebar-collapsed` / `data-toc-collapsed` on <html> before first paint.
+   Collapsing shrinks a pane to a slim rail (the toggle stays in it) by
+   adjusting Starlight's own layout values, so nothing is poked at in the DOM.
+   Below 50rem (sidebar) / 72rem (table of contents) none of this applies.
+   Transitions run only while `data-cratis-animating` is set (a deliberate
+   toggle), so load and window resize never animate.
+   ===================================================================== */
+
+/* Registered so the content offset and width can transition, which keeps the
+   header, mobile bar and main column moving together with the pane. */
+@property --sl-content-inline-start {
+    syntax: '<length-percentage>';
+    inherits: true;
+    initial-value: 0px;
+}
+@property --sl-content-width {
+    syntax: '<length-percentage>';
+    inherits: true;
+    initial-value: 45rem;
+}
+@property --cratis-sidebar-toggle-offset {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: -0.875rem;
+}
+
+:root {
+    --cratis-rail-width: 2.75rem;
+    --cratis-pane-motion: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Sidebar toggle: straddles the sidebar's edge while open (clear of the topic
+       rail), sits centered in the slim rail once collapsed. */
+    --cratis-sidebar-toggle-offset: -0.875rem;
+}
+[data-sidebar-collapsed] {
+    --cratis-sidebar-toggle-offset: -2.25rem;
+}
+
+.cratis-pane-toggle {
+    display: none;
+    position: fixed;
+    z-index: calc(var(--sl-z-index-menu) + 1);
+    top: calc(var(--sl-nav-height) + 0.75rem);
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    background: var(--sl-color-black);
+    color: var(--sl-color-gray-3);
+    cursor: pointer;
+}
+.cratis-pane-toggle:hover {
+    color: var(--sl-color-white);
+    border-color: var(--sl-color-accent);
+}
+.cratis-pane-toggle:focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+}
+.cratis-pane-toggle svg {
+    transition: transform var(--cratis-pane-motion);
+}
+.cratis-pane-toggle[data-cratis-toggle='sidebar'] {
+    inset-inline-start: calc(var(--sl-content-inline-start) + var(--cratis-sidebar-toggle-offset));
+}
+.cratis-pane-toggle[data-cratis-toggle='toc'] {
+    inset-inline-end: 0.5rem;
+}
+/* Chevrons point the way the pane will move; they flip when it is collapsed. */
+.cratis-pane-toggle[data-cratis-toggle='toc'] svg {
+    transform: rotate(180deg);
+}
+[data-sidebar-collapsed] .cratis-pane-toggle[data-cratis-toggle='sidebar'] svg {
+    transform: rotate(180deg);
+}
+[data-toc-collapsed] .cratis-pane-toggle[data-cratis-toggle='toc'] svg {
+    transform: none;
+}
+[dir='rtl'] .cratis-pane-toggle svg {
+    scale: -1 1;
+}
+
+@media (min-width: 50rem) {
+    [data-has-sidebar] .cratis-pane-toggle[data-cratis-toggle='sidebar'] {
+        display: inline-flex;
+    }
+
+    [data-has-sidebar][data-sidebar-collapsed] {
+        --sl-content-inline-start: var(--cratis-rail-width);
+    }
+    [data-has-sidebar][data-sidebar-collapsed] .sidebar-pane {
+        width: var(--cratis-rail-width);
+        overflow: hidden;
+    }
+    .sidebar-content {
+        transition: opacity var(--cratis-pane-motion), visibility 0s;
+    }
+    [data-sidebar-collapsed] .sidebar-content {
+        opacity: 0;
+        visibility: hidden;
+        /* Leave the tab order only once the fade has finished. */
+        transition: opacity var(--cratis-pane-motion), visibility 0s linear 0.28s;
+    }
+}
+
+@media (min-width: 72rem) {
+    [data-has-toc] .cratis-pane-toggle[data-cratis-toggle='toc'] {
+        display: inline-flex;
+    }
+
+    [data-toc-collapsed] {
+        --cratis-toc-width: var(--cratis-rail-width);
+    }
+    [data-toc-collapsed] .right-sidebar {
+        overflow: hidden;
+    }
+    .cratis-toc-panel {
+        transition: opacity var(--cratis-pane-motion), visibility 0s;
+    }
+    [data-toc-collapsed] .cratis-toc-panel {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity var(--cratis-pane-motion), visibility 0s linear 0.28s;
+    }
+
+    /* Hand the reclaimed room to the reading column: wider when either side is
+       collapsed, wider again when both are. */
+    [data-has-sidebar][data-has-toc][data-sidebar-collapsed],
+    [data-has-sidebar][data-has-toc][data-toc-collapsed] {
+        --sl-content-width: 58rem;
+    }
+    [data-has-sidebar][data-has-toc][data-sidebar-collapsed][data-toc-collapsed] {
+        --sl-content-width: 68rem;
+    }
+}
+
+/* Motion: only for a deliberate toggle. */
+@media (min-width: 50rem) {
+    [data-cratis-animating] {
+        transition: --sl-content-inline-start var(--cratis-pane-motion),
+            --sl-content-width var(--cratis-pane-motion),
+            --cratis-sidebar-toggle-offset var(--cratis-pane-motion);
+    }
+    [data-cratis-animating] .sidebar-pane {
+        transition: width var(--cratis-pane-motion);
+    }
+}
+@media (min-width: 72rem) {
+    [data-cratis-animating] .right-sidebar-container,
+    [data-cratis-animating] .main-pane {
+        transition: width var(--cratis-pane-motion);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    :root,
+    .sidebar-pane,
+    .sidebar-content,
+    .right-sidebar-container,
+    .main-pane,
+    .cratis-toc-panel,
+    .cratis-pane-toggle svg {
+        transition: none !important;
+    }
+}
