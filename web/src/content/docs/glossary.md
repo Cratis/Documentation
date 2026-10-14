@@ -19,6 +19,8 @@ explains how they fit together.
 | [Event](/chronicle/concepts/event/) | A fact — something that happened, named in the past tense (`AccountOpened`). Immutable and single-purpose. By convention an event has no nullable properties (Chronicle's analyzers warn about them); an optional value usually means you need a second event. |
 | [Event type](/chronicle/concepts/event-type/) | The schema and identity of an event — its shape and name. |
 | [Event source](/chronicle/concepts/event-source/) | The thing an event happened *to*, identified by an id (an account, a book). |
+| [Event source definition](/chronicle/event-sources/) | A declared kind of event source (an account) with its named event streams and the dimensions that guard appends to each. The typed way to say where events go. |
+| **Event stream** | A named part of an event source's history, such as an account's monthly transactions. Identified by a stream type and a stream id. |
 | [Event sequence](/chronicle/concepts/event-sequence/) | An ordered, append-only stream of events you can subscribe to. The **event log** is the primary one — your source of truth. |
 | **Sequence number** | An event's position within a sequence. |
 | [Event store](/chronicle/concepts/event-store/) | The database that holds event sequences. |
@@ -31,7 +33,7 @@ explains how they fit together.
 | [Tags](/chronicle/concepts/tagging/) | Labels on events for filtering and correlation — see also [event metadata tags](/chronicle/concepts/event-metadata-tags/). |
 | [Aggregate](/arc/backend/csharp/chronicle/aggregates/) | A consistency boundary that encapsulates behavior and produces events. |
 | [Constraint](/chronicle/constraints/) | A rule, such as uniqueness, that Chronicle checks when an event is appended and rejects the append if it fails. |
-| [Dynamic consistency boundary](/chronicle/dynamic-consistency-boundary/) | Enforcing a rule that depends on current state under concurrency, by checking the state the decision was based on when the events are appended. |
+| [Dynamic consistency boundary](/chronicle/dynamic-consistency-boundary/) | Enforcing a rule that depends on current state under concurrency, by checking the state the decision was based on when the events are appended. Chronicle supports DCB-style decision models and append conditions; each event belongs to one event source. See [keeping decisions correct](/concepts/keeping-decisions-correct/). |
 | [Subject](/chronicle/concepts/subject/) | The person or entity whose personal data an event contains. PII is encrypted under a key per subject, which defaults to the event source id. |
 | [PII](/chronicle/compliance/pii/) | Personal data marked with `[PII]`, encrypted at append time so it can be erased by deleting the subject's key. |
 
