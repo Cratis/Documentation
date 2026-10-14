@@ -1,0 +1,10 @@
+---
+// Wraps Starlight's PageSidebar (the right "On this page" panel) so the collapse
+// toggle in PageFrame.astro has an element to control (`aria-controls`) and the
+// stylesheet has a single element to hide when the table of contents is collapsed.
+import Default from '@astrojs/starlight/components/PageSidebar.astro';
+---
+
+<div id="cratis-toc-panel" class="cratis-toc-panel">
+    <Default />
+</div>

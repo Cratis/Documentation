@@ -1,0 +1,100 @@
+---
+// Wraps Starlight's PageFrame to add the desktop collapse toggles for the left
+// sidebar and the right "On this page" table of contents. Layout is driven by
+// `data-sidebar-collapsed` / `data-toc-collapsed` on <html> (set before first
+// paint by Head.astro) and the rules in src/styles/cratis.css; the buttons only
+// flip those attributes and persist the choice. Below Starlight's desktop
+// breakpoints the buttons are hidden and nothing changes.
+import Default from '@astrojs/starlight/components/PageFrame.astro';
+
+const { hasSidebar, toc } = Astro.locals.starlightRoute;
+const chevron =
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
+---
+
+<Default>
+    <slot name="header" slot="header" />
+    <slot name="sidebar" slot="sidebar" />
+    <slot />
+    {
+        hasSidebar && (
+            <button
+                type="button"
+                class="cratis-pane-toggle"
+                data-cratis-toggle="sidebar"
+                aria-label="Navigation sidebar"
+                title="Toggle navigation sidebar"
+                aria-controls="starlight__sidebar"
+                aria-expanded="true"
+                set:html={chevron}
+            />
+        )
+    }
+    {
+        toc && (
+            <button
+                type="button"
+                class="cratis-pane-toggle"
+                data-cratis-toggle="toc"
+                aria-label="On this page"
+                title="Toggle table of contents"
+                aria-controls="cratis-toc-panel"
+                aria-expanded="true"
+                set:html={chevron}
+            />
+        )
+    }
+</Default>
+
+<script>
+    const PANES = {
+        sidebar: { attribute: 'data-sidebar-collapsed', key: 'cratis-docs:sidebar-collapsed' },
+        toc: { attribute: 'data-toc-collapsed', key: 'cratis-docs:toc-collapsed' },
+    } as const;
+    type Pane = keyof typeof PANES;
+
+    const root = document.documentElement;
+    let animationTimer: number | undefined;
+
+    const isCollapsed = (pane: Pane) => root.hasAttribute(PANES[pane].attribute);
+
+    const sync = () => {
+        document.querySelectorAll<HTMLButtonElement>('[data-cratis-toggle]').forEach((button) => {
+            button.setAttribute('aria-expanded', String(!isCollapsed(button.dataset.cratisToggle as Pane)));
+        });
+    };
+
+    const apply = (pane: Pane, collapsed: boolean, animate: boolean) => {
+        // Transitions only run for a deliberate toggle, never on load or resize.
+        if (animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            root.setAttribute('data-cratis-animating', '');
+            window.clearTimeout(animationTimer);
+            animationTimer = window.setTimeout(() => root.removeAttribute('data-cratis-animating'), 400);
+        }
+        root.toggleAttribute(PANES[pane].attribute, collapsed);
+        sync();
+    };
+
+    document.querySelectorAll<HTMLButtonElement>('[data-cratis-toggle]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const pane = button.dataset.cratisToggle as Pane;
+            const collapsed = !isCollapsed(pane);
+            apply(pane, collapsed, true);
+            try {
+                if (collapsed) localStorage.setItem(PANES[pane].key, '1');
+                else localStorage.removeItem(PANES[pane].key);
+            } catch {
+                // Storage can be unavailable (private mode); the toggle still works for this page.
+            }
+        });
+    });
+
+    // Keep other open tabs in step.
+    window.addEventListener('storage', (event) => {
+        (Object.keys(PANES) as Pane[]).forEach((pane) => {
+            if (event.key === PANES[pane].key) apply(pane, event.newValue === '1', false);
+        });
+    });
+
+    sync();
+</script>

@@ -335,6 +335,9 @@ export default defineConfig({
                 Head: './src/components/Head.astro',
                 // Adds a labelled Community: Discord link under the default footer.
                 Footer: './src/components/Footer.astro',
+                // Desktop collapse toggles for the left sidebar and right table of contents.
+                PageFrame: './src/components/PageFrame.astro',
+                PageSidebar: './src/components/PageSidebar.astro',
             },
             favicon: '/favicon.ico',
             customCss: [
