@@ -28,7 +28,7 @@ Chronicle supports DCB-style decision models and append conditions within its ow
 | A query item combines event types and tags | A concurrency scope combines event types and those metadata dimensions |
 | Several query items in one append condition | Several scopes, one per event source, checked in one atomic append |
 
-An [event source definition](/chronicle/event-sources/) is the typed way to declare those dimensions: what an event source is, which streams it has, and which dimensions guard an append to each stream. See [event sources and DCB](/chronicle/event-sources/dcb/).
+An [event source definition](/chronicle/event-sources/) is the typed way to declare those dimensions: what an event source is, which streams it has, and which dimensions guard an append to each stream. See [event sources and DCB](/chronicle/event-sources/dcb/). A guard derived from a definition covers every event in that stream, whatever its type, so it acts like an aggregate boundary. When a rule depends on only some events, use a decision read.
 
 A rule that spans two entities is written as one fact per entity, each with its own event type, appended together. For example, a course subscription appends a seat-taken event to the course and a joined-course event to the student. DCB would record one event tagged with both. The [canonical DCB examples](/chronicle/dynamic-consistency-boundary/dcb-examples/) show the Chronicle answer for each case.
 
