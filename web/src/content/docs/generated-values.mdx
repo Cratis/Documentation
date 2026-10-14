@@ -15,6 +15,7 @@ Cratis moves that decision to the concept that owns the value. You declare how a
 - how to declare four generated values in a Screenplay model, and how to choose a strategy for each
 - what Stage renders from the model, and what it does not render yet
 - how to write the same shop by hand with Arc: a context-aware `OrderId`, a `[NotAudited]` secret, and the `X.New()` migration
+- how Arc keeps a generated id from landing on an existing event source, and what a collision looks like
 - how to pin generated values, the clock and the tenant in specs
 
 </YouWillLearn>
@@ -388,7 +389,94 @@ public record StartCart
 
 The rule is documented on [ARC0028](/arc/backend/csharp/code-analysis/arc0028/). For a larger migration, including specs that used an identity-source queue, see [Migrate generated identifiers](/arc/upgrading/generated-values/).
 
-## 4. Test it
+## 4. Keep new ids new
+
+<!-- DRAFT: requires the Arc release that ships Arc#3129; verify APIs at that tag -->
+
+A generated identifier is meant to open a new event source. If it lands on one that already has events, nothing fails: the new command appends its facts to the old stream, and two orders share one history. With 74 or 80 random bits that is very unlikely. It is not impossible, and a spec that pins an id can reuse one on purpose. "Fresh" means the event source has no events yet.
+
+Two layers guard this:
+
+- **Chronicle** checks a concurrency scope that says "no event may exist for this id yet". Stage already renders a `BeforeFirst` scope for generated event sources. Chronicle checks the scopes of a batch once, against the state before the batch, and appends all of it or none; it re-checks them on every storage retry. See [Concurrency](/chronicle/events/concurrency/).
+- **Arc** adds that scope for you in a hand-written command. You write nothing.
+
+Step 3's `PlaceOrder` already has the guard. A `[GeneratedValue]` parameter is guarded by default, so when `Handle` returns `EventForEventSourceId` for that id, Arc requires the whole event source to be empty before it appends:
+
+```csharp title="Shop/Orders/Placing/PlaceOrder.cs"
+public (OrderId, EventForEventSourceId) Handle([GeneratedValue("orderId")] OrderId orderId) =>
+    (orderId, new EventForEventSourceId(orderId, new OrderPlaced(CustomerId)));
+```
+
+The scope is the same one Stage renders, `new ConcurrencyScope(EventSequenceNumber.BeforeFirst, EventSourceId: id)`. It has no stream, source-type or event-type narrowing, so an event of any type in any stream occupies the id. A value used only in a payload or response adds no scope: the `ApiKey` that `IssueApiKey` returns does not guard the customer's stream.
+
+### What the caller sees
+
+If the id is taken, Arc does not run `Handle` again and appends nothing. The command result carries one validation result:
+
+| Field | Value |
+| --- | --- |
+| `Reason` | `ValidationResultReason.ConcurrencyViolation` |
+| `ReasonDetail` | `"GeneratedIdentifierCollision"` |
+
+The message does not contain the id. To retry, send a new command: Arc generates a new id for it. Do not loop on the same value, and do not treat this as idempotency. If an earlier call failed after the event store accepted the write, check whether that call committed before you create a second stream.
+
+### Where the guard does not reach
+
+The guard covers events that `Handle` returns: a single event, a collection, `EventForEventSourceId` wrappers, `EventsWithConcurrencyScopes`, and aggregates acquired with a guarded id. It does not cover events that you add yourself with `IUnitOfWork.AddEvent` or `eventLog.Transactional.Append` inside `Handle`. Return the events instead, or supply a whole-source `BeforeFirst` scope.
+
+A client-supplied or natural id is not a generated value. Protect its uniqueness with a Chronicle [constraint](/chronicle/constraints/).
+
+### Opt out on purpose
+
+Appending to an existing stream is sometimes the point. Set `Freshness` to `Unguarded` and Arc still generates, validates and captures the value, but leaves concurrency to your command:
+
+```csharp
+public (OrderId, EventForEventSourceId) Handle([GeneratedValue("orderId", Freshness = GeneratedValueFreshness.Unguarded)] OrderId orderId) => /* … */;
+```
+
+`GeneratedValueAttribute` is in `Cratis.Arc.Commands.ModelBound` and `GeneratedValueFreshness` is in `Cratis.Arc.Commands`. `Unguarded` is not a way to survive collisions.
+
+The Arc pages [Fresh identifiers](/arc/backend/csharp/chronicle/commands/fresh-identifiers/) and [Concurrency](/arc/backend/csharp/chronicle/commands/concurrency/) cover explicit scopes, aggregates and the supported Chronicle versions.
+
+### Pin a reused id in a spec
+
+A pinned value is the same on every execution, so a pin is also how you reuse an id. Seed an event for it with `Given.ForEventSource(...).Events(...)`, then run the command and expect the rejection and an unchanged log:
+
+```csharp title="Shop.Specs/Orders/Placing/for_PlaceOrder/when_placing_an_order/with_an_occupied_order_id.cs"
+public class with_an_occupied_order_id : Specification
+{
+    readonly CommandScenario<PlaceOrder> _scenario = new();
+    readonly CustomerId _customerId = new("cus_01m4t7txm0hrn5rwemy2dkwtgq");
+    readonly OrderId _orderId = new("order_01m4t7txm0fgx9p7tehmp6mprg");
+    CommandResult _result = null!;
+    EventSequenceNumber _tailBefore;
+    EventSequenceNumber _tailAfter;
+
+    async Task Establish()
+    {
+        _scenario.PinGeneratedValue("orderId", _orderId);
+        _scenario.Given.ForEventSource(_orderId).Events(new OrderPlaced(_customerId));
+        _tailBefore = await _scenario.EventLog.GetTailSequenceNumber();
+    }
+
+    async Task Because()
+    {
+        _result = await _scenario.Execute(new PlaceOrder(_customerId));
+        _tailAfter = await _scenario.EventLog.GetTailSequenceNumber();
+    }
+
+    void Destroy() => _scenario.Dispose();
+
+    [Fact] void should_reject_the_command() => _result.IsSuccess.ShouldBeFalse();
+    [Fact] void should_report_a_concurrency_violation() => _result.ValidationResults.Single().Reason.ShouldEqual(ValidationResultReason.ConcurrencyViolation);
+    [Fact] void should_name_the_collision() => _result.ValidationResults.Single().ReasonDetail.ShouldEqual("GeneratedIdentifierCollision");
+    [Fact] void should_append_nothing() => _tailAfter.ShouldEqual(_tailBefore);
+}
+```
+
+`Given` comes from `Cratis.Arc.Chronicle.Testing.Commands`, and `ValidationResultReason` from `Cratis.Arc.Validation`. Run the same command twice with one pin and the second run collides with the first, instead of silently continuing it.
+
+## 5. Test it
 
 Three levels of spec check the shop, and all three pin values by name.
 
@@ -466,11 +554,10 @@ The spec then reads the time back out of the TypeID and compares it with the fix
 
 Stage does not support clock fixtures for generated values yet, so time assertions belong in hand-written scenarios. See [Pin generated values in command specs](/arc/backend/csharp/testing/generated-values/) for the full scenario API, and [Testing generated values](/fundamentals/csharp/generating-values/testing/) for specs outside Arc.
 
-## 5. Coming next
+## 6. Coming next
 
-Two chapters wait on work that has not shipped, so they are not part of this tutorial yet.
+One chapter waits on work that has not shipped, so it is not part of this tutorial yet.
 
-- **Freshness.** A generated identifier must be new, and a collision must be rejected, not merged into an existing stream. Stage renders a `BeforeFirst` concurrency scope for generated event sources today. Since Chronicle 19.40.1, Chronicle re-checks those scopes on every renumbered storage retry and checks a batch's scopes once against pre-batch state, all-or-nothing; see [Concurrency](/chronicle/events/concurrency/). What is still coming is Arc's own freshness guard for hand-written commands ([Arc#3129](https://github.com/Cratis/Arc/issues/3129)). Until then, hand-written Arc handlers return plain `EventForEventSourceId` results, as in step 3, and Arc's generated-value documentation states that generation has no freshness guard.
 - **Studio.** Editing the generation strategy in Studio's concept editor, with a preview of the generated code, waits on [StudioIssues#588](https://github.com/Cratis/StudioIssues/issues/588).
 
 <Recap>
@@ -478,6 +565,7 @@ Two chapters wait on work that has not shipped, so they are not part of this tut
 - You declared four server-owned values once, in the model, and chose a strategy for each with a reason. `InviteCode` stayed a generated property because 50 bits are too few for an identifier.
 - Stage rendered `IGeneratable<T>` concepts and `[GeneratedValue]` handlers, with wall-clock time, no unique constraints on generated values, and a frontend that ends at the typed proxy.
 - In Arc you wrote the context form for `OrderId`, marked `ApiKey` `[NotAudited]` (command causation only, not events, responses or logs), and moved `X.New()` out of `Handle`.
+- Arc rejects a generated id that already has events with a `GeneratedIdentifierCollision` concurrency violation, unless you opt out with `Freshness = Unguarded`.
 - Specs pin generated values by name, and fix the clock and tenant when time matters.
 
 </Recap>
