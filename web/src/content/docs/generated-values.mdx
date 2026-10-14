@@ -45,7 +45,7 @@ Every snippet on this page is an excerpt of a file in the [`GeneratedValues/Shop
 - Clone [Cratis/Samples](https://github.com/Cratis/Samples) and work from `GeneratedValues/Shop`.
 - Install the .NET SDK that the repository's `global.json` asks for (10.0.100 or a later feature band).
 - Run `dotnet tool restore` in `GeneratedValues/Shop`. It installs the pinned Screenplay compiler (4.151.0) and Cratis CLI (3.59.0). Use these pinned tools: an older Cratis CLI, such as one installed with Homebrew, bundles a Screenplay that does not know `generate`.
-- You need no Docker, Chronicle or MongoDB. Every step below runs in memory. The sample pins Cratis.Fundamentals 7.24.0 and Arc 22.87.2.
+- You need no Docker, Chronicle or MongoDB. Every step below runs in memory. The sample's package versions are pinned in the repository's `Directory.Packages.props`; you need Cratis.Fundamentals 7.24.0 or later, and Arc 22.95.0 or later for step 4.
 
 ```bash
 dotnet tool restore
@@ -391,8 +391,6 @@ The rule is documented on [ARC0028](/arc/backend/csharp/code-analysis/arc0028/).
 
 ## 4. Keep new ids new
 
-<!-- DRAFT: requires the Arc release that ships Arc#3129; verify APIs at that tag -->
-
 A generated identifier is meant to open a new event source. If it lands on one that already has events, nothing fails: the new command appends its facts to the old stream, and two orders share one history. With 74 or 80 random bits that is very unlikely. It is not impossible, and a spec that pins an id can reuse one on purpose. "Fresh" means the event source has no events yet.
 
 Two layers guard this:
@@ -445,7 +443,7 @@ A pinned value is the same on every execution, so a pin is also how you reuse an
 ```csharp title="Shop.Specs/Orders/Placing/for_PlaceOrder/when_placing_an_order/with_an_occupied_order_id.cs"
 public class with_an_occupied_order_id : Specification
 {
-    readonly CommandScenario<PlaceOrder> _scenario = new();
+    readonly CommandScenario<PlaceOrder> _scenario = new CommandScenario<PlaceOrder>().UseDecisionReads();
     readonly CustomerId _customerId = new("cus_01m4t7txm0hrn5rwemy2dkwtgq");
     readonly OrderId _orderId = new("order_01m4t7txm0fgx9p7tehmp6mprg");
     CommandResult _result = null!;
@@ -474,7 +472,7 @@ public class with_an_occupied_order_id : Specification
 }
 ```
 
-`Given` comes from `Cratis.Arc.Chronicle.Testing.Commands`, and `ValidationResultReason` from `Cratis.Arc.Validation`. Run the same command twice with one pin and the second run collides with the first, instead of silently continuing it.
+`UseDecisionReads()` makes `Given` append the seeded event to the scenario's event log, which is what the guard checks; without it, `Given` only seeds read-model state, the log stays empty and the command succeeds. `Given` and `UseDecisionReads` come from `Cratis.Arc.Chronicle.Testing.Commands`, and `ValidationResultReason` from `Cratis.Arc.Validation`. Run the same command twice with one pin and the second run collides with the first, instead of silently continuing it.
 
 ## 5. Test it
 
