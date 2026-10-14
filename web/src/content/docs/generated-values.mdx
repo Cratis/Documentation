@@ -35,7 +35,7 @@ The same shop is built three times, and each build is checked:
 flowchart LR
     model["shop.play"] -->|screenplay test| evaluator["4 model specifications"]
     model -->|cratis render| rendered["Rendered/ · 12 specs"]
-    model -.->|written by hand| shop["Shop/ and Shop.Specs/ · 28 specs"]
+    model -.->|written by hand| shop["Shop/ and Shop.Specs/ · 32 specs"]
 ```
 
 ## Before you start
@@ -395,7 +395,7 @@ A generated identifier is meant to open a new event source. If it lands on one t
 
 Two layers guard this:
 
-- **Chronicle** checks a concurrency scope that says "no event may exist for this id yet". Stage already renders a `BeforeFirst` scope for generated event sources. Chronicle checks the scopes of a batch once, against the state before the batch, and appends all of it or none; it re-checks them on every storage retry. See [Concurrency](/chronicle/events/concurrency/).
+- **Chronicle** checks a concurrency scope that says "no event may exist for this id yet". Stage already renders a `BeforeFirst` scope for generated event sources. Chronicle checks the scopes of a batch once, against the state before the batch, and appends all of it or none; since kernel 19.40.1 it checks them again whenever it renumbers an append after a storage collision. See [Concurrency](/chronicle/events/concurrency/).
 - **Arc** adds that scope for you in a hand-written command. You write nothing.
 
 Step 3's `PlaceOrder` already has the guard. A `[GeneratedValue]` parameter is guarded by default, so when `Handle` returns `EventForEventSourceId` for that id, Arc requires the whole event source to be empty before it appends:
@@ -426,11 +426,7 @@ A client-supplied or natural id is not a generated value. Protect its uniqueness
 
 ### Opt out on purpose
 
-Appending to an existing stream is sometimes the point. Set `Freshness` to `Unguarded` and Arc still generates, validates and captures the value, but leaves concurrency to your command:
-
-```csharp
-public (OrderId, EventForEventSourceId) Handle([GeneratedValue("orderId", Freshness = GeneratedValueFreshness.Unguarded)] OrderId orderId) => /* … */;
-```
+Appending to an existing stream is sometimes the point. Set the attribute's `Freshness` property to `GeneratedValueFreshness.Unguarded`, for example `[GeneratedValue("orderId", Freshness = GeneratedValueFreshness.Unguarded)]`, and Arc still generates, validates and captures the value, but leaves concurrency to your command. The shop does not do this; see [Fresh identifiers](/arc/backend/csharp/chronicle/commands/fresh-identifiers/) for when it fits.
 
 `GeneratedValueAttribute` is in `Cratis.Arc.Commands.ModelBound` and `GeneratedValueFreshness` is in `Cratis.Arc.Commands`. `Unguarded` is not a way to survive collisions.
 
@@ -491,7 +487,7 @@ dotnet test Shop.Specs/Shop.Specs.csproj --configuration Debug
 ```
 
 ```text
-Passed!  - Failed:     0, Passed:    28, Skipped:     0, Total:    28
+Passed!  - Failed:     0, Passed:    32, Skipped:     0, Total:    32
 ```
 
 ### Pin a value by name
