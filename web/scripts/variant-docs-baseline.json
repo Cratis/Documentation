@@ -7,7 +7,7 @@
     },
     "arc": {
       "backend": {
-        "upgrading/generated-values.md": {
+        "upgrading/generated-values.mdx": {
           "csharp": 3
         }
       }
