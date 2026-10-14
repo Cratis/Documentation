@@ -1,10 +1,25 @@
 ---
-// Wraps Starlight's PageSidebar (the right "On this page" panel) so the collapse
-// toggle in PageFrame.astro has an element to control (`aria-controls`) and the
-// stylesheet has a single element to hide when the table of contents is collapsed.
+// Wraps Starlight's PageSidebar (the right "On this page" panel). Adds the
+// collapse toggle first in DOM order, so Tab reaches it before the table of
+// contents links, and wraps the default panel in one element that the toggle
+// controls (`aria-controls`) and the stylesheet hides when collapsed. The
+// toggle's behavior lives in PageFrame.astro.
 import Default from '@astrojs/starlight/components/PageSidebar.astro';
+
+const chevron =
+    '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
 ---
 
+<button
+    type="button"
+    class="cratis-pane-toggle"
+    data-cratis-toggle="toc"
+    aria-label="On this page"
+    title="Toggle table of contents"
+    aria-controls="cratis-toc-panel"
+    aria-expanded="true"
+    set:html={chevron}
+/>
 <div id="cratis-toc-panel" class="cratis-toc-panel">
     <Default />
 </div>
