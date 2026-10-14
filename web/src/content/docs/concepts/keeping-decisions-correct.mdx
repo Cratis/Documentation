@@ -17,6 +17,21 @@ Traditional event sourcing protects a decision by locking one stream or aggregat
 
 The [Dynamic Consistency Boundary](https://dcb.events) (DCB) draws the boundary per decision instead. You name the events the decision depends on, read them, and append with a condition: reject the append if any matching event has been written since that read. Only events that matter to the decision cause a conflict. Unrelated writes, even to the same entity, do not.
 
+## How Cratis fits DCB
+
+Chronicle supports DCB-style decision models and append conditions within its own event model. It is not a DCB event store, and the difference shapes how you model a rule.
+
+| DCB | Chronicle |
+| --- | --- |
+| One event can carry tags for several entities | Each event belongs to exactly one event source |
+| Tags select the events a decision depends on | Stream metadata does the same job: event source id, event source type, event stream type and event stream id |
+| A query item combines event types and tags | A concurrency scope combines event types and those metadata dimensions |
+| Several query items in one append condition | Several scopes, one per event source, checked in one atomic append |
+
+An [event source definition](/chronicle/event-sources/) is the typed way to declare those dimensions: what an event source is, which streams it has, and which dimensions guard an append to each stream. See [event sources and DCB](/chronicle/event-sources/dcb/).
+
+A rule that spans two entities is written as one fact per entity, each with its own event type, appended together. For example, a course subscription appends a seat-taken event to the course and a joined-course event to the student. DCB would record one event tagged with both. The [canonical DCB examples](/chronicle/dynamic-consistency-boundary/dcb-examples/) show the Chronicle answer for each case.
+
 ## The four tools Cratis gives you
 
 Pick the lightest tool that makes the rule hold.
@@ -37,5 +52,6 @@ Choose by how you work with Cratis.
 | The Chronicle client directly | [Choosing a consistency approach in Chronicle](/chronicle/dynamic-consistency-boundary/choosing/) |
 | Arc commands | [Consistency in Arc](/arc/backend/csharp/chronicle/consistency/) |
 | Screenplay models | [What `reads` guarantees](/screenplay/commands/#what-reads-guarantees) |
+| Event source definitions and streams | [Event sources](/chronicle/event-sources/) and, for Arc commands, [event source definitions](/arc/backend/csharp/chronicle/commands/event-source-definitions/) |
 
 For the ideas underneath, see [what is event sourcing?](/concepts/event-sourcing/) and [event modeling](/concepts/event-modeling/).
