@@ -29,6 +29,10 @@ Four properties define the model:
 
 Projections join events, not other read models. A projection reads from the event log and writes to its own read model.
 
+:::caution[A read model is not a lock]
+A read model describes the state at the moment you read it, and it can lag behind the event log. A rule that checks a read model and then appends can still be broken by a concurrent request. See [Keeping decisions correct under concurrency](/concepts/keeping-decisions-correct/) for what holds a rule.
+:::
+
 ## Projections, reducers and read models
 
 The terms overlap, so here is how Chronicle uses them.

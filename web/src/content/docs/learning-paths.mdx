@@ -12,6 +12,7 @@ Paths share pages, and you can switch at any point. If none of them fits, [Adopt
 <CardGrid>
   <LinkCard title="New to event sourcing" description="Understand facts, projections, and consistency before you commit to a design." href="#new-to-event-sourcing" />
   <LinkCard title="Build a full-stack app" description="Scaffold an app and follow a command through an event and a read model to a live React screen." href="#build-a-full-stack-app" />
+  <LinkCard title="Keep decisions correct" description="Make a rule that depends on state hold when two requests run at once, from the first protected command to the advanced scenarios." href="#write-side-consistency" />
   <LinkCard title="Use Chronicle from another language" description="Start from the TypeScript, Kotlin/Java, or Elixir client instead of .NET." href="#use-chronicle-from-another-language" />
   <LinkCard title="Evaluate Cratis" description="Decide whether the stack, or one product from it, fits your system." href="#evaluate-cratis" />
   <LinkCard title="Operate Chronicle" description="Run, inspect, diagnose, replay, and upgrade a Chronicle deployment." href="#operate-chronicle" />
@@ -41,6 +42,22 @@ Paths share pages, and you can switch at any point. If none of them fits, [Adopt
 6. Follow [Generated values, from Screenplay to running app](/generated-values/) to have the server own your ids and secrets, from the model through Stage and Arc to pinned specs.
 
 Building on Kotlin or Java instead? The [Cratis Kotlin](/templates/cratis-kotlin/) and [Cratis Java](/templates/cratis-java/) templates scaffold the same full-stack shape on Spring Boot, and the Arc tutorial shows its main slice examples in Kotlin as well as C#. Some backend snippets are C# only.
+
+## Write-side consistency
+
+**For** developers who write commands whose outcome depends on stored state: a stock level, a limit, a capacity, a document someone else may edit. **When you finish**, you can say why a plain read does not hold a rule, pick the mechanism that does, write a protected command, and test that it holds when two requests race. Arc read protection needs Arc 22.106.0 or later, which uses Chronicle 19.71.0 or later.
+
+1. Read [Keeping decisions correct](/concepts/keeping-decisions-correct/). It is the five-minute introduction: why a read model can be stale at write time, what read protection does, and which mechanism holds which rule. If you know DCB, KurrentDB, Marten or Axon, read [Read this first](/concepts/read-this-first-write-side-consistency/) next.
+2. Follow [Getting started with read protection](/arc/backend/csharp/chronicle/consistency/getting-started/) to write your first protected command and see the error the losing request gets. Using Chronicle without Arc? Start from [Decision reads](/chronicle/read-models/decision-reads/) instead.
+3. Work through the scenarios from simple to advanced. Each has the rule, the code and the guard it produces.
+   - [One entity](/arc/backend/csharp/chronicle/consistency/scenarios/single-entity/): stock on one book.
+   - [Unique and once](/arc/backend/csharp/chronicle/consistency/scenarios/unique-and-once/): constraints, no read needed.
+   - [Two entities](/arc/backend/csharp/chronicle/consistency/scenarios/two-entities/): a loan limit and a course capacity.
+   - [One stream](/arc/backend/csharp/chronicle/consistency/scenarios/per-stream/): a monthly limit, with a per-stream read model.
+   - [Process stream](/arc/backend/csharp/chronicle/consistency/scenarios/process-stream/), [gapless numbers](/arc/backend/csharp/chronicle/consistency/scenarios/numbering/), [rich aggregate](/arc/backend/csharp/chronicle/consistency/scenarios/aggregate/) and [editing conflict](/arc/backend/csharp/chronicle/consistency/scenarios/editing-conflict/).
+   - [Test the race](/arc/backend/csharp/chronicle/consistency/scenarios/testing/) to prove a rule holds. For the Chronicle client, see the [Chronicle scenarios](/chronicle/dynamic-consistency-boundary/scenarios/).
+4. Adopt it in an existing application with [Adopting read protection](/arc/backend/csharp/chronicle/consistency/adopting/): `Off`, then `Measure`, then `On`.
+5. Keep the reference close: [Reads](/arc/backend/csharp/chronicle/consistency/reads/), [Validators](/arc/backend/csharp/chronicle/consistency/validators/), [Refusals](/arc/backend/csharp/chronicle/consistency/refusals/), [Pitfalls](/arc/backend/csharp/chronicle/consistency/pitfalls/) and the [FAQ](/arc/backend/csharp/chronicle/consistency/faq/). For the mechanics, read [How guards are derived](/chronicle/dynamic-consistency-boundary/how-guards-are-derived/) and [Read protection in Chronicle](/chronicle/read-models/read-protection/).
 
 ## Use Chronicle from another language
 

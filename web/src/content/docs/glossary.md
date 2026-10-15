@@ -34,6 +34,15 @@ explains how they fit together.
 | [Aggregate](/arc/backend/csharp/chronicle/aggregates/) | A consistency boundary that encapsulates behavior and produces events. |
 | [Constraint](/chronicle/constraints/) | A rule, such as uniqueness, that Chronicle checks when an event is appended and rejects the append if it fails. |
 | [Dynamic consistency boundary](/chronicle/dynamic-consistency-boundary/) | Enforcing a rule that depends on current state under concurrency, by checking the state the decision was based on when the events are appended. Chronicle supports DCB-style decision models and append conditions; each event belongs to one event source. See [keeping decisions correct](/concepts/keeping-decisions-correct/). |
+| Concurrency scope | The condition on one append: a position in the event log and a filter (event types, event source, stream). The kernel rejects the append if a matching event was written after the position. See [concurrency](/chronicle/events/concurrency/). |
+| Append condition | What Chronicle checks together with an append: one or more concurrency scopes. Also called a **guard** when it comes from a read. See [how guards are derived](/chronicle/dynamic-consistency-boundary/how-guards-are-derived/). |
+| [Decision read](/chronicle/read-models/decision-reads/) | A read of a read model that notes the log position before it folds, so the state you decide on becomes an append condition. |
+| [Read protection](/chronicle/read-models/read-protection/) | Refusing reads that cannot guard a decision. In Chronicle it is the API that enforces this inside one unit of work. In Arc it is a mode, `Off`, `Measure` or `On`, that turns the API on for your commands. See [keeping decisions correct](/concepts/keeping-decisions-correct/). |
+| **Protected read** | A read under read protection `On` that is read fresh and guarded, such as a read-model parameter on a command. |
+| **Advisory read** | A read that is allowed but guards nothing, because a stale value is acceptable. In Arc it is marked `[Unprotected("why")]`. |
+| **Measure** | The Arc read protection mode between `Off` and `On`. Nothing changes for callers, and Arc records what `On` would do, so you can fix refused reads before turning it on. |
+| [Per-stream read model](/chronicle/read-models/per-stream/) | A read model declared with `[EventStream<TSource>(stream)]` that folds one stream of an event source, such as one account's withdrawals in one month. |
+| [Stream decision](/arc/backend/csharp/chronicle/commands/stream-decisions/) | A command reads the raw events of one stream through `IStreamReads` and returns `StreamDecision.Append(...)`, which guards that stream at the tail it read. |
 | [Subject](/chronicle/concepts/subject/) | The person or entity whose personal data an event contains. PII is encrypted under a key per subject, which defaults to the event source id. |
 | [PII](/chronicle/compliance/pii/) | Personal data marked with `[PII]`, encrypted at append time so it can be erased by deleting the subject's key. |
 
