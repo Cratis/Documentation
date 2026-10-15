@@ -42,7 +42,7 @@ explains how they fit together.
 | **Advisory read** | A read that is allowed but guards nothing, because a stale value is acceptable. In Arc it is marked `[Unprotected("why")]`. |
 | **Measure** | The Arc read protection mode between `Off` and `On`. Nothing changes for callers, and Arc records what `On` would do, so you can fix refused reads before turning it on. |
 | [Per-stream read model](/chronicle/read-models/per-stream/) | A read model declared with `[EventStream<TSource>(stream)]` that folds one stream of an event source, such as one account's withdrawals in one month. |
-| [Stream decision](/arc/backend/csharp/chronicle/commands/stream-decisions/) | An Arc command parameter that gives the raw events of the command's routed stream and guards that stream. |
+| [Stream decision](/arc/backend/csharp/chronicle/commands/stream-decisions/) | A command reads the raw events of one stream through `IStreamReads` and returns `StreamDecision.Append(...)`, which guards that stream at the tail it read. |
 | [Subject](/chronicle/concepts/subject/) | The person or entity whose personal data an event contains. PII is encrypted under a key per subject, which defaults to the event source id. |
 | [PII](/chronicle/compliance/pii/) | Personal data marked with `[PII]`, encrypted at append time so it can be erased by deleting the subject's key. |
 

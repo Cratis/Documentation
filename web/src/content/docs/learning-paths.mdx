@@ -45,7 +45,7 @@ Building on Kotlin or Java instead? The [Cratis Kotlin](/templates/cratis-kotlin
 
 ## Write-side consistency
 
-**For** developers who write commands whose outcome depends on stored state: a stock level, a limit, a capacity, a document someone else may edit. **When you finish**, you can say why a plain read does not hold a rule, pick the mechanism that does, write a protected command, and test that it holds when two requests race. Arc read protection ships in an upcoming Arc release; the Arc pages linked here go live with it, and the Chronicle pages apply today.
+**For** developers who write commands whose outcome depends on stored state: a stock level, a limit, a capacity, a document someone else may edit. **When you finish**, you can say why a plain read does not hold a rule, pick the mechanism that does, write a protected command, and test that it holds when two requests race. Arc read protection needs Arc 22.106.0 or later, which uses Chronicle 19.71.0 or later.
 
 1. Read [Keeping decisions correct](/concepts/keeping-decisions-correct/). It is the five-minute introduction: why a read model can be stale at write time, what read protection does, and which mechanism holds which rule. If you know DCB, KurrentDB, Marten or Axon, read [Read this first](/concepts/read-this-first-write-side-consistency/) next.
 2. Follow [Getting started with read protection](/arc/backend/csharp/chronicle/consistency/getting-started/) to write your first protected command and see the error the losing request gets. Using Chronicle without Arc? Start from [Decision reads](/chronicle/read-models/decision-reads/) instead.
