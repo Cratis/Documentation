@@ -56,45 +56,9 @@ Read protection guards the reads the command makes. It does not guard a writer t
 
 Under `On`, the rule goes in a `CommandValidator<T>` that takes the read model as a constructor parameter. `Handle()` says only what happens.
 
-```csharp
-using Cratis.Arc.Commands;
-using Cratis.Arc.Commands.ModelBound;
-using Cratis.Chronicle.Events;
-using Cratis.Chronicle.Projections.ModelBound;
-using Cratis.Concepts;
-using FluentValidation;
+A library lets a member borrow a book only while a copy is available. The read model `BookStock` counts available copies per book from `CopyAdded`, `BookBorrowed` and `BookReturned`. The command `BorrowBook` returns `BookBorrowed` from `Handle()`, and its `CommandValidator<BorrowBook>` takes `BookStock` as a constructor parameter and refuses when no copy is left. Under `On`, that read guards the command's append: if another member borrows the last copy first, this command writes nothing and the caller is asked to submit again.
 
-public record Isbn(string Value) : EventSourceId(Value);
-
-public record MemberId(Guid Value) : ConceptAs<Guid>(Value);
-
-[EventType]
-public record CopyAdded();
-
-[EventType]
-public record BookBorrowed(MemberId Member);
-
-[EventType]
-public record BookReturned(MemberId Member);
-
-public record BookStock(
-    EventSourceId Id,
-    [Increment<CopyAdded>, Decrement<BookBorrowed>, Increment<BookReturned>] int Available);
-
-[Command]
-public record BorrowBook(Isbn Isbn, MemberId Member)
-{
-    public BookBorrowed Handle() => new(Member);
-}
-
-public class BorrowBookValidator : CommandValidator<BorrowBook>
-{
-    public BorrowBookValidator(BookStock? stock) =>
-        RuleFor(command => command.Isbn)
-            .Must(_ => stock is { Available: > 0 })
-            .WithMessage("No copies of this book are available.");
-}
-```
+The full code, with the read model, command, validator and a test of the race, is in [Getting started with read protection](/arc/backend/csharp/chronicle/consistency/getting-started/#2-write-a-protected-command).
 
 Turn the mode on in the project file:
 
