@@ -12,6 +12,7 @@ These pages explain the ideas behind event-sourced systems, independent of any p
 | [Event store vs. a regular database](/concepts/event-store/) | How is a database built for events different from a relational or document database? |
 | [Event modeling: a practical guide](/concepts/event-modeling/) | How do you design an event-sourced system before writing code? |
 | [Keeping decisions correct under concurrency](/concepts/keeping-decisions-correct/) | Why does read, decide, append break under concurrency, and how do you make a rule hold? |
+| [Read this first: write-side consistency](/concepts/read-this-first-write-side-consistency/) | How do DCB, stream-version checks and aggregates map onto Chronicle's guards? |
 | [Projections and read models](/concepts/projections-and-read-models/) | How do events become queryable views? |
 | [Event-driven architecture vs. event sourcing](/concepts/event-driven-architecture/) | How do messaging between services and event storage relate? |
 

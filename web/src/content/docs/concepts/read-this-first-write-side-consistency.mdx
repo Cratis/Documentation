@@ -1,0 +1,68 @@
+---
+title: "Read this first: write-side consistency if you know DCB, KurrentDB, Marten or Axon"
+description: "How Chronicle's guards map onto the Dynamic Consistency Boundary and onto stream-version checks and aggregates you know from other event-sourcing tools, and where the model differs."
+---
+
+Use this page when you already know how another event-sourcing tool keeps a decision correct and want to map it onto Cratis before you read the guides. It is a map, not a comparison of products. For product differences see [event sourcing in .NET](/compare-event-sourcing-dotnet/) and [on the JVM](/compare-event-sourcing-jvm/).
+
+## The one difference that matters
+
+Chronicle supports DCB-style decision models and append conditions within its own event model. It is not a DCB event store.
+
+| DCB | Chronicle |
+| --- | --- |
+| One event can carry tags for several entities | One event belongs to exactly one event source. A fact about two entities is one event for each, appended together in one atomic append |
+| Tags select the events a decision depends on | Event source id, event source type, event stream type and event stream id play the tag roles. Each has one value per event |
+| A query item combines event types and tags | A concurrency scope combines event types and those four values |
+| An append condition holds one or more query items and a position | An append carries one or more scopes. Any violation rejects the whole append |
+| Several items on the same entity stay separate | Chronicle merges them into one wider scope. This is safe and can cause extra conflicts |
+
+Custom tags on a Chronicle event are stored and filterable, but they do not take part in a consistency check.
+
+## If you come from a stream-version check or an aggregate
+
+| You know | In Cratis |
+| --- | --- |
+| An expected version or revision on append to one stream | An explicit [concurrency scope](/chronicle/events/concurrency/) with the sequence number you saw. In Arc, `EventsWithConcurrencyScopes` carries the revision from the client |
+| An aggregate that loads its events, decides and appends | An Arc [aggregate root](/arc/backend/csharp/chronicle/aggregates/). It guards the event types it handles on its event source |
+| A decision model built from the events a decision needs | A decision read: a flat projection that notes the log position before it folds. Under Arc read protection `On`, a plain read-model parameter is one |
+| Querying events across entities by tag | No equivalent. You read each entity's own history, one read per key |
+| A unique key or index | A [constraint](/chronicle/constraints/), enforced for every writer without a read |
+| Idempotency by a client token | A `[Unique]` constraint on the token |
+
+Check your tool's own documentation for what it guards and what it does not. This page does not describe other products' consistency features.
+
+## Terms
+
+| In DCB and other tools | In Cratis |
+| --- | --- |
+| Tag | Event source id, event source type, event stream type, event stream id |
+| Decision model | Decision read, or a read-model parameter under read protection `On` |
+| Query item | One concurrency scope, or the guard one read produces |
+| Append condition | Guard |
+| Aggregate or consistency boundary | Aggregate root, or an event source definition whose stream is guarded as a whole |
+
+## What Chronicle adds
+
+- **Read protection.** Under Arc `On`, a read the command cannot guard is refused instead of running unguarded. You do not have to remember to use a decision read.
+- **Constraints.** Unique values and once-only facts are checked by the kernel for every writer.
+- **Event source definitions.** A typed declaration of an event source, its streams and the dimensions that guard an append.
+- **Per-stream read models.** A read model that folds one stream of an entity, so another month or period does not conflict.
+- **Closed streams.** A stream can be ended so no later append can invalidate a decision about it.
+
+## What Chronicle cannot do
+
+- Give one event several tags, or query for events tagged with both X and Y.
+- Use custom tags in an append condition.
+- Keep several separate conditions on one event source.
+- Decide from a projection that joins entities or is keyed by something other than the event source. These reads are refused.
+- Guard a read across event sequences.
+
+Revising or redacting an earlier event does not advance the position a guard compares, so a decision made before the change can still commit. See the [contract](/chronicle/events/concurrency/#revisions-and-redactions-are-outside-append-conditions).
+
+## Where to go next
+
+1. [Keeping decisions correct](/concepts/keeping-decisions-correct/) for the short version.
+2. [Dynamic Consistency Boundary in Chronicle](/chronicle/dynamic-consistency-boundary/chronicle/) for the full mapping and the answer to each canonical DCB example.
+3. [How guards are derived](/chronicle/dynamic-consistency-boundary/how-guards-are-derived/) for which events make an append fail.
+4. The [write-side consistency learning path](/learning-paths/#write-side-consistency).
