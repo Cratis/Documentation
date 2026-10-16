@@ -94,7 +94,7 @@ A few cautions:
 
 ## The Dynamic Consistency Boundary idea
 
-Traditional event sourcing protects a decision by locking one stream or aggregate. The [Dynamic Consistency Boundary](https://dcb.events) (DCB) draws the boundary per decision instead: you name the events the decision depends on, read them, and append with a condition that rejects the append if any matching event was written since the read. Chronicle supports DCB-style decision models and append conditions within its own event model, where each event belongs to exactly one event source. It is not a DCB event store. Read [Dynamic Consistency Boundary in Chronicle](/chronicle/dynamic-consistency-boundary/chronicle/) for the mapping and [how guards are derived](/chronicle/dynamic-consistency-boundary/how-guards-are-derived/) for exactly which events make an append fail. If you know DCB from another store, start with [Read this first](/concepts/read-this-first-write-side-consistency/).
+Read protection is Chronicle's take on the Dynamic Consistency Boundary (DCB): the boundary is the set of events one decision read, not a whole stream or aggregate. [The Dynamic Consistency Boundary](/concepts/dynamic-consistency-boundary/) explains the idea and where Chronicle sits. If you know DCB from another store, start with [Read this first](/concepts/read-this-first-write-side-consistency/). For exactly which events make an append fail, see [how guards are derived](/chronicle/dynamic-consistency-boundary/how-guards-are-derived/).
 
 ## Where to go next
 
@@ -102,6 +102,7 @@ Follow the [write-side consistency learning path](/learning-paths/#write-side-co
 
 | You are using | Go to |
 | --- | --- |
+| The whole stack, in order | [Decisions that hold, from model to frontend](/decisions-that-hold-walkthrough/) |
 | Arc commands | [Consistency in Arc](/arc/backend/csharp/chronicle/consistency/) |
 | The Chronicle client directly | [Choosing how a rule holds in Chronicle](/chronicle/dynamic-consistency-boundary/choosing/) |
 | Screenplay models | [What `reads` guarantees](/screenplay/commands/#what-reads-guarantees) |

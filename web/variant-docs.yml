@@ -434,6 +434,8 @@ sitePages:
       reason: Documents Cratis.Specifications, a .NET-only library, so every example is C#.
     - page: generated-values.mdx
       reason: Generated values exist only in the .NET stack (Fundamentals GenerateValue, Arc [GeneratedValue], Stage's C# rendering), and every snippet is an excerpt of the C# GeneratedValues/Shop sample.
+    - page: decisions-that-hold-walkthrough.mdx
+      reason: Read protection and CommandScenario exist only in the .NET stack (Arc, Chronicle .NET client), and every C# snippet is an excerpt of the compiled Library/Lending sample.
 
   # A single fence allowed to stay single-language on an otherwise audited page.
   # `contains` must match exactly one counted fence of `language` on the page;
