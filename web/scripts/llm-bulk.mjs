@@ -4,7 +4,8 @@
 // The site-wide bulk exports (llms-full.txt, llms-small.txt) must stay usable as
 // context. Release digests and changelogs are time-ordered logs, not documentation
 // to answer questions from, so they are left out; llms-small.txt is a compact
-// page-by-page summary rather than a second copy of the full text.
+// page-by-page summary rather than a second copy of the full text. The full export is also
+// compacted (see compactFullText) so it stays under its size budget.
 import { deriveDescription, shortenDescription } from './page-metadata.mjs';
 
 /** Separates pages inside the plugin's exports so they can be filtered afterwards. */
@@ -40,6 +41,39 @@ export function withoutExcludedPages(content, pages) {
 
 /** The marker only exists to filter the plugin's output; published files do not carry it. */
 export const withoutPageMarkers = (content) => content.replaceAll(PAGE_SEPARATOR, '\n\n').replaceAll(PAGE_MARKER, '');
+
+const sectionTitleLine = /^\[Section titled [“"].*[”"]\]\(#[^)]*\)$/;
+const fenceLine = /^ {0,3}(`{3,}|~{3,})/;
+
+/**
+ * Lossless size trimming for the full export only, outside fenced code: drops the plugin's
+ * "Section titled" anchor lines (every heading repeats its own title) and collapses the
+ * column padding of Markdown tables, which pads each cell to the widest value in its column.
+ */
+export function compactFullText(content) {
+    const out = [];
+    let fence = null;
+    let dropBlank = false;
+    for (const line of content.split('\n')) {
+        const marker = fenceLine.exec(line)?.[1];
+        if (fence) {
+            if (marker && marker[0] === fence[0] && marker.length >= fence.length && !line.trim().slice(marker.length)) fence = null;
+        } else if (marker) {
+            fence = marker;
+        } else if (sectionTitleLine.test(line)) {
+            dropBlank = true;
+            continue;
+        } else if (line.startsWith('|')) {
+            out.push(line.replace(/ {2,}/g, ' ').replace(/-{4,}/g, '---'));
+            dropBlank = false;
+            continue;
+        }
+        if (dropBlank && !line.trim()) { dropBlank = false; continue; }
+        dropBlank = false;
+        out.push(line);
+    }
+    return out.join('\n');
+}
 
 export function pageSummary(frontmatter, body, file) {
     const description = typeof frontmatter?.description === 'string' && frontmatter.description.trim()

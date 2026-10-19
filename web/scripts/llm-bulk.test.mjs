@@ -3,7 +3,7 @@
 
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { PAGE_MARKER, PAGE_SEPARATOR, isLogPage, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
+import { PAGE_MARKER, PAGE_SEPARATOR, compactFullText, isLogPage, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
 
 describe('log page detection', () => {
     it('matches release digests and changelog pages', () => {
@@ -29,5 +29,17 @@ describe('exclusion helpers', () => {
     it('returns content unchanged when nothing is excluded, and removes markers', () => {
         assert.equal(withoutExcludedPages('a', [{ title: 'A' }]), 'a');
         assert.equal(withoutPageMarkers(`a${PAGE_SEPARATOR}b${PAGE_MARKER}`), 'a\n\nb');
+    });
+});
+
+describe('full export compaction', () => {
+    it('drops section anchor lines and collapses table padding outside code', () => {
+        const input = '## Title\n\n[Section titled “Title”](#title)\n\nText\n\n| A    | B      |\n| ---- | ------ |\n| x    | y      |\n';
+        assert.equal(compactFullText(input), '## Title\n\nText\n\n| A | B |\n| --- | --- |\n| x | y |\n');
+    });
+
+    it('leaves fenced code untouched', () => {
+        const code = '```text\n| A    | B |\n[Section titled “X”](#x)\n```\n| a  | b |';
+        assert.equal(compactFullText(code), '```text\n| A    | B |\n[Section titled “X”](#x)\n```\n| a | b |');
     });
 });
