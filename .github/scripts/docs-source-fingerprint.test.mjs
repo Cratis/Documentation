@@ -149,14 +149,15 @@ test('failed builds and validation branches should never deploy', () => {
     }
 });
 
-test('hourly and main notifications should share concurrency while nightly remains separate', () => {
+test('hourly and main builds should share concurrency while notifications and nightly stay separate', () => {
     const expression = workflow.match(/^  group: docs-site-\$\{\{ (.+) \}\}$/m)[1];
     const group = (eventName, schedule) => runInNewContext(expression, {
-        github: { event_name: eventName, event: { schedule }, ref_name: 'main' },
+        github: { event_name: eventName, event: { schedule }, ref_name: 'main', run_id: 42 },
+        format: (template, ...values) => template.replace(/\{(\d+)\}/g, (_, index) => String(values[Number(index)])),
     });
     assert.equal(group('schedule', '7 * * * *'), 'main');
     assert.equal(group('push'), 'main');
     assert.equal(group('workflow_dispatch'), 'main');
-    assert.equal(group('repository_dispatch'), 'main');
+    assert.equal(group('repository_dispatch'), 'dispatch-42');
     assert.equal(group('schedule', '17 2 * * *'), 'nightly');
 });
