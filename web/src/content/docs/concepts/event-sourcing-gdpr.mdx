@@ -73,11 +73,15 @@ Two design points decide whether this works in practice:
 
 Events are not the only place personal data lives. [Projections and read models](/concepts/projections-and-read-models/) copy values out of events into documents or tables, and those copies are what your application queries.
 
-In Chronicle, a read model property that comes from a PII value is stored encrypted too, when you mark the read model property `[PII]`. Reading the read model releases each value with the subject's key. After the key is gone, the read returns the empty value of the property's type: an empty string, `0` or `false`, `null` for a nullable type, and an empty collection or object. The caller gets a normal object with a blank name, not an exception.
+Chronicle decides what to encrypt from the schema of the thing it stores. Marking an event property `[PII]` protects the value in the event. It does not mark the read model property the value is projected into. Unless you also mark that read model property `[PII]` (or give it a concept type marked `[PII]`), the projected value is stored in plain text and stays readable after the subject's key is erased. Reducers follow the same rule.
+
+For read model properties that are marked, Chronicle stores the value encrypted and releases it on read with the subject's key. After the key is gone, the read returns the empty value of the property's type: an empty string, `0` or `false`, `null` for a nullable type, and an empty collection or object. The caller gets a normal object with a blank name, not an exception.
+
+What the application still has to do: mark every read model property that holds personal data, remove ciphertext from the read model store if your policy requires it, and clean up any copies Chronicle does not manage.
 
 Three consequences are worth knowing before you rely on this:
 
-- **A rebuild does not clear old ciphertext.** Rebuilding a stored read model asks for the subject's key again, and Chronicle refuses it for an erased subject. If your policy requires the ciphertext removed from the read model store, that is a deliberate operation on the store.
+- **Existing read model documents keep their ciphertext.** Nothing can decrypt it once the key is gone, which crypto-shredding relies on. Rebuilding a stored read model asks for the subject's key again, and Chronicle refuses it for an erased subject. If your policy requires the ciphertext removed from the read model store, that is a deliberate operation on the store.
 - **Erased values look like empty values.** An erased `0` or `false` cannot be told apart from a value that was recorded as `0` or `false`. Chronicle tracks whether to make them distinguishable in [issue 4620](https://github.com/Cratis/Chronicle/issues/4620).
 - **Copies you made yourself are yours.** A search index, an export, a cache or a data warehouse that received the decrypted value is outside Chronicle's reach.
 
@@ -85,9 +89,9 @@ The details, including how joined values keep the subject of the event they came
 
 ## Erasing a subject in Chronicle: worked example
 
-This example uses the C# client of Chronicle 19.64.1. The same flow exists in the Kotlin, Java, TypeScript and Elixir clients with their own marker syntax; see [Marking data as PII](/chronicle/compliance/pii/).
+This example uses the C# client of Chronicle 19.64.1. The Kotlin, Java, TypeScript and Elixir clients each have a PII marker, and all five client surfaces expose subject-key deletion, but they differ in detail. For example, only the .NET and TypeScript clients expose the call that authorizes a new key after erasure. See [Marking data as PII](/chronicle/compliance/pii/) and [where the clients differ](/chronicle/clients/where-the-clients-differ/).
 
-**1. Mark the personal values.** Put `[PII]` on the properties that hold personal data. The department is not personal, so it stays plain:
+**1. Mark the personal values.** Chronicle encrypts only what you mark. Put `[PII]` on the event properties that hold personal data; unmarked values are stored in plain text and erasure does not cover them. The department is not personal, so it stays plain:
 
 ```csharp
 using Cratis.Chronicle.Compliance.GDPR;
@@ -144,6 +148,7 @@ This is not legal advice. Chronicle gives you a mechanism. Whether your use of i
 Know what the mechanism does not do:
 
 - **Restoring a backup** from before the erasure brings the key back and removes the fence. You need a restore procedure that re-applies erasures made since the backup.
+- **Unmarked values and unmarked read model properties** are stored in plain text and erasure does not touch them. Existing read model ciphertext stays in the store until you remove it.
 - **Copies outside Chronicle** are not reached: exported keys, application caches, database dumps, anything already decrypted or displayed.
 - **Values stored before you added `[PII]`** stay readable. Adding `[PII]` to an existing property encrypts new appends only. Redact earlier events if their plaintext must go.
 - **Causation properties are not encrypted** under the subject's key. Chronicle can omit new ones through configuration, but values already stored need separate handling.
@@ -167,11 +172,11 @@ They stay as they were. Adding `[PII]` to an existing property applies to later 
 
 ### Do I have to delete projections too?
 
-Their values are encrypted when you mark the read model properties `[PII]`, and they release as empty after erasure. Stored ciphertext in the read model store remains until you remove it, and a rebuild is refused for an erased subject.
+Not by hand, if you marked them. Marking an event property `[PII]` does not mark the read model property it projects into, so mark that property too. Marked properties are stored encrypted and release as empty after erasure. Unmarked properties are stored in plain text and stay readable. Existing ciphertext remains in the read model store until you remove it, and a rebuild is refused for an erased subject.
 
 ### Does this work outside .NET?
 
-The mechanism lives in the Chronicle kernel, and the clients for C#, Kotlin, Java, TypeScript and Elixir each have a PII marker. Coverage differs slightly per client; the [PII page](/chronicle/compliance/pii/) has the table.
+The kernel does the encryption. The C#, Kotlin, Java, TypeScript and Elixir clients each have a PII marker and expose subject-key deletion. They differ elsewhere: Kotlin, Java and Elixir do not expose the call that authorizes a new key, and marker placement coverage varies. The [PII page](/chronicle/compliance/pii/) and [where the clients differ](/chronicle/clients/where-the-clients-differ/) have the details. The worked example above is C# only.
 
 ## Next steps
 

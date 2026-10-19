@@ -118,7 +118,7 @@ You can build an event log in any relational database with an append-only table,
 
 ### Can I delete personal data from an event store?
 
-Yes, without rewriting the log. Encrypt personal values per person and delete the key on request. See [event sourcing and GDPR](/concepts/event-sourcing-gdpr/).
+Not by editing events. You mark personal values so they are encrypted under a per-person key, and on request you delete the key (crypto-shredding), which makes those values unreadable while the log stays intact. Only values you marked are covered, and read models and copies need their own handling. In Chronicle this is the `[PII]` feature. See [event sourcing and GDPR](/concepts/event-sourcing-gdpr/).
 
 ### Where do my queries run?
 
