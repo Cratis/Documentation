@@ -75,5 +75,6 @@ The terms [Arc](/arc/) and [Components](/components/) add on top of Chronicle.
 | [Proxy generation](/arc/backend/csharp/proxy-generation/) | Arc emitting a typed TypeScript client from your C# commands and queries at build time. |
 | [Concept](/fundamentals/csharp/concepts/) | A strongly-typed wrapper around a primitive (`AccountId` over `Guid`) so the compiler catches mix-ups. |
 | [Vertical slice](/arc/vertical-slices/) | Everything for one behavior — command, events, projection, UI, specs — kept together in one folder. |
+| [Spec-driven development](/spec-driven-development/) | Writing the event model and its Given/When/Then specifications first, then checking code, written by people or agents, against them. |
 
 New to all this? Start with [Why developers choose Cratis](/why-cratis/), then the [Chronicle tutorial](/chronicle/tutorial/).
