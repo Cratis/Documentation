@@ -335,6 +335,8 @@ export default defineConfig({
             // Default social-sharing metadata for every page. Starlight already
             // emits og:title/og:description; these add the image and card type.
             head: [
+                { tag: 'link', attrs: { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' } },
+                { tag: 'link', attrs: { rel: 'apple-touch-icon', href: '/apple-touch-icon.png', sizes: '180x180' } },
                 { tag: 'meta', attrs: { property: 'og:image', content: 'https://www.cratis.io/og-image.jpg' } },
                 { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
                 { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },

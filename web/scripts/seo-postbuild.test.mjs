@@ -49,6 +49,7 @@ describe('LLM bulk exports', () => {
 describe('page kinds', () => {
     it('classifies landing, glossary, hub and article pages', () => {
         assert.equal(pageKind('chronicle'), 'software');
+        assert.equal(pageKind('screenplay'), 'software');
         assert.equal(pageKind('glossary'), 'glossary');
         assert.equal(pageKind('chronicle/events', { hasChildren: true }), 'collection');
         assert.equal(pageKind('chronicle/events/x'), 'article');
