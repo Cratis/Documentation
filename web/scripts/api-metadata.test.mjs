@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, it } from 'node:test';
-import { apiLibraries, metadataConfiguration, normalizeNamespaceReferences, readMetadata, reconcileMetadata, saveMetadata } from './api-metadata.mjs';
+import { apiLibraries, metadataConfiguration, normalizeNamespaceReferences, planLibraryBuilds, readMetadata, reconcileMetadata, saveMetadata } from './api-metadata.mjs';
 import { apiMetadataFixture } from './fixtures/api-metadata.mjs';
 
 const scratch = path.resolve(import.meta.dirname, '../../.ai-work/docs-readiness/api-metadata-tests');
@@ -90,6 +90,27 @@ describe('when validating native DocFX grouping', () => {
         assert.deepEqual(reference['spec.csharp'], [{ uid: 'Sample', name: 'Sample', href: 'Sample.html', isExternal: false }]);
         assert.deepEqual(reference['spec.vb'], reference['spec.csharp']);
         assert.equal(external.href, 'https://learn.microsoft.com/dotnet/api/system');
+    });
+});
+
+describe('when planning which source repositories to compile', () => {
+    const repositories = libraries => [...new Set(libraries.map(library => library.project.split('/')[0]))];
+
+    it('compiles every library when nothing is reused', () => {
+        const plan = planLibraryBuilds(apiLibraries);
+        assert.deepEqual(plan.build, apiLibraries);
+        assert.deepEqual(plan.reuse, []);
+    });
+
+    it('reuses every library of the named repositories and compiles the rest', () => {
+        const plan = planLibraryBuilds(apiLibraries, ['Chronicle', 'Fundamentals']);
+        assert.deepEqual(repositories(plan.build), ['Arc']);
+        assert.deepEqual(repositories(plan.reuse), ['Chronicle', 'Fundamentals']);
+        assert.equal(plan.build.length + plan.reuse.length, apiLibraries.length);
+    });
+
+    it('rejects an unknown repository instead of silently reusing nothing', () => {
+        assert.throws(() => planLibraryBuilds(apiLibraries, ['Components']), /Unknown API source repository to reuse: Components/);
     });
 });
 
