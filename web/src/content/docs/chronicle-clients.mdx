@@ -1,13 +1,13 @@
 ---
 title: Chronicle in your language
-description: "Event sourcing for .NET, TypeScript, Kotlin, Java, and Elixir: Chronicle is an open-source (MIT) event-sourcing database with idiomatic clients on NuGet, npm, Maven Central, and Hex — and a Python client coming soon."
+description: "Event sourcing for .NET, TypeScript, Kotlin, Java, and Elixir: Chronicle is an open-source (MIT) event-sourcing database with idiomatic clients on NuGet, npm, Maven Central, and Hex — plus an experimental Go client."
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 import TopicHero from '@components/TopicHero.astro';
 
 <TopicHero icon="puzzle" eyebrow="Chronicle in your language" title="One event-sourcing database, idiomatic clients">
-Chronicle is an event-sourcing database and processing runtime with a language-agnostic gRPC/protobuf boundary. That means the event store is not tied to one runtime: the first-class .NET SDK and the TypeScript, Kotlin/Java, and Elixir clients all work against the same store, the same events, and the same projections — and a Python client is coming soon. Everything is open source and MIT licensed. [Client SDK docs →](/chronicle/clients/)
+Chronicle is an event-sourcing database and processing runtime with a language-agnostic gRPC/protobuf boundary. That means the event store is not tied to one runtime: the first-class .NET SDK and the TypeScript, Kotlin/Java, and Elixir clients all work against the same store, the same events, and the same projections. An experimental Go client is available too, and a Python client is coming soon. Everything is open source and MIT licensed. [Client SDK docs →](/chronicle/clients/)
 </TopicHero>
 
 ## Event sourcing for .NET
@@ -79,6 +79,20 @@ Use the current version from Hex; `mix hex.info cratis_chronicle` prints it.
 - [Elixir client docs](/chronicle/clients/elixir/)
 - [`cratis_chronicle` on Hex](https://hex.pm/packages/cratis_chronicle)
 - [Chronicle.Elixir on GitHub](https://github.com/Cratis/Chronicle.Elixir)
+
+## Event sourcing for Go (experimental)
+
+`github.com/cratis/chronicle.go` is the Go client for Chronicle. It is an experimental foundation at v0.x: typed event registration, connection with TLS and OAuth, single and atomic batch appends, and event history reads are implemented. Observers, projections, and automatic lifecycle recovery are not yet implemented.
+
+```sh
+go get github.com/cratis/chronicle.go@latest
+```
+
+The README gives this command for use after the first tagged release.
+
+- [Event sourcing in Go](/event-sourcing/go/) — the dedicated landing page
+- [Go client docs](/chronicle/go/)
+- [Chronicle.Go on GitHub](https://github.com/Cratis/Chronicle.Go)
 
 ## Event sourcing for Python — coming soon
 

@@ -1,0 +1,121 @@
+---
+title: Event sourcing in Go
+description: "Event sourcing in Go with Cratis Chronicle: an experimental v0.x client for the open-source (MIT) event store — typed events, appends, and reads."
+---
+
+import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+Chronicle is an open-source (MIT) event-sourcing database and processing runtime, and `github.com/cratis/chronicle.go` is its Go client. You register typed events, connect over TLS, select an event store and namespace, and append with explicit concurrency protection and complete outcomes. The client is an **experimental foundation, v0.x**: it covers the write side and event history reads, and not yet observers, projections, or automatic lifecycle recovery.
+
+With event sourcing, your application appends immutable facts and derives every view from them, instead of overwriting state in place. Chronicle stores those events and enforces constraints on the server. The event store is not Go-specific: its kernel exposes a language-agnostic gRPC/protobuf boundary, so the same store is reachable from the [.NET, TypeScript, Kotlin/Java, and Elixir clients](/chronicle-clients/) too.
+
+<Aside type="caution" title="Experimental">
+The Go client is at v0.x and its API can change. The [Chronicle.Go README](https://github.com/Cratis/Chronicle.Go/blob/main/README.md) says that connection with TLS and OAuth, compatibility checks, event registration, single and atomic batch appends, and event history reads are implemented. It also says that observers, projections, and automatic lifecycle recovery are not yet implemented. The [parity and limitations page](/chronicle/go/parity/) lists, feature by feature, what exists and what is only partly covered.
+</Aside>
+
+## What works today, and what does not
+
+| Area | Status per the README |
+|---|---|
+| Connection, TLS, OAuth, and compatibility checks | Implemented |
+| Typed event registration | Implemented |
+| Single and atomic batch appends, with explicit concurrency control | Implemented |
+| Event history reads | Implemented |
+| Observers and projections | Not yet implemented |
+| Automatic lifecycle recovery | Not yet implemented |
+
+Contracts are pinned to Chronicle 19.32.3, and the generated contracts are public packages in the same Go module, so you need no .NET checkout. If you read the [client docs](/chronicle/go/), check each page against the parity page: some documentation describes partial work beyond the README's summary, such as runtime projection registration.
+
+## Install
+
+The client requires Go 1.26 or later. The README gives this command, to be used after the first tagged release:
+
+```sh
+go get github.com/cratis/chronicle.go@latest
+```
+
+Check the [Go package page](https://pkg.go.dev/github.com/cratis/chronicle.go) for what has been published before you depend on it.
+
+## A taste
+
+Start the development kernel and wait for `https://localhost:35000/health` to report `Healthy`:
+
+```sh
+docker run --rm --name chronicle-go -p 35000:35000 cratis/chronicle:19.32.3-development
+```
+
+This program, from the client repository's quick start, registers an event, connects, and appends it:
+
+```go
+package main
+
+import (
+    "context"
+    "errors"
+    "fmt"
+    "log"
+    "time"
+
+    chronicle "github.com/cratis/chronicle.go"
+    "github.com/cratis/chronicle.go/events"
+)
+
+type CustomerRegistered struct {
+    Name string `json:"name"`
+}
+
+func main() {
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+    if err := appendCustomer(ctx); err != nil {
+        log.Fatal(err)
+    }
+}
+
+func appendCustomer(ctx context.Context) (err error) {
+    registry := chronicle.NewRegistry()
+    if _, err = chronicle.RegisterEvent[CustomerRegistered](registry,
+        events.WithID("customer-registered")); err != nil {
+        return err
+    }
+    client, err := chronicle.NewClient(chronicle.WithDevelopmentDefaults(),
+        chronicle.WithRegistry(registry))
+    if err != nil {
+        return err
+    }
+    defer func() { err = errors.Join(err, client.Close()) }()
+    store, err := client.EventStore(ctx, "customers")
+    if err != nil {
+        return err
+    }
+    result, err := store.EventLog().Append(ctx, "customer-42", CustomerRegistered{Name: "Ada"})
+    if err != nil {
+        return err
+    }
+    if err = result.Err(); err != nil {
+        return err
+    }
+    fmt.Printf("Appended event at position %d\n", *result.Position)
+    return nil
+}
+```
+
+`WithDevelopmentDefaults` explicitly permits the kernel's self-signed certificate. Production TLS validates by default, so configure real roots and credentials. Two limits from the README matter on the first day:
+
+- An append transport error may hide a committed event, so never retry blindly.
+- Default optimistic concurrency leaves empty history unchecked. Use `NoMatchingEvent` when the first append must be protected.
+
+## Arc for Go
+
+[Arc](/arc/) is Cratis's CQRS application framework, and Arc.Go is its Go counterpart (`github.com/cratis/arc.go`). Its README states **early development**: foundation packages, HTTP hosting, and model-bound command and query pipelines exist, with experimental TypeScript proxy generation and optional Chronicle integration. There is no tagged Go release yet, so the install command and the Go reference page become usable after the first release. The [Arc.Go parity ledger](/arc/go/parity/) lists the Partial areas and limits.
+
+## Where to go next
+
+<CardGrid>
+  <LinkCard title="Chronicle.Go documentation" description="Getting started, connecting, events, appending, reading, and the parity and limitations page." href="/chronicle/go/" />
+  <LinkCard title="Arc.Go documentation" description="The early-development Go framework for Arc: hosting, commands, queries, and parity." href="/arc/go/" />
+  <LinkCard title="Chronicle.Go on GitHub" description="The Go client repository — open source, MIT licensed." href="https://github.com/Cratis/Chronicle.Go" />
+  <LinkCard title="Go package reference" description="API reference for github.com/cratis/chronicle.go on pkg.go.dev." href="https://pkg.go.dev/github.com/cratis/chronicle.go" />
+</CardGrid>
+
+Looking for another language? See [Chronicle in your language](/chronicle-clients/) for the .NET, TypeScript, Kotlin/Java, and Elixir clients.

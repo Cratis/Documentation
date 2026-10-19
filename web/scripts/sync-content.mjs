@@ -255,6 +255,26 @@ export const PRODUCTS = [
         excludeRootFiles: ['project-context.md'],
     },
     {
+        // Chronicle.Go — the Go client for Chronicle, published under /chronicle/go/. Nested
+        // under `chronicle` like fundamentals/go: it must stay after `chronicle` (that sync
+        // clears its output folder) and astro.config.mjs surfaces it as a section of the
+        // Chronicle topic. project-context.md is contributor session context, not published.
+        key: 'chronicle/go', label: 'Chronicle.Go', icon: 'seti:go', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Chronicle.Go', 'Documentation'),
+            path.join(docRepoRoot, 'Chronicle.Go', 'Documentation')),
+        excludeRootFiles: ['project-context.md'],
+    },
+    {
+        // Arc.Go — the Go backend for Arc, published under /arc/go/ and surfaced as a
+        // section of the Arc topic. project-context.md is contributor session context, not published.
+        key: 'arc/go', label: 'Arc.Go', icon: 'seti:go', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Arc.Go', 'Documentation'),
+            path.join(docRepoRoot, 'Arc.Go', 'Documentation')),
+        excludeRootFiles: ['project-context.md'],
+    },
+    {
         // The Cratis/.github org repo (submodule "GitHubLanding") holds the Contributing docs.
         key: 'contributing', label: 'Contributing', icon: 'heart', sidebarMode: 'toc',
         src: firstExisting(

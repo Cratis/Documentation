@@ -48,10 +48,12 @@ Chronicle runs on four storage backends, has clients for four languages, and run
 | Chronicle client | TypeScript and Node.js | Released | `@cratis/chronicle` on npm. |
 | Chronicle client | Kotlin and Java | Released | `io.cratis:chronicle` on Maven Central. |
 | Chronicle client | Elixir | Released | `cratis_chronicle` on Hex. |
+| Chronicle client | Go | Experimental | v0.x foundation: no observers or projections yet. Install with `go get github.com/cratis/chronicle.go@latest` after the first tagged release. |
 | Chronicle client | Python | Pre-alpha | Not published. |
 | Arc backend | C# on ASP.NET Core | Released | |
 | Arc backend | Kotlin and Java on Spring Boot | Released | |
 | Arc backend | TypeScript on Node.js | Source preview | No package is published. |
+| Arc backend | Go | Early development | `github.com/cratis/arc.go`; no tagged release yet. |
 | Frontend | React | Released | Arc React packages accept React 18 or 19; Components requires React 19. |
 | .NET | .NET 8, 9, and 10 | Released | Arc and Fundamentals package for all three; Chronicle's packaging targets the same. The CLI and the `dotnet new cratis` template target .NET 10. |
 | Hosting | Docker | Released | `cratis/chronicle` image; the `latest-development` image bundles MongoDB and is for development and CI only. |
@@ -64,7 +66,7 @@ Model-first tools (Screenplay, Stage, Prologue) are experimental and Studio is i
 
 | Product | Common dependency relationship |
 |---|---|
-| Chronicle | Uses Fundamentals and Arc packages internally, exposes a first-class .NET client plus TypeScript, Kotlin/Java, and Elixir clients over gRPC/protobuf contracts, and can be inspected through the CLI and Workbench. |
+| Chronicle | Uses Fundamentals and Arc packages internally, exposes a first-class .NET client plus TypeScript, Kotlin/Java, and Elixir clients (and an experimental Go client) over gRPC/protobuf contracts, and can be inspected through the CLI and Workbench. |
 | Arc | Uses Fundamentals and can integrate with Chronicle, MongoDB, Entity Framework Core, ASP.NET Core, OpenAPI, Swagger, and generated TypeScript proxies. |
 | Components | Renders Arc's generated command and query proxies in React. Since Components 4 it owns its markup, types, and styling contract and uses React Aria internally; it no longer depends on PrimeReact. See [UI foundation](/components/ui-foundation/). |
 | CLI | Talks to Chronicle, installs managed AI guidance with `cratis ai`, and writes a CLI command catalog for AI assistants with `cratis init`. |
