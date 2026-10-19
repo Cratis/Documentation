@@ -13,6 +13,19 @@ const jsxOpenStart = /^\s*<[A-Z][\w.]*(?:\s[^>]*)?$/;
 
 const odd = (line, character) => line.split(character).length % 2 === 0;
 
+// Blank-line runs collapse to one, except inside code fences where they are content.
+function collapseBlankLines(lines) {
+    const result = [];
+    let fence;
+    for (const line of lines) {
+        const marker = fenceMarker.exec(line)?.[1];
+        if (marker && (!fence || (marker[0] === fence[0] && marker.length >= fence.length))) fence = fence ? undefined : marker;
+        else if (!fence && line.trim() === '' && result.length && result.at(-1).trim() === '') continue;
+        result.push(line);
+    }
+    return result;
+}
+
 export function stripMdxSyntax(source) {
     const frontmatter = /^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/.exec(source)?.[0] ?? '';
     const lines = source.slice(frontmatter.length).split(/\r?\n/);
@@ -69,6 +82,6 @@ export function stripMdxSyntax(source) {
     }
     // Untouched pages stay byte-identical to the source.
     if (!changed) return source;
-    const body = output.join('\n').replace(/\n{3,}/g, '\n\n').replace(/^\n+/, '').trimEnd();
+    const body = collapseBlankLines(output).join('\n').replace(/^\n+/, '').trimEnd();
     return `${frontmatter}${frontmatter ? '\n' : ''}${body}\n`;
 }

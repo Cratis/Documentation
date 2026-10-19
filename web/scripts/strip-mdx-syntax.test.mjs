@@ -33,3 +33,10 @@ describe('literal MDX text', () => {
         assert.equal(stripMdxSyntax(source), 'Prose.\n\n{/*\n<Card />\n*/}\n\nexport const x = `\n<Card />\n`;\n\nEnd.\n');
     });
 });
+
+describe('blank lines', () => {
+    it('collapses runs outside code fences but keeps them inside', () => {
+        const source = 'import X from "x";\n\n\n\nProse.\n\n\n\n```text\na\n\n\n\nb\n```\n';
+        assert.equal(stripMdxSyntax(source), 'Prose.\n\n```text\na\n\n\n\nb\n```\n');
+    });
+});

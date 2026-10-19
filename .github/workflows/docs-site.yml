@@ -72,6 +72,7 @@ jobs:
           path: Documentation
           # Full history so Starlight can show per-page "Last updated" dates.
           fetch-depth: 0
+          filter: blob:none
 
       - name: Checkout Samples
         uses: actions/checkout@v4
@@ -80,6 +81,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Samples
 
       - name: Checkout Chronicle
@@ -89,6 +93,9 @@ jobs:
           ref: ${{ env.DOCS_REF }}
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Chronicle
 
       - name: Checkout Chronicle.Kotlin client docs
@@ -98,6 +105,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Chronicle.Kotlin
 
       - name: Checkout Chronicle.Elixir client docs
@@ -107,6 +117,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Chronicle.Elixir
 
       - name: Checkout Chronicle.TypeScript client docs
@@ -116,6 +129,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Chronicle.TypeScript
 
       - name: Checkout Chronicle.Mcp
@@ -125,6 +141,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Chronicle.Mcp
 
       - name: Checkout Arc
@@ -134,6 +153,9 @@ jobs:
           ref: ${{ env.DOCS_REF }}
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Arc
 
       - name: Checkout Arc.Kotlin
@@ -143,6 +165,9 @@ jobs:
           ref: ${{ env.DOCS_REF }}
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Arc.Kotlin
 
       - name: Checkout Arc.TypeScript
@@ -152,6 +177,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Arc.TypeScript
 
       - name: Checkout Components
@@ -161,6 +189,9 @@ jobs:
           ref: ${{ env.DOCS_REF }}
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Components
 
       - name: Checkout AuthProxy
@@ -170,6 +201,9 @@ jobs:
           ref: ${{ env.DOCS_REF }}
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: AuthProxy
 
       - name: Checkout Fundamentals
@@ -179,6 +213,9 @@ jobs:
           ref: ${{ env.DOCS_REF }}
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Fundamentals
 
       # Fundamentals.Go publishes from main only (no docs-overhaul branch); read-only checkout.
@@ -189,6 +226,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Fundamentals.Go
 
       - name: Checkout cli
@@ -198,6 +238,9 @@ jobs:
           ref: ${{ env.DOCS_REF }}
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: cli
 
       - name: Checkout Templates
@@ -207,6 +250,9 @@ jobs:
           ref: ${{ env.DOCS_REF }}
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Templates
 
       - name: Checkout .github (Contributing)
@@ -216,6 +262,9 @@ jobs:
           ref: ${{ env.DOCS_REF }}
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: .github
 
       - name: Checkout Architecture
@@ -225,6 +274,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Architecture
 
       - name: Checkout Screenplay
@@ -234,6 +286,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Screenplay
 
       - name: Checkout Stage
@@ -243,6 +298,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Stage
 
       - name: Checkout Screenplay.Generation
@@ -252,6 +310,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Screenplay.Generation
 
       - name: Checkout Screenplay.CritterStack
@@ -261,6 +322,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Screenplay.CritterStack
 
       - name: Checkout Prologue
@@ -270,6 +334,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Prologue
 
       - name: Checkout Prompter
@@ -279,6 +346,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Prompter
 
       - name: Checkout Eventmodelers-Build-Kit-CSharp
@@ -288,6 +358,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Eventmodelers-Build-Kit-CSharp
 
       - name: Checkout Eventmodelers-Build-Kit-Kotlin
@@ -297,6 +370,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Eventmodelers-Build-Kit-Kotlin
 
       - name: Checkout Eventmodelers-Build-Kit-Java
@@ -306,6 +382,9 @@ jobs:
           ref: main
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
           path: Eventmodelers-Build-Kit-Java
 
       # Decide what this run does before any tool is installed: whether the slow checks

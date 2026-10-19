@@ -20,7 +20,9 @@ export const SIZE_WARNINGS = [
     { route: '/llms-full.txt', bytes: 17_000_000 },
 ];
 
-const logPage = /(^|\/)(release-digests|changelogs?|release-notes|releases?)(\/|$)/i;
+// Only the weekly release digests and pages literally named changelog; docs about the release
+// process (`releases`, `consuming-pre-releases`) are ordinary documentation.
+const logPage = /^release-digests(\/|$)|(^|\/)changelogs?$/i;
 
 /** Slugs (lowercase, no extension) of pages that are logs rather than documentation. */
 export const isLogPage = (slug) => logPage.test(slug);
