@@ -28,7 +28,7 @@ npm run dev        # syncs product content, then serves http://localhost:4321
 
 The preview uses whichever branch each sibling clone has checked out. Nothing here switches those branches, and you should not switch them just to preview. Check what they are on first. [`web/README.md`](./web/README.md) has the full list of sibling repositories, what happens when one is missing, the checks to run for each kind of change, what CI runs, and which optional tools can skip.
 
-The site builds and deploys through [`.github/workflows/docs-site.yml`](./.github/workflows/docs-site.yml). Pull requests to `main` get a build without a deploy. Merges to `main`, and documentation changes on `main` in the product repositories, publish the site.
+The site builds and deploys through [`.github/workflows/docs-site.yml`](./.github/workflows/docs-site.yml). Pull requests to `main` get a build without a deploy. Merges to `main` publish immediately. Product documentation changes on `main` are picked up by an hourly change probe and appear within about an hour plus runner queue and build time; unchanged hours skip the build. Manual workflow runs remain available for an immediate refresh. The nightly slow checks never deploy, and product `build-docs` notifications are accepted without starting a build during migration.
 
 ## What else is in this repository
 

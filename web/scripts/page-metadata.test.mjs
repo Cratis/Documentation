@@ -3,7 +3,7 @@
 
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { contextualTitle, deriveDescription, hasDuplicateTitle, normalizedPageKey, pageDescription, serializeStructuredData, shortenDescription, structuredData } from './page-metadata.mjs';
+import { contextualTitle, deriveDescription, glossaryTerms, hubTitle, markdownMirrorHref, pageLanguage, hasDuplicateTitle, normalizedPageKey, pageDescription, serializeStructuredData, shortenDescription, structuredData } from './page-metadata.mjs';
 
 const prose = 'Chronicle stores events and builds read models for your application.';
 
@@ -110,6 +110,68 @@ describe('page metadata', () => {
         assert.equal(contextualTitle('Overview', 'cli'), 'Overview – CLI | Cratis');
         assert.equal(contextualTitle('Glossary', 'glossary'), 'Glossary – Cratis Stack | Cratis');
         assert.equal(contextualTitle('Store events', 'chronicle/events'), undefined);
+    });
+
+    it('names the language so variant pages do not share a title', () => {
+        const parents = ['Arc', 'Backend', 'Commands'];
+        const csharp = contextualTitle('Command pipeline', 'arc/backend/csharp/commands/command-pipeline', parents, true);
+        const typescript = contextualTitle('Command pipeline', 'arc/backend/typescript/commands/command-pipeline', parents, true);
+        assert.equal(csharp, 'Command pipeline – Commands – C# – Arc | Cratis');
+        assert.equal(typescript, 'Command pipeline – Commands – TypeScript – Arc | Cratis');
+        assert.equal(contextualTitle('Backend', 'arc/backend/csharp', ['Arc', 'Backend'], true), 'Backend – Arc – C# | Cratis');
+        assert.equal(contextualTitle('Backend', 'arc/backend', ['Arc'], true), 'Backend – Arc | Cratis');
+        assert.equal(pageLanguage('chronicle/events'), undefined);
+    });
+
+    it('gives the home page and product hubs descriptive titles', () => {
+        assert.equal(hubTitle(''), 'Cratis: open-source platform for event-sourced applications');
+        assert.equal(hubTitle('/chronicle/'), 'Chronicle: event store with multi-language clients | Cratis');
+        assert.equal(contextualTitle('Overview', 'cli'), 'Overview – CLI | Cratis');
+        assert.match(hubTitle('screenplay'), /^Screenplay: /);
+        assert.equal(hubTitle('chronicle/events'), undefined);
+    });
+
+    it('keeps every hub title within 60 characters', () => {
+        for (const id of ['chronicle', 'arc', 'components', 'cli', 'authproxy', 'chronicle-mcp', 'prompter', 'templates', 'screenplay', '']) {
+            assert.ok(hubTitle(id).length <= 60, hubTitle(id));
+        }
+    });
+
+    it('links the Markdown mirror path that emitDocArtifacts writes', async () => {
+        const { mkdtemp, mkdir, writeFile, access, rm } = await import('node:fs/promises');
+        const { tmpdir } = await import('node:os');
+        const path = await import('node:path');
+        const { emitDocArtifacts } = await import('./emit-doc-artifacts.mjs');
+        const docs = await mkdtemp(path.join(tmpdir(), 'docs-'));
+        const dist = await mkdtemp(path.join(tmpdir(), 'dist-'));
+        await mkdir(path.join(docs, 'arc', 'guide'), { recursive: true });
+        await writeFile(path.join(docs, 'index.md'), '---\ntitle: Home\n---\nHome\n');
+        await writeFile(path.join(docs, 'arc', 'index.md'), '---\ntitle: Arc\n---\nArc\n');
+        await writeFile(path.join(docs, 'arc', 'guide', 'page.md'), '---\ntitle: P\n---\nP\n');
+        await emitDocArtifacts(docs, dist, { axes: [] });
+        try {
+            for (const route of ['/', '/arc/', '/arc/guide/page/']) {
+                const href = markdownMirrorHref(`https://www.cratis.io${route}`);
+                await access(path.join(dist, new URL(href).pathname));
+            }
+        } finally {
+            await rm(docs, { recursive: true, force: true });
+            await rm(dist, { recursive: true, force: true });
+        }
+        assert.equal(markdownMirrorHref('https://www.cratis.io/arc/guide/page/'), 'https://www.cratis.io/arc/guide/page.md');
+    });
+
+    it('emits glossary entries as DefinedTerm members', () => {
+        const body = '## Event sourcing\n\n| Term | Definition |\n| --- | --- |\n| [Event](/chronicle/concepts/event/) | A **fact** that happened. |\n| **Tenant** | An isolated set of data. |\n\n## CQRS & more\n\n| **Query** | Reads state. |\n';
+        const terms = glossaryTerms(body, 'https://www.cratis.io/glossary/');
+        assert.deepEqual(terms.map((term) => term.name), ['Event', 'Tenant', 'Query']);
+        assert.equal(terms[0].url, 'https://www.cratis.io/chronicle/concepts/event/');
+        assert.equal(terms[0].description, 'A fact that happened.');
+        assert.equal(terms[1].url, 'https://www.cratis.io/glossary/#event-sourcing');
+        assert.equal(terms[2].url, 'https://www.cratis.io/glossary/#cqrs--more');
+        assert.equal(terms[1].inDefinedTermSet, 'https://www.cratis.io/glossary/');
+        const data = structuredData({ title: 'Glossary', description: 'd', url: 'https://www.cratis.io/glossary/', breadcrumbs: [], kind: 'glossary', terms });
+        assert.equal(data['@graph'][0].hasDefinedTerm.length, 3);
     });
 
     it('uses the nearest meaningful parent and retains product context', () => {

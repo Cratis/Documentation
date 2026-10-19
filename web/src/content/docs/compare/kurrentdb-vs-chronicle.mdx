@@ -1,0 +1,148 @@
+---
+title: "KurrentDB vs Chronicle: event stores compared"
+description: "KurrentDB (formerly EventStoreDB) and Cratis Chronicle side by side: architecture, storage, clients, projections, licensing and operations, with dated sources."
+head:
+  - tag: meta
+    attrs:
+      name: keywords
+      content: "KurrentDB vs Chronicle, KurrentDB vs Cratis Chronicle, KurrentDB alternative, EventStoreDB alternative, EventStoreDB vs Chronicle, event store comparison, dedicated event store, event sourcing server, event store for .NET"
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+KurrentDB, formerly EventStoreDB, is a database built for storing events, with a long track record and clients in many languages. Chronicle is also a separate event-sourcing server, with its own processing runtime and clients for several languages. This page compares them where they overlap, with a source for every claim about KurrentDB.
+
+The Cratis team wrote this page, and Chronicle is a Cratis product. The page lists what each product documents and leaves the weighing to you. For a three-way comparison that includes Marten, see [Event sourcing in .NET](/compare-event-sourcing-dotnet/), and for the JVM see [Event sourcing on the JVM](/compare-event-sourcing-jvm/). All our comparisons follow the method in [How Cratis writes comparisons](/compare/).
+
+## Choose KurrentDB or Chronicle
+
+<Aside type="note" title="Summary">
+**Choose KurrentDB if** you want a dedicated, mature event-store database with its own storage engine, official clients for .NET, Java, Node.js, Python, Go and Rust, server-side persistent subscriptions and connectors to external systems, and a managed option in Kurrent Cloud.
+
+**Choose Chronicle if** you want the event store and the observation of events (projections, reducers, reactors) managed by one server, want your choice of storage database (MongoDB, PostgreSQL, SQL Server or SQLite), or want to protect personal data by encrypting it with a key per subject (crypto-shredding), and your applications use .NET, TypeScript, Kotlin/Java or Elixir.
+
+If both fit, run each against one real slice of your domain before you decide. Neither choice is wrong in the abstract.
+</Aside>
+
+## Method and versions
+
+<Aside type="note" title="Method">
+Reviewed on 2026-10-19. The table records documented capabilities at the named versions. KurrentDB facts come from [docs.kurrent.io](https://docs.kurrent.io/) and [kurrent.io](https://www.kurrent.io/), linked next to each claim; Chronicle facts come from the [Chronicle documentation](/chronicle/) and [repository](https://github.com/Cratis/Chronicle). A listed capability says nothing about performance, reliability or production suitability. Where we found nothing documented, the cell says "Not publicly documented".
+</Aside>
+
+| Product | Version compared | Version source |
+| --- | --- | --- |
+| KurrentDB | 26.2.3, the latest GitHub release as of 2026-10-19, documented in the [v26.2 server docs](https://docs.kurrent.io/server/v26.2/quick-start/) | [KurrentDB release v26.2.3](https://github.com/kurrent-io/KurrentDB/releases/tag/v26.2.3) |
+| Cratis Chronicle | 19.92.2, the latest GitHub release as of 2026-10-19 | [Chronicle release v19.92.2](https://github.com/Cratis/Chronicle/releases/tag/v19.92.2) |
+
+KurrentDB 26.2 is a short-term-support release; 26.0 is the long-term-support line ([release schedule](https://docs.kurrent.io/server/v26.2/release-schedule/)). Licensing differs between the two, as described below.
+
+## Architecture: two servers
+
+Both products run as a server that your applications call over the network. Neither runs inside your application process.
+
+KurrentDB is a database that stores events in streams in its own storage engine. Clients talk to it over gRPC, and it also has an HTTP interface ([introduction](https://docs.kurrent.io/server/v26.2/quick-start/)). It runs as a single node or as a cluster of three nodes ([installation](https://docs.kurrent.io/server/v26.2/quick-start/installation.html)).
+
+Chronicle runs as the Chronicle Kernel, built on [Microsoft Orleans](https://learn.microsoft.com/dotnet/orleans/). Clients call it over gRPC, and it also exposes HTTP surfaces ([architecture](/chronicle/architecture/)). It stores events in a database you choose and manages the observers that process them. Projections run in the kernel; reducer and reactor handlers run in your connected application, with the server tracking each observer's position.
+
+The practical difference is what you operate. With KurrentDB, you operate a database with its own storage format, and read models typically live in your applications or in systems fed by subscriptions and connectors. With Chronicle, you operate a server plus the database it stores events in, projections declared in your application run in the server, and reducer and reactor handlers run in your application while the server manages their observation.
+
+## Feature matrix
+
+| Question | KurrentDB 26.2.3 | Chronicle 19.92.2 |
+| --- | --- | --- |
+| Product boundary | Dedicated event-store database server ([introduction](https://docs.kurrent.io/server/v26.2/quick-start/)) | Event-sourcing server plus client SDKs ([architecture](/chronicle/architecture/)) |
+| Event storage | Streams in KurrentDB's own storage engine ([event streams](https://docs.kurrent.io/server/v26.2/features/streams.html)) | MongoDB (default), PostgreSQL, SQL Server, SQLite, in-memory ([storage](/chronicle/hosting/configuration/storage/)) |
+| Clients | Python, Node.js, Java, .NET, Go and Rust listed as supported; Ruby and Elixir as community clients ([introduction](https://docs.kurrent.io/server/v26.2/quick-start/)) | .NET, TypeScript, Kotlin/Java, Elixir; no Python client listed ([clients](/chronicle-clients/)) |
+| Server-side subscriptions | Catch-up subscriptions keep their position in the client; persistent subscriptions keep it on the server, with consumer groups and at-least-once delivery ([persistent subscriptions](https://docs.kurrent.io/server/v26.2/features/persistent-subscriptions.html)) | Observers keep their offset on the server as a sequence number ([event sequence](/chronicle/concepts/event-sequence/), [observers](/chronicle/concepts/observers/)) |
+| Server-side projections | JavaScript projections on the server ([projections](https://docs.kurrent.io/server/v26.2/features/projections/)); a second engine is marked experimental ([engine V2](https://docs.kurrent.io/server/v26.2/features/projections/engine-v2.html)) | Projections that run in the kernel (model-bound, declarative, fluent) and reducers whose handlers run in your application, both building read models ([choosing a style](/chronicle/projections/choosing-a-read-model-style/)) |
+| Read-model storage | Not part of KurrentDB; projections emit events, and KurrentDB suggests a separate read model fed by a catch-up subscription for many workloads ([projections](https://docs.kurrent.io/server/v26.2/features/projections/)) | Sinks write read models to MongoDB or SQL ([sinks](/chronicle/sinks/)) |
+| Concurrency control | Expected stream state on append ([.NET client](https://docs.kurrent.io/clients/dotnet/v1.4/appending-events.html)); multi-stream appends with an expected version per stream ([what's new](https://docs.kurrent.io/server/v26.2/quick-start/whatsnew.html)) | Concurrency scopes over event-source and event-type tags, plus constraints ([concurrency](/chronicle/events/concurrency/), [DCB](/chronicle/dynamic-consistency-boundary/)) |
+| Export to other systems | Server-side connectors with sinks including HTTP, Kafka, RabbitMQ, MongoDB, Elasticsearch, Pulsar, SQL and Serilog ([connectors](https://docs.kurrent.io/server/v26.2/features/connectors/)) | Reactors run your own code in your application, driven by the server ([reactors](/chronicle/reactors/)); no connector catalog documented |
+| Multi-tenancy | Not publicly documented | Namespaces inside an event store ([namespaces](/chronicle/namespaces/)) |
+| Event versioning | Not publicly documented | Generations that translate old events ([event evolution](/chronicle/understanding-event-evolution/)) |
+| Personal data | Redaction tool that blanks the data of chosen events, run on each node ([redaction](https://docs.kurrent.io/server/v26.2/operations/redaction.html)) | Encryption of `[PII]` properties with a key per subject, erased by deleting the key, plus event redaction ([compliance](/chronicle/compliance/)) |
+| Managed service | Kurrent Cloud on AWS, Azure and GCP ([installation](https://docs.kurrent.io/server/v26.2/quick-start/installation.html)) | Not publicly documented |
+| Clustering and operations | Single node or cluster; Prometheus metrics and OTLP export ([installation](https://docs.kurrent.io/server/v26.2/quick-start/installation.html), [metrics](https://docs.kurrent.io/server/v26.2/diagnostics/metrics.html)) | Multi-node needs MongoDB storage ([clustering](/chronicle/hosting/configuration/clustering/));  [Workbench](/chronicle/workbench/), [CLI](/cli/), [telemetry](/chronicle/hosting/configuration/open-telemetry/) |
+| License | Kurrent License v1, not OSI-approved; see below ([LICENSE](https://github.com/kurrent-io/KurrentDB/blob/master/LICENSE.md)) | MIT ([LICENSE](https://github.com/Cratis/Chronicle/blob/main/LICENSE)) |
+
+## Licensing
+
+KurrentDB is licensed under Kurrent License v1 (KLv1). Its documentation says the source code is available to view and that KLv1 is not an OSI-approved open-source license ([introduction](https://docs.kurrent.io/server/v26.2/quick-start/)). The license text says you may not provide the software to third parties as a hosted or managed service that gives users access to a substantial set of its features ([LICENSE](https://github.com/kurrent-io/KurrentDB/blob/master/LICENSE.md)).
+
+The terms changed in 26.2. From that release, single-node deployments have access to all licensed features without a key, and multi-node deployments need a valid license key on every node ([what's new in 26.2](https://docs.kurrent.io/server/v26.2/quick-start/whatsnew.html)). In 26.0, enterprise features were enabled only with a license key ([26.0 introduction](https://docs.kurrent.io/server/v26.0/quick-start/)). If you plan to run a cluster, read the current terms first.
+
+Chronicle is MIT licensed.
+
+## Consuming events and building read models
+
+KurrentDB gives you three ways to react to events. Catch-up subscriptions are driven by the client, which stores its own position. Persistent subscriptions keep the position on the server and let several consumers in a group share the load, with at-least-once delivery. Its docs warn that events in a consumer group can arrive out of order ([persistent subscriptions](https://docs.kurrent.io/server/v26.2/features/persistent-subscriptions.html)). Connectors run on the server and send events to external systems through sinks ([Understanding Connectors](https://docs.kurrent.io/server/v26.2/features/connectors/)).
+
+KurrentDB projections are JavaScript that reads events and appends or links new events. Its own docs point out that many problems fit better as a read model in another database populated by a catch-up subscription ([projections](https://docs.kurrent.io/server/v26.2/features/projections/)).
+
+Chronicle manages read-model building for you. You declare a projection, which the kernel runs, or write a reducer, whose handler runs in your application with the server tracking its position. Either way Chronicle maintains the read model and writes it to MongoDB or SQL. A read model is eventually consistent unless you mark it passive, in which case Chronicle computes it on read ([projections](/chronicle/projections/)). Reactors handle side effects ([observers](/chronicle/concepts/observers/)).
+
+## Storage and hosting
+
+KurrentDB documents [archiving](https://docs.kurrent.io/server/v26.2/features/archiving.html) of older data to cheaper blob storage, [backup](https://docs.kurrent.io/server/v26.2/operations/backup.html) and [scavenging](https://docs.kurrent.io/server/v26.2/operations/scavenge.html) to reclaim space.
+
+Chronicle stores events in a database you choose and ships as the `cratis/chronicle` Docker image, with [production hosting](/chronicle/hosting/production/) and [clustering](/chronicle/hosting/configuration/clustering/) covered in its docs. Choosing Chronicle means running the server in addition to its database. Multi-node clustering requires MongoDB; on PostgreSQL, SQL Server or SQLite you run one node.
+
+## Languages and clients
+
+KurrentDB's introduction lists gRPC clients for Python, Node.js (JavaScript and TypeScript), Java, .NET, Go and Rust, and community clients for Ruby and Elixir ([introduction](https://docs.kurrent.io/server/v26.2/quick-start/)).
+
+Chronicle has a .NET SDK, and released clients for TypeScript (`@cratis/chronicle`), Kotlin and Java (`io.cratis:chronicle`) and Elixir (`cratis_chronicle`). See [Chronicle in your language](/chronicle-clients/). Client availability does not mean client parity; [where the clients differ](/chronicle/clients/where-the-clients-differ/) lists the gaps.
+
+## Compliance and personal data
+
+KurrentDB documents that events are immutable. To remove data, it recommends rewriting the stream to a new stream without the data, deleting the old stream and running a scavenge. If that is impractical, a redaction tool blanks the data of specific events. The docs call it a last resort that may affect subscriptions and projections, and say the tool is available on request ([redaction](https://docs.kurrent.io/server/v26.2/operations/redaction.html)).
+
+Chronicle marks personal data with PII attributes, encrypts those values at rest with a key per subject, and erases a subject by revoking the key. Whole events can be redacted while the sequence and audit metadata remain. See [Chronicle compliance](/chronicle/compliance/) and [Auth and compliance](/auth-and-compliance/).
+
+KurrentDB's documented approaches rewrite or blank stored events, or move data to a new stream. Chronicle encrypts marked values when it appends them, and erasing a subject deletes the key without touching the log.
+
+## Where KurrentDB is the better choice
+
+KurrentDB is the better fit in these situations, and we mean it:
+
+- **A mature, dedicated event store.** It is built for one job. Kurrent says it has helped teams store data as events for over a decade, under the earlier name Event Store ([about Kurrent](https://www.kurrent.io/about)).
+- **More official client languages.** Go, Rust and Python are listed as supported clients for KurrentDB; none of these is among Chronicle's released clients on the [clients page](/chronicle-clients/).
+- **A managed service.** Kurrent Cloud runs KurrentDB on AWS, Azure and GCP. We found no managed Chronicle service documented.
+- **Connectors out of the box.** Server-side connectors send events to HTTP endpoints, Kafka, RabbitMQ, Elasticsearch and other sinks without a service you write and host.
+- **Cluster operations.** KurrentDB documents archiving to blob storage and backup. Chronicle multi-node clusters need MongoDB.
+- **Community size.** On 2026-10-19 the [KurrentDB repository](https://github.com/kurrent-io/KurrentDB) showed 5,873 GitHub stars and the [Chronicle repository](https://github.com/Cratis/Chronicle) showed 61. Stars measure attention, not quality, but they indicate how many people have used and questioned a product.
+
+## Moving between them
+
+Moving between the two is not a configuration change. They use different storage, different consumer and projection models, and different client APIs, so a migration touches application code and not only data.
+
+We found no migration guide in either direction, so this row reads "Not publicly documented". Plan for application changes, including how stream names map to event sources and how subscriptions become observers. If you want help planning a move, [ask the community](/community/).
+
+## Questions to answer before choosing
+
+1. Do you want a dedicated event database, or a server that also runs your projections and manages your reducers and reactors?
+2. Which languages must read and write the history, and are they in each product's client list?
+3. Do you need ready-made connectors to external systems, or a managed service?
+4. Will you run a cluster, and are the KLv1 terms for it acceptable?
+5. How must personal data in events be protected and erased?
+
+## Limitations
+
+- This is a documentation comparison, not a benchmark or a production evaluation.
+- We reviewed the pages linked here. KurrentDB may document more than we found, and its docs change independently of ours.
+- KurrentDB 26.0 LTS and 26.2 STS differ in licensing and features, and we compare 26.2.3.
+- Client availability does not establish parity between clients.
+
+## Sources
+
+Checked 2026-10-19:
+
+- **KurrentDB:** [Introduction](https://docs.kurrent.io/server/v26.2/quick-start/), [What's new](https://docs.kurrent.io/server/v26.2/quick-start/whatsnew.html), [Installation](https://docs.kurrent.io/server/v26.2/quick-start/installation.html), [Release schedule](https://docs.kurrent.io/server/v26.2/release-schedule/), [Event streams](https://docs.kurrent.io/server/v26.2/features/streams.html), [Persistent subscriptions](https://docs.kurrent.io/server/v26.2/features/persistent-subscriptions.html), [Projections](https://docs.kurrent.io/server/v26.2/features/projections/), [Projections engine V2](https://docs.kurrent.io/server/v26.2/features/projections/engine-v2.html), [Connectors](https://docs.kurrent.io/server/v26.2/features/connectors/), [Archiving](https://docs.kurrent.io/server/v26.2/features/archiving.html), [Redaction](https://docs.kurrent.io/server/v26.2/operations/redaction.html), [Metrics](https://docs.kurrent.io/server/v26.2/diagnostics/metrics.html), [.NET client: appending events](https://docs.kurrent.io/clients/dotnet/v1.4/appending-events.html), [Backup](https://docs.kurrent.io/server/v26.2/operations/backup.html), [Kurrent Cloud](https://docs.kurrent.io/cloud/), [About Kurrent](https://www.kurrent.io/about), [license](https://github.com/kurrent-io/KurrentDB/blob/master/LICENSE.md), the [26.0 introduction](https://docs.kurrent.io/server/v26.0/quick-start/), [kurrent.io](https://www.kurrent.io/) and the [GitHub repository](https://github.com/kurrent-io/KurrentDB).
+- **Chronicle:** the [Chronicle documentation](/chronicle/), the [Chronicle README](https://github.com/Cratis/Chronicle), the [Chronicle license](https://github.com/Cratis/Chronicle/blob/main/LICENSE), and [releases](https://github.com/Cratis/Chronicle/releases).
+
+## Corrections and refresh
+
+We recheck this page when either product ships a relevant major or minor release or changes its license, and at least every 90 days. If a statement cannot be confirmed from a product's own current public sources, we correct or remove it.
+
+If you find an error or a better first-party source, [send the correction](/feedback/).

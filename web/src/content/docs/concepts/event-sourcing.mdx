@@ -7,7 +7,7 @@ Event sourcing is a way of storing data. Instead of keeping only the current sta
 
 A bank account is the classic example. A traditional table stores `Balance = 70`. An event-sourced account stores that it was opened with 100, that 50 was deposited and that 80 was withdrawn, and the balance of 70 follows from those facts. You can answer "what is the balance?" and also "how did we get here?"
 
-This page explains the idea, shows it in code, and is honest about where it costs more than it gives. It is the first of six concept pages: [CQRS](/concepts/cqrs/), [event store vs. a regular database](/concepts/event-store/), [event modeling](/concepts/event-modeling/), [projections and read models](/concepts/projections-and-read-models/), and [event-driven architecture vs. event sourcing](/concepts/event-driven-architecture/).
+This page explains the idea, shows it in code, and is honest about where it costs more than it gives. It is the first of six concept pages: [CQRS](/concepts/cqrs/), [event store vs. a regular database](/concepts/event-store/), [event modeling](/event-modeling/), [projections and read models](/concepts/projections-and-read-models/), and [event-driven architecture vs. event sourcing](/concepts/event-driven-architecture/).
 
 ## How event sourcing works
 
@@ -113,5 +113,5 @@ An event store. Chronicle is an open-source (MIT) event store with a .NET client
 - Read [Why event sourcing](/chronicle/why-event-sourcing/) for the case Cratis makes for it as a default.
 - Start a project with [Get started with Chronicle](/chronicle/get-started/) or follow the [Chronicle tutorial](/chronicle/tutorial/).
 - Learn how events become queryable state in [projections and read models](/concepts/projections-and-read-models/).
-- Design the events before you write code with [event modeling](/concepts/event-modeling/).
+- Design the events before you write code with [event modeling](/event-modeling/).
 - Compare libraries in [event sourcing for .NET](/compare-event-sourcing-dotnet/).
