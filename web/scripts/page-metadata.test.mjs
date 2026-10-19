@@ -3,7 +3,7 @@
 
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { contextualTitle, deriveDescription, glossaryTerms, hubTitle, pageLanguage, hasDuplicateTitle, normalizedPageKey, pageDescription, serializeStructuredData, shortenDescription, structuredData } from './page-metadata.mjs';
+import { contextualTitle, deriveDescription, glossaryTerms, hubTitle, markdownMirrorHref, pageLanguage, hasDuplicateTitle, normalizedPageKey, pageDescription, serializeStructuredData, shortenDescription, structuredData } from './page-metadata.mjs';
 
 const prose = 'Chronicle stores events and builds read models for your application.';
 
@@ -125,9 +125,35 @@ describe('page metadata', () => {
 
     it('gives the home page and product hubs descriptive titles', () => {
         assert.equal(hubTitle(''), 'Cratis: open-source platform for event-sourced applications');
-        assert.equal(contextualTitle('Chronicle', 'chronicle'), 'Chronicle: event sourcing database for .NET | Cratis');
+        assert.equal(hubTitle('/chronicle/'), 'Chronicle: event store with multi-language clients | Cratis');
+        assert.equal(contextualTitle('Overview', 'cli'), 'Overview – CLI | Cratis');
         assert.match(hubTitle('screenplay'), /^Screenplay: /);
         assert.equal(hubTitle('chronicle/events'), undefined);
+    });
+
+    it('keeps every hub title within 60 characters', () => {
+        for (const id of ['chronicle', 'arc', 'components', 'cli', 'authproxy', 'chronicle-mcp', 'prompter', 'templates', 'screenplay', '']) {
+            assert.ok(hubTitle(id).length <= 60, hubTitle(id));
+        }
+    });
+
+    it('links the Markdown mirror path that emitDocArtifacts writes', async () => {
+        const { mkdtemp, mkdir, writeFile, access } = await import('node:fs/promises');
+        const { tmpdir } = await import('node:os');
+        const path = await import('node:path');
+        const { emitDocArtifacts } = await import('./emit-doc-artifacts.mjs');
+        const docs = await mkdtemp(path.join(tmpdir(), 'docs-'));
+        const dist = await mkdtemp(path.join(tmpdir(), 'dist-'));
+        await mkdir(path.join(docs, 'arc', 'guide'), { recursive: true });
+        await writeFile(path.join(docs, 'index.md'), '---\ntitle: Home\n---\nHome\n');
+        await writeFile(path.join(docs, 'arc', 'index.md'), '---\ntitle: Arc\n---\nArc\n');
+        await writeFile(path.join(docs, 'arc', 'guide', 'page.md'), '---\ntitle: P\n---\nP\n');
+        await emitDocArtifacts(docs, dist, { axes: [] });
+        for (const route of ['/', '/arc/', '/arc/guide/page/']) {
+            const href = markdownMirrorHref(`https://www.cratis.io${route}`);
+            await access(path.join(dist, new URL(href).pathname));
+        }
+        assert.equal(markdownMirrorHref('https://www.cratis.io/arc/guide/page/'), 'https://www.cratis.io/arc/guide/page.md');
     });
 
     it('emits glossary entries as DefinedTerm members', () => {

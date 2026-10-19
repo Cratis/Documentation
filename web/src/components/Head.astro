@@ -15,7 +15,7 @@
 // so these are the only faces (no `swap` duplicate).
 import Default from '@astrojs/starlight/components/Head.astro';
 import { getCollection } from 'astro:content';
-import { contextualTitle, hasDuplicateTitle, glossaryTerms, hasPublishedChildren, pageDescription, pageKind, structuredData, serializeStructuredData } from '../../scripts/page-metadata.mjs';
+import { contextualTitle, hasDuplicateTitle, glossaryTerms, hasPublishedChildren, hubTitle, markdownMirrorHref, pageDescription, pageKind, structuredData, serializeStructuredData } from '../../scripts/page-metadata.mjs';
 import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import interLatinExt from '@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2?url';
 import jbMonoLatin from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
@@ -53,7 +53,9 @@ for (let length = 1; length < segments.length; length++) {
 // Repeated authored titles also need context, even when they aren't in the
 // standard generic-title list (for example Identity or Read Models).
 const isDuplicate = hasDuplicateTitle(entry, docs);
-const title = contextualTitle(entry.data.title, id, parents, isDuplicate);
+// Hubs get a descriptive <title>; structured data keeps the product name.
+const hub = hubTitle(id);
+const title = hub ?? contextualTitle(entry.data.title, id, parents, isDuplicate);
 if (title) {
     route.head = route.head.filter(({ tag, attrs }) => !(tag === 'meta' && (
         attrs?.property === 'og:title' || attrs?.name === 'twitter:title'
@@ -65,7 +67,7 @@ if (title) {
 }
 if (id) breadcrumbs.push({ name: entry.data.title, url });
 // Search and AI answers see the same contextual title in JSON-LD as in <title> and og:title.
-const headline = (title ?? entry.data.title).replace(/ \| Cratis$/, '');
+const headline = (hub ? entry.data.title : title ?? entry.data.title).replace(/ \| Cratis$/, '');
 const lastUpdated = route.lastUpdated instanceof Date ? route.lastUpdated : undefined;
 const kind = pageKind(id, {
     hasChildren: hasPublishedChildren(id, docs),
@@ -74,7 +76,7 @@ const kind = pageKind(id, {
 const terms = kind === 'glossary' ? glossaryTerms(entry.body ?? '', url) : undefined;
 // Every published page has a Markdown mirror (see emit-doc-artifacts.mjs); advertise it to agents.
 if (id !== '404') {
-    route.head.push({ tag: 'link', attrs: { rel: 'alternate', type: 'text/markdown', href: id ? `${url.replace(/\/$/, '')}.md` : new URL('/index.md', url).href } });
+    route.head.push({ tag: 'link', attrs: { rel: 'alternate', type: 'text/markdown', href: markdownMirrorHref(url) } });
 }
 const data = structuredData({
     home: !id, notFound: id === '404', title: headline, description, url, breadcrumbs, kind, terms,

@@ -97,15 +97,15 @@ export function pageLanguage(id) {
 // Hub pages and the home page get a descriptor instead of a bare "<Product> | Cratis".
 const titleOverrides = new Map([
     ['', 'Cratis: open-source platform for event-sourced applications'],
-    ['chronicle', 'Chronicle: event sourcing database for .NET | Cratis'],
-    ['arc', 'Arc: CQRS framework for ASP.NET Core | Cratis'],
-    ['components', 'Components: React components for Cratis apps | Cratis'],
-    ['cli', 'CLI: command-line tool for Chronicle and Cratis projects | Cratis'],
-    ['authproxy', 'AuthProxy: authentication and tenant-routing proxy | Cratis'],
-    ['chronicle-mcp', 'Chronicle MCP: MCP server for Chronicle event stores | Cratis'],
-    ['prompter', 'Prompter: Discord assistant for Cratis questions | Cratis'],
+    ['chronicle', 'Chronicle: event store with multi-language clients | Cratis'],
+    ['arc', 'Arc: CQRS for ASP.NET Core and Spring Boot | Cratis'],
+    ['components', 'Components: React UI for CQRS and event sourcing | Cratis'],
+    ['cli', 'CLI: operate Chronicle from the command line | Cratis'],
+    ['authproxy', 'AuthProxy: .NET gateway for auth and tenancy | Cratis'],
+    ['chronicle-mcp', 'Chronicle MCP: connect AI agents to Chronicle | Cratis'],
+    ['prompter', 'Prompter: Cratis docs assistant on Discord | Cratis'],
     ['templates', 'Templates: dotnet new templates for Cratis | Cratis'],
-    ['screenplay', 'Screenplay: declarative language for event models (experimental) | Cratis'],
+    ['screenplay', 'Screenplay: model-first language (experimental) | Cratis'],
 ]);
 
 /** Full `<title>` for the home page and product hubs, or undefined for every other page. */
@@ -113,10 +113,15 @@ export function hubTitle(id) {
     return titleOverrides.get(id.replace(/^\/+|\/+$/g, '').toLowerCase());
 }
 
+/** Path of the Markdown mirror that emit-doc-artifacts.mjs writes for a canonical page URL. */
+export function markdownMirrorHref(pageUrl) {
+    const { origin, pathname } = new URL(pageUrl);
+    const slug = pathname.replace(/^\/+|\/+$/g, '');
+    return `${origin}/${slug || 'index'}.md`;
+}
+
 /** Parents are published ancestor page titles, ordered from the product down. */
 export function contextualTitle(title, id, parents = [], isDuplicate = false) {
-    const override = hubTitle(id);
-    if (override) return override;
     if (!genericTitle.test(title.trim()) && !isDuplicate) return undefined;
     const parent = parents.findLast((name) => !genericParent.test(name.trim())
         && name.trim().toLowerCase() !== title.trim().toLowerCase());
