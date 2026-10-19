@@ -130,16 +130,16 @@ The build prints each bulk export's size and emits a `::warning` annotation when
 
 ### What CI runs
 
-`.github/workflows/docs-site.yml` runs on pull requests to `main`, on pushes to `main` and `docs-overhaul`, on manual dispatch, and when a product repository sends `build-docs`. After checking out every product and building both Storybooks, it runs:
+`.github/workflows/docs-site.yml` builds on pull requests to `main`, pushes to `main` and `docs-overhaul`, manual runs, and the nightly slow-check schedule. An hourly probe resolves the current SHAs of every build checkout (including this repository) using the checkout token and compares them with `/build-info.json` from the last successful deployment. It builds only when sources changed or the comparison fails. Product `build-docs` notifications remain accepted during migration but start no jobs. After checking out every product and building both Storybooks, a build runs:
 
-1. `node --test scripts/*.test.mjs`
+1. `node --test ../.github/scripts/*.test.mjs scripts/*.test.mjs`
 2. `npm run build:api`
 3. `npm run sync && npm run lint:docs`
-4. `npm run variant-docs:check:ci`
+4. `npm run variant-docs:check:ci` (pull requests, nightly and manual runs only)
 5. `npm run build`
-6. `npm run check:links`
+6. `npm run check:links` (pull requests, nightly and manual runs only)
 
-The site deploys to GitHub Pages only from `main`. CI does not run `lint:prose`, `lint:markdown` or `check:external`.
+The site deploys to GitHub Pages only from `main`; the nightly run never deploys. Each deployment includes the SHAs actually checked out in `build-info.json`, so a failed build or deployment cannot advance the probe's baseline. CI does not run `lint:prose`, `lint:markdown` or `check:external`.
 
 ### Optional tools and what their skips mean
 
@@ -157,7 +157,7 @@ Several checks depend on tools that are not npm dependencies. When a tool is mis
 
 ## Add or change a page
 
-**Product page.** Edit the Markdown in the product repository's `Documentation/` folder and add new pages to that folder's `toc.yml`. Re-sync and check the page locally. Commit in the product repository. Product repositories such as Chronicle and Arc trigger a site build when their `Documentation/**` changes on `main`. The change is live once that build has deployed, not when the merge lands.
+**Product page.** Edit the Markdown in the product repository's `Documentation/` folder and add new pages to that folder's `toc.yml`. Re-sync and check the page locally. Commit in the product repository. Product changes on `main` are batched by the hourly probe and appear within about an hour plus runner queue and build time. The change is live once that build has deployed, not when the merge lands. For an immediate refresh, run the central Documentation site workflow manually on `main`.
 
 **Site-level page.** Edit or add the file under `src/content/docs/` and give it a `title` in frontmatter. Adding it to the site-level navigation in `astro.config.mjs`, or reorganizing navigation, is a separate decision. Make it only when that is what you set out to do.
 

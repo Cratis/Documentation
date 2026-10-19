@@ -118,16 +118,26 @@ const overviewTopic = {
                 { label: 'What is event sourcing?', slug: 'concepts/event-sourcing' },
                 { label: 'CQRS explained', slug: 'concepts/cqrs' },
                 { label: 'Event store vs. a regular database', slug: 'concepts/event-store' },
-                { label: 'Event modeling: a practical guide', slug: 'concepts/event-modeling' },
+                { label: 'Event modeling', link: '/event-modeling/' },
                 { label: 'Keeping decisions correct', slug: 'concepts/keeping-decisions-correct' },
                 { label: 'The Dynamic Consistency Boundary', slug: 'concepts/dynamic-consistency-boundary' },
                 { label: 'Read this first: write-side consistency', slug: 'concepts/read-this-first-write-side-consistency' },
                 { label: 'Projections and read models', slug: 'concepts/projections-and-read-models' },
                 { label: 'Event-driven architecture vs. event sourcing', slug: 'concepts/event-driven-architecture' },
+                { label: 'Event sourcing and GDPR', slug: 'concepts/event-sourcing-gdpr' },
             ],
         },
-        { label: 'Compare event sourcing for .NET', slug: 'compare-event-sourcing-dotnet' },
-        { label: 'Compare event sourcing on the JVM', slug: 'compare-event-sourcing-jvm' },
+        {
+            label: 'Compare',
+            collapsed: true,
+            items: [
+                { label: 'How Cratis writes comparisons', slug: 'compare' },
+                { label: 'Marten vs Chronicle', slug: 'compare/marten-vs-chronicle' },
+                { label: 'KurrentDB vs Chronicle', slug: 'compare/kurrentdb-vs-chronicle' },
+                { label: 'Compare event sourcing for .NET', slug: 'compare-event-sourcing-dotnet' },
+                { label: 'Compare event sourcing on the JVM', slug: 'compare-event-sourcing-jvm' },
+            ],
+        },
         { label: 'Adopting Cratis', slug: 'adopting-cratis' },
         {
             label: 'Scenarios',
@@ -200,6 +210,7 @@ const overviewTopic = {
         },
         { label: 'Studio', slug: 'studio', badge: { text: 'Beta', variant: 'caution' } },
         { label: 'Event Modeling', slug: 'event-modeling' },
+        { label: 'Spec-driven development', slug: 'spec-driven-development' },
         { label: 'Screenplay', link: '/screenplay/' },
         { label: 'Prologue', link: '/prologue/' },
         {
@@ -247,6 +258,7 @@ const aiTopic = {
     link: 'ai',
     icon: 'star',
     items: [
+        { label: 'Agentic development with event sourcing', slug: 'agentic-development' },
         { label: 'Getting started', slug: 'ai/getting-started' },
         { label: 'Agent harness guide', slug: 'ai/harnesses' },
         { label: 'Concepts', slug: 'ai/concepts' },
@@ -334,6 +346,8 @@ export default defineConfig({
             // Default social-sharing metadata for every page. Starlight already
             // emits og:title/og:description; these add the image and card type.
             head: [
+                { tag: 'link', attrs: { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' } },
+                { tag: 'link', attrs: { rel: 'apple-touch-icon', href: '/apple-touch-icon.png', sizes: '180x180' } },
                 { tag: 'meta', attrs: { property: 'og:image', content: 'https://www.cratis.io/og-image.jpg' } },
                 { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
                 { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
@@ -395,14 +409,14 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/compare-event-sourcing-dotnet', '/compare-event-sourcing-jvm', '/adopting-cratis', '/chronicle-clients', '/event-sourcing/**', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/upgrade-path', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/generated-values', '/decisions-that-hold-walkthrough', '/eventmodelers-ai', '/eventmodelers-ai/**', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/compare', '/compare/**', '/compare-event-sourcing-dotnet', '/compare-event-sourcing-jvm', '/adopting-cratis', '/chronicle-clients', '/event-sourcing/**', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/upgrade-path', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/spec-driven-development', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/generated-values', '/decisions-that-hold-walkthrough', '/eventmodelers-ai', '/eventmodelers-ai/**', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],
                         authproxy: ['/authproxy', '/authproxy/**'],
                         cli: ['/cli', '/cli/**'],
                         templates: ['/templates', '/templates/**'],
-                        ai: ['/ai', '/ai/**', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
+                        ai: ['/ai', '/ai/**', '/agentic-development', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
                         fundamentals: ['/fundamentals', '/fundamentals/**'],
                         contributing: ['/contributing', '/contributing/**'],
                         architecture: ['/architecture', '/architecture/**'],

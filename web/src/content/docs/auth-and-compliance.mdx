@@ -130,6 +130,8 @@ data is sensitive. See [causation](/arc/backend/csharp/chronicle/commands/causat
 
 ## Erasure and its limits
 
+For the concept and a comparison of erasure approaches, see [Event sourcing and GDPR](/concepts/event-sourcing-gdpr/).
+
 The event log can stay structurally immutable while protected values become unreadable. For GDPR-style
 erasure, Chronicle deletes the subject's PII encryption key. After that, PII encrypted with that key
 cannot be decrypted by the running system.
