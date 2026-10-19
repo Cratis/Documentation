@@ -12,6 +12,7 @@ import { remarkMermaidPrerender, closeBrowser } from './scripts/mermaid-prerende
 import { remarkVariantTabs } from './scripts/remark-variant-tabs.mjs';
 import { rehypeFocusableTables } from './scripts/rehype-focusable-tables.mjs';
 import { LLM_SETS } from './scripts/llm-sets.mjs';
+import { PAGE_SEPARATOR } from './scripts/llm-bulk.mjs';
 import { docArtifactsIntegration } from './scripts/doc-artifacts-integration.mjs';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightPageActions from 'starlight-page-actions';
@@ -316,6 +317,9 @@ export default defineConfig({
         }),
         starlight({
             title: 'Cratis',
+            // Site-owned pages use git history (the CI checkout fetches it); synced product pages
+            // get `lastUpdated` frontmatter from their source repository in sync-content.mjs.
+            lastUpdated: true,
             description:
                 'Build event-sourced and CQRS applications with Cratis — an open-source (MIT) event-sourcing database and full-stack platform. Chronicle stores events in MongoDB, PostgreSQL, SQL Server, or SQLite and has clients for .NET, TypeScript, Kotlin/Java, and Elixir, with Arc and Components completing the type-safe stack.',
             // Default social-sharing metadata for every page. Starlight already
@@ -408,6 +412,8 @@ export default defineConfig({
                 // an assistant reading only /llms.txt still gets the whole picture.
                 starlightLlmsTxt({
                     projectName: 'Cratis',
+                    // emit-llm-indexes.mjs filters pages by this marker, then removes it.
+                    pageSeparator: PAGE_SEPARATOR,
                     minify: { note: false, tip: false, details: false, whitespace: false },
                     customSets: LLM_SETS.map(({ label, paths, product, area }) => ({
                         label,

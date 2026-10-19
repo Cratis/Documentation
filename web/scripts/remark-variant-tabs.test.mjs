@@ -12,8 +12,11 @@ import remarkParse from 'remark-parse';
 import remarkMdx from 'remark-mdx';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { emitDocArtifacts } from './emit-doc-artifacts.mjs';
+import { stripMdxSyntax } from './strip-mdx-syntax.mjs';
 import { remarkVariantTabs } from './remark-variant-tabs.mjs';
 import { convertFile } from './sync-content.mjs';
+
+const MDX_SCAFFOLDING = /<Tabs\b|<TabItem\b|import \{ Tabs/;
 
 const config = await loadVariantDocsConfig();
 
@@ -130,13 +133,13 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
             axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
         }), { markdownMirrors: 2, staticFiles: 0 });
         const mirror = await readFile(path.join(distRoot, 'capstone.md'), 'utf8');
-        assert.ok(mirror.startsWith("---\ntitle: Capstone\n---\nimport { Tabs, TabItem } from '@astrojs/starlight/components';\n"));
-        assert.match(mirror, new RegExp(`<Tabs syncKey="${f.axis.syncKey}">`));
+        assert.ok(mirror.startsWith('---\ntitle: Capstone\n---\n'));
+        assert.doesNotMatch(mirror, MDX_SCAFFOLDING); // mirrors are plain Markdown
         for (const variant of f.variants) {
             assert.ok(mirror.includes('```text\n' + `${variant.key} owned example`));
         }
         assert.doesNotMatch(mirror, /<(?:ArcBackendTabs|ChronicleClientTabs)\b/);
-        assert.equal(await readFile(path.join(distRoot, `${productKey}.md`), 'utf8'), converted);
+        assert.equal(await readFile(path.join(distRoot, `${productKey}.md`), 'utf8'), stripMdxSyntax(converted));
         assert.equal(await readFile(f.sitePath, 'utf8'), source);
     });
 
@@ -154,7 +157,8 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
                 axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
             });
             const mirror = await readFile(path.join(distRoot, 'capstone.md'), 'utf8');
-            assert.equal((mirror.match(/<Tabs syncKey=/g) ?? []).length, 1, JSON.stringify(newline));
+            assert.doesNotMatch(mirror, MDX_SCAFFOLDING, JSON.stringify(newline));
+            assert.ok(mirror.includes('owned example'), JSON.stringify(newline));
             assert.equal(await readFile(f.sitePath, 'utf8'), source);
         }
     });
@@ -214,7 +218,7 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
                 axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
             });
             const mirror = await readFile(path.join(distRoot, 'capstone.md'), 'utf8');
-            assert.equal((mirror.match(/<Tabs syncKey=/g) ?? []).length, 1, name);
+            assert.doesNotMatch(mirror, MDX_SCAFFOLDING, name);
             assert.ok(mirror.includes('```text\n' + `${f.variants[0].key} owned example`), name);
             assert.ok(mirror.includes(fence), name);
             assert.ok(!mirror.includes(`<${f.axis.macro}`), name);
@@ -245,7 +249,7 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
         });
         const mirror = await readFile(path.join(f.root, 'dist', 'capstone.md'), 'utf8');
         assert.ok(mirror.includes(literal));
-        assert.equal((mirror.match(/<Tabs syncKey=/g) ?? []).length, 1);
+        assert.doesNotMatch(mirror, MDX_SCAFFOLDING);
         const fencedConverted = await convertFile(fencedOnly, {
             basename: 'capstone.mdx', dir: docsRoot, srcPath: f.sitePath,
             product: { key: productKey, src: docsRoot },

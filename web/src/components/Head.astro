@@ -15,7 +15,7 @@
 // so these are the only faces (no `swap` duplicate).
 import Default from '@astrojs/starlight/components/Head.astro';
 import { getCollection } from 'astro:content';
-import { contextualTitle, hasDuplicateTitle, pageDescription, structuredData, serializeStructuredData } from '../../scripts/page-metadata.mjs';
+import { contextualTitle, hasDuplicateTitle, hasPublishedChildren, pageDescription, pageKind, structuredData, serializeStructuredData } from '../../scripts/page-metadata.mjs';
 import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import interLatinExt from '@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2?url';
 import jbMonoLatin from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
@@ -64,8 +64,16 @@ if (title) {
     );
 }
 if (id) breadcrumbs.push({ name: entry.data.title, url });
+// Search and AI answers see the same contextual title in JSON-LD as in <title> and og:title.
+const headline = (title ?? entry.data.title).replace(/ \| Cratis$/, '');
+const lastUpdated = route.lastUpdated instanceof Date ? route.lastUpdated : undefined;
+const kind = pageKind(id, {
+    hasChildren: hasPublishedChildren(id, docs),
+    splash: entry.data.template === 'splash',
+});
 const data = structuredData({
-    home: !id, notFound: id === '404', title: entry.data.title, description, url, breadcrumbs,
+    home: !id, notFound: id === '404', title: headline, description, url, breadcrumbs, kind,
+    dateModified: lastUpdated?.toISOString().slice(0, 10),
 });
 const jsonLd = data ? serializeStructuredData(data) : undefined;
 

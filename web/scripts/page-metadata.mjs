@@ -109,7 +109,44 @@ export function pageDescription(data, body, sourcePath, id) {
         ?? `${data.title} in the ${pageSection(id)} documentation for Cratis.`;
 }
 
-export function structuredData({ home, notFound = false, title, description, url, breadcrumbs }) {
+// Product landing pages describe software; everything else is an article, hub or glossary.
+const softwareProducts = new Set(['chronicle', 'arc', 'components', 'authproxy', 'cli', 'chronicle-mcp', 'prompter', 'templates']);
+
+/**
+ * Schema.org page kind: `glossary`, `software` (product landing), `collection` (a page that
+ * has published child pages, or a splash landing) or `article`.
+ */
+export function pageKind(id, { hasChildren = false, splash = false } = {}) {
+    const normalized = id.replace(/^\/+|\/+$/g, '').toLowerCase();
+    if (normalized === 'glossary') return 'glossary';
+    if (softwareProducts.has(normalized)) return 'software';
+    return hasChildren || splash ? 'collection' : 'article';
+}
+
+export function hasPublishedChildren(id, pages) {
+    const prefix = `${id.replace(/\/index$/, '')}/`;
+    return !!id && pages.some((page) => page.id !== id && page.id.startsWith(prefix));
+}
+
+function pageNode(kind, { title, description, url, dateModified }) {
+    const common = { headline: title, description, url, inLanguage: 'en' };
+    const dated = dateModified ? { dateModified } : {};
+    switch (kind) {
+        case 'glossary':
+            return { '@type': 'DefinedTermSet', name: title, description, url, inLanguage: 'en', ...dated };
+        case 'software':
+            return {
+                '@type': 'SoftwareApplication', name: title, description, url,
+                applicationCategory: 'DeveloperApplication', inLanguage: 'en', ...dated,
+            };
+        case 'collection':
+            return { '@type': 'CollectionPage', name: title, ...common, ...dated };
+        default:
+            return { '@type': 'TechArticle', ...common, ...dated };
+    }
+}
+
+export function structuredData({ home, notFound = false, title, description, url, breadcrumbs, kind = 'article', dateModified }) {
     if (notFound) return undefined;
     const organization = { '@type': 'Organization', '@id': 'https://cratis.no/#organization', name: 'Cratis', url: 'https://cratis.no' };
     return {
@@ -119,8 +156,8 @@ export function structuredData({ home, notFound = false, title, description, url
             name: 'Cratis documentation', url: 'https://www.cratis.io/',
             description, inLanguage: 'en', publisher: { '@id': organization['@id'] },
         }] : [{
-            '@type': 'TechArticle', headline: title, description, url,
-            inLanguage: 'en', publisher: organization,
+            ...pageNode(kind, { title, description, url, dateModified }),
+            publisher: organization,
         }, {
             '@type': 'BreadcrumbList', itemListElement: breadcrumbs.map(({ name, url: item }, index) => ({
                 '@type': 'ListItem', position: index + 1, name, item,

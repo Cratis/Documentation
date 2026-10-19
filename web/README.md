@@ -116,7 +116,15 @@ Run the checks that cover what you changed, then say which ones you ran and whic
 
 Astro's build-completion hook writes slugged `/path.md` mirrors for page actions and copies supporting documentation assets (images, HTML coverage reports and their scripts and styles), even when you invoke `astro build` directly. `npm run build` also runs the `postbuild` step to generate the AI indexes (`llms.txt`) and content redirects; a direct Astro build does not run that npm step.
 
-`npm run check` runs `build`, `variant-docs:check`, `lint:docs`, `check:links`, `lint:prose`, `lint:markdown` and `check:external`, in that order. It does not run the script tests, the API reference build or the Storybook builds. Links into `/api/` and `/storybook*/` resolve only when `public/api/` and `public/storybook*/` exist, so a checkout that has never built them can report those links as broken.
+`npm run check` runs `build`, `variant-docs:check`, `lint:docs`, `lint:seo`, `check:links`, `lint:prose`, `lint:markdown` and `check:external`, in that order. It does not run the script tests, the API reference build or the Storybook builds. Links into `/api/` and `/storybook*/` resolve only when `public/api/` and `public/storybook*/` exist, so a checkout that has never built them can report those links as broken.
+
+### LLM exports and SEO checks
+
+`postbuild` writes `llms.txt` and the bulk exports. `llms-full.txt` holds the full page text without release digests and changelogs. `llms-small.txt` (and `<product>/llms-small.txt`) lists page titles with one-line summaries. The Markdown mirrors are plain Markdown: MDX imports and component lines are removed.
+
+The build prints each bulk export's size and emits a `::warning` annotation when `llms-small.txt` exceeds 400,000 bytes or `llms-full.txt` exceeds 17,000,000 bytes (`SIZE_WARNINGS` in `scripts/llm-bulk.mjs`). The warning never fails the build; trim or split an area before raising a threshold.
+
+`npm run lint:seo` warns about pages without a real description. `scripts/seo-baseline.json` holds the current count: a higher count is annotated on the pull request and a lower one asks you to lower the baseline (`npm run lint:seo -- --update-baseline`), so the count can only go down.
 
 ### What CI runs
 

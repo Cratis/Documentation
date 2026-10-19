@@ -25,6 +25,7 @@ import { markdownCommentsForMdx } from './markdown-comments-for-mdx.mjs';
 import { sourceEditUrl, sourceTreeUrl, sourceViewUrl } from './source-edit-url.mjs';
 import { reposRootFor, resolveRepoCandidate } from './repos-root.mjs';
 import { pageDescription } from './page-metadata.mjs';
+import { sourceLastModified } from './source-last-modified.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..'); // Documentation/web
@@ -862,6 +863,10 @@ export async function convertFile(raw, ctx) {
 
     const fm = { title, editUrl: sourceEditUrl(ctx.srcPath, reposRoot, docRepoRoot) };
     fm.description = pageDescription({ ...src, title }, out, ctx.srcPath ?? ctx.basename, ctx.product.key);
+    // Starlight cannot read git history for synced files, so carry the source repository's date.
+    const lastUpdated = sourceLastModified(ctx.srcPath);
+    // Dumped as a YAML timestamp, which is what the Starlight schema accepts.
+    if (lastUpdated) fm.lastUpdated = new Date(`${lastUpdated}T00:00:00Z`);
     if (src.sidebar) fm.sidebar = src.sidebar; // order/label/badge, when authors set it
     if (src.tableOfContents !== undefined) fm.tableOfContents = src.tableOfContents;
     const fmYaml = yaml.dump(fm, { lineWidth: -1 }).trimEnd();
