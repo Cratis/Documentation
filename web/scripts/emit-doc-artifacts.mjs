@@ -12,6 +12,7 @@ import { assertPublicDocPath, assertPublicDocSource } from './private-doc-paths.
 import { emitLlmIndexes } from './emit-llm-indexes.mjs';
 import { expandVariantTabs, splitFrontmatter } from './sync-content.mjs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
+import { stripMdxSyntax } from './strip-mdx-syntax.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..');
@@ -83,9 +84,10 @@ export async function emitDocArtifacts(docsRoot, distRoot, options = {}) {
                 });
                 // Keep the authored frontmatter and its separator verbatim; the
                 // generated Starlight import belongs in the MDX body, not above ---.
-                await fs.writeFile(output, source.slice(0, source.length - body.length) + expanded.body);
+                await fs.writeFile(output, stripMdxSyntax(source.slice(0, source.length - body.length) + expanded.body));
             } else {
-                await fs.copyFile(file, output);
+                // The mirror is plain Markdown: drop the MDX imports and component lines.
+                await fs.writeFile(output, stripMdxSyntax(source));
             }
         } else {
             await fs.copyFile(file, output);

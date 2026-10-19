@@ -12,6 +12,7 @@ import { remarkMermaidPrerender, closeBrowser } from './scripts/mermaid-prerende
 import { remarkVariantTabs } from './scripts/remark-variant-tabs.mjs';
 import { rehypeFocusableTables } from './scripts/rehype-focusable-tables.mjs';
 import { LLM_SETS } from './scripts/llm-sets.mjs';
+import { PAGE_SEPARATOR } from './scripts/llm-bulk.mjs';
 import { docArtifactsIntegration } from './scripts/doc-artifacts-integration.mjs';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightPageActions from 'starlight-page-actions';
@@ -408,6 +409,8 @@ export default defineConfig({
                 // an assistant reading only /llms.txt still gets the whole picture.
                 starlightLlmsTxt({
                     projectName: 'Cratis',
+                    // emit-llm-indexes.mjs filters pages by this marker, then removes it.
+                    pageSeparator: PAGE_SEPARATOR,
                     minify: { note: false, tip: false, details: false, whitespace: false },
                     customSets: LLM_SETS.map(({ label, paths, product, area }) => ({
                         label,

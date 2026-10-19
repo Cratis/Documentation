@@ -10,6 +10,7 @@ import yaml from 'js-yaml';
 import { PRODUCTS } from './sync-content.mjs';
 import { LLM_SETS, llmSetSlug } from './llm-sets.mjs';
 import { citeRenderedSet, withoutSnippetSourceLinks } from './llm-set-sources.mjs';
+import { abridgedExport, isLogPage, pageSummary, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const site = 'https://www.cratis.io';
@@ -49,6 +50,28 @@ function titleOf(content, fallback) {
     const metadata = frontmatter && yaml.load(frontmatter[1]);
     const title = metadata?.hero?.title || metadata?.title;
     return typeof title === 'string' && title.trim() ? title.trim() : fallback;
+}
+
+function frontmatterOf(content) {
+    const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(content);
+    return { data: (match && yaml.load(match[1])) || {}, body: match ? content.slice(match[0].length) : content };
+}
+
+// Every published page, for filtering the plugin's full export and summarising the small one.
+async function publishedPages(docsRoot) {
+    const pages = [];
+    for await (const file of markdownFiles(docsRoot)) {
+        const slug = mirrorSlug(docsRoot, file);
+        const { data, body } = frontmatterOf(await fs.readFile(file, 'utf8'));
+        if (data.draft === true) continue;
+        const title = data.hero?.title || data.title;
+        pages.push({
+            slug, title: typeof title === 'string' && title.trim() ? title.trim() : slug.split('/').at(-1).replace(/-/g, ' '),
+            url: `${site}/${slug}${slug ? '/' : ''}`, excluded: isLogPage(slug),
+            description: pageSummary(data, body, file),
+        });
+    }
+    return pages.sort((a, b) => a.slug.localeCompare(b.slug));
 }
 
 function link(label, route) {
@@ -143,7 +166,7 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
         if (!output.has(`/${set.product}/${set.area}/llms.txt`)) throw new Error(`Set without a published area index: ${set.label}`);
         const route = fullSets.get(`${set.product}/${set.area}`);
         const content = await fs.readFile(path.join(dist, route.slice(1)), 'utf8');
-        output.set(route, citeRenderedSet(withoutSnippetSourceLinks(content), selectedPages.get(set), set.label));
+        output.set(route, citeRenderedSet(withoutSnippetSourceLinks(withoutPageMarkers(content)), selectedPages.get(set), set.label));
     }
     const root = path.join(dist, 'llms.txt');
     if (!await exists(root)) throw new Error('Missing site-wide llms.txt');
@@ -167,9 +190,31 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
         if (!await exists(path.join(dist, route.slice(1), 'index.html'))) throw new Error(`Missing cross-product guide: ${route}`);
     }
     const rootIndex = original.replace('## Documentation Sets\n', `${introduction}\n\n## Documentation Sets\n`);
-    for (const bulk of ['llms-full.txt', 'llms-small.txt']) {
-        const file = path.join(dist, bulk);
-        if (await exists(file)) output.set(`/${bulk}`, withoutSnippetSourceLinks(await fs.readFile(file, 'utf8')));
+    // Bulk exports: drop release digests and changelogs from the full text, and replace the
+    // plugin's abridged copy with a compact title-and-summary list (site-wide and per product).
+    const allPages = await publishedPages(docsRoot);
+    const fullFile = path.join(dist, 'llms-full.txt');
+    if (await exists(fullFile)) {
+        output.set('/llms-full.txt', withoutPageMarkers(withoutSnippetSourceLinks(withoutExcludedPages(await fs.readFile(fullFile, 'utf8'), allPages))));
+    }
+    const documented = allPages.filter(page => !page.excluded && page.slug && page.slug !== '404');
+    // The most specific product owns a page (fundamentals/go before fundamentals).
+    const productOf = (page) => products.filter(product => page.slug === product.key || page.slug.startsWith(`${product.key}/`))
+        .sort((a, b) => b.key.length - a.key.length)[0];
+    const groups = new Map();
+    for (const page of documented) {
+        const key = productOf(page)?.key ?? '';
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(page);
+    }
+    const labelOf = (key) => products.find(product => product.key === key)?.label ?? 'Cratis stack';
+    const orderedGroups = [...groups].sort(([a], [b]) => (a === '') === (b === '') ? a.localeCompare(b) : a === '' ? -1 : 1)
+        .map(([key, pages]) => ({ key, label: labelOf(key), pages }));
+    output.set('/llms-small.txt', abridgedExport('Cratis documentation (abridged)', orderedGroups));
+    for (const { key, label, pages } of orderedGroups.filter(group => group.key && productLinks.some(item => item.includes(`${site}/${group.key}/llms.txt`)))) {
+        output.set(`/${key}/llms-small.txt`, abridgedExport(`${label} documentation (abridged)`, [{ label, pages }]));
+        const overview = output.get(`/${key}/llms.txt`);
+        output.set(`/${key}/llms.txt`, `${overview.trimEnd()}\n\n## Summary of all pages\n\n${link(`${label} titles and summaries`, `/${key}/llms-small.txt`)}\n`);
     }
     for (const [route, content] of output) {
         const file = path.join(dist, route.slice(1));
@@ -177,6 +222,11 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
         await fs.writeFile(file, `${content.trimEnd()}\n`);
     }
     await fs.writeFile(root, rootIndex);
+    const sizes = new Map([...output].map(([route, content]) => [route, Buffer.byteLength(content)]));
+    for (const route of ['/llms-full.txt', '/llms-small.txt']) {
+        if (sizes.has(route)) console.log(`[postbuild] ${route}: ${sizes.get(route)} bytes`);
+    }
+    for (const warning of sizeWarnings(sizes)) console.warn(warning);
     console.log(`[postbuild] indexed ${indexedPages} product pages in ${productLinks.length} products and ${areaIndexes} areas; ${sets.length} bounded rendered sets`);
     return { indexedPages, products: productLinks.length, areas: areaIndexes };
 }
