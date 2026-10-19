@@ -15,7 +15,9 @@ These pages explain the ideas behind event-sourced systems, independent of any p
 | [The Dynamic Consistency Boundary](/concepts/dynamic-consistency-boundary/) | What does it mean to draw the consistency boundary per decision, and where do Chronicle and Arc sit? |
 | [Read this first: write-side consistency](/concepts/read-this-first-write-side-consistency/) | How do DCB, stream-version checks and aggregates map onto Chronicle's guards? |
 | [Decisions that hold, from model to frontend](/decisions-that-hold-walkthrough/) | How do you build one guarded rule across Screenplay, Arc, Chronicle and a React frontend? |
+| [Agentic development with event sourcing](/agentic-development/) | Why do explicit events, commands and specifications make AI coding agents safer to rely on? |
 | [Projections and read models](/concepts/projections-and-read-models/) | How do events become queryable views? |
 | [Event-driven architecture vs. event sourcing](/concepts/event-driven-architecture/) | How do messaging between services and event storage relate? |
+| [Event sourcing and GDPR](/concepts/event-sourcing-gdpr/) | How do you erase personal data from an immutable event log? |
 
 Start with [what is event sourcing?](/concepts/event-sourcing/) if the terms are new. When you are ready to build, continue with [Get started with Chronicle](/chronicle/get-started/) or the [Cratis Stack overview](/cratis-stack/).

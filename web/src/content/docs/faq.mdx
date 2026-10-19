@@ -87,7 +87,7 @@ See [Chronicle storage](/chronicle/hosting/configuration/storage/), [Arc MongoDB
 
 Cratis is not a single library replacement. Chronicle is an event-sourcing engine; Arc is a CQRS and proxy-generation framework; Components is a React library built around those generated contracts. The comparisons are about architecture shape more than API surface.
 
-- Comparing event stores: [Compare event sourcing for .NET](/compare-event-sourcing-dotnet/) covers KurrentDB, Marten, and Chronicle, and [Compare event sourcing on the JVM](/compare-event-sourcing-jvm/) covers Axon Framework, KurrentDB, and Chronicle. Both name the versions they compared.
+- Comparing event stores: [Compare event sourcing for .NET](/compare-event-sourcing-dotnet/) covers KurrentDB, Marten, and Chronicle, and [Compare event sourcing on the JVM](/compare-event-sourcing-jvm/) covers Axon Framework, KurrentDB, and Chronicle. Both name the versions they compared. For a head-to-head, read [Marten vs Chronicle](/compare/marten-vs-chronicle/); [How Cratis writes comparisons](/compare/) lists every comparison.
 - Coming from MediatR or MVC controllers: [MediatR, MVC, and Arc](/arc/backend/csharp/coming-from-mediatr-and-mvc/).
 - Coming from EF Core and tables: [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/).
 
@@ -96,6 +96,10 @@ Wolverine appears in the .NET comparison as the Critter Stack's messaging and we
 ## What does Cratis cost, and what license is it under?
 
 Everything Cratis publishes today is MIT licensed and free to use — Chronicle, Arc, Components, the CLI, the clients, and the supporting libraries. There is no paid tier for the software itself. If you want dedicated, private help, see [Professional help](/professional-help/).
+
+## Can I use AI coding agents with Cratis?
+
+Yes. Cratis AI gives an agent the conventions, the Chronicle MCP server and the CLI let it inspect a running store, and specifications check what it writes. The MCP server is read-only by default. [Agentic development with event sourcing](/agentic-development/) explains the model and what is still experimental; [AI-native development](/ai/) covers the setup.
 
 ## Where do I ask for help?
 

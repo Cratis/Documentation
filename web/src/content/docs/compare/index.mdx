@@ -1,0 +1,30 @@
+---
+title: "How Cratis writes comparisons"
+description: "How the Cratis team compares Chronicle with other event stores: named versions, review dates, first-party sources, stated limits, and a corrections route."
+---
+
+Cratis writes comparisons to help you choose, not to win. Each page names the product versions it compares, the date of its review, and a first-party source for every claim about another product. Where we cannot find a fact in a product's own documentation, the page says "Not publicly documented."
+
+The Cratis team writes these pages, and Chronicle is our product. That is a conflict of interest, and the method below is how we limit it.
+
+## Comparison pages
+
+| Page | What it compares |
+| --- | --- |
+| [Marten vs Chronicle](/compare/marten-vs-chronicle/) | A head-to-head of the in-process .NET library on PostgreSQL and the Chronicle server, including where Marten is the better choice. |
+| [Event sourcing in .NET](/compare-event-sourcing-dotnet/) | KurrentDB, Marten and Chronicle across product boundary, storage, languages, projections and licenses. |
+| [Event sourcing on the JVM](/compare-event-sourcing-jvm/) | Axon Framework, KurrentDB and Chronicle for JVM applications. |
+
+## How we write them
+
+- **Named versions and dates.** Every table records the version of each product and the date we checked it. A row describes those versions only.
+- **First-party sources.** A claim about another product links to that product's documentation, repository, license or package registry. A claim about Chronicle matches the Chronicle documentation and README.
+- **Capabilities, not ratings.** We list what is documented. We do not score products, rank them, or call one better.
+- **Honest limits.** Each page says what it does not establish, and the Marten page has a section on where the other product is the better choice.
+- **Different layers.** Products differ in what they are, for example a library against a server. The tables name which product owns each concern rather than pretending they are equivalent.
+
+## Corrections and refresh
+
+We recheck a page when a compared product ships a relevant major or minor release or changes its license, and at least every 90 days. If a statement cannot be confirmed from a product's current public sources, we correct or remove it.
+
+If you find an error or a better source, [send the correction](/feedback/).
