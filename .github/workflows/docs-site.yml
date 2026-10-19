@@ -218,7 +218,8 @@ jobs:
           filter: blob:none
           path: Fundamentals
 
-      # Fundamentals.Go publishes from main only (no docs-overhaul branch); read-only checkout.
+      # Fundamentals.Go, Chronicle.Go, Chronicle.Dapr, Chronicle.Wolverine and Arc.Go publish from main
+      # only (no docs-overhaul branch); read-only checkouts.
       - name: Checkout Fundamentals.Go
         uses: actions/checkout@v4
         with:
@@ -230,6 +231,54 @@ jobs:
           fetch-depth: 0
           filter: blob:none
           path: Fundamentals.Go
+
+      - name: Checkout Chronicle.Go
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Chronicle.Go
+          ref: main
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
+          path: Chronicle.Go
+
+      - name: Checkout Chronicle.Dapr
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Chronicle.Dapr
+          ref: main
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
+          path: Chronicle.Dapr
+
+      - name: Checkout Chronicle.Wolverine
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Chronicle.Wolverine
+          ref: main
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
+          path: Chronicle.Wolverine
+
+      - name: Checkout Arc.Go
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Arc.Go
+          ref: main
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
+          path: Arc.Go
 
       - name: Checkout cli
         uses: actions/checkout@v4

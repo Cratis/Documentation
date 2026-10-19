@@ -146,6 +146,10 @@ Cratis has one event store, one application framework, one UI library, and the t
 | TypeScript client | `@cratis/chronicle` for Chronicle from Node.js | Released | MIT | [TypeScript](/event-sourcing/typescript/) |
 | Kotlin/Java client | `io.cratis:chronicle` with a Spring Boot starter | Released | MIT | [Kotlin](/event-sourcing/kotlin/) |
 | Elixir client | `cratis_chronicle` on Hex | Released | MIT | [Elixir](/event-sourcing/elixir/) |
+| Go client | `github.com/cratis/chronicle.go`, a v0.x foundation without observers and projections | Experimental | MIT | [Go](/event-sourcing/go/) |
+| Arc.Go | Go framework for Arc; no tagged release yet | Early development | MIT | [Arc.Go](/arc/go/) |
+| Chronicle.Dapr | Connects Dapr applications to Chronicle; preview source, no released artifacts | Experimental | MIT | [Chronicle.Dapr](/chronicle/dapr/) |
+| Chronicle.Wolverine | Connects Chronicle and Arc to Wolverine handlers, transports, and outboxes; source only, no package | Experimental | MIT | [Chronicle.Wolverine](/chronicle/wolverine/) |
 | Python client | Chronicle client for Python, not yet published | Pre-alpha | MIT | [Python](/event-sourcing/python/) |
 
 The .NET client ships with Chronicle itself. See [Chronicle in your language](/chronicle-clients/) for installation per client.
@@ -163,7 +167,7 @@ The .NET client ships with Chronicle itself. See [Chronicle in your language](/c
     Point it at an existing system — no Cratis constructs required — and it captures selected HTTP, database, and telemetry signals, then proposes an event model and a Screenplay for you to review. *(Experimental.)*
   </SimpleCard>
   <SimpleCard title="Chronicle — events" icon="seti:db" link="/chronicle/">
-    The event-sourcing database and runtime: gRPC/protobuf boundary, .NET-first client, TypeScript, Kotlin/Java, and Elixir clients, MongoDB/PostgreSQL/SQL Server/SQLite storage, Orleans inside.
+    The event-sourcing database and runtime: gRPC/protobuf boundary, .NET-first client, TypeScript, Kotlin/Java, and Elixir clients (and an experimental Go client), MongoDB/PostgreSQL/SQL Server/SQLite storage, Orleans inside.
   </SimpleCard>
   <SimpleCard title="AuthProxy — edge" icon="seti:lock" link="/authproxy/">
     Authentication, tenant resolution, identity enrichment, routing, and invite-based onboarding in front of your services.

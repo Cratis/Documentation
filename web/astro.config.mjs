@@ -86,11 +86,30 @@ function withFundamentalsGo(items) {
         ? [...items, goSection]
         : [...items.slice(0, typeScriptIndex + 1), goSection, ...items.slice(typeScriptIndex + 1)];
 }
-productTopics = productTopics
-    .filter((topic) => topic.id !== 'fundamentals/go')
-    .map((topic) => topic.id === 'fundamentals' && fundamentalsGoTopic
-        ? { ...topic, items: withFundamentalsGo(topic.items) }
+// Chronicle.Go, Chronicle.Dapr, Chronicle.Wolverine and Arc.Go follow the same pattern: each is
+// generated as its own topic but surfaces as a collapsed section inside its parent product's
+// topic. A section goes after the named anchor item, or at the end if that item is renamed.
+const nestedSections = [
+    { id: 'chronicle/go', parent: 'chronicle', label: 'Go', after: 'Client SDKs' },
+    { id: 'chronicle/dapr', parent: 'chronicle', label: 'Dapr integration', after: 'Go' },
+    { id: 'chronicle/wolverine', parent: 'chronicle', label: 'Wolverine integration', after: 'Dapr integration' },
+    { id: 'arc/go', parent: 'arc', label: 'Go', after: 'Backend' },
+];
+function withNestedSection(items, section, nestedTopic) {
+    const nested = { label: section.label, collapsed: true, items: nestedTopic.items };
+    const anchorIndex = items.findIndex((item) => item.label === section.after);
+    return anchorIndex === -1
+        ? [...items, nested]
+        : [...items.slice(0, anchorIndex + 1), nested, ...items.slice(anchorIndex + 1)];
+}
+for (const section of nestedSections) {
+    const nestedTopic = productTopics.find((topic) => topic.id === section.id);
+    if (!nestedTopic) continue;
+    productTopics = productTopics.map((topic) => topic.id === section.parent
+        ? { ...topic, items: withNestedSection(topic.items, section, nestedTopic) }
         : topic);
+}
+productTopics = productTopics.filter((topic) => !nestedSections.some((section) => section.id === topic.id));
 
 // The first topic gathers the site-level, cross-product pages (hand-authored in
 // web/, not owned by any product): the "why", the capstone, samples, tools.
@@ -182,10 +201,11 @@ const overviewTopic = {
             collapsed: true,
             items: [
                 { label: 'Overview', slug: 'chronicle-clients' },
-                { label: 'Event sourcing in .NET', slug: 'event-sourcing/dotnet' },
+                { label: 'Event sourcing in C# and .NET', slug: 'event-sourcing/dotnet' },
                 { label: 'Event sourcing in TypeScript', slug: 'event-sourcing/typescript' },
                 { label: 'Event sourcing in Kotlin and Java', slug: 'event-sourcing/kotlin' },
                 { label: 'Event sourcing in Elixir', slug: 'event-sourcing/elixir' },
+                { label: 'Event sourcing in Go', slug: 'event-sourcing/go', badge: { text: 'Experimental', variant: 'caution' } },
                 { label: 'Event sourcing in Python', slug: 'event-sourcing/python', badge: { text: 'Soon', variant: 'tip' } },
             ],
         },
