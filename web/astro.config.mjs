@@ -110,7 +110,7 @@ const overviewTopic = {
                 { label: 'What is event sourcing?', slug: 'concepts/event-sourcing' },
                 { label: 'CQRS explained', slug: 'concepts/cqrs' },
                 { label: 'Event store vs. a regular database', slug: 'concepts/event-store' },
-                { label: 'Event modeling: a practical guide', slug: 'concepts/event-modeling' },
+                { label: 'Event modeling', link: '/event-modeling/' },
                 { label: 'Keeping decisions correct', slug: 'concepts/keeping-decisions-correct' },
                 { label: 'The Dynamic Consistency Boundary', slug: 'concepts/dynamic-consistency-boundary' },
                 { label: 'Read this first: write-side consistency', slug: 'concepts/read-this-first-write-side-consistency' },

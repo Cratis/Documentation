@@ -16,7 +16,7 @@ Most stacks are assembled parts you bolt together and then spend the whole proje
 
 Each product is strong on its own — you can [use them separately](/why-cratis/). The reason to reach for the *whole* stack is that the seams disappear: CQRS shapes information going in and out, event sourcing keeps the facts underneath, and everywhere you'd normally hand-write glue, Cratis generates it.
 
-- You **model** the domain, visually in [Studio](/studio/) or as a declarative `.play` script in [Screenplay](/screenplay/), and the model describes the commands, events, and read models you build. Studio is live in beta.
+- You **model** the domain, visually in [Studio](/studio/) or as a declarative `.play` script in [Screenplay](/screenplay/), and the [event model](/event-modeling/) describes the commands, events, and read models you build. Studio is live in beta.
 - Or you **start from a system that already exists**, and [Prologue](/prologue/) captures selected HTTP, database, and telemetry signals from it and proposes the same kind of model for you to review. *(Experimental.)*
 - You **secure the edge**, and [AuthProxy](/authproxy/) authenticates, resolves the tenant, enriches identity, and routes requests.
 - You **write a command** in C#, Kotlin, Java, or TypeScript (a source preview), and [Arc](/arc/) generates the [typed TypeScript proxy](/arc/understanding-the-proxy-boundary/) for it.
