@@ -15,7 +15,7 @@ Agentic development with event sourcing means letting AI coding agents design, c
 This page explains why that combination helps, which Cratis tools implement each part, how they fit together, and what is still experimental. It is written for tech leads who are adopting coding agents and worry about correctness and auditability. Cratis is built by a team that works this way, and the tooling described here is the tooling we use. Where something is not finished, the page says so.
 
 <Aside type="note" title="Maturity at a glance">
-The Chronicle MCP server, the CLI, Chronicle and Cratis Specifications are released. Cratis AI (rules and skills) and Studio are in Preview. Screenplay, Stage and Prologue are experimental. The [capability map](/cratis-stack/) lists every product with its maturity and licence.
+The Chronicle MCP server, the CLI, Chronicle and Cratis Specifications are released. Cratis AI (rules and skills) and Studio are in Preview. Screenplay, Stage and Prologue are experimental. The [Cratis Stack](/cratis-stack/) page has a capability map with maturity labels.
 </Aside>
 
 ## Why agents fail on CRUD systems
@@ -134,9 +134,9 @@ Without configuration the server uses Chronicle's development credentials and `l
 
 ### The CLI
 
-The [Cratis CLI](/cli/) covers the same ground from a terminal and is the better fit for agents that run shell commands. Running `cratis init` in your project writes a `CHRONICLE.md` that lists every command the CLI can run, adds instruction files for the AI tools it detects, and adds a `chronicle-diagnose` slash command. To replay an observer after a fix, the CLI has `cratis chronicle observers replay <OBSERVER_ID>`; the [replay a projection](/cli/scenarios/replay-a-projection/) scenario walks through it.
+The [Cratis CLI](/cli/) covers the same ground from a terminal and is the better fit for agents that run shell commands. Running `cratis init` in your project writes a `CHRONICLE.md` that lists every command the CLI can run, adds instruction files for the AI tools it detects, and adds a `chronicle-diagnose` slash command. The CLI can also replay an observer, which rebuilds a read model; read [replay rebuilds read models](#replay-rebuilds-read-models) before an agent runs it.
 
-Neither route changes application state. Both read the log and operate observers and jobs. To change state, the system goes through commands and events, so the history stays honest.
+Neither route changes the event log. Both read it and operate observers and jobs; job control and replay change read-side state, so they need care and, over MCP, an explicit policy. To change state, the system goes through commands and events, so the history stays honest.
 
 ## Rules and skills that teach agents the conventions
 
@@ -190,9 +190,11 @@ The specs prove behavior, so the first review question for an agent-written chan
 
 Some rules cannot be checked by a unit spec alone, because they depend on what other callers do at the same moment. Chronicle checks constraints when an event is appended and rejects the append if the rule fails. For decisions that read state, it can check the state the decision was based on: if a matching event was written since, the append is refused. The [keeping decisions correct](/concepts/keeping-decisions-correct/) page explains the model. This matters for agents because the rule is enforced where the data is written, not only where the agent happened to remember it.
 
-### Replay to verify
+### Replay rebuilds read models
 
-The log makes one more check possible. Projections and reducers derive read models from events, so a changed projection can be verified by replaying recorded history into it and comparing the result. The CLI's `cratis chronicle observers replay` command does this for an observer in a running store. An agent can propose the change, the specification suite can check it in process, and the replay shows its effect on real history before anyone relies on it. Replay applies to code that derives state. Reactors that perform side effects need care: Chronicle's .NET client replays reactors unless the class is marked `[OnceOnly]`, so check the [reactor replay rules](/chronicle/clients/where-the-clients-differ/#reactor-replay-and-delivery-identity) before replaying one.
+The log also makes read models disposable. When you change how a projection or reducer builds a read model, you do not migrate the read model: you replay the observer and it rebuilds from history. The CLI does this with the `observers replay` command, and `replay-partition` does it for a single event source. The [replay a projection](/cli/scenarios/replay-a-projection/) scenario walks through it.
+
+Replay is an operation, not a check. The event log is untouched, but the observer discards its accumulated state and rebuilds from sequence zero, so the read model is unavailable or incomplete while it catches up. Run it deliberately, after the changed projection is deployed, and prefer `replay-partition` when only one event source is affected. Specifications are the pre-deployment check: they run in process against seeded events and touch no store. Reactors need extra care, because Chronicle's .NET client replays them unless the class is marked `[OnceOnly]`; read the [reactor replay rules](/chronicle/clients/where-the-clients-differ/#reactor-replay-and-delivery-identity) before replaying one.
 
 ### Review stays human
 
@@ -275,4 +277,4 @@ Chronicle, Arc, Specifications, the CLI and the MCP server are released. See [pr
 - [Chronicle MCP server](/chronicle-mcp/): tools, configuration and deployment profiles.
 - [Testing with Cratis](/testing-with-cratis/) and [Specifications](/specifications/): the specification model in detail.
 - [Event modeling](/event-modeling/): the model the agent and the team share.
-- [The Cratis stack](/cratis-stack/): every product, its maturity and licence.
+- [The Cratis stack](/cratis-stack/): the products and a capability map with maturity labels.
