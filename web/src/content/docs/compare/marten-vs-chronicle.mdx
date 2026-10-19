@@ -41,7 +41,7 @@ Marten's documentation site is not versioned in its URLs, so the links show the 
 
 Marten runs inside your application. You register it with the host, and it talks to PostgreSQL through your connection string. Its [event store](https://martendb.io/events) and [document database](https://martendb.io/introduction) share the same database, and Marten's docs call that integration arguably its biggest advantage over many other event stores ([projections overview](https://martendb.io/events/projections)). Background work such as projections and subscriptions runs in the [async daemon](https://martendb.io/events/projections/async-daemon) inside your application process.
 
-Chronicle runs as a separate server, the Chronicle Kernel, which is built on [Microsoft Orleans](https://learn.microsoft.com/dotnet/orleans/). Your application calls it through a client over gRPC. The kernel appends events and runs the observers, projections and reducers that process them. See [Chronicle architecture](/chronicle/architecture/).
+Chronicle runs as a separate server, the Chronicle Kernel, which is built on [Microsoft Orleans](https://learn.microsoft.com/dotnet/orleans/). Your application calls it through a client over gRPC. The kernel appends events and manages the observers that process them. Projections run in the kernel; reducer and reactor handlers run in your application. See [Chronicle architecture](/chronicle/architecture/).
 
 The practical difference is where the boundary sits:
 
@@ -58,7 +58,7 @@ The practical difference is where the boundary sits:
 | Languages | .NET | .NET, TypeScript, Kotlin/Java, Elixir; Python not yet published ([clients](/chronicle-clients/)) |
 | Projection timing | Inline, async and live ([projections](https://martendb.io/events/projections)) | Materialized (eventually consistent) or passive, computed on read ([projections](/chronicle/projections/)) |
 | Projection recipes | Single stream, multi stream, event projections, custom aggregations, flat tables ([projections](https://martendb.io/events/projections), [flat tables](https://martendb.io/events/projections/flat)) | Model-bound, declarative, fluent and reducers ([choosing a style](/chronicle/projections/choosing-a-read-model-style/)) |
-| Event subscriptions | `ISubscription` in the async daemon ([subscriptions](https://martendb.io/events/subscriptions)) | Reactors and observers on the server ([reactors](/chronicle/reactors/)) |
+| Event subscriptions | `ISubscription` in the async daemon ([subscriptions](https://martendb.io/events/subscriptions)) | Reactors and observers; handlers run in your application and the server manages observation ([reactors](/chronicle/reactors/)) |
 | Cross-stream consistency | Dynamic Consistency Boundary with tags ([DCB](https://martendb.io/events/dcb)) | Dynamic Consistency Boundary with concurrency scopes and constraints ([DCB](/chronicle/dynamic-consistency-boundary/)) |
 | Multi-tenancy | Conjoined and sharded event tenancy ([multitenancy](https://martendb.io/events/multitenancy)) | Namespaces inside an event store ([namespaces](/chronicle/namespaces/)) |
 | Event versioning | Documented ([versioning](https://martendb.io/events/versioning)) | Generations that translate old events ([event evolution](/chronicle/understanding-event-evolution/)) |
