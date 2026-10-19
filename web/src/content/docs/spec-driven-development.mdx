@@ -24,7 +24,7 @@ Each step produces something the next step reads. You can enter the chain at any
 |---|---|---|---|
 | 1. Event model | Slices: a screen, its command, the event, the read model behind the next screen | [Event modeling](/event-modeling/), [Studio](/studio/) | Studio is live in beta |
 | 2. Screenplay specifications | `specification` blocks inside a slice in a `.play` file, compiled and run by the Screenplay tool | [Screenplay](/screenplay/) | Experimental |
-| 3. Stage | Compiles `.play` folders, checks the declared specifications, and renders reviewable Arc and Chronicle code | [Stage](/stage/) | Experimental |
+| 3. Stage | Compiles `.play` folders, checks the declared specifications, and renders reviewable Arc and Chronicle code | [Stage](/screenplay/faq/#what-are-stage-and-studio) | Experimental |
 | 4. Arc and Chronicle code | The command, event and projection of the slice | [Build a full app](/build-a-full-app/) | See the [capability map](/cratis-stack/) |
 | 5. Specifications and replay | Executable BDD specs on the code, plus Chronicle replay of read models | [Specifications](/specifications/), [Testing with Cratis](/testing-with-cratis/) | Specifications are in regular use across the Cratis repositories |
 | Alternative start | Prologue captures signals from an existing system and proposes a model for you to review | [Prologue](/prologue/) | Experimental |
@@ -35,21 +35,26 @@ The specifications appear twice on purpose. The Screenplay specification checks 
 
 Take the column from the [testing guide](/testing-with-cratis/): a screen registers an author, the `RegisterAuthor` command appends `AuthorRegistered`, and the `Author` read model feeds the authors screen.
 
-In Screenplay, the specification lives inside the slice next to the command and the event. This follows the shape of the examples in the [Screenplay specifications](https://github.com/Cratis/Screenplay/blob/main/Documentation/screenplay/specifications.md) page, reduced to a single `name` property:
+In Screenplay, the specification lives inside the slice next to the command and the event. This follows the shape of the examples in the [Screenplay specifications](https://github.com/Cratis/Screenplay/blob/main/Documentation/screenplay/specifications.md) page, reduced to an author identifier and a `name` property. The identifier tells Screenplay which event source the event belongs to, the same role `AuthorId` plays in the C# command below:
 
 ```screenplay
 module Authors
   feature Registration
     slice StateChange RegisterAuthor
       command RegisterAuthor
+        authorId Uuid identifier
         name String
         produces AuthorRegistered
+          for authorId
           name = name
       event AuthorRegistered
         name String
       specification RegisteringANewAuthor
-        when RegisterAuthor name = "Jane Austen"
-        then AuthorRegistered name = "Jane Austen"
+        when RegisterAuthor
+          authorId = "0c9d5a8e-3b8f-4a52-9a1e-6f1d2c3b4a5e"
+          name = "Jane Austen"
+        then AuthorRegistered
+          name = "Jane Austen"
 ```
 
 Run it with the Screenplay tool, which evaluates the model in memory without rendering an application or starting services:
