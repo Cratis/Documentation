@@ -38,6 +38,16 @@ describe('full export compaction', () => {
         assert.equal(compactFullText(input), '## Title\n\nText\n\n| A | B |\n| --- | --- |\n| x | y |\n');
     });
 
+    it('keeps spaces and dashes inside table cells', () => {
+        const input = '| `a  b`    | `----`  |\n| :---- | -----: |\n| x\\|  y | z |';
+        assert.equal(compactFullText(input), '| `a  b` | `----` |\n| :--- | ---: |\n| x\\|  y | z |');
+    });
+
+    it('leaves tilde and longer fences untouched', () => {
+        const code = '~~~\n| A    |\n~~~\n````md\n```\n| B    |\n```\n````\n| c  |';
+        assert.equal(compactFullText(code), '~~~\n| A    |\n~~~\n````md\n```\n| B    |\n```\n````\n| c |');
+    });
+
     it('leaves fenced code untouched', () => {
         const code = '```text\n| A    | B |\n[Section titled “X”](#x)\n```\n| a  | b |';
         assert.equal(compactFullText(code), '```text\n| A    | B |\n[Section titled “X”](#x)\n```\n| a | b |');

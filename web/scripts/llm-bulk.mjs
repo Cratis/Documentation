@@ -44,6 +44,12 @@ export const withoutPageMarkers = (content) => content.replaceAll(PAGE_SEPARATOR
 
 const sectionTitleLine = /^\[Section titled [“"].*[”"]\]\(#[^)]*\)$/;
 const fenceLine = /^ {0,3}(`{3,}|~{3,})/;
+const tableDelimiterRow = /^\|(?:\s*:?-+:?\s*\|)+\s*$/;
+
+/** Collapses only the padding next to unescaped cell pipes, so cell content stays intact. */
+const compactTableRow = (line) => tableDelimiterRow.test(line)
+    ? line.replace(/ +/g, ' ').replace(/-{4,}/g, '---')
+    : line.replace(/ {2,}(?=\|)/g, ' ').replace(/(?<!\\)\| {2,}/g, '| ');
 
 /**
  * Lossless size trimming for the full export only, outside fenced code: drops the plugin's
@@ -64,7 +70,7 @@ export function compactFullText(content) {
             dropBlank = true;
             continue;
         } else if (line.startsWith('|')) {
-            out.push(line.replace(/ {2,}/g, ' ').replace(/-{4,}/g, '---'));
+            out.push(compactTableRow(line));
             dropBlank = false;
             continue;
         }
