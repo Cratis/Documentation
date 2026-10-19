@@ -1,0 +1,161 @@
+---
+title: CQRS in C# and .NET with Arc and Chronicle
+description: "Build CQRS in C# and .NET with Cratis Arc: model-bound commands and queries, validation, authorization, live queries, and optional event sourcing with Chronicle."
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+CQRS (Command Query Responsibility Segregation) means commands change state and queries read it, each with its own model. In C# and .NET, Cratis Arc is an open-source (MIT) CQRS application framework for ASP.NET Core: a command is a record with a `Handle()` method, a query is a static method on a read model, and Arc generates the HTTP endpoints and typed TypeScript proxies from them. Cratis Chronicle is optional; add it when you also want the write side stored as events.
+
+This page is for .NET developers who search for a CQRS framework that is not a mediator library. If you are still deciding whether CQRS fits, read [CQRS explained](/concepts/cqrs/) first.
+
+## What you get in C#
+
+| Capability | How it looks in Arc | Maturity |
+| --- | --- | --- |
+| Commands | `[Command]` record with `Handle()`; endpoint generated | Released |
+| Queries and read models | `[ReadModel]` record with static query methods | Released |
+| Live queries | A query returning `ISubject<T>` streams changes to the client | Released |
+| Validation | Data annotations or FluentValidation `CommandValidator<T>`, run before `Handle()` | Released |
+| Authorization | `[Roles]` and `[Authorize]` on commands and query methods | Released |
+| Typed frontend | TypeScript proxies generated from the same types | Released |
+| Event sourcing | Chronicle: `Handle()` returns an event; a projection fills the read model | Released, optional |
+
+"Released" means the packages are published. The [capability matrix](/arc/capabilities/) shows each row per language, checked against source and tests. Arc runs on ASP.NET Core and on a lighter standalone Arc.Core host; the integrations for MongoDB and Entity Framework Core are separate packages.
+
+## A command and a query
+
+A library application registers authors and lists them. The command is a record. Its parameters are its input and its logic lives in `Handle()`. This version writes a document to MongoDB and needs no Chronicle:
+
+```csharp
+using Cratis.Arc.Commands.ModelBound;
+using MongoDB.Driver;
+
+[Command]
+public record RegisterAuthor(Guid Id, string Name)
+{
+    public Task Handle(IMongoCollection<Author> authors) =>
+        authors.InsertOneAsync(new Author(Id, Name));
+}
+```
+
+The query side is a read model with a static method. Arc resolves `IMongoCollection<Author>` from the container, serves the method over HTTP, and generates a proxy for the frontend:
+
+```csharp
+using Cratis.Arc.Queries.ModelBound;
+using MongoDB.Driver;
+
+[ReadModel]
+public record Author(Guid Id, string Name)
+{
+    public static IEnumerable<Author> AllAuthors(IMongoCollection<Author> authors) =>
+        authors.Find(_ => true).ToList();
+}
+```
+
+These are excerpts. A runnable host also needs the setup from [Arc's .NET getting started guide](/arc/backend/csharp/getting-started/). Neither type has a controller or a route attribute. The command never returns the author list and the query never changes anything, so you can test, secure and change each on its own.
+
+## Validation, authorization and live queries
+
+Validation and authorization sit at the boundary, so `Handle()` stays about behavior. Annotate the record's properties and Arc rejects bad input before `Handle()` runs. This example is from the [validation guide](/arc/backend/csharp/commands/validation/):
+
+```csharp
+[Command]
+public record AllocateLabeledIdentifier(
+    [property: Required] string Label,
+    [property: Range(1, 100)] int Copies)
+{
+    public Guid Handle() => Guid.NewGuid();
+}
+```
+
+Put `[Roles(...)]` on a command or on a query method and Arc checks the caller's roles first. Authorization applies when the call goes through Arc's pipelines; calling `Handle()` directly from C# bypasses it. See [authorizing commands and queries](/arc/backend/csharp/authorizing-commands-and-queries/).
+
+For a live read model, return `ISubject<T>`. The client receives the current result and then each change, and the generated React proxy exposes it as a hook:
+
+```csharp
+[ReadModel]
+public record Author([property: Key] AuthorId Id, AuthorName Name)
+{
+    [Roles(nameof(UserRole.Librarian))]
+    public static ISubject<IEnumerable<Author>> AllAuthors(IMongoCollection<Author> collection) =>
+        collection.Observe();
+}
+```
+
+```tsx
+const [authors] = AllAuthors.use();
+```
+
+## Add event sourcing with Chronicle
+
+CQRS does not need an event log. When you want one, the command changes and the query does not. `Handle()` returns the fact, and Arc appends it to Chronicle:
+
+```csharp
+using Cratis.Arc.Commands.ModelBound;
+using Cratis.Chronicle.Events;
+
+[Command]
+public record RegisterAuthor(EventSourceId Id, string Name)
+{
+    public AuthorRegistered Handle() => new(Name);
+}
+
+[EventType]
+public record AuthorRegistered(string Name);
+```
+
+A projection then fills the read model. With `[FromEvent<AuthorRegistered>]`, Chronicle maps the event's `Name` onto the read model by convention, and the query keeps its signature:
+
+```csharp
+[ReadModel]
+[FromEvent<AuthorRegistered>]
+public record Author(AuthorId Id, AuthorName Name)
+{
+    public static ISubject<IEnumerable<Author>> AllAuthors(IMongoCollection<Author> collection) =>
+        collection.Observe();
+}
+```
+
+The generated proxies and React screens do not change. Moving an existing slice needs more than these type changes: a running Chronicle server, a sink that matches the collection the query reads, and a plan for existing rows. The [add event sourcing guide](/arc/backend/csharp/chronicle/add-event-sourcing/) covers each. In an application that uses both products, the [`Cratis` package](/arc/backend/csharp/chronicle/cratis-package/) wires Arc and Chronicle with `AddCratis` and `UseCratis`.
+
+Chronicle also provides reducers, reactors and projections for the read side. [Projections and read models](/concepts/projections-and-read-models/) explains the choice between them. For the storage side, see [event sourcing in .NET](/event-sourcing/dotnet/).
+
+## When CQRS in .NET is worth it
+
+Use it when reads and writes have different shapes, load or rules; when the frontend needs typed, live data; or when you expect to add event sourcing later and want the contract between commands and queries to stay stable.
+
+It is not worth it for a single form over a single table, where plain CRUD is cheaper. It also adds types: a command, a read model and often a validator per behavior. Reads that follow a write can lag when the read model is built asynchronously, as it is with Chronicle projections, so design the screen for that. [CQRS explained](/concepts/cqrs/) lists more trade-offs.
+
+Arc is not a mediator library. It owns hosting, endpoints and proxies as well as dispatch. If you only want in-process command handlers behind your own controllers, a smaller library fits better. [Coming from MediatR and MVC](/arc/backend/csharp/coming-from-mediatr-and-mvc/) maps the two.
+
+## Frequently asked questions
+
+### What is the best way to do CQRS in C#?
+
+It depends on how much you want a framework to own. You can write handlers by hand or use a mediator library. Arc is the option where commands, queries, validation, authorization and frontend proxies share one model. Try its [getting started guide](/arc/backend/csharp/getting-started/) and compare against what you have.
+
+### Do I need MediatR for CQRS in .NET?
+
+No. CQRS is a design choice, not a library. Arc dispatches commands and queries itself and exposes them over generated HTTP endpoints.
+
+### Can I use CQRS without event sourcing in .NET?
+
+Yes. Arc works with MongoDB or Entity Framework Core and has no Chronicle dependency. See [CQRS without event sourcing](/arc/arc-without-event-sourcing/).
+
+### How does the frontend call commands and queries?
+
+Arc generates typed TypeScript proxies from your C# commands and queries after the build. React components call them as typed methods and hooks. See [understanding the proxy boundary](/arc/understanding-the-proxy-boundary/).
+
+### Does Arc work with languages other than C#?
+
+Yes. See [CQRS in Kotlin and Java](/cqrs/kotlin/) and [CQRS in TypeScript and Node.js](/cqrs/typescript/). They do not have full parity with .NET.
+
+## Where to go next
+
+<CardGrid>
+  <LinkCard title="Arc for .NET" description="Install Arc, write your first command and query, and run them." href="/arc/backend/csharp/getting-started/" />
+  <LinkCard title="Add event sourcing" description="Move a slice from a database to Chronicle without changing the query." href="/arc/backend/csharp/chronicle/add-event-sourcing/" />
+  <LinkCard title="Event sourcing in .NET" description="The Chronicle .NET client: events, reducers, reactors and projections." href="/event-sourcing/dotnet/" />
+  <LinkCard title="Arc on GitHub" description="The Arc source — open source, MIT licensed." href="https://github.com/Cratis/Arc" />
+</CardGrid>
