@@ -12,7 +12,8 @@
 # runs ONLY on `main`, so a docs-overhaul push validates the build without publishing.
 #
 # The slow checks (variant docs, internal links) run on pull requests, the nightly
-# schedule and manual runs. Dispatched and push builds only build and publish. The
+# schedule and manual runs. Dispatched and push builds (main and docs-overhaul) only
+# build, and publish from main. The
 # nightly run never deploys; a failing check fails it, and that failure is the report.
 #
 # A `build-docs` dispatch may carry `client_payload: { repo: "<Name>", sha: "<40-hex>" }`
@@ -324,19 +325,22 @@ jobs:
           echo "Slow checks (variant docs, internal links): ${checks}"
 
           changed=""
+          # Only safe characters of the raw payload ever reach a log line or workflow command.
+          shown_repo="$(printf '%s' "$PAYLOAD_REPO" | tr -cd 'A-Za-z0-9._/-' | cut -c1-100)"
+          shown_sha="$(printf '%s' "$PAYLOAD_SHA" | tr -cd 'A-Za-z0-9' | cut -c1-64)"
           if [ "$EVENT_NAME" = repository_dispatch ] && [ -n "$PAYLOAD_REPO" ]; then
             repo="${PAYLOAD_REPO#Cratis/}"
             if [[ ! "$repo" =~ ^[A-Za-z0-9._-]+$ ]] || [ ! -d "$repo/.git" ]; then
-              echo "::warning title=build-docs payload::Ignoring repo '${PAYLOAD_REPO}': it is not a repository this workflow checks out. Building as an unattributed dispatch."
+              echo "::warning title=build-docs payload::Ignoring repo '${shown_repo}': it is not a repository this workflow checks out. Building as an unattributed dispatch."
             else
               changed="$repo"
               checked_out="$(git -C "$repo" rev-parse HEAD)"
               if [[ ! "$PAYLOAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
-                echo "::warning title=build-docs payload::sha '${PAYLOAD_SHA}' is not a 40-character commit; publishing ${repo}@${checked_out}."
+                echo "::warning title=build-docs payload::sha '${shown_sha}' is not a 40-character commit; publishing ${repo}@${checked_out}."
               elif [ "$PAYLOAD_SHA" != "$checked_out" ]; then
                 echo "::notice title=build-docs payload::${repo} dispatched ${PAYLOAD_SHA}; its branch has since moved, publishing ${checked_out}."
               fi
-              echo "Dispatched by ${repo} (payload sha ${PAYLOAD_SHA:-none}, checked out ${checked_out})."
+              echo "Dispatched by ${repo} (payload sha ${shown_sha:-none}, checked out ${checked_out})."
             fi
           fi
           echo "changed=${changed}" >> "$GITHUB_OUTPUT"
