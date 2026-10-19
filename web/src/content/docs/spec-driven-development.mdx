@@ -1,0 +1,166 @@
+---
+title: Spec-driven development with event models and specs
+description: Spec-driven development with Cratis writes the event model and Given/When/Then specs first, then checks code and agents against them. One slice, worked.
+---
+
+import { CardGrid, Aside } from '@astrojs/starlight/components';
+import SimpleCard from '@components/SimpleCard.astro';
+
+Spec-driven development with Cratis means you write down what a feature must do as an event model and as Given/When/Then specifications before the code exists, and the specifications stay the contract the code is checked against. The same specifications guide people and coding agents. The model-first tools in the chain, Screenplay, Stage and Prologue, are experimental; the executable specifications on the code side are not.
+
+Without that contract, a feature starts as a conversation. Someone remembers what was agreed, the code drifts from it, and the only test is the one that happened to be written afterwards. When an agent writes the code, the problem gets worse: it fills the gaps with plausible guesses and nobody can say which behavior was intended. A specification names the behavior once, in words a domain expert can read, and then fails when the code disagrees.
+
+## Why write the spec first
+
+- **Shared understanding.** An event model shows commands, events and read models in the order they happen. Given/When/Then speaks the same language: the given is the facts that already happened, the when is the command, the then is the facts and read models that result. See [event modeling](/event-modeling/) for the model itself.
+- **Verifiable change.** A spec that runs turns "does this still do what we agreed?" into a pass or fail. Reviewers read the spec to see intent and look at the result to see whether the code meets it.
+- **Safe for agents.** An agent can generate or change code freely when it has a contract to run. Without one, review has to rediscover the intent from the diff.
+
+## The chain from model to verified code
+
+Each step produces something the next step reads. You can enter the chain at any point; Arc and Chronicle do not depend on the model-first tools.
+
+| Step | What you have | Where it is documented | Maturity |
+|---|---|---|---|
+| 1. Event model | Slices: a screen, its command, the event, the read model behind the next screen | [Event modeling](/event-modeling/), [Studio](/studio/) | Studio is live in beta |
+| 2. Screenplay specifications | `specification` blocks inside a slice in a `.play` file, compiled and run by the Screenplay tool | [Screenplay](/screenplay/) | Experimental |
+| 3. Stage | Compiles `.play` folders, checks the declared specifications, and renders reviewable Arc and Chronicle code | [Stage](/screenplay/faq/#what-are-stage-and-studio) | Experimental |
+| 4. Arc and Chronicle code | The command, event and projection of the slice | [Build a full app](/build-a-full-app/) | See the [capability map](/cratis-stack/) |
+| 5. Specifications and replay | Executable BDD specs on the code, plus Chronicle replay of read models | [Specifications](/specifications/), [Testing with Cratis](/testing-with-cratis/) | Specifications are in regular use across the Cratis repositories |
+| Alternative start | Prologue captures signals from an existing system and proposes a model for you to review | [Prologue](/prologue/) | Experimental |
+
+The specifications appear twice on purpose. The Screenplay specification checks the model: given these events, when this command, the model says these events follow. The Specifications test checks the code: the implementation really appends them. Keeping both lets you catch a wrong model and a wrong implementation separately.
+
+## One slice, written as spec and as test
+
+Take the column from the [testing guide](/testing-with-cratis/): a screen registers an author, the `RegisterAuthor` command appends `AuthorRegistered`, and the `Author` read model feeds the authors screen.
+
+In Screenplay, the specification lives inside the slice next to the command and the event. This follows the shape of the examples in the [Screenplay specifications](https://github.com/Cratis/Screenplay/blob/main/Documentation/screenplay/specifications.md) page, reduced to an author identifier and a `name` property. The identifier tells Screenplay which event source the event belongs to, the same role `AuthorId` plays in the C# command below:
+
+```screenplay
+module Authors
+  feature Registration
+    slice StateChange RegisterAuthor
+      command RegisterAuthor
+        authorId Uuid identifier
+        name String
+        produces AuthorRegistered
+          for authorId
+          name = name
+      event AuthorRegistered
+        name String
+      specification RegisteringANewAuthor
+        when RegisterAuthor
+          authorId = "0c9d5a8e-3b8f-4a52-9a1e-6f1d2c3b4a5e"
+          name = "Jane Austen"
+        then AuthorRegistered
+          name = "Jane Austen"
+```
+
+Run it with the Screenplay tool, which evaluates the model in memory without rendering an application or starting services:
+
+```bash
+screenplay test path/to/screenplays
+```
+
+The same behavior on the code side is a Specifications test. The command handler returns the event, and Arc appends it:
+
+```csharp
+[Command]
+public record RegisterAuthor(EventSourceId AuthorId, string Name)
+{
+    public AuthorRegistered Handle() => new(Name);
+}
+
+[EventType]
+public record AuthorRegistered(string Name);
+```
+
+```csharp
+public class when_registering_a_new_author : Specification
+{
+    readonly EventSourceId _authorId = EventSourceId.New();
+    readonly CommandScenario<RegisterAuthor> _scenario = new();
+    CommandResult _result = default!;
+
+    async Task Because() => _result = await _scenario.Execute(new RegisterAuthor(_authorId, "Jane Austen"));
+
+    [Fact] void should_accept_the_command() => _result.ShouldBeSuccessful();
+
+    [Fact] Task should_record_the_fact() =>
+        _scenario.ShouldHaveAppendedEvent<RegisterAuthor, AuthorRegistered>(
+            _authorId,
+            e => e.Name == "Jane Austen");
+
+    void Destroy() => _scenario.Dispose();
+}
+```
+
+The two specifications describe one behavior at two levels. `Establish()` is the given (nothing here, because registration needs no prior facts), `Because()` is the when, and each `[Fact]` is a then. The Arc scenario runs the command through the real command pipeline and captures the appended events in memory, so there is no HTTP server and no Chronicle server in the test. [Testing with Cratis](/testing-with-cratis/) adds the read-model spec and the other backends, and [Specifications](/specifications/) explains the lifecycle methods and folder naming.
+
+<Aside type="note" title="The two snippets are not generated from each other">
+Today you write the Screenplay specification and the Specifications test separately, or have Stage render code for the narrow slice shapes it supports. Nothing in the chain proves the two say the same thing. Treat the Screenplay specification as the agreed intent and review the test against it.
+</Aside>
+
+## How agents use the specs as the contract
+
+An agent works best when the task is "make these specifications pass" rather than "build this feature". In practice that gives three rules:
+
+1. **Hand the agent the spec, not a description.** The `.play` file or the Given/When/Then table from the event model states the intended behavior. The agent writes or changes the code, then runs the specifications.
+2. **The specification is the done condition.** A failing spec is a precise instruction; a passing spec is evidence you can read. The agent does not get to redefine the behavior to match its code.
+3. **Humans review the specification diff first.** If a change alters a spec, that is a change of intent and needs a decision. If it only touches code, the existing specs say whether behavior held.
+
+Cratis AI installs rules and skills into a repository so an agent follows the conventions of the stack, including the specification style; see [AI-native development](/ai/) and the [EventModelers.ai](/eventmodelers-ai/) workflow. For how agents fit into a whole delivery process, read [agentic development](/agentic-development/).
+
+## What is still experimental
+
+- **Screenplay, Stage and Prologue are experimental** and in early development. Studio is live in beta. Check the [capability map](/cratis-stack/) for current labels.
+- **Stage's specification runner is model-level verification.** It checks declared specifications against the modeled facts and writes `results.json`. It is not a behavioral run of every slice through a live generated application, and some constructs are reported as unsupported rather than passing.
+- **Stage rendering is narrow.** Generated output needs review, and the Stage docs list what is and is not rendered.
+- **Operation specifications are syntax only.** The reference runner cannot execute them yet.
+- **Ordinary Given/When/Then does not prove race handling.** Concurrent writes need their own specification, as in [decisions that hold](/decisions-that-hold-walkthrough/).
+
+If your team wants executable specs today, start at step 5. [Specifications](/specifications/) and the Arc and Chronicle scenarios work without the model-first tools.
+
+## Frequently asked questions
+
+### What is spec-driven development?
+
+Spec-driven development is a way of building software where the specification is written first and stays the contract. In Cratis the specification is the event model plus Given/When/Then specifications. Code is written or generated against them and checked by running them.
+
+### Is this the same as test-driven development?
+
+They overlap. Test-driven development writes a failing test before the code, usually in the language of the implementation. Here the spec is written one level earlier, in the event model and in Screenplay, in terms a domain expert can read. The executable [Specifications](/specifications/) are then the test-first part on the code side.
+
+### Do I need Screenplay and Stage to do it?
+
+No. The code side works alone: the [Specifications](/specifications/) library, Arc command scenarios and Chronicle in-process scenarios need none of the model-first tools. Screenplay and Stage add a model-level spec and, for supported shapes, generated code.
+
+### Which languages can run the specifications?
+
+The testing guide shows command and read-model specs for the Arc and Chronicle client languages, with differences between backends, and lists what Elixir does not support yet. The Specifications library itself targets .NET with xUnit or NUnit. See [Testing with Cratis](/testing-with-cratis/).
+
+### Can a coding agent write the specifications too?
+
+It can draft them, but a person should approve them. A spec an agent writes for its own code only proves the code does what the agent wrote. Have the agent propose the specification from the event model, review it as intent, then let it implement.
+
+### When is it the wrong fit?
+
+For a throwaway prototype, a pure infrastructure change, or a very small assertion, a full model and specification adds more than it returns. The [Specifications](/specifications/) page lists where plain xUnit or NUnit tests are the better choice.
+
+## Where to go next
+
+<CardGrid>
+  <SimpleCard title="Event modeling" icon="list-format" link="/event-modeling/">
+    Draw the flow that becomes the specification.
+  </SimpleCard>
+  <SimpleCard title="Testing with Cratis" icon="approve-check" link="/testing-with-cratis/">
+    Turn an event-model column into command and read-side specs.
+  </SimpleCard>
+  <SimpleCard title="Screenplay" icon="pencil" link="/screenplay/">
+    Write the model and its specifications as a `.play` file.
+  </SimpleCard>
+  <SimpleCard title="Agentic development" icon="rocket" link="/agentic-development/">
+    Work with coding agents against the specifications.
+  </SimpleCard>
+</CardGrid>

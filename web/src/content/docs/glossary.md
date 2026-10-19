@@ -77,5 +77,6 @@ The terms [Arc](/arc/) and [Components](/components/) add on top of Chronicle.
 | [Agentic development](/agentic-development/) | Letting AI coding agents design, change and operate a system whose state is an event log and whose behavior is checked by executable specifications. |
 | [Vertical slice](/arc/vertical-slices/) | Everything for one behavior — command, events, projection, UI, specs — kept together in one folder. |
 | [Event modeling](/event-modeling/) | Designing a system as one timeline of screens, commands, events and read models before writing code. |
+| [Spec-driven development](/spec-driven-development/) | Writing the event model and its Given/When/Then specifications first, then checking code, written by people or agents, against them. |
 
 New to all this? Start with [Why developers choose Cratis](/why-cratis/), then the [Chronicle tutorial](/chronicle/tutorial/).
