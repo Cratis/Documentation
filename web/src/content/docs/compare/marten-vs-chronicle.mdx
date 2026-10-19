@@ -19,7 +19,7 @@ The Cratis team wrote this page, and Chronicle is a Cratis product. The page lis
 <Aside type="note" title="Summary">
 **Choose Marten if** your application is .NET, PostgreSQL is an accepted dependency, you want events and documents in one database and one transaction, or you already use or plan to use [Wolverine](https://wolverinefx.net) and the rest of the Critter Stack.
 
-**Choose Chronicle if** you want event storage and processing in a separate server, need clients in languages other than .NET, want a storage provider other than PostgreSQL, or want built-in PII encryption and erasure.
+**Choose Chronicle if** you want event storage and processing in a separate server, need clients in languages other than .NET, want a storage provider other than PostgreSQL, or prefer to protect personal data by encrypting it with a key per subject (crypto-shredding) rather than rewriting stored events.
 
 If both fit, run each against one real slice of your domain before you decide. Neither choice is wrong in the abstract.
 </Aside>
@@ -33,7 +33,7 @@ Reviewed on 2026-10-19. The table records documented capabilities at the named v
 | Product | Version compared | Version source |
 | --- | --- | --- |
 | Marten | 9.50.3, the newest stable release | [Marten 9.50.3 on NuGet](https://www.nuget.org/packages/Marten/9.50.3) |
-| Cratis Chronicle | 19.92.1, the newest release | [Cratis.Chronicle 19.92.1 on NuGet](https://www.nuget.org/packages/Cratis.Chronicle/19.92.1) |
+| Cratis Chronicle | 19.92.2, the latest GitHub release as of 2026-10-19 | [Chronicle release v19.92.2](https://github.com/Cratis/Chronicle/releases/tag/v19.92.2) |
 
 Marten's documentation site is not versioned in its URLs, so the links show the pages as they stood on the review date.
 
@@ -41,7 +41,7 @@ Marten's documentation site is not versioned in its URLs, so the links show the 
 
 Marten runs inside your application. You register it with the host, and it talks to PostgreSQL through your connection string. Its [event store](https://martendb.io/events) and [document database](https://martendb.io/introduction) share the same database, and Marten's docs call that integration arguably its biggest advantage over many other event stores ([projections overview](https://martendb.io/events/projections)). Background work such as projections and subscriptions runs in the [async daemon](https://martendb.io/events/projections/async-daemon) inside your application process.
 
-Chronicle runs as a separate server, the Chronicle Kernel, which is built on [Microsoft Orleans](https://github.com/Cratis/Chronicle). Your application calls it through a client over gRPC. The kernel appends events and runs the observers, projections and reducers that process them. See [Chronicle architecture](/chronicle/architecture/).
+Chronicle runs as a separate server, the Chronicle Kernel, which is built on [Microsoft Orleans](https://learn.microsoft.com/dotnet/orleans/). Your application calls it through a client over gRPC. The kernel appends events and runs the observers, projections and reducers that process them. See [Chronicle architecture](/chronicle/architecture/).
 
 The practical difference is where the boundary sits:
 
@@ -50,7 +50,7 @@ The practical difference is where the boundary sits:
 
 ## Feature matrix
 
-| Question | Marten 9.50.3 | Chronicle 19.92.1 |
+| Question | Marten 9.50.3 | Chronicle 19.92.2 |
 | --- | --- | --- |
 | Product boundary | .NET library in your application ([Marten as Event Store](https://martendb.io/events)) | Separate server plus client SDKs ([architecture](/chronicle/architecture/)) |
 | Event storage | PostgreSQL ([introduction](https://martendb.io/introduction)) | MongoDB (default), PostgreSQL, SQL Server, SQLite, in-memory ([storage](/chronicle/hosting/configuration/storage/)) |
@@ -62,7 +62,7 @@ The practical difference is where the boundary sits:
 | Cross-stream consistency | Dynamic Consistency Boundary with tags ([DCB](https://martendb.io/events/dcb)) | Dynamic Consistency Boundary with concurrency scopes and constraints ([DCB](/chronicle/dynamic-consistency-boundary/)) |
 | Multi-tenancy | Conjoined and sharded event tenancy ([multitenancy](https://martendb.io/events/multitenancy)) | Namespaces inside an event store ([namespaces](/chronicle/namespaces/)) |
 | Event versioning | Documented ([versioning](https://martendb.io/events/versioning)) | Generations that translate old events ([event evolution](/chronicle/understanding-event-evolution/)) |
-| Personal data | Not publicly documented on the event-store pages reviewed | Encryption at rest, key revocation and redaction ([compliance](/chronicle/compliance/)) |
+| Personal data | Masking rules that rewrite selected event members on demand ([Removing Protected Information](https://martendb.io/events/protection)) | Encryption of `[PII]` properties with a key per subject, erased by deleting the key, plus event redaction ([compliance](/chronicle/compliance/)) |
 | Operations tooling | [Command line](https://martendb.io/configuration/cli), [OpenTelemetry and metrics](https://martendb.io/otel), [async daemon health checks](https://martendb.io/events/projections/healthchecks) | [Workbench](/chronicle/workbench/), [CLI](/cli/), [MCP server](/chronicle-mcp/), [server telemetry](/chronicle/hosting/configuration/open-telemetry/) |
 | License | MIT ([LICENSE](https://github.com/JasperFx/marten/blob/master/LICENSE)) | MIT ([LICENSE](https://github.com/Cratis/Chronicle/blob/main/LICENSE)) |
 
@@ -96,7 +96,9 @@ Chronicle adds the Workbench, a web interface bundled with the server, the Crati
 
 Chronicle marks personal data with PII attributes, encrypts those values at rest with a key per subject, and erases a subject by revoking the key. Whole events can be redacted while the sequence and audit metadata remain. See [Chronicle compliance](/chronicle/compliance/) and [Auth and compliance](/auth-and-compliance/).
 
-Marten's event-store pages that we reviewed document archiving of streams ([archiving](https://martendb.io/events/archiving)) and tenant data deletion ([multitenancy](https://martendb.io/events/multitenancy)). We did not find encryption or per-subject erasure of event payloads documented there, so the matrix says "Not publicly documented." If you rely on this, ask the Marten community before you assume either way.
+Marten documents a different mechanism in [Removing Protected Information](https://martendb.io/events/protection). You register masking rules per event type or interface at configuration time, for example `AddMaskingRuleForProtectedInformation`, and then call `ApplyEventDataMasking()` on demand for a stream, a filtered set of events or a tenant. Marten rewrites the selected members of the stored events, such as replacing a name with `****`, and can add a header that records the masking. The same page notes that the Marten team had considered crypto-shredding, with no definite plans. Marten also documents [archiving of streams](https://martendb.io/events/archiving) and [tenant data deletion](https://martendb.io/events/multitenancy).
+
+The difference is where protection happens. Marten rewrites stored event data when you run a masking operation. Chronicle encrypts marked values when it appends them, and erasing a subject deletes the key, which makes the values unreadable without touching the log.
 
 ## Where Marten is the better choice
 
@@ -134,7 +136,7 @@ We found no migration guide for Marten to Chronicle in the public Cratis documen
 Checked 2026-10-19:
 
 - **Marten:** [Marten as Event Store](https://martendb.io/events), [Projections](https://martendb.io/events/projections), [Subscriptions](https://martendb.io/events/subscriptions), [Dynamic Consistency Boundary](https://martendb.io/events/dcb), [Multitenancy](https://martendb.io/events/multitenancy), [Archiving](https://martendb.io/events/archiving), [Events versioning](https://martendb.io/events/versioning), [Support policy](https://martendb.io/support-policy), [Command line tooling](https://martendb.io/configuration/cli), [Open Telemetry and metrics](https://martendb.io/otel), [NuGet](https://www.nuget.org/packages/Marten/9.50.3), and the [GitHub repository](https://github.com/JasperFx/marten).
-- **Chronicle:** the [Chronicle documentation](/chronicle/), the [Chronicle README](https://github.com/Cratis/Chronicle), the [Chronicle license](https://github.com/Cratis/Chronicle/blob/main/LICENSE), and [NuGet](https://www.nuget.org/packages/Cratis.Chronicle/19.92.1).
+- **Chronicle:** the [Chronicle documentation](/chronicle/), the [Chronicle README](https://github.com/Cratis/Chronicle), the [Chronicle license](https://github.com/Cratis/Chronicle/blob/main/LICENSE), and [releases](https://github.com/Cratis/Chronicle/releases).
 
 ## Corrections and refresh
 
