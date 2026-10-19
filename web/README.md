@@ -122,6 +122,8 @@ Astro's build-completion hook writes slugged `/path.md` mirrors for page actions
 
 `postbuild` writes `llms.txt` and the bulk exports. `llms-full.txt` holds the full page text without release digests and changelogs. `llms-small.txt` (and `<product>/llms-small.txt`) lists page titles with one-line summaries. The Markdown mirrors are plain Markdown: MDX imports and component lines are removed.
 
+The postbuild step also trims `llms-full.txt` without dropping any page: outside fenced code it removes the plugin's `[Section titled “…”](#…)` line under every heading and collapses the column padding of Markdown tables (`compactFullText` in `scripts/llm-bulk.mjs`). Together these cut about 2.8 MB (17.57 MB to about 14.81 MB when measured on the published export). `llms.txt`, the per-area sets and the Markdown mirrors are unchanged.
+
 The build prints each bulk export's size and emits a `::warning` annotation when `llms-small.txt` exceeds 400,000 bytes or `llms-full.txt` exceeds 17,000,000 bytes (`SIZE_WARNINGS` in `scripts/llm-bulk.mjs`). The warning never fails the build; trim or split an area before raising a threshold.
 
 `npm run lint:seo` warns about pages without a real description. `scripts/seo-baseline.json` holds the current count: a higher count is annotated on the pull request and a lower one asks you to lower the baseline (`npm run lint:seo -- --update-baseline`), so the count can only go down.
