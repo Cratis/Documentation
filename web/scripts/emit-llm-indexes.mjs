@@ -10,7 +10,7 @@ import yaml from 'js-yaml';
 import { PRODUCTS } from './sync-content.mjs';
 import { LLM_SETS, llmSetSlug } from './llm-sets.mjs';
 import { citeRenderedSet, withoutSnippetSourceLinks } from './llm-set-sources.mjs';
-import { abridgedExport, isLogPage, pageSummary, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
+import { abridgedExport, compactFullText, isLogPage, pageSummary, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const site = 'https://www.cratis.io';
@@ -195,7 +195,7 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
     const allPages = await publishedPages(docsRoot);
     const fullFile = path.join(dist, 'llms-full.txt');
     if (await exists(fullFile)) {
-        output.set('/llms-full.txt', withoutPageMarkers(withoutSnippetSourceLinks(withoutExcludedPages(await fs.readFile(fullFile, 'utf8'), allPages))));
+        output.set('/llms-full.txt', compactFullText(withoutPageMarkers(withoutSnippetSourceLinks(withoutExcludedPages(await fs.readFile(fullFile, 'utf8'), allPages)))));
     }
     const documented = allPages.filter(page => !page.excluded && page.slug && page.slug !== '404');
     // The most specific product owns a page (fundamentals/go before fundamentals).
