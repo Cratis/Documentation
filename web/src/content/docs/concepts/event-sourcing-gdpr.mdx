@@ -1,6 +1,6 @@
 ---
 title: "Event sourcing and GDPR: erasing personal data"
-description: "How event-sourced systems meet the right to erasure with crypto-shredding, key lifecycle and read-model cleanup, with a worked .NET example."
+description: "How event-sourced systems meet the right to erasure with crypto-shredding, key lifecycle and read-model cleanup, with worked client examples."
 head:
   - tag: meta
     attrs:
@@ -14,7 +14,7 @@ Yes, an event-sourced system can meet the GDPR right to erasure without rewritin
 
 This page explains why immutability seems to conflict with the regulation, compares the three common approaches, and walks through erasing a person in Chronicle. It is not legal advice; the last section says what a lawyer still has to decide.
 
-*Applies to Chronicle 19.64.1 (C# client). Last reviewed October 19, 2026 by the Cratis documentation team.*
+*Applies to Chronicle 19.64.1. Last reviewed October 19, 2026 by the Cratis documentation team.*
 
 ## Why immutability seems to conflict with GDPR
 
@@ -89,41 +89,27 @@ The details, including how joined values keep the subject of the event they came
 
 ## Erasing a subject in Chronicle: worked example
 
-This example uses the C# client of Chronicle 19.64.1. The Kotlin, Java, TypeScript and Elixir clients each have a PII marker, and all five client surfaces expose subject-key deletion, but they differ in detail. For example, only the .NET and TypeScript clients expose the call that authorizes a new key after erasure. See [Marking data as PII](/chronicle/compliance/pii/) and [where the clients differ](/chronicle/clients/where-the-clients-differ/).
+The tabs show the C#, Kotlin, Java, TypeScript and Elixir clients. Each has a PII marker and exposes subject-key deletion, but they differ in detail. For example, only the .NET and TypeScript clients expose the call that authorizes a new key after erasure. See [Marking data as PII](/chronicle/compliance/pii/) and [where the clients differ](/chronicle/clients/where-the-clients-differ/).
 
-**1. Mark the personal values.** Chronicle encrypts only what you mark. Put `[PII]` on the event properties that hold personal data; unmarked values are stored in plain text and erasure does not cover them. The department is not personal, so it stays plain:
+**1. Mark the personal values.** Chronicle encrypts only what you mark. Use your client's PII marker on the event properties that hold personal data; unmarked values are stored in plain text and erasure does not cover them. The department is not personal in this example, so it stays plain:
 
-```csharp
-using Cratis.Chronicle.Compliance.GDPR;
-using Cratis.Chronicle.Events;
+<ChronicleClientTabs snippet="compliance/pii/property-level" />
 
-[EventType]
-public record EmployeeRegistered(
-    [PII] string FirstName,
-    [PII] string LastName,
-    string Department);
-```
+When this event is appended, the first and last names are encrypted under the subject's key. The department is stored as it is. If the same personal value appears in many events, declaring PII once on a concept type is less error-prone; see [Declaring PII on a concept](/chronicle/compliance/pii-with-concepts/).
 
-When this event is appended, `FirstName` and `LastName` are encrypted under the subject's key. `Department` is stored as it is. If the same personal value appears in many events, declaring `[PII]` once on a concept type is less error-prone; see [Declaring PII on a concept](/chronicle/compliance/pii-with-concepts/).
+**2. Append as usual.** Nothing in the append call changes for PII-marked events. These tabs show the ordinary append API using an order:
 
-**2. Append as usual.** Nothing in the append call changes. The event source id is the subject:
+<ChronicleClientTabs snippet="events/appending/example" />
 
-```csharp
-await eventLog.Append("person-42", new EmployeeRegistered("Ada", "Lovelace", "Research"));
-```
-
-If no key exists for `person-42`, Chronicle creates one before encrypting.
+For the employee example, append a `PiiAttrEmployeeRegistered` event instead, using `person-42` as the event source id. The event source id is the subject by default. If no key exists for `person-42`, Chronicle creates one before encrypting the marked names.
 
 **3. Erase on request.** One call deletes the key:
 
-```csharp
-var eventStore = await chronicleClient.GetEventStore("Sales");
-await eventStore.PII.DeleteEncryptionKeyFor("person-42");
-```
+<ChronicleClientTabs snippet="compliance/erasure/delete-key" />
 
-`DeleteEncryptionKeyFor` removes every revision of the key, evicts it from every silo's cache, and records the erasure so that nothing puts the key back. The erasure covers every event store in the namespace you call it in, because an event store subscription can copy a subject's key into another store. It runs in two phases, fencing every store before destroying any key, and reports failures together as `EncryptionKeyErasureIncomplete`. A partial erasure is not an erasure: if the call throws, repeat it once the failing store is reachable.
+Deleting the subject's key removes every revision of the key, evicts it from every silo's cache, and records the erasure so that nothing puts the key back. The erasure covers every event store in the namespace you call it in, because an event store subscription can copy a subject's key into another store. It runs in two phases, fencing every store before destroying any key, and reports failures together as `EncryptionKeyErasureIncomplete`. A partial erasure is not an erasure: if the call throws, repeat it once the failing store is reachable.
 
-**4. Check the result.** Read `person-42`'s events: they are still there with the same sequence numbers. `FirstName` and `LastName` come back as empty strings and `Department` still holds its value.
+**4. Check the result.** Read `person-42`'s events: they are still there with the same sequence numbers. The first and last names come back as empty strings and the department still holds its value.
 
 After the erasure, the subject is fenced, not banned. Appending a new `[PII]` value for `person-42` fails with `EncryptionKeyErased`. Chronicle does not silently create a new key or silently blank the value. If the person later has a lawful basis to be protected again, you authorize that deliberately with `AllowNewEncryptionKeyFor`. The new key protects data written from then on and decrypts nothing from before.
 
@@ -176,7 +162,7 @@ Not by hand, if you marked them. Marking an event property `[PII]` does not mark
 
 ### Does this work outside .NET?
 
-The kernel does the encryption. The C#, Kotlin, Java, TypeScript and Elixir clients each have a PII marker and expose subject-key deletion. They differ elsewhere: Kotlin, Java and Elixir do not expose the call that authorizes a new key, and marker placement coverage varies. The [PII page](/chronicle/compliance/pii/) and [where the clients differ](/chronicle/clients/where-the-clients-differ/) have the details. The worked example above is C# only.
+The kernel does the encryption. The C#, Kotlin, Java, TypeScript and Elixir clients each have a PII marker and expose subject-key deletion. They differ elsewhere: Kotlin, Java and Elixir do not expose the call that authorizes a new key, and marker placement coverage varies. The [PII page](/chronicle/compliance/pii/) and [where the clients differ](/chronicle/clients/where-the-clients-differ/) have the details. The tabs above show each client's marking, append and erasure APIs.
 
 ## Next steps
 
