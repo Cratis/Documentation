@@ -39,7 +39,7 @@ Cratis is an open-source (MIT) event sourcing and CQRS platform for .NET, built 
 - **Products.** Chronicle is the event store and runtime. Arc is the CQRS application framework with generated TypeScript proxies. Components is a React UI library for Arc. Fundamentals holds the shared building blocks, and Specifications provides BDD-style testing. The CLI, Workbench, and Chronicle MCP server inspect and operate a running Chronicle. Cratis AI ships rules and skills for AI agents.
 - **Model-first layer.** Screenplay, Stage, and Prologue are experimental. Studio is a paid product in Preview.
 - **Licence.** The open-source Cratis products are MIT licensed. Studio is paid.
-- **Languages.** Chronicle has a first-class .NET client and clients for TypeScript, Kotlin/Java, and Elixir. A Python client is in development and not yet published. Arc runs on ASP.NET Core and Spring Boot, and Components targets React.
+- **Languages.** Chronicle has a first-class .NET client and clients for TypeScript, Kotlin/Java, and Elixir, plus an experimental Go client. A Python client is in development and not yet published. Arc runs on ASP.NET Core and Spring Boot, and Components targets React.
 - **Storage.** Chronicle stores events in MongoDB (default), PostgreSQL, Microsoft SQL Server, or SQLite.
 - **Where to get it.** NuGet, npm, Maven Central, Hex, Docker Hub, and [GitHub](https://github.com/Cratis). See the [support matrix](/compatibility/#support-matrix) for what each combination supports.
 - **Who builds it.** Cratis, a small company that builds and maintains the platform.
@@ -120,7 +120,7 @@ problem — the rest are there when you want them, not before:
   />
   <LinkCard
     title="Clients for your language"
-    description="Use Chronicle from .NET (first-class), TypeScript, Kotlin/Java (JVM), or Elixir — with a Python client coming soon."
+    description="Use Chronicle from .NET (first-class), TypeScript, Kotlin/Java (JVM), Elixir, or Go (experimental) — with a Python client coming soon."
     href="/chronicle-clients/"
   />
 </CardGrid>
@@ -198,7 +198,7 @@ Technical depth lives in each product's own documentation:
   />
   <LinkCard
     title="Pick a Chronicle client"
-    description="Start from .NET, TypeScript, Kotlin/Java, or Elixir, with links to each client's documentation and packages."
+    description="Start from .NET, TypeScript, Kotlin/Java, Elixir, or Go (experimental), with links to each client's documentation and packages."
     href="/chronicle-clients/"
   />
   <LinkCard
