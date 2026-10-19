@@ -70,6 +70,8 @@ jobs:
         with:
           persist-credentials: false
           path: Documentation
+          # Full history so Starlight can show per-page "Last updated" dates.
+          fetch-depth: 0
 
       - name: Checkout Samples
         uses: actions/checkout@v4
@@ -605,7 +607,7 @@ jobs:
 
       - name: Lint docs
         working-directory: Documentation/web
-        run: npm run sync && npm run lint:docs
+        run: npm run sync && npm run lint:docs && npm run lint:seo
 
       - name: Check variant docs (product and site pages)
         if: steps.plan.outputs.checks == 'true'

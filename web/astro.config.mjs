@@ -317,6 +317,9 @@ export default defineConfig({
         }),
         starlight({
             title: 'Cratis',
+            // Site-owned pages use git history (the CI checkout fetches it); synced product pages
+            // get `lastUpdated` frontmatter from their source repository in sync-content.mjs.
+            lastUpdated: true,
             description:
                 'Build event-sourced and CQRS applications with Cratis — an open-source (MIT) event-sourcing database and full-stack platform. Chronicle stores events in MongoDB, PostgreSQL, SQL Server, or SQLite and has clients for .NET, TypeScript, Kotlin/Java, and Elixir, with Arc and Components completing the type-safe stack.',
             // Default social-sharing metadata for every page. Starlight already
