@@ -247,6 +247,7 @@ const aiTopic = {
     link: 'ai',
     icon: 'star',
     items: [
+        { label: 'Agentic development with event sourcing', slug: 'agentic-development' },
         { label: 'Getting started', slug: 'ai/getting-started' },
         { label: 'Agent harness guide', slug: 'ai/harnesses' },
         { label: 'Concepts', slug: 'ai/concepts' },
@@ -402,7 +403,7 @@ export default defineConfig({
                         authproxy: ['/authproxy', '/authproxy/**'],
                         cli: ['/cli', '/cli/**'],
                         templates: ['/templates', '/templates/**'],
-                        ai: ['/ai', '/ai/**', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
+                        ai: ['/ai', '/ai/**', '/agentic-development', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],
                         fundamentals: ['/fundamentals', '/fundamentals/**'],
                         contributing: ['/contributing', '/contributing/**'],
                         architecture: ['/architecture', '/architecture/**'],
