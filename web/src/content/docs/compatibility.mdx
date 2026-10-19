@@ -1,6 +1,6 @@
 ---
 title: Version compatibility
-description: Runtime, package, framework, storage, and tooling compatibility for the current Cratis documentation baseline, and which cross-product pairings are and are not verified.
+description: Storage backends, client languages, frontend frameworks, .NET versions, and hosting options Cratis supports, with maturity, and which pairings are verified.
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
@@ -32,6 +32,33 @@ Cratis spans .NET packages, TypeScript packages, JVM and Elixir clients, Docker 
 | Chronicle Elixir client | The Elixir client (`cratis_chronicle` on Hex) declares Elixir `~> 1.18` (Elixir 1.18 or later, which its `googleapis` dependency requires) and installs through `mix`. |
 | Chronicle storage | MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite are documented storage choices. |
 | Arc persistence | MongoDB and Entity Framework Core integrations are documented for C#; Spring Data MongoDB and Spring Data JPA for Kotlin and Java. |
+
+## Support matrix
+
+Chronicle runs on four storage backends, has clients for four languages, and runs in Docker or under .NET Aspire; the tables below give each option and its maturity. Released means the product publishes packages or images; the sources state no further maturity label. [The Cratis Stack](/cratis-stack/#capability-map) lists every product.
+
+| Area | Option | Maturity | Notes |
+|---|---|---|---|
+| Chronicle storage | MongoDB | Released, default | Run as a replica set, even with one node. |
+| Chronicle storage | PostgreSQL | Released | Documented storage choice. |
+| Chronicle storage | Microsoft SQL Server | Released | Documented storage choice. |
+| Chronicle storage | SQLite | Released | Documented storage choice. |
+| Chronicle storage | In-memory | Not durable | For tests, samples, and ephemeral environments only. |
+| Chronicle client | .NET | Released, first-class | `Cratis.Chronicle` on NuGet. |
+| Chronicle client | TypeScript and Node.js | Released | `@cratis/chronicle` on npm. |
+| Chronicle client | Kotlin and Java | Released | `io.cratis:chronicle` on Maven Central. |
+| Chronicle client | Elixir | Released | `cratis_chronicle` on Hex. |
+| Chronicle client | Python | Pre-alpha | Not published. |
+| Arc backend | C# on ASP.NET Core | Released | |
+| Arc backend | Kotlin and Java on Spring Boot | Released | |
+| Arc backend | TypeScript on Node.js | Source preview | No package is published. |
+| Frontend | React | Released | Arc React packages accept React 18 or 19; Components requires React 19. |
+| .NET | .NET 8, 9, and 10 | Released | Arc and Fundamentals package for all three; Chronicle's packaging targets the same. The CLI and the `dotnet new cratis` template target .NET 10. |
+| Hosting | Docker | Released | `cratis/chronicle` image; the `latest-development` image bundles MongoDB and is for development and CI only. |
+| Hosting | Docker Compose | Documented | See [Docker Compose hosting](/chronicle/hosting/docker-compose/). |
+| Hosting | .NET Aspire | Released | `Cratis.Chronicle.Aspire` package; a .NET hosting option only. |
+
+Model-first tools (Screenplay, Stage, Prologue) are experimental and Studio is in Preview; see the [capability map](/cratis-stack/#capability-map). The kernel can also run wherever you operate containers, such as Kubernetes; the docs describe Docker, Compose, and Aspire topologies and give no Kubernetes deployment guide.
 
 ## Product relationships
 
