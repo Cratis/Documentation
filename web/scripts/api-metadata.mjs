@@ -16,6 +16,27 @@ export const apiLibraries = [
     { project: 'Fundamentals/Source/DotNET/Fundamentals/Fundamentals.csproj', assembly: 'Cratis.Fundamentals', legacy: 'fundamentals/dotnet/fundamentals' },
 ];
 
+/** The source repository a library is compiled from: the first segment of its project path. */
+export function sourceRepositoryOf(library) {
+    return library.project.split('/')[0];
+}
+
+/** Split the libraries into those to compile and those whose Release output the caller
+ * already restored (for example from a per-repository, per-commit CI cache). An unknown
+ * repository fails closed: reusing nothing by mistake must never look like a reuse.
+ */
+export function planLibraryBuilds(libraries, reusedRepositories = []) {
+    const known = [...new Set(libraries.map(sourceRepositoryOf))];
+    for (const repository of reusedRepositories) {
+        if (!known.includes(repository)) throw new Error(`Unknown API source repository to reuse: ${repository}. Expected one of: ${known.join(', ')}.`);
+    }
+    const reused = new Set(reusedRepositories);
+    return {
+        build: libraries.filter(library => !reused.has(sourceRepositoryOf(library))),
+        reuse: libraries.filter(library => reused.has(sourceRepositoryOf(library))),
+    };
+}
+
 /** Extract each assembly independently as an audit baseline, then let DocFX group natively. */
 export function metadataConfiguration(config, apiBuild) {
     if (config.metadata.length !== 1 || config.metadata[0].output !== 'dotnet') throw new Error('Expected one canonical dotnet metadata batch.');

@@ -4,12 +4,20 @@
 // Build every required .NET and TypeScript reference before replacing public/api.
 // Run from web with npm run build:api. Requires the .NET SDK, DocFX, and restored
 // documentation/product JavaScript dependencies. Nothing is published remotely.
+//
+// npm run build:api -- --reuse Chronicle,Fundamentals skips compiling those source
+// repositories and uses the Release assemblies already in their checkouts (CI restores
+// them from a per-repository, per-commit cache). Their projects are still restored,
+// because DocFX resolves package references through each assembly's deps.json from the
+// NuGet package folder. DocFX and TypeDoc still regenerate the whole reference, and
+// missing reused inputs fail the build. Without --reuse, every library is compiled.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { parseArgs } from 'node:util';
 import { verifyApiLinks } from './verify-api-links.mjs';
-import { apiLibraries, metadataConfiguration, readMetadata, reconcileMetadata, saveMetadata } from './api-metadata.mjs';
+import { apiLibraries, metadataConfiguration, planLibraryBuilds, readMetadata, reconcileMetadata, saveMetadata, sourceRepositoryOf } from './api-metadata.mjs';
 import { writeApiRedirects } from './api-redirects.mjs';
 
 const web = path.resolve(import.meta.dirname, '..');
@@ -22,6 +30,8 @@ const localDocFx = path.join(os.homedir(), '.dotnet', 'tools', 'docfx');
 const docFx = existsSync(localDocFx) ? localDocFx : 'docfx';
 const config = JSON.parse(readFileSync(path.join(apiBuild, 'docfx.json'), 'utf8'));
 const metadataConfig = metadataConfiguration(config, apiBuild);
+const { values: options } = parseArgs({ options: { reuse: { type: 'string', default: '' } } });
+const plan = planLibraryBuilds(apiLibraries, options.reuse.split(',').map(name => name.trim()).filter(Boolean));
 const typeScriptPackages = [
     { name: 'Arc', source: 'Arc/Source/JavaScript/Arc', output: 'arc/javascript/arc' },
     { name: 'Arc.React', source: 'Arc/Source/JavaScript/Arc.React', output: 'arc/javascript/arc.react' },
@@ -44,7 +54,12 @@ for (const packageDefinition of typeScriptPackages) {
 if (!existsSync(typeDoc)) throw new Error('TypeDoc is missing. Restore the documentation site dependencies first.');
 
 console.log('== [1/4] Build reference assemblies with warnings treated as errors ==');
-for (const { project } of apiLibraries) {
+const repositoriesOf = libraries => [...new Set(libraries.map(sourceRepositoryOf))].join(', ') || 'none';
+console.log(`Compiling: ${repositoriesOf(plan.build)}. Reusing restored assemblies: ${repositoriesOf(plan.reuse)}.`);
+for (const { project } of plan.reuse) {
+    run('dotnet', ['restore', path.join(repositories, project)]);
+}
+for (const { project } of plan.build) {
     run('dotnet', ['build', path.join(repositories, project), '-c', 'Release', '-warnaserror', '-p:CratisProxiesOutputPath=']);
 }
 

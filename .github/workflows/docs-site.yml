@@ -11,6 +11,17 @@
 # dispatch `build-docs` after docs changes on their `main` branches. The deploy job
 # runs ONLY on `main`, so a docs-overhaul push validates the build without publishing.
 #
+# The slow checks (variant docs, internal links) run on pull requests, the nightly
+# schedule and manual runs. Dispatched and push builds (main and docs-overhaul) only
+# build, and publish from main. The
+# nightly run never deploys; a failing check fails it, and that failure is the report.
+#
+# A `build-docs` dispatch may carry `client_payload: { repo: "<Name>", sha: "<40-hex>" }`
+# naming the source repository whose change triggered it. That repository's .NET API
+# assemblies are always recompiled. Every other API repository's Release assemblies are
+# restored from a cache keyed on that repository and its checked-out commit, and compiled
+# only on a miss. Dispatches without a payload still use and fill the same caches.
+#
 # PREREQUISITES (one-time, manual):
 #   1. Enable GitHub Pages for this repo with "GitHub Actions" as the source.
 #   2. The checked-out product repos are public. If any become private, add a repo/org
@@ -27,6 +38,8 @@ on:
   workflow_dispatch:
   repository_dispatch:
     types: [build-docs]
+  schedule:
+    - cron: '17 2 * * *'
 
 permissions:
   contents: read
@@ -34,9 +47,10 @@ permissions:
 # Superseded pull-request builds are cancelled. A running main build is never cancelled:
 # product releases dispatch rebuilds faster than a build finishes, so cancelling would
 # starve the deploy. GitHub keeps only the newest pending run, so the latest content
-# still deploys next.
+# still deploys next. The nightly check run never deploys and has its own group, so a
+# dispatch arriving while it waits cannot replace it.
 concurrency:
-  group: docs-site-${{ github.ref_name }}
+  group: docs-site-${{ github.event_name == 'schedule' && 'nightly' || github.ref_name }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Product repos are checked out at docs-overhaul only for docs-overhaul validation.
@@ -146,15 +160,6 @@ jobs:
           token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
           persist-credentials: false
           path: Components
-
-      - name: Checkout Templates
-        uses: actions/checkout@v4
-        with:
-          repository: Cratis/Templates
-          ref: main
-          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
-          persist-credentials: false
-          path: Templates
 
       - name: Checkout AuthProxy
         uses: actions/checkout@v4
@@ -301,56 +306,140 @@ jobs:
           persist-credentials: false
           path: Eventmodelers-Build-Kit-Java
 
+      # Decide what this run does before any tool is installed: whether the slow checks
+      # run, and which source repository (if any) a build-docs dispatch says changed.
+      # The payload is untrusted input, so it only ever reaches the shell through env.
+      - name: Plan the build
+        id: plan
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PAYLOAD_REPO: ${{ github.event.client_payload.repo }}
+          PAYLOAD_SHA: ${{ github.event.client_payload.sha }}
+        run: |
+          set -euo pipefail
+          case "$EVENT_NAME" in
+            pull_request|schedule|workflow_dispatch) checks=true ;;
+            *) checks=false ;;
+          esac
+          echo "checks=${checks}" >> "$GITHUB_OUTPUT"
+          echo "Slow checks (variant docs, internal links): ${checks}"
+
+          changed=""
+          # Only safe characters of the raw payload ever reach a log line or workflow command.
+          shown_repo="$(printf '%s' "$PAYLOAD_REPO" | tr -cd 'A-Za-z0-9._/-' | cut -c1-100)"
+          shown_sha="$(printf '%s' "$PAYLOAD_SHA" | tr -cd 'A-Za-z0-9' | cut -c1-64)"
+          if [ "$EVENT_NAME" = repository_dispatch ] && [ -n "$PAYLOAD_REPO" ]; then
+            repo="${PAYLOAD_REPO#Cratis/}"
+            if [[ ! "$repo" =~ ^[A-Za-z0-9._-]+$ ]] || [ ! -d "$repo/.git" ]; then
+              echo "::warning title=build-docs payload::Ignoring repo '${shown_repo}': it is not a repository this workflow checks out. Building as an unattributed dispatch."
+            else
+              changed="$repo"
+              checked_out="$(git -C "$repo" rev-parse HEAD)"
+              if [[ ! "$PAYLOAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+                echo "::warning title=build-docs payload::sha '${shown_sha}' is not a 40-character commit; publishing ${repo}@${checked_out}."
+              elif [ "$PAYLOAD_SHA" != "$checked_out" ]; then
+                echo "::notice title=build-docs payload::${repo} dispatched ${PAYLOAD_SHA}; its branch has since moved, publishing ${checked_out}."
+              fi
+              echo "Dispatched by ${repo} (payload sha ${shown_sha:-none}, checked out ${checked_out})."
+            fi
+          fi
+          echo "changed=${changed}" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-node@v4
         with:
           node-version: 23   # Components (Storybook build) requires node >=23
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      # The site has no lockfile, so cache npm's content-addressed download cache rather
+      # than node_modules. Pull requests restore only; every other event saves.
+      - name: Restore npm download cache
+        id: npm-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: docs-npm-v1-${{ runner.os }}-${{ hashFiles('Documentation/web/package.json') }}
+          restore-keys: docs-npm-v1-${{ runner.os }}-
 
       - name: Install dependencies
         working-directory: Documentation/web
         run: npm ci || npm install
 
+      - name: Save npm download cache
+        if: github.event_name != 'pull_request' && steps.npm-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: docs-npm-v1-${{ runner.os }}-${{ hashFiles('Documentation/web/package.json') }}
+
+      # JDK, Gradle, Elixir, and the Chronicle/Arc TypeScript installs exist only for the
+      # variant-docs snippet validators, so they are skipped when the checks do not run.
       - name: Setup JDK
+        if: steps.plan.outputs.checks == 'true'
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Setup Gradle
+        if: steps.plan.outputs.checks == 'true'
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.13'
 
       - name: Setup Elixir and Erlang
+        if: steps.plan.outputs.checks == 'true'
         uses: erlef/setup-beam@v1
         with:
           elixir-version: ${{ env.ELIXIR_VERSION }}
           otp-version: ${{ env.OTP_VERSION }}
 
+      - name: Restore Chronicle TypeScript Yarn cache
+        if: steps.plan.outputs.checks == 'true'
+        uses: Cratis/Workflows/.github/actions/yarn-cache@main
+        with:
+          working-directory: Chronicle.TypeScript
+          key-prefix: docs-yarn-chronicle-typescript-v1
+
       - name: Install Chronicle TypeScript dependencies
+        if: steps.plan.outputs.checks == 'true'
         working-directory: Chronicle.TypeScript
-        run: |
-          corepack enable
-          yarn install --immutable
+        run: yarn install --immutable
+
+      - name: Restore Arc TypeScript Yarn cache
+        if: steps.plan.outputs.checks == 'true'
+        uses: Cratis/Workflows/.github/actions/yarn-cache@main
+        with:
+          working-directory: Arc.TypeScript
+          key-prefix: docs-yarn-arc-typescript-v1
 
       # The Arc TypeScript snippet validator compiles against the built packages.
       - name: Install and build Arc TypeScript
+        if: steps.plan.outputs.checks == 'true'
         working-directory: Arc.TypeScript
         run: |
-          corepack enable
           yarn install --immutable
           yarn build
 
       - name: Install Chronicle Elixir dependencies
+        if: steps.plan.outputs.checks == 'true'
         working-directory: Chronicle.Elixir/Source/chronicle
         run: |
           mix local.hex --force
           mix local.rebar --force
           mix deps.get
 
+      - name: Restore Components Yarn cache
+        if: hashFiles('Components/yarn.lock') != ''
+        uses: Cratis/Workflows/.github/actions/yarn-cache@main
+        with:
+          working-directory: Components
+          key-prefix: docs-yarn-components-v1
+
       - name: Build Components Storybook
         working-directory: Components
         run: |
-          corepack enable
           if [ -f yarn.lock ]; then
             yarn install --immutable
           else
@@ -358,10 +447,16 @@ jobs:
           fi
           node ../Documentation/web/scripts/build-components-storybook.mjs
 
+      - name: Restore Arc Yarn cache
+        if: hashFiles('Arc/yarn.lock') != ''
+        uses: Cratis/Workflows/.github/actions/yarn-cache@main
+        with:
+          working-directory: Arc
+          key-prefix: docs-yarn-arc-v1
+
       - name: Build Arc React Storybook
         working-directory: Arc/Source/JavaScript
         run: |
-          corepack enable
           if [ -f yarn.lock ]; then
             yarn install --immutable
           else
@@ -381,23 +476,152 @@ jobs:
         working-directory: Documentation/web
         run: node --test scripts/*.test.mjs
 
+      # One cache entry per API source repository, keyed on the exact commit checked out
+      # (plus the SDK and the API build script), so a hit is always that commit's own
+      # Release output. The paths are the DocFX inputs in web/api-build/docfx.json; a
+      # restore that lacks one fails build:api rather than publishing a partial reference.
+      - name: Resolve API assembly cache keys
+        id: api-keys
+        env:
+          BUILD_SCRIPT_HASH: ${{ hashFiles('Documentation/web/scripts/build-api.mjs') }}
+        run: |
+          set -euo pipefail
+          sdk="$(dotnet --version)"
+          for repo in Chronicle Arc Fundamentals; do
+            sha="$(git -C "$repo" rev-parse HEAD)"
+            echo "${repo,,}=docs-api-v1-${RUNNER_OS}-${repo}-${sha}-sdk${sdk}-${BUILD_SCRIPT_HASH}" >> "$GITHUB_OUTPUT"
+          done
+
+      - name: Restore Chronicle API assemblies
+        id: api-chronicle
+        if: steps.plan.outputs.changed != 'Chronicle'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          key: ${{ steps.api-keys.outputs.chronicle }}
+          path: |
+            Chronicle/Source/Clients/DotNET/bin/Release/net10.0
+            Chronicle/Source/Clients/AspNetCore/bin/Release/net10.0
+            Chronicle/Source/Clients/Testing/bin/Release/net10.0
+
+      - name: Restore Arc API assemblies
+        id: api-arc
+        if: steps.plan.outputs.changed != 'Arc'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          key: ${{ steps.api-keys.outputs.arc }}
+          path: |
+            Arc/Source/DotNET/Arc/bin/Release/net10.0
+            Arc/Source/DotNET/Arc.Core/bin/Release/net10.0
+            Arc/Source/DotNET/MongoDB/bin/Release/net10.0
+
+      - name: Restore Fundamentals API assemblies
+        id: api-fundamentals
+        if: steps.plan.outputs.changed != 'Fundamentals'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          key: ${{ steps.api-keys.outputs.fundamentals }}
+          path: Fundamentals/Source/DotNET/Fundamentals/bin/Release/net10.0
+
+      - name: Decide which API assemblies to compile
+        id: api-plan
+        env:
+          CHANGED: ${{ steps.plan.outputs.changed }}
+          HIT_CHRONICLE: ${{ steps.api-chronicle.outputs.cache-hit }}
+          HIT_ARC: ${{ steps.api-arc.outputs.cache-hit }}
+          HIT_FUNDAMENTALS: ${{ steps.api-fundamentals.outputs.cache-hit }}
+        run: |
+          set -euo pipefail
+          reuse=()
+          compile=()
+          for repo in Chronicle Arc Fundamentals; do
+            hit_variable="HIT_${repo^^}"
+            sha="$(git -C "$repo" rev-parse --short=12 HEAD)"
+            if [ "$repo" = "$CHANGED" ]; then
+              compile+=("$repo"); reason="dispatched by this repository"
+            elif [ "${!hit_variable}" = true ]; then
+              reuse+=("$repo"); reason="restored from cache"
+            else
+              compile+=("$repo"); reason="cache miss"
+            fi
+            echo "API ${repo}@${sha}: ${reason}" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+          echo "reuse=$(IFS=,; echo "${reuse[*]}")" >> "$GITHUB_OUTPUT"
+          echo "compile=$(IFS=,; echo "${compile[*]}")" >> "$GITHUB_OUTPUT"
+
+      # Needed even when every API assembly is restored: DocFX resolves their package
+      # references from the NuGet folder, and build:api restores reused projects.
+      - name: Restore NuGet packages
+        uses: Cratis/Workflows/.github/actions/dotnet-cache@main
+        with:
+          key-prefix: docs-nuget-v1
+          key-files: |
+            Chronicle/**/*.props
+            Chronicle/**/*.targets
+            Chronicle/Source/Clients/**/*.csproj
+            Chronicle/global.json
+            Arc/**/*.props
+            Arc/**/*.targets
+            Arc/Source/DotNET/**/*.csproj
+            Arc/global.json
+            Fundamentals/**/*.props
+            Fundamentals/**/*.targets
+            Fundamentals/Source/DotNET/**/*.csproj
+            Fundamentals/global.json
+            !**/node_modules/**
+
       - name: Generate API reference (DocFX + TypeDoc)
         working-directory: Documentation/web
-        run: npm run build:api
+        env:
+          REUSE: ${{ steps.api-plan.outputs.reuse }}
+        run: npm run build:api -- "--reuse=${REUSE}"
+
+      # Pull requests only restore. Repositories reused this run already have this key.
+      - name: Save Chronicle API assemblies
+        if: github.event_name != 'pull_request' && contains(format(',{0},', steps.api-plan.outputs.compile), ',Chronicle,')
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          key: ${{ steps.api-keys.outputs.chronicle }}
+          path: |
+            Chronicle/Source/Clients/DotNET/bin/Release/net10.0
+            Chronicle/Source/Clients/AspNetCore/bin/Release/net10.0
+            Chronicle/Source/Clients/Testing/bin/Release/net10.0
+
+      - name: Save Arc API assemblies
+        if: github.event_name != 'pull_request' && contains(format(',{0},', steps.api-plan.outputs.compile), ',Arc,')
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          key: ${{ steps.api-keys.outputs.arc }}
+          path: |
+            Arc/Source/DotNET/Arc/bin/Release/net10.0
+            Arc/Source/DotNET/Arc.Core/bin/Release/net10.0
+            Arc/Source/DotNET/MongoDB/bin/Release/net10.0
+
+      - name: Save Fundamentals API assemblies
+        if: github.event_name != 'pull_request' && contains(format(',{0},', steps.api-plan.outputs.compile), ',Fundamentals,')
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          key: ${{ steps.api-keys.outputs.fundamentals }}
+          path: Fundamentals/Source/DotNET/Fundamentals/bin/Release/net10.0
 
       - name: Lint docs
         working-directory: Documentation/web
         run: npm run sync && npm run lint:docs
 
       - name: Check variant docs (product and site pages)
+        if: steps.plan.outputs.checks == 'true'
         working-directory: Documentation/web
         run: npm run variant-docs:check:ci
 
+      # Content was synced for the lint step above. `npm run build` would sync again through
+      # its prebuild hook, so run what it runs without that hook: astro build, then postbuild.
       - name: Build site
         working-directory: Documentation/web
-        run: npm run build
+        run: |
+          npm run astro -- build
+          npm run postbuild
 
       - name: Check internal links
+        if: steps.plan.outputs.checks == 'true'
         working-directory: Documentation/web
         run: npm run check:links
 
@@ -409,7 +633,8 @@ jobs:
   deploy:
     needs: build
     # Publish to Pages only from main — pull requests and docs-overhaul are build-only validation.
-    if: ${{ github.event_name != 'pull_request' && github.ref_name == 'main' }}
+    # The nightly schedule only reports checks; it never publishes.
+    if: ${{ github.event_name != 'pull_request' && github.event_name != 'schedule' && github.ref_name == 'main' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
