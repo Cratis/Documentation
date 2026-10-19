@@ -1,6 +1,6 @@
 ---
 title: The Cratis Stack
-description: How the Cratis products fit together, from modeling the domain through the backend, event store, and React screens to testing, operating, and building with AI.
+description: Every Cratis product in one table, with what it does, its maturity, licence, and docs link, and how the products fit together from model to running app.
 ---
 
 import { Aside, CardGrid } from '@astrojs/starlight/components';
@@ -16,7 +16,7 @@ Most stacks are assembled parts you bolt together and then spend the whole proje
 
 Each product is strong on its own — you can [use them separately](/why-cratis/). The reason to reach for the *whole* stack is that the seams disappear: CQRS shapes information going in and out, event sourcing keeps the facts underneath, and everywhere you'd normally hand-write glue, Cratis generates it.
 
-- You **model** the domain, visually in [Studio](/studio/) or as a declarative `.play` script in [Screenplay](/screenplay/), and the model describes the commands, events, and read models you build. Studio is live in beta.
+- You **model** the domain, visually in [Studio](/studio/) or as a declarative `.play` script in [Screenplay](/screenplay/), and the model describes the commands, events, and read models you build. Studio is in Preview.
 - Or you **start from a system that already exists**, and [Prologue](/prologue/) captures selected HTTP, database, and telemetry signals from it and proposes the same kind of model for you to review. *(Experimental.)*
 - You **secure the edge**, and [AuthProxy](/authproxy/) authenticates, resolves the tenant, enriches identity, and routes requests.
 - You **write a command** in C#, Kotlin, Java, or TypeScript (a source preview), and [Arc](/arc/) generates the [typed TypeScript proxy](/arc/understanding-the-proxy-boundary/) for it.
@@ -28,7 +28,7 @@ Each product is strong on its own — you can [use them separately](/why-cratis/
 From Arc down, nothing in that list is a thing *you* keep in sync. The build does.
 
 <Aside type="caution" title="Model-first tools have different maturity levels">
-Studio, Screenplay, Stage, Scene, and Prologue form the model-first layer. Studio is live in beta; Stage, Scene, and Prologue remain experimental and in early development. Generated output needs review. Arc, Chronicle, and Components do not depend on this layer, so you can build without it.
+Studio, Screenplay, Stage, Scene, and Prologue form the model-first layer. Studio is in Preview; Stage, Scene, and Prologue remain experimental and in early development. Generated output needs review. Arc, Chronicle, and Components do not depend on this layer, so you can build without it.
 </Aside>
 
 In .NET, wiring the stack into one host is a single call: the [`Cratis` package](/arc/backend/csharp/chronicle/cratis-package/) brings Arc and Chronicle up together with `AddCratis`/`UseCratis`, sharing storage, identity, and hosting. Kotlin, Java, and TypeScript backends wire Arc and Chronicle through their own hosts: `io.cratis:cratis` is the single dependency for a Spring Boot application, and [`@cratis/cratis`](/arc/backend/typescript/chronicle/cratis-package/) registers both with one builder call in Node.js (experimental, and not published to npm). [Arc backends](/arc/backend/) compares the hosts.
@@ -120,15 +120,41 @@ Cratis ships first-class tooling so an AI agent can build *and* operate the stac
 - **`cratis init`** writes the CLI's command catalog and assistant instruction files into your project, so an agent knows how to browse events, watch observers, and diagnose a stuck partition through the CLI.
 - The **Chronicle MCP server** lets an agent connect to a running store, inspect events, observers, and read models, and manage jobs — the same window the CLI gives you, handed to your assistant.
 
-Model in Screenplay or Studio (live in beta), generate the slices, build them, and inspect the result. Stage remains experimental, so review what gets generated. An agent can take part at every step. [AI-native development](/ai/) covers the setup and exactly what an agent can do, and [Agentic development with event sourcing](/agentic-development/) explains why the log, commands and specifications make agent-written changes verifiable.
+Model in Screenplay or Studio (in Preview), generate the slices, build them, and inspect the result. Stage remains experimental, so review what gets generated. An agent can take part at every step. [AI-native development](/ai/) covers the setup and exactly what an agent can do, and [Agentic development with event sourcing](/agentic-development/) explains why the log, commands and specifications make agent-written changes verifiable.
 
 And when you or a teammate gets stuck, [Prompter](/prompter/) — the community's Discord assistant — answers Cratis questions grounded in this same documentation, with citations, right where your team already talks.
+
+## Capability map
+
+Cratis has one event store, one application framework, one UI library, and the tools around them; the table lists each product with what it does, its maturity, and its licence. Released means the product publishes packages or images; the READMEs and docs state no further maturity label for it. Where sources disagree, the table uses the more conservative label. The [support matrix](/compatibility/#support-matrix) covers storage, languages, frameworks, and hosting.
+
+| Product | What it does | Maturity | Licence | Docs |
+|---|---|---|---|---|
+| Chronicle | Event-sourcing database and runtime with an Orleans-based .NET kernel and gRPC/protobuf contracts | Released | MIT | [Chronicle](/chronicle/) |
+| Arc | CQRS application framework with commands, queries, validation, and generated TypeScript proxies | Released | MIT | [Arc](/arc/) |
+| Components | React component library: command dialogs, typed forms, and query-backed data tables | Released | MIT | [Components](/components/) |
+| Fundamentals | Shared .NET and TypeScript building blocks beneath the other products | Released | MIT | [Fundamentals](/fundamentals/) |
+| Specifications | BDD-style Given/When/Then specs for .NET with xUnit and NUnit | Released | MIT | [Specifications](/specifications/) |
+| CLI | Terminal tool (`cratis`) to inspect and diagnose Chronicle and install Cratis AI | Released | MIT | [CLI](/cli/) |
+| Workbench | Web dashboard bundled with Chronicle for browsing events and operating a deployment | Released | MIT | [Workbench](/chronicle/workbench/) |
+| Chronicle MCP | MCP server that connects an AI agent to a running Chronicle | Released | MIT | [Chronicle MCP](/chronicle-mcp/) |
+| Cratis AI | Rules, agents, and skills for building with Cratis, installed with `cratis ai install` | Preview | MIT | [Cratis AI](/ai/) |
+| Screenplay | Declarative `.play` language for modeling a bounded context | Experimental | MIT | [Screenplay](/screenplay/) |
+| Stage | Compiles Screenplay, verifies specifications, and performs part of a model as a sandbox | Experimental | MIT | [Stage on GitHub](https://github.com/Cratis/Stage) |
+| Prologue | Captures signals from an existing system and proposes an event model for review | Experimental | MIT | [Prologue](/prologue/) |
+| Studio | Collaborative design of Screenplay event models | Preview | Paid product | [Studio](/studio/) |
+| TypeScript client | `@cratis/chronicle` for Chronicle from Node.js | Released | MIT | [TypeScript](/event-sourcing/typescript/) |
+| Kotlin/Java client | `io.cratis:chronicle` with a Spring Boot starter | Released | MIT | [Kotlin](/event-sourcing/kotlin/) |
+| Elixir client | `cratis_chronicle` on Hex | Released | MIT | [Elixir](/event-sourcing/elixir/) |
+| Python client | Chronicle client for Python, not yet published | Pre-alpha | MIT | [Python](/event-sourcing/python/) |
+
+The .NET client ships with Chronicle itself. See [Chronicle in your language](/chronicle-clients/) for installation per client.
 
 ## Each layer, on its own and together
 
 <CardGrid>
   <SimpleCard title="Studio — design" icon="open-book" link="/studio/">
-    Design, visualize, and edit Screenplay event models together. Studio is live in beta.
+    Design, visualize, and edit Screenplay event models together. Studio is in Preview.
   </SimpleCard>
   <SimpleCard title="Screenplay — model as code" icon="pencil" link="/screenplay/">
     The modeling language: a whole bounded context — events, commands, queries, projections, screens, and rules — in one declarative `.play` file that Stage renders and Studio edits.
