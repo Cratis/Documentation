@@ -266,22 +266,6 @@ export const PRODUCTS = [
         excludeRootFiles: ['project-context.md'],
     },
     {
-        // Chronicle.Dapr — the Dapr integration for Chronicle, published under /chronicle/dapr/
-        // and surfaced as a section of the Chronicle topic.
-        key: 'chronicle/dapr', label: 'Chronicle.Dapr', icon: 'seti:html', sidebarMode: 'toc',
-        src: firstExisting(
-            path.join(reposRoot, 'Chronicle.Dapr', 'Documentation'),
-            path.join(docRepoRoot, 'Chronicle.Dapr', 'Documentation')),
-    },
-    {
-        // Chronicle.Wolverine — the Wolverine integration for Chronicle, published under
-        // /chronicle/wolverine/ and surfaced as a section of the Chronicle topic.
-        key: 'chronicle/wolverine', label: 'Chronicle.Wolverine', icon: 'seti:html', sidebarMode: 'toc',
-        src: firstExisting(
-            path.join(reposRoot, 'Chronicle.Wolverine', 'Documentation'),
-            path.join(docRepoRoot, 'Chronicle.Wolverine', 'Documentation')),
-    },
-    {
         // Arc.Go — the Go backend for Arc, published under /arc/go/ and surfaced as a
         // section of the Arc topic. project-context.md is contributor session context, not published.
         key: 'arc/go', label: 'Arc.Go', icon: 'seti:go', sidebarMode: 'toc',
