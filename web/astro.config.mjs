@@ -118,8 +118,16 @@ const overviewTopic = {
                 { label: 'Event-driven architecture vs. event sourcing', slug: 'concepts/event-driven-architecture' },
             ],
         },
-        { label: 'Compare event sourcing for .NET', slug: 'compare-event-sourcing-dotnet' },
-        { label: 'Compare event sourcing on the JVM', slug: 'compare-event-sourcing-jvm' },
+        {
+            label: 'Compare',
+            collapsed: true,
+            items: [
+                { label: 'How Cratis writes comparisons', slug: 'compare' },
+                { label: 'Marten vs Chronicle', slug: 'compare/marten-vs-chronicle' },
+                { label: 'Compare event sourcing for .NET', slug: 'compare-event-sourcing-dotnet' },
+                { label: 'Compare event sourcing on the JVM', slug: 'compare-event-sourcing-jvm' },
+            ],
+        },
         { label: 'Adopting Cratis', slug: 'adopting-cratis' },
         {
             label: 'Scenarios',
@@ -386,7 +394,7 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/compare-event-sourcing-dotnet', '/compare-event-sourcing-jvm', '/adopting-cratis', '/chronicle-clients', '/event-sourcing/**', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/upgrade-path', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/generated-values', '/decisions-that-hold-walkthrough', '/eventmodelers-ai', '/eventmodelers-ai/**', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/compare', '/compare/**', '/compare-event-sourcing-dotnet', '/compare-event-sourcing-jvm', '/adopting-cratis', '/chronicle-clients', '/event-sourcing/**', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/upgrade-path', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/generated-values', '/decisions-that-hold-walkthrough', '/eventmodelers-ai', '/eventmodelers-ai/**', '/samples', '/showcase', '/whats-new', '/glossary', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],
