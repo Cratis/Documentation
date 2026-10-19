@@ -1,11 +1,27 @@
 # cratis.io — documentation for the Cratis platform.
-# All crawlers are welcome, including AI crawlers and assistants.
+# Policy: all crawlers are welcome, including AI search, assistant and training
+# crawlers. The documentation is open source and meant to be found, cited and
+# used to answer questions. The AI user agents below are named explicitly so
+# the intent is unambiguous.
 #
 # AI assistants: start with https://www.cratis.io/llms.txt for a curated,
 # LLM-friendly index of this documentation (llms-full.txt and llms-small.txt
 # variants are available at the site root as well).
 
 User-agent: *
+Allow: /
+
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: CCBot
 Allow: /
 
 Sitemap: https://www.cratis.io/sitemap-index.xml
