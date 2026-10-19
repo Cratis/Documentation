@@ -15,7 +15,7 @@
 // so these are the only faces (no `swap` duplicate).
 import Default from '@astrojs/starlight/components/Head.astro';
 import { getCollection } from 'astro:content';
-import { contextualTitle, hasDuplicateTitle, hasPublishedChildren, pageDescription, pageKind, structuredData, serializeStructuredData } from '../../scripts/page-metadata.mjs';
+import { contextualTitle, hasDuplicateTitle, glossaryTerms, hasPublishedChildren, pageDescription, pageKind, structuredData, serializeStructuredData } from '../../scripts/page-metadata.mjs';
 import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import interLatinExt from '@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2?url';
 import jbMonoLatin from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
@@ -71,8 +71,13 @@ const kind = pageKind(id, {
     hasChildren: hasPublishedChildren(id, docs),
     splash: entry.data.template === 'splash',
 });
+const terms = kind === 'glossary' ? glossaryTerms(entry.body ?? '', url) : undefined;
+// Every published page has a Markdown mirror (see emit-doc-artifacts.mjs); advertise it to agents.
+if (id !== '404') {
+    route.head.push({ tag: 'link', attrs: { rel: 'alternate', type: 'text/markdown', href: id ? `${url.replace(/\/$/, '')}.md` : new URL('/index.md', url).href } });
+}
 const data = structuredData({
-    home: !id, notFound: id === '404', title: headline, description, url, breadcrumbs, kind,
+    home: !id, notFound: id === '404', title: headline, description, url, breadcrumbs, kind, terms,
     dateModified: lastUpdated?.toISOString().slice(0, 10),
 });
 const jsonLd = data ? serializeStructuredData(data) : undefined;
