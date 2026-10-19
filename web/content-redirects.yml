@@ -25,7 +25,6 @@
 # bookmarks keep pointing at the old URL forever. Add entries when a page moves;
 # never remove one to tidy the list up.
 #
-# No content redirects are configured yet.
 - from: /arc/backend/asp-net-core/
   to: /arc/backend/csharp/asp-net-core/
 - from: /arc/backend/asp-net-core/authorization/
@@ -424,3 +423,5 @@
   to: /arc/backend/csharp/development/generating-principal/
 - from: /arc/backend/kotlin/guides/
   to: /arc/backend/kotlin/
+- from: /concepts/event-modeling/
+  to: /event-modeling/

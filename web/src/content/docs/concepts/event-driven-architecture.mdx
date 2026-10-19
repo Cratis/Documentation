@@ -99,7 +99,7 @@ Costs to weigh:
 - **Thin events when you need rebuilds.** A notification with only an ID is fine in EDA. In event sourcing, the event must carry the facts.
 - **Side effects in projections.** A projection builds state and must be safe to replay. Sending an email belongs in a reactor.
 - **Assuming exactly-once delivery.** Most delivery is at least once. Make reactions safe to repeat.
-- **Long reaction chains.** Event A causes B causes C causes D. Debugging becomes archaeology. Model the flow first; [event modeling](/concepts/event-modeling/) helps.
+- **Long reaction chains.** Event A causes B causes C causes D. Debugging becomes archaeology. Model the flow first; [event modeling](/event-modeling/) helps.
 
 ## Frequently asked questions
 

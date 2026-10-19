@@ -44,7 +44,7 @@ explains how they fit together.
 | [Per-stream read model](/chronicle/read-models/per-stream/) | A read model declared with `[EventStream<TSource>(stream)]` that folds one stream of an event source, such as one account's withdrawals in one month. |
 | [Stream decision](/arc/backend/csharp/chronicle/commands/stream-decisions/) | A command reads the raw events of one stream through `IStreamReads` and returns `StreamDecision.Append(...)`, which guards that stream at the tail it read. |
 | [Subject](/chronicle/concepts/subject/) | The person or entity whose personal data an event contains. PII is encrypted under a key per subject, which defaults to the event source id. |
-| [PII](/chronicle/compliance/pii/) | Personal data marked with `[PII]`, encrypted at append time so it can be erased by deleting the subject's key. |
+| [PII](/chronicle/compliance/pii/) | Personal data marked with `[PII]`, encrypted at append time so it can be erased by deleting the subject's key. See [event sourcing and GDPR](/concepts/event-sourcing-gdpr/). |
 
 ## Turning events into state
 
@@ -74,7 +74,9 @@ The terms [Arc](/arc/) and [Components](/components/) add on top of Chronicle.
 | **CQRS** | Command Query Responsibility Segregation — separating the write side (commands) from the read side (queries). |
 | [Proxy generation](/arc/backend/csharp/proxy-generation/) | Arc emitting a typed TypeScript client from your C# commands and queries at build time. |
 | [Concept](/fundamentals/csharp/concepts/) | A strongly-typed wrapper around a primitive (`AccountId` over `Guid`) so the compiler catches mix-ups. |
+| [Agentic development](/agentic-development/) | Letting AI coding agents design, change and operate a system whose state is an event log and whose behavior is checked by executable specifications. |
 | [Vertical slice](/arc/vertical-slices/) | Everything for one behavior — command, events, projection, UI, specs — kept together in one folder. |
+| [Event modeling](/event-modeling/) | Designing a system as one timeline of screens, commands, events and read models before writing code. |
 | [Spec-driven development](/spec-driven-development/) | Writing the event model and its Given/When/Then specifications first, then checking code, written by people or agents, against them. |
 
 New to all this? Start with [Why developers choose Cratis](/why-cratis/), then the [Chronicle tutorial](/chronicle/tutorial/).
