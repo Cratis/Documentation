@@ -3,7 +3,10 @@
 
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import { buildInfo, checkoutSources, probe } from './docs-source-fingerprint.mjs';
@@ -130,13 +133,16 @@ test('slow checks should run only on PR, manual and nightly builds', () => {
         ['pull_request', '', true], ['workflow_dispatch', '', true], ['push', '', false],
         ['schedule', '17 2 * * *', true], ['schedule', '7 * * * *', false],
     ]) {
-        const output = execFileSync('bash', ['-c', script], {
+        // GITHUB_OUTPUT is a real file, as on a runner: /dev/stdout is not writable under CI.
+        const outputFile = path.join(mkdtempSync(path.join(tmpdir(), 'docs-plan-')), 'output');
+        writeFileSync(outputFile, '');
+        execFileSync('bash', ['-c', script], {
             encoding: 'utf8', env: {
                 ...process.env, EVENT_NAME: eventName, EVENT_SCHEDULE: schedule,
-                PAYLOAD_REPO: '', PAYLOAD_SHA: '', GITHUB_OUTPUT: '/dev/stdout',
+                PAYLOAD_REPO: '', PAYLOAD_SHA: '', GITHUB_OUTPUT: outputFile,
             },
         });
-        assert.match(output, new RegExp(`^checks=${checks}$`, 'm'));
+        assert.match(readFileSync(outputFile, 'utf8'), new RegExp(`^checks=${checks}$`, 'm'));
     }
 });
 
