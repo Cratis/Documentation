@@ -138,7 +138,7 @@ describe('page metadata', () => {
     });
 
     it('links the Markdown mirror path that emitDocArtifacts writes', async () => {
-        const { mkdtemp, mkdir, writeFile, access } = await import('node:fs/promises');
+        const { mkdtemp, mkdir, writeFile, access, rm } = await import('node:fs/promises');
         const { tmpdir } = await import('node:os');
         const path = await import('node:path');
         const { emitDocArtifacts } = await import('./emit-doc-artifacts.mjs');
@@ -149,9 +149,14 @@ describe('page metadata', () => {
         await writeFile(path.join(docs, 'arc', 'index.md'), '---\ntitle: Arc\n---\nArc\n');
         await writeFile(path.join(docs, 'arc', 'guide', 'page.md'), '---\ntitle: P\n---\nP\n');
         await emitDocArtifacts(docs, dist, { axes: [] });
-        for (const route of ['/', '/arc/', '/arc/guide/page/']) {
-            const href = markdownMirrorHref(`https://www.cratis.io${route}`);
-            await access(path.join(dist, new URL(href).pathname));
+        try {
+            for (const route of ['/', '/arc/', '/arc/guide/page/']) {
+                const href = markdownMirrorHref(`https://www.cratis.io${route}`);
+                await access(path.join(dist, new URL(href).pathname));
+            }
+        } finally {
+            await rm(docs, { recursive: true, force: true });
+            await rm(dist, { recursive: true, force: true });
         }
         assert.equal(markdownMirrorHref('https://www.cratis.io/arc/guide/page/'), 'https://www.cratis.io/arc/guide/page.md');
     });
