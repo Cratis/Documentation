@@ -1,6 +1,6 @@
 ---
 title: The Cratis Stack
-description: How the Cratis products fit together, from modeling the domain through the backend, event store, and React screens to testing, operating, and building with AI.
+description: Every Cratis product in one table, with what it does, its maturity, licence, and docs link, and how the products fit together from model to running app.
 ---
 
 import { Aside, CardGrid } from '@astrojs/starlight/components';
@@ -123,6 +123,32 @@ Cratis ships first-class tooling so an AI agent can build *and* operate the stac
 Model in Screenplay or Studio (live in beta), generate the slices, build them, and inspect the result. Stage remains experimental, so review what gets generated. An agent can take part at every step. [AI-native development](/ai/) covers the setup and exactly what an agent can do.
 
 And when you or a teammate gets stuck, [Prompter](/prompter/) — the community's Discord assistant — answers Cratis questions grounded in this same documentation, with citations, right where your team already talks.
+
+## Capability map
+
+Cratis has one event store, one application framework, one UI library, and the tools around them; the table lists each product with what it does, its maturity, and its licence. Released means the product publishes packages or images; the READMEs and docs state no further maturity label for it. Where sources disagree, the table uses the more conservative label. The [support matrix](/compatibility/#support-matrix) covers storage, languages, frameworks, and hosting.
+
+| Product | What it does | Maturity | Licence | Docs |
+|---|---|---|---|---|
+| Chronicle | Event-sourcing database and runtime with an Orleans-based .NET kernel and gRPC/protobuf contracts | Released | MIT | [Chronicle](/chronicle/) |
+| Arc | CQRS application framework with commands, queries, validation, and generated TypeScript proxies | Released | MIT | [Arc](/arc/) |
+| Components | React component library: command dialogs, typed forms, and query-backed data tables | Released | MIT | [Components](/components/) |
+| Fundamentals | Shared .NET and TypeScript building blocks beneath the other products | Released | MIT | [Fundamentals](/fundamentals/) |
+| Specifications | BDD-style Given/When/Then specs for .NET with xUnit and NUnit | Released | MIT | [Specifications](/specifications/) |
+| CLI | Terminal tool (`cratis`) to inspect and diagnose Chronicle and install Cratis AI | Released | MIT | [CLI](/cli/) |
+| Workbench | Web dashboard bundled with Chronicle for browsing events and operating a deployment | Released | MIT | [Workbench](/chronicle/workbench/) |
+| Chronicle MCP | MCP server that connects an AI agent to a running Chronicle | Released | MIT | [Chronicle MCP](/chronicle-mcp/) |
+| Cratis AI | Rules, agents, and skills for building with Cratis, installed with `cratis ai install` | Released | MIT | [Cratis AI](/ai/) |
+| Screenplay | Declarative `.play` language for modeling a bounded context | Experimental | MIT | [Screenplay](/screenplay/) |
+| Stage | Compiles Screenplay, verifies specifications, and performs part of a model as a sandbox | Experimental | MIT | [Stage on GitHub](https://github.com/Cratis/Stage) |
+| Prologue | Captures signals from an existing system and proposes an event model for review | Experimental | MIT | [Prologue](/prologue/) |
+| Studio | Collaborative design of Screenplay event models | Preview | Paid product | [Studio](/studio/) |
+| TypeScript client | `@cratis/chronicle` for Chronicle from Node.js | Released | MIT | [TypeScript](/event-sourcing/typescript/) |
+| Kotlin/Java client | `io.cratis:chronicle` with a Spring Boot starter | Released | MIT | [Kotlin](/event-sourcing/kotlin/) |
+| Elixir client | `cratis_chronicle` on Hex | Released | MIT | [Elixir](/event-sourcing/elixir/) |
+| Python client | Chronicle client for Python, not yet published | Pre-alpha | MIT | [Python](/event-sourcing/python/) |
+
+The .NET client ships with Chronicle itself. See [Chronicle in your language](/chronicle-clients/) for installation per client.
 
 ## Each layer, on its own and together
 
