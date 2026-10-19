@@ -44,7 +44,7 @@ explains how they fit together.
 | [Per-stream read model](/chronicle/read-models/per-stream/) | A read model declared with `[EventStream<TSource>(stream)]` that folds one stream of an event source, such as one account's withdrawals in one month. |
 | [Stream decision](/arc/backend/csharp/chronicle/commands/stream-decisions/) | A command reads the raw events of one stream through `IStreamReads` and returns `StreamDecision.Append(...)`, which guards that stream at the tail it read. |
 | [Subject](/chronicle/concepts/subject/) | The person or entity whose personal data an event contains. PII is encrypted under a key per subject, which defaults to the event source id. |
-| [PII](/chronicle/compliance/pii/) | Personal data marked with `[PII]`, encrypted at append time so it can be erased by deleting the subject's key. |
+| [PII](/chronicle/compliance/pii/) | Personal data marked with `[PII]`, encrypted at append time so it can be erased by deleting the subject's key. See [event sourcing and GDPR](/concepts/event-sourcing-gdpr/). |
 
 ## Turning events into state
 

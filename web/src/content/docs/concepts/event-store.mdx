@@ -116,6 +116,10 @@ It is a specialised database. Some event stores run on top of NoSQL or SQL datab
 
 You can build an event log in any relational database with an append-only table, and many teams do. You then own sequencing, concurrency checks, subscriptions and replay. A dedicated event store provides those. Chronicle can also use PostgreSQL or SQL Server as its storage.
 
+### Can I delete personal data from an event store?
+
+Not by editing events. You mark personal values so they are encrypted under a per-person key, and on request you delete the key (crypto-shredding), which makes those values unreadable while the log stays intact. Only values you marked are covered, and read models and copies need their own handling. In Chronicle this is the `[PII]` feature. See [event sourcing and GDPR](/concepts/event-sourcing-gdpr/).
+
 ### Where do my queries run?
 
 On read models. A projection folds events into a read model that is stored in a database, and your queries run there.
