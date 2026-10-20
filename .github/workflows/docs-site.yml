@@ -732,6 +732,8 @@ jobs:
 
       - name: Lint docs
         working-directory: Documentation/web
+        env:
+          SEO_LINT_ENFORCE: ${{ github.event_name == 'pull_request' && '1' || '' }}
         run: npm run sync && npm run lint:docs && npm run lint:seo
 
       - name: Check variant docs (product and site pages)
@@ -743,6 +745,8 @@ jobs:
       # its prebuild hook, so run what it runs without that hook: astro build, then postbuild.
       - name: Build site
         working-directory: Documentation/web
+        env:
+          LLM_BUDGET_ENFORCE: ${{ github.event_name == 'pull_request' && '1' || '' }}
         run: |
           npm run astro -- build
           npm run postbuild

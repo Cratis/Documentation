@@ -13,8 +13,8 @@ export const PAGE_MARKER = '<!--cratis-llms-page-->';
 export const PAGE_SEPARATOR = `\n\n${PAGE_MARKER}\n\n`;
 
 /**
- * Size above which the build warns. Both are warnings, never failures: pick a smaller
- * export deliberately rather than letting an area quietly grow past a model's context.
+ * Size above which the build warns, or fails when budget enforcement is explicitly enabled.
+ * Pick a smaller export deliberately rather than letting an area quietly grow past a model's context.
  */
 export const SIZE_WARNINGS = [
     { route: '/llms-small.txt', bytes: 400_000 },
@@ -101,8 +101,15 @@ export function abridgedExport(heading, groups) {
     return lines.join('\n');
 }
 
+/** Structured budget verdict; enforcement must be explicitly enabled by the caller. */
+export function budgetResult(sizes, enforce = false) {
+    const exceeded = SIZE_WARNINGS.filter(({ route, bytes }) => (sizes.get(route) ?? 0) > bytes)
+        .map(({ route, bytes }) => ({ route, bytes: sizes.get(route), budgetBytes: bytes }));
+    return { exceeded, failed: enforce && exceeded.length > 0 };
+}
+
 /** Warnings for exports over their documented threshold, as GitHub Actions annotations. */
 export function sizeWarnings(sizes) {
-    return SIZE_WARNINGS.filter(({ route, bytes }) => (sizes.get(route) ?? 0) > bytes)
-        .map(({ route, bytes }) => `::warning title=LLM export size::${route} is ${sizes.get(route)} bytes, above the ${bytes} byte threshold; see web/README.md (LLM exports).`);
+    return budgetResult(sizes).exceeded
+        .map(({ route, bytes, budgetBytes }) => `::warning title=LLM export size::${route} is ${bytes} bytes, above the ${budgetBytes} byte threshold; see web/README.md (LLM exports).`);
 }

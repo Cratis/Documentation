@@ -8,6 +8,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { budgetResult, SIZE_WARNINGS, sizeWarnings } from './llm-bulk.mjs';
 
 const site = 'https://www.cratis.io';
 // The title text is already HTML-encoded; only quotes can end the attribute early.
@@ -84,7 +85,25 @@ export async function addSitemapLastmod(dist) {
     return added;
 }
 
-export async function seoPostbuild(dist) {
+/** Check the bytes actually written by the LLM exporter, including its final newline. */
+export async function checkLlmBudgets(dist, { enforce = process.env.LLM_BUDGET_ENFORCE === '1' } = {}) {
+    const sizes = new Map();
+    for (const { route } of SIZE_WARNINGS) {
+        try {
+            sizes.set(route, (await fs.stat(path.join(dist, route.slice(1)))).size);
+        } catch (error) {
+            if (error.code !== 'ENOENT') throw error;
+        }
+    }
+    const result = budgetResult(sizes, enforce);
+    // emit-llm-indexes.mjs already emits the warning; only add errors when enforcement is on.
+    if (enforce) {
+        for (const warning of sizeWarnings(sizes)) console.error(warning.replace('::warning ', '::error '));
+    }
+    return result;
+}
+
+export async function seoPostbuild(dist, options) {
     let noindex = 0;
     let api = 0;
     for (const entry of await fs.readdir(dist, { withFileTypes: true })) {
@@ -110,9 +129,11 @@ export async function seoPostbuild(dist) {
     }
     const lastmod = await addSitemapLastmod(dist);
     console.log(`[postbuild] noindex on ${noindex} Storybook pages; canonical/description on ${api} API pages; lastmod on ${lastmod} sitemap URLs`);
-    return { noindex, api, lastmod };
+    const budgets = await checkLlmBudgets(dist, options);
+    return { noindex, api, lastmod, budgets };
 }
 
 if (process.argv[1] && await fs.realpath(process.argv[1]) === await fs.realpath(fileURLToPath(import.meta.url))) {
-    await seoPostbuild(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist'));
+    const result = await seoPostbuild(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist'));
+    if (result.budgets.failed) process.exitCode = 1;
 }
