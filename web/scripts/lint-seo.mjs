@@ -2,7 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 // Search-result quality checks over the synced documentation. Missing descriptions remain
-// warnings; duplicate browser titles within a top-level route section fail above the baseline.
+// warnings; duplicate browser titles within a top-level route section above the baseline fail
+// pull requests (SEO_LINT_ENFORCE=1) and warn elsewhere, so a deployment is never blocked.
 // Run with --update-baseline to record the current counts in seo-baseline.json.
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
@@ -64,11 +65,11 @@ export function analyse(pages) {
     return { missingDescription, duplicateTitle: duplicateBrowserTitles(pages) };
 }
 
-function compareDuplicateTitles(count, baseline) {
+function compareDuplicateTitles(count, baseline, enforce) {
     if (typeof baseline !== 'number') return [];
     const text = `${count} pages with duplicate browser titles within a section`;
     if (count > baseline) {
-        return [{ level: 'error', text: `${text}, above the baseline of ${baseline}. Disambiguate the titles instead of raising the baseline.` }];
+        return [{ level: enforce ? 'error' : 'warning', text: `${text}, above the baseline of ${baseline}. Disambiguate the titles instead of raising the baseline.` }];
     }
     if (count < baseline) {
         return [{ level: 'warning', text: `${text}, below the baseline of ${baseline}. Lower duplicateTitle in web/scripts/seo-baseline.json to lock in the gain (npm run lint:seo -- --update-baseline).` }];
@@ -76,8 +77,8 @@ function compareDuplicateTitles(count, baseline) {
     return count > 0 ? [{ level: 'warning', text: `${text}, at the baseline of ${baseline}.` }] : [];
 }
 
-export function compare(counts, baseline) {
-    return [...compareDescriptions(counts, baseline), ...compareDuplicateTitles(counts.duplicateTitle, baseline.duplicateTitle)];
+export function compare(counts, baseline, enforce = process.env.SEO_LINT_ENFORCE === '1') {
+    return [...compareDescriptions(counts, baseline), ...compareDuplicateTitles(counts.duplicateTitle, baseline.duplicateTitle, enforce)];
 }
 
 function compareDescriptions(counts, baseline) {

@@ -77,12 +77,15 @@ describe('SEO lint', () => {
 
     it('errors above the title baseline, warns below or at it, and is quiet at zero', () => {
         for (const [count, baseline, expected] of [[3, 2, 'error'], [2, 3, 'warning'], [2, 2, 'warning']]) {
-            assert.deepEqual(compare({ duplicateTitle: count }, { duplicateTitle: baseline }).map(m => m.level), [expected]);
+            assert.deepEqual(compare({ duplicateTitle: count }, { duplicateTitle: baseline }, true).map(m => m.level), [expected]);
+        }
+        for (const [count, baseline, expected] of [[3, 2, 'warning'], [2, 3, 'warning'], [2, 2, 'warning']]) {
+            assert.deepEqual(compare({ duplicateTitle: count }, { duplicateTitle: baseline }, false).map(m => m.level), [expected]);
         }
         assert.deepEqual(compare({ duplicateTitle: 0 }, { duplicateTitle: 0 }), []);
     });
 
-    it('exits nonzero above the title baseline and updates both baseline counts on request', async t => {
+    it('fails only when enforced above the title baseline, and updates both baseline counts on request', async t => {
         const here = path.dirname(fileURLToPath(import.meta.url));
         const scratch = path.resolve(here, '../../.ai-work/seo');
         await mkdir(scratch, { recursive: true });
@@ -98,7 +101,9 @@ describe('SEO lint', () => {
         for (const file of ['a.md', 'b.mdx']) await writeFile(path.join(docs, file), '---\ntitle: Shared topic\n---\n');
         const baseline = path.join(scripts, 'seo-baseline.json');
         await writeFile(baseline, JSON.stringify({ missingDescription: 0, duplicateTitle: 0 }));
-        const run = (...args) => spawnSync(process.execPath, [path.join(scripts, 'lint-seo.mjs'), ...args], { encoding: 'utf8', timeout: 10_000 });
+        const run = (...args) => spawnSync(process.execPath, [path.join(scripts, 'lint-seo.mjs'), ...args], { encoding: 'utf8', timeout: 10_000, env: { ...process.env, SEO_LINT_ENFORCE: '1' } });
+        const warnedOnly = spawnSync(process.execPath, [path.join(scripts, 'lint-seo.mjs')], { encoding: 'utf8', timeout: 10_000, env: { ...process.env, SEO_LINT_ENFORCE: '' } });
+        assert.equal(warnedOnly.status, 0, warnedOnly.stderr);
         const failed = run();
         assert.equal(failed.status, 1, failed.stderr);
         assert.match(failed.stdout, /::error title=SEO lint::2 pages with duplicate browser titles/);

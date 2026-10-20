@@ -126,7 +126,7 @@ The postbuild step also trims `llms-full.txt` without dropping any page: outside
 
 The build prints each bulk export's size and emits a `::warning` annotation when `llms-small.txt` exceeds 400,000 bytes or `llms-full.txt` exceeds 17,000,000 bytes (`SIZE_WARNINGS` in `scripts/llm-bulk.mjs`). The warning never fails the build; trim or split an area before raising a threshold.
 
-`npm run lint:seo` warns about pages without a real description. `scripts/seo-baseline.json` holds the current count: a higher count is annotated on the pull request and a lower one asks you to lower the baseline (`npm run lint:seo -- --update-baseline`), so the count can only go down.
+`npm run lint:seo` warns about pages without a real description. `scripts/seo-baseline.json` holds the current count: a higher count is annotated on the pull request and a lower one asks you to lower the baseline (`npm run lint:seo -- --update-baseline`), so the count can only go down. It also counts pages whose browser titles are still identical within a section after the language is added; above the `duplicateTitle` baseline this fails a pull request (`SEO_LINT_ENFORCE=1`) and only warns on scheduled and main builds. `npm run postbuild` checks `llms-small.txt` (400,000 bytes) and `llms-full.txt` (17,000,000 bytes) against their budgets in the same way: an exceeded budget fails a pull request (`LLM_BUDGET_ENFORCE=1`) and warns elsewhere.
 
 ### What CI runs
 
