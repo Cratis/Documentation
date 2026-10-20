@@ -430,6 +430,10 @@ sitePages:
       reason: The .NET landing page for Chronicle; its code is .NET by design.
     - page: event-sourcing/kotlin.mdx
       reason: The Kotlin and Java landing page for Chronicle; its code is JVM by design.
+    - page: cqrs/dotnet.mdx
+      reason: The .NET CQRS landing page for Arc and Chronicle; its code is .NET by design.
+    - page: cqrs/kotlin.mdx
+      reason: The Kotlin and Java CQRS landing page for Arc and Chronicle; its code is JVM by design.
     - page: spec-driven-development.mdx
       reason: Its worked slice pairs a Screenplay specification with a Cratis.Specifications test, a .NET-only library, and the C# command that test exercises.
     - page: specifications.mdx

@@ -1,0 +1,128 @@
+---
+title: CQRS in TypeScript and Node.js with Cratis Arc
+description: "CQRS in TypeScript and Node.js with Cratis Arc, a source-preview CQRS server, plus the released Chronicle client for event sourcing. What works today and what does not."
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+CQRS (Command Query Responsibility Segregation) means commands change state and queries read it, each with its own model. For TypeScript and Node.js, Cratis offers two separate pieces. Arc for TypeScript is a CQRS server with decorated commands and queries, but it is a source preview and no package is published to npm. `@cratis/chronicle` is the released Chronicle client for event sourcing. Choose with that difference in mind.
+
+This page states plainly what exists. If you want a production CQRS backend today in TypeScript, Arc for TypeScript is not yet that. If you want to evaluate the model, or to build CQRS on the Chronicle event store from Node.js, read on.
+
+## What exists today
+
+| Piece | What it does | Maturity |
+| --- | --- | --- |
+| Arc for TypeScript | Commands, queries, validation, authorization, tenancy and observable queries on Node.js | Source preview; not published to npm |
+| Arc hosts | Standalone host, Express, Fastify and Hono adapters | Source preview |
+| Persistence | Tenant-scoped MongoDB collections and Drizzle SQL queries | Source preview |
+| Arc Chronicle integration | Appends events a command returns; serves projected read models | Experimental |
+| Frontend proxies | `@cratis/arc` and `@cratis/arc.react` packages; proxies generated from backend source | Frontend packages released; generator bounded |
+| `@cratis/chronicle` | Chronicle client: events, reducers, reactors, projections | Released |
+
+Arc for TypeScript does not have full parity with Arc on .NET. Its [capability reference](/arc/backend/typescript/reference/capabilities/) lists each capability, the spec that proves it, and where it deliberately differs. Read it before you design around a feature.
+
+## A command and a query
+
+In the Tasks sample, a command is a class with fields and a `handle` method. A query is a static method on a read model. These excerpts use `TaskId`, `TaskTitle` and `Tasks` from that sample:
+
+```typescript
+@command()
+export class RegisterTask {
+    @field(TaskId) id!: TaskId;
+    @field(TaskTitle) title!: TaskTitle;
+
+    handle(tasks: Tasks): TaskId {
+        tasks.register(this.id, this.title);
+        return this.id;
+    }
+}
+
+@readModel()
+export class TaskItem {
+    @field(TaskId) id!: TaskId;
+    @field(TaskTitle) title!: TaskTitle;
+
+    @query(service(Tasks))
+    static allTasks(tasks: Tasks): TaskItem[] { return tasks.all(); }
+}
+```
+
+`@field` comes from `@cratis/fundamentals`; the other decorators come from `@cratis/arc.core`. Arc decodes the fields, runs the command or query in a service scope, and serves it over the same HTTP contract as Arc on .NET. The sample's artifacts are discovered from a `Features/` folder, which gives routes such as `POST /api/tasks/registration/register-task` and `GET /api/tasks/listing/all-tasks`. The [Arc for TypeScript README](https://github.com/Cratis/Arc.TypeScript#a-command-and-a-query) the [Arc for TypeScript docs](/arc/backend/typescript/) show the full setup, including how to build from source.
+
+Validation runs before `handle()`, and a request that fails it never reaches your code. Observable queries stream results over SSE or WebSocket. Both are listed in the capability reference with their limits.
+
+## Add event sourcing
+
+Arc does not need an event log. The Chronicle integration, which is experimental, makes `handle()` return the fact instead of writing it, and Arc appends it after authorization and validation succeed:
+
+```typescript
+@eventType()
+export class AuthorRegistered {
+    @field(AuthorName) name: AuthorName;
+    constructor(name: AuthorName = new AuthorName('')) { this.name = name; }
+}
+
+@command()
+export class RegisterAuthor {
+    @key() @field(AuthorId) id!: AuthorId;
+    @field(AuthorName) name!: AuthorName;
+
+    handle(): AuthorRegistered { return new AuthorRegistered(this.name); }
+}
+```
+
+A model-bound projection then builds the read model from the event, and the query reads it:
+
+```typescript
+@readModel()
+@fromEvent(AuthorRegistered)
+export class Author {
+    @field(AuthorId) id!: AuthorId;
+    @field(AuthorName) name!: AuthorName;
+
+    @query()
+    static allAuthors(models: ChronicleReadModels): Promise<Author[]> {
+        return models.getAll(Author);
+    }
+}
+```
+
+Storing the event and projecting it are separate steps. A query sent immediately after a command can read the model as it was before the event. The [add event sourcing guide](/arc/backend/typescript/chronicle/add-event-sourcing/) shows how to wait for the projection and covers the setup, including a local Chronicle kernel.
+
+## Without Arc: Chronicle from Node.js
+
+If you already have an HTTP layer, you can skip Arc and use the released client directly. Events, reducers, projections and reactors are decorated classes, and you append through `store.eventLog.append`. See [event sourcing in TypeScript and Node.js](/event-sourcing/typescript/) for the install steps and a first example. You then write the command side yourself and read projected models through the client.
+
+## When CQRS in TypeScript is worth it
+
+CQRS earns its cost when reads and writes have different shapes or load, or when you want events as the source of truth. For a CRUD API over one table it is overhead. Express or NestJS with an ORM is simpler there. [Coming from Express and NestJS](/arc/backend/typescript/coming-from-express-and-nestjs/) maps the concepts.
+
+Arc for TypeScript is the wrong choice today if you need an npm-published, production-supported server, or full parity with the .NET feature set. In that case consider Arc on [.NET](/cqrs/dotnet/) or [Kotlin and Java](/cqrs/kotlin/), or use the Chronicle client with your own command handling. See also [CQRS explained](/concepts/cqrs/).
+
+## Frequently asked questions
+
+### Is there a CQRS framework for TypeScript and Node.js?
+
+Yes, in preview. Arc for TypeScript provides commands, queries, validation and authorization on Express, Fastify, Hono or a standalone host. Its source is public, but no package is published to npm and it does not have full .NET parity.
+
+### Can I do CQRS in Node.js with event sourcing?
+
+Yes. The `@cratis/chronicle` client is released and works on its own. Combining it with Arc through the Chronicle integration is experimental.
+
+### Does the frontend get typed commands and queries?
+
+Yes. Arc's proxy generator reads the decorated backend source and emits typed commands, queries and observable queries for the published `@cratis/arc` client. The generator is bounded; the capability reference lists what it covers.
+
+### Do I have to use TypeScript on both sides?
+
+No. The same frontend packages work with Arc backends in [C#](/cqrs/dotnet/) and [Kotlin and Java](/cqrs/kotlin/). See [Arc backends](/arc/backend/).
+
+## Where to go next
+
+<CardGrid>
+  <LinkCard title="Arc for TypeScript" description="Status, architecture and the guide to your first command and query." href="/arc/backend/typescript/" />
+  <LinkCard title="Capability reference" description="What each capability supports, with evidence and deliberate differences." href="/arc/backend/typescript/reference/capabilities/" />
+  <LinkCard title="Event sourcing in TypeScript" description="The released Chronicle client for Node.js." href="/event-sourcing/typescript/" />
+  <LinkCard title="Arc.TypeScript on GitHub" description="The source preview — open source, MIT licensed." href="https://github.com/Cratis/Arc.TypeScript" />
+</CardGrid>

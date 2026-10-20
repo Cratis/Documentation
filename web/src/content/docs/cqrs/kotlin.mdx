@@ -1,0 +1,214 @@
+---
+title: CQRS in Kotlin and Java with Arc on Spring Boot
+description: "Build CQRS in Kotlin and Java on Spring Boot with Cratis Arc: model-bound commands and queries, validation, authorization, live queries, and optional Chronicle event sourcing."
+---
+
+import { CardGrid, LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
+
+CQRS (Command Query Responsibility Segregation) means commands change state and queries read it, each with its own model. On the JVM, Cratis Arc is an open-source (MIT) CQRS framework for Spring Boot, published to Maven Central as `io.cratis:arc`. A command is an annotated class with a `handle` method, a query is a static method on a `@ReadModel`, and Arc generates the endpoints at compile time with KSP, plus typed TypeScript clients. Chronicle event sourcing is an optional layer on top.
+
+This page is for Kotlin and Java developers who want CQRS without writing a controller per operation. If you are still deciding whether CQRS fits, read [CQRS explained](/concepts/cqrs/) first.
+
+## What you get on the JVM
+
+| Capability | How it looks in Arc | Maturity |
+| --- | --- | --- |
+| Commands | `@Command` class with `handle`; regular, `suspend` (Kotlin) or `CompletionStage` (Java) handlers | Released |
+| Queries and read models | `@ReadModel` with static or `@JvmStatic` companion query methods; GET and RFC QUERY | Released |
+| Live queries | Kotlin `Flow`, JDK `Flow.Publisher` or RxJava 3 return types; SSE and WebSocket | Released |
+| Validation | Jakarta Bean Validation, plus reusable Arc validators | Released |
+| Authorization | `@Authorize`, `@Roles` and `@AllowAnonymous` on commands and queries | Released |
+| Persistence | Spring Data JPA and MongoDB integrations | Released |
+| Typed frontend | TypeScript proxies generated at build time | Released |
+| Event sourcing | Chronicle through `io.cratis:cratis`; `handle` returns an event | Released, optional |
+
+"Released" means the artifacts are published. Arc on the JVM does not claim full parity with Arc on .NET. The shared [capability matrix](/arc/capabilities/) and the [JVM parity reference](/arc/backend/kotlin/reference/parity/) record each row, the evidence behind it, and what is not planned. One example: Arc on the JVM generates model-bound endpoints only, not controller-based ones.
+
+## A command and a query
+
+A library application registers authors and lists them. The command carries its input as properties and its decision in `handle`. This version stores the author with Spring Data MongoDB and needs no Chronicle:
+
+<Tabs syncKey="cqrs-jvm-language">
+  <TabItem label="Kotlin">
+```kotlin
+import io.cratis.arc.artifacts.Command
+import io.cratis.arc.artifacts.FromServices
+import java.util.UUID
+
+@Command
+data class RegisterAuthor(val id: UUID, val name: String) {
+    fun handle(@FromServices authors: AuthorRepository) {
+        authors.insert(Author(id, name))
+    }
+}
+```
+  </TabItem>
+  <TabItem label="Java">
+```java
+import io.cratis.arc.artifacts.Command;
+import io.cratis.arc.artifacts.FromServices;
+import java.util.UUID;
+
+@Command
+public record RegisterAuthor(UUID id, String name) {
+    public void handle(@FromServices AuthorRepository authors) {
+        authors.insert(new Author(id, name));
+    }
+}
+```
+  </TabItem>
+</Tabs>
+
+The query side is a read model with a static method. Arc serves it over HTTP and generates the client types:
+
+<Tabs syncKey="cqrs-jvm-language">
+  <TabItem label="Kotlin">
+```kotlin
+import io.cratis.arc.artifacts.FromServices
+import io.cratis.arc.artifacts.ReadModel
+import org.springframework.data.mongodb.repository.MongoRepository
+import java.util.UUID
+
+interface AuthorRepository : MongoRepository<Author, UUID>
+
+@ReadModel
+data class Author(val id: UUID, val name: String) {
+    companion object {
+        @JvmStatic
+        fun allAuthors(@FromServices authors: AuthorRepository): List<Author> = authors.findAll()
+    }
+}
+```
+  </TabItem>
+  <TabItem label="Java">
+```java
+// AuthorRepository.java
+import org.springframework.data.mongodb.repository.MongoRepository;
+import java.util.UUID;
+
+public interface AuthorRepository extends MongoRepository<Author, UUID> { }
+
+// Author.java
+import io.cratis.arc.artifacts.FromServices;
+import io.cratis.arc.artifacts.ReadModel;
+import java.util.List;
+import java.util.UUID;
+
+@ReadModel
+public record Author(UUID id, String name) {
+    public static List<Author> allAuthors(@FromServices AuthorRepository authors) {
+        return authors.findAll();
+    }
+}
+```
+  </TabItem>
+</Tabs>
+
+These are excerpts; a runnable project also needs the Gradle setup and Spring Boot application class from the [Kotlin](/arc/backend/kotlin/get-started/) and [Java](/arc/backend/kotlin/get-started/java/) getting started guides. The build runs KSP before compiling, so a model mistake surfaces as an `ARCKSP` compiler error rather than at startup. The command never returns the author list and the query never changes anything, so you can test, secure and change each on its own.
+
+## Validation, authorization and live queries
+
+Validation and authorization are declared on the model, not inside `handle`. Authorization annotations go on the command or read-model class or on the operation:
+
+```kotlin
+@Authorize(policy = "activeSubscription")
+@Roles("member")
+@Command
+class UpdateProfile {
+    fun handle(): Unit = Unit
+}
+```
+
+An observable query returns a stream. Arc then serves the current value and each change over SSE or WebSocket. In Kotlin, return a `Flow`:
+
+```kotlin
+@ReadModel
+@AllowAnonymous
+data class TaskView(val id: String, val title: String) {
+    companion object {
+        @JvmStatic
+        fun all(@FromServices repository: TaskRepository): Flow<List<TaskView>> =
+            repository.observeAll()
+    }
+}
+```
+
+In Java, the same method returns a `java.util.concurrent.Flow.Publisher`. A source that only emits holds no current value, so a plain `GET` snapshot answers `202 Not Ready`. Kotlin uses `MutableStateFlow` and Java uses Arc's `ObservableState<T>` to hold state. The [observable queries guide](/arc/backend/kotlin/guides/observable-queries/) shows both.
+
+## Add event sourcing with Chronicle
+
+`io.cratis:arc` has no Chronicle dependency. When you want events as the source of truth, add `io.cratis:cratis`, the single dependency for an event-sourced Spring Boot application. Then `handle` returns the fact, and Arc appends it:
+
+<Tabs syncKey="cqrs-jvm-language">
+  <TabItem label="Kotlin">
+```kotlin
+import io.cratis.arc.artifacts.Command
+import io.cratis.arc.artifacts.CommandKey
+import io.cratis.chronicle.events.EventType
+
+@Command
+data class RegisterAuthor(@CommandKey val id: String, val name: String) {
+    fun handle(): AuthorRegistered = AuthorRegistered(name)
+}
+
+@EventType
+data class AuthorRegistered(val name: String)
+```
+  </TabItem>
+  <TabItem label="Java">
+```java
+import io.cratis.arc.artifacts.Command;
+import io.cratis.arc.artifacts.CommandKey;
+import io.cratis.chronicle.events.EventType;
+
+@Command
+public record RegisterAuthor(@CommandKey String id, String name) {
+    public AuthorRegistered handle() {
+        return new AuthorRegistered(name);
+    }
+}
+
+@EventType
+public record AuthorRegistered(String name) { }
+```
+  </TabItem>
+</Tabs>
+
+An event-returning command needs a stable `@CommandKey`. Without one, Arc returns a validation error and does not guess the event source. A Chronicle projection or reducer then fills the read model, and the query keeps its shape. The [Chronicle integration guide](/arc/backend/kotlin/guides/chronicle/) covers the starter, a compatible kernel version, and the runnable samples. For the event store itself, see [event sourcing in Kotlin and Java](/event-sourcing/kotlin/).
+
+## When CQRS on the JVM is worth it
+
+Use it when reads and writes have different shapes, load or rules, when a frontend needs typed and live data, or when you may want event sourcing later without changing the query contract.
+
+It is not worth it for a single form over a single table. Spring MVC with Spring Data is simpler there; [Coming from Spring MVC](/arc/backend/kotlin/coming-from-spring-mvc/) compares the two. Arc on the JVM is also a Spring Boot framework: it targets servlet hosting, so if you are not on Spring Boot it does not apply. Arc needs JDK 17 and, for Kotlin, a current Kotlin compiler as stated in the getting started guide.
+
+## Frequently asked questions
+
+### Is there a CQRS framework for Spring Boot?
+
+Yes. Arc on the JVM provides commands, queries, validation, authorization and generated TypeScript clients for Spring Boot, in Kotlin and Java. It does not claim full parity with Arc on .NET; the parity reference lists the gaps.
+
+### Do I need Axon for CQRS in Java?
+
+No. CQRS is a design choice. Arc handles commands and queries without an event store, over Spring Data JPA or MongoDB. Add Chronicle only if you want event sourcing.
+
+### Can I use CQRS in Java without event sourcing?
+
+Yes. `io.cratis:arc` has no Chronicle dependency. The same slice works over JPA or MongoDB, as the example above shows.
+
+### Does it work from Java as well as Kotlin?
+
+Yes. Java uses records or classes with annotations, `CompletionStage` and `Flow.Publisher` return types, and blocking bridges. Some contracts need an adapter bean in Java; the capability matrix names them.
+
+### How does a React frontend call it?
+
+Arc generates TypeScript proxies from the same compile-time metadata, for the same `@cratis/arc` packages used with the other backends. See [TypeScript proxies](/arc/backend/kotlin/guides/typescript-proxies/).
+
+## Where to go next
+
+<CardGrid>
+  <LinkCard title="Arc for Kotlin and Java" description="The overview, guides and reference for the JVM implementation." href="/arc/backend/kotlin/" />
+  <LinkCard title="Capability matrix" description="What exists in C#, Kotlin and Java, row by row." href="/arc/capabilities/" />
+  <LinkCard title="Event sourcing in Kotlin and Java" description="The Chronicle JVM client and Spring Boot starter." href="/event-sourcing/kotlin/" />
+  <LinkCard title="Arc.Kotlin on GitHub" description="The JVM source — open source, MIT licensed." href="https://github.com/Cratis/Arc.Kotlin" />
+</CardGrid>

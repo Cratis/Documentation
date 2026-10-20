@@ -71,7 +71,7 @@ The terms [Arc](/arc/) and [Components](/components/) add on top of Chronicle.
 | [Command](/arc/backend/csharp/commands/) | An intent to change state — a record with a `Handle()` method. With Arc and Chronicle, events returned from `Handle()` are appended; a command can also return a response or nothing. |
 | [Query](/arc/backend/csharp/queries/) | A read of data, exposed to the frontend as a typed proxy. |
 | **Observable query** | A query that holds a live connection and pushes new results when the data changes. |
-| **CQRS** | Command Query Responsibility Segregation — separating the write side (commands) from the read side (queries). |
+| [CQRS](/concepts/cqrs/) | Command Query Responsibility Segregation — separating the write side (commands) from the read side (queries). See it in [C#](/cqrs/dotnet/), [TypeScript](/cqrs/typescript/), and [Kotlin and Java](/cqrs/kotlin/). |
 | [Proxy generation](/arc/backend/csharp/proxy-generation/) | Arc emitting a typed TypeScript client from your C# commands and queries at build time. |
 | [Concept](/fundamentals/csharp/concepts/) | A strongly-typed wrapper around a primitive (`AccountId` over `Guid`) so the compiler catches mix-ups. |
 | [Agentic development](/agentic-development/) | Letting AI coding agents design, change and operate a system whose state is an event log and whose behavior is checked by executable specifications. |
