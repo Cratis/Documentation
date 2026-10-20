@@ -1,87 +1,93 @@
 // Copyright (c) Cratis. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-// The `.md` mirrors are read by people and AI assistants as plain Markdown, so the
-// MDX scaffolding around the prose (component imports and JSX tag lines) is noise.
-// Only whole lines are removed, never text inside a code fence.
+// Edit only MDX syntax ranges. Markdown (especially fenced and inline code) stays
+// authored, while component wrappers become readable labels rather than raw JSX.
+import { fromMarkdown } from 'mdast-util-from-markdown';
+import { mdxjs } from 'micromark-extension-mdxjs';
+import { mdxFromMarkdown } from 'mdast-util-mdx';
 
-const fenceMarker = /^[\s>*+-]*(`{3,}|~{3,})/;
-const importLine = /^\s*import\s+(?:[\w{}*\s,$]+\s+from\s+)?(['"]).+\1;?\s*$/;
-const tabItem = /^\s*<TabItem\b[^>]*?\blabel=(?:"([^"]*)"|'([^']*)'|\{`([^`]*)`\})[^>]*>\s*$/;
-const jsxTagLine = /^\s*<\/?[A-Z][\w.]*(?:\s[^>]*)?\/?>\s*$/;
-const jsxOpenStart = /^\s*<[A-Z][\w.]*(?:\s[^>]*)?$/;
+function attribute(node, name) {
+    return node.attributes?.find(item => item.type === 'mdxJsxAttribute' && item.name === name)?.value;
+}
 
-const odd = (line, character) => line.split(character).length % 2 === 0;
+function staticText(expression) {
+    if (expression?.type === 'Literal' && typeof expression.value === 'string') return expression.value;
+    if (expression?.type === 'TemplateLiteral' && expression.expressions.length === 0) return expression.quasis[0].value.cooked;
+    return '';
+}
 
-// Blank-line runs collapse to one, except inside code fences where they are content.
-function collapseBlankLines(lines) {
-    const result = [];
+function labelOf(node) {
+    for (const name of ['label', 'title', 'text']) {
+        const value = attribute(node, name);
+        if (typeof value === 'string') return value;
+        // A static string expression is also a label, not executable content.
+        const expression = value?.data?.estree?.body?.[0]?.expression;
+        const text = staticText(expression);
+        if (text) return text;
+    }
+    return '';
+}
+
+// Attribute expressions and quoted values may themselves contain > characters.
+function openingTagEnd(source, start) {
+    let quote;
+    let braces = 0;
+    for (let index = start; index < source.length; index++) {
+        const character = source[index];
+        if (quote) {
+            if (character === '\\') index++;
+            else if (character === quote) quote = undefined;
+        } else if ('"\'`'.includes(character)) quote = character;
+        else if (character === '{') braces++;
+        else if (character === '}') braces--;
+        else if (character === '>' && braces === 0) return index + 1;
+    }
+    return source.length;
+}
+
+function collapseBlankLines(source) {
     let fence;
-    for (const line of lines) {
-        const marker = fenceMarker.exec(line)?.[1];
+    const result = [];
+    for (const line of source.split('\n')) {
+        const marker = /^[\s>*+-]*(`{3,}|~{3,})/.exec(line)?.[1];
         if (marker && (!fence || (marker[0] === fence[0] && marker.length >= fence.length))) fence = fence ? undefined : marker;
-        else if (!fence && line.trim() === '' && result.length && result.at(-1).trim() === '') continue;
+        else if (!fence && !line.trim() && result.length && !result.at(-1).trim()) continue;
         result.push(line);
     }
-    return result;
+    return result.join('\n').trim();
 }
 
 export function stripMdxSyntax(source) {
     const frontmatter = /^---\r?\n[\s\S]*?\r?\n---(?:\r?\n|$)/.exec(source)?.[0] ?? '';
-    const lines = source.slice(frontmatter.length).split(/\r?\n/);
-    const output = [];
-    let fence;
-    let openTag = false;
-    let changed = false;
-    // `{/* ... */}` comments and `export` template literals are literal text, not JSX scaffolding.
-    let literal;
-    for (const line of lines) {
-        if (literal) {
-            output.push(line);
-            if (literal === 'comment' ? line.includes('*/}') : odd(line, '`')) literal = undefined;
-            continue;
+    const body = source.slice(frontmatter.length);
+    const tree = fromMarkdown(body, { extensions: [mdxjs()], mdastExtensions: [mdxFromMarkdown()] });
+    const edits = [];
+    const replace = (start, end, text = '') => edits.push({ start, end, text });
+    function visit(node) {
+        const start = node.position?.start.offset;
+        const end = node.position?.end.offset;
+        if (['mdxjsEsm', 'mdxFlowExpression', 'mdxTextExpression'].includes(node.type)) {
+            replace(start, end, staticText(node.data?.estree?.body?.[0]?.expression));
+            return;
         }
-        const marker = fenceMarker.exec(line)?.[1];
-        if (marker && (!fence || (marker[0] === fence[0] && marker.length >= fence.length))) {
-            fence = fence ? undefined : marker;
-            output.push(line);
-            continue;
+        if (['mdxJsxFlowElement', 'mdxJsxTextElement'].includes(node.type) && (!node.name || /^[A-Z]/.test(node.name))) {
+            const tagEnd = openingTagEnd(body, start);
+            const label = labelOf(node);
+            const href = attribute(node, 'href');
+            const title = label && (typeof href === 'string' ? `[${label}](${href})` : `**${label}**`);
+            const isFlow = node.type === 'mdxJsxFlowElement';
+            replace(start, tagEnd, title ? `${title}${isFlow ? '\n\n' : ''}` : '');
+            if (tagEnd < end) replace(body.lastIndexOf('</', end - 1), end);
         }
-        if (fence) {
-            output.push(line);
-            continue;
-        }
-        if (openTag) {
-            // Remaining attribute lines of a multi-line component tag.
-            if (/>\s*$/.test(line)) openTag = false;
-            changed = true;
-            continue;
-        }
-        if (/^\s*\{\/\*/.test(line) && !line.includes('*/}')) literal = 'comment';
-        else if (/^export\s/.test(line) && odd(line, '`')) literal = 'template';
-        if (literal) {
-            output.push(line);
-            continue;
-        }
-        const label = tabItem.exec(line);
-        if (label) {
-            output.push(`**${label[1] ?? label[2] ?? label[3]}**`, '');
-            changed = true;
-            continue;
-        }
-        if (importLine.test(line) || jsxTagLine.test(line)) {
-            changed = true;
-            continue;
-        }
-        if (jsxOpenStart.test(line)) {
-            openTag = true;
-            changed = true;
-            continue;
-        }
-        output.push(line);
+        for (const child of node.children ?? []) visit(child);
     }
-    // Untouched pages stay byte-identical to the source.
-    if (!changed) return source;
-    const body = collapseBlankLines(output).join('\n').replace(/^\n+/, '').trimEnd();
-    return `${frontmatter}${frontmatter ? '\n' : ''}${body}\n`;
+    visit(tree);
+    if (!edits.length) return source;
+    let result = body;
+    for (const { start, end, text } of edits.sort((a, b) => b.start - a.start)) {
+        result = result.slice(0, start) + text + result.slice(end);
+    }
+    const cleaned = collapseBlankLines(result);
+    return `${frontmatter}${frontmatter && cleaned ? '\n' : ''}${cleaned}${cleaned ? '\n' : ''}`;
 }

@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { copyFile, mkdir, mkdtemp, rm, symlink, truncate, writeFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { apiPageUrl, checkLlmBudgets, dateModifiedOf, noindexed, withCanonicalAndDescription } from './seo-postbuild.mjs';
@@ -35,9 +36,7 @@ describe('SEO post-build', () => {
 
     it('checks disk bytes and makes the CLI fail only with explicit budget enforcement', async t => {
         const here = path.dirname(fileURLToPath(import.meta.url));
-        const scratch = path.resolve(here, '../../.ai-work/seo');
-        await mkdir(scratch, { recursive: true });
-        const root = await mkdtemp(path.join(scratch, 'seo-postbuild-'));
+        const root = await mkdtemp(path.join(os.tmpdir(), 'seo-postbuild-'));
         t.after(() => rm(root, { recursive: true, force: true }));
         const scripts = path.join(root, 'scripts');
         const dist = path.join(root, 'dist');
@@ -52,9 +51,18 @@ describe('SEO post-build', () => {
         // Sparse files exercise byte thresholds without generating documentation content.
         await truncate(small, 400_001);
         await truncate(full, 17_000_001);
+        // Expected failures must not become GitHub Actions error annotations.
+        const errors = t.mock.method(console, 'error', () => {});
         const result = await checkLlmBudgets(dist, { enforce: true });
         assert.equal(result.failed, true);
-        assert.deepEqual(result.exceeded.map(item => item.bytes), [400_001, 17_000_001]);
+        assert.deepEqual(result.exceeded.map(item => item.bytes), [17_000_001, 400_001]);
+        // Non-boundary sizes prove reporting is the disk size, not a budget+1 sentinel.
+        await truncate(small, 410_739);
+        await truncate(full, 17_123_456);
+        const measured = await checkLlmBudgets(dist, { enforce: true });
+        assert.deepEqual(measured.exceeded.map(item => item.bytes), [17_123_456, 410_739]);
+        assert.equal(errors.mock.calls.length, 4);
+        errors.mock.restore();
         const run = (enforce) => {
             const env = { ...process.env };
             delete env.LLM_BUDGET_ENFORCE;
@@ -70,6 +78,8 @@ describe('SEO post-build', () => {
         const enforced = run('1');
         assert.equal(enforced.status, 1, enforced.stderr);
         assert.match(enforced.stderr, /::error title=LLM export size::/);
+        assert.match(enforced.stderr, /llms-small\.txt is 410739 bytes/);
+        assert.match(enforced.stderr, /llms-full\.txt is 17123456 bytes/);
         await truncate(small, 400_000);
         await truncate(full, 17_000_000);
         const atBudget = run('1');
@@ -77,6 +87,17 @@ describe('SEO post-build', () => {
         assert.doesNotMatch(atBudget.stderr, /LLM export size/);
         await truncate(small, 1);
         await truncate(full, 1);
+        assert.equal(run('1').status, 0);
+        const productDirectory = path.join(dist, 'fundamentals', 'go');
+        await mkdir(productDirectory, { recursive: true });
+        const productSmall = path.join(productDirectory, 'llms-small.txt');
+        await writeFile(productSmall, '');
+        await truncate(productSmall, 400_001);
+        const productEnforced = run('1');
+        assert.equal(productEnforced.status, 1, productEnforced.stderr);
+        assert.match(productEnforced.stderr, /fundamentals\/go\/llms-small\.txt/);
+        assert.equal(run('0').status, 0);
+        await truncate(productSmall, 400_000);
         assert.equal(run('1').status, 0);
     });
 });

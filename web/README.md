@@ -120,7 +120,7 @@ Astro's build-completion hook writes slugged `/path.md` mirrors for page actions
 
 ### LLM exports and SEO checks
 
-`postbuild` writes `llms.txt` and the bulk exports. `llms-full.txt` holds the full page text without release digests and changelogs. `llms-small.txt` (and `<product>/llms-small.txt`) lists page titles with one-line summaries. The Markdown mirrors are plain Markdown: MDX imports and component lines are removed.
+`postbuild` writes `llms.txt` and the bulk exports. `llms-full.txt` holds the full page text without release digests and changelogs. `llms-small.txt` (and `<product>/llms-small.txt`) is a curated set of starting points (overviews, getting started and core concepts) with one-line summaries, not an inventory of every page; `<product>/llms-full.txt` holds one product's full text. The Markdown mirrors are plain Markdown: MDX imports, expressions and component wrappers are removed, and tab items become labelled sections.
 
 The postbuild step also trims `llms-full.txt` without dropping any page: outside fenced code it removes the plugin's `[Section titled “…”](#…)` line under every heading and collapses the column padding of Markdown tables (`compactFullText` in `scripts/llm-bulk.mjs`). Together these cut about 2.8 MB (17.57 MB to about 14.81 MB when measured on the published export). `llms.txt`, the per-area sets and the Markdown mirrors are unchanged.
 

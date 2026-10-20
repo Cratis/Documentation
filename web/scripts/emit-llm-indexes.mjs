@@ -10,7 +10,7 @@ import yaml from 'js-yaml';
 import { PRODUCTS } from './sync-content.mjs';
 import { LLM_SETS, llmSetSlug } from './llm-sets.mjs';
 import { citeRenderedSet, withoutSnippetSourceLinks } from './llm-set-sources.mjs';
-import { abridgedExport, compactFullText, isLogPage, pageSummary, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
+import { abridgedExport, compactFullText, isCuratedPage, isLogPage, pageSummary, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const site = 'https://www.cratis.io';
@@ -96,6 +96,7 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
     const output = new Map();
     const selectedPages = new Map(sets.map(set => [set, []]));
     const productLinks = [];
+    const productDownloads = [];
     let indexedPages = 0;
     const seenRoutes = new Set();
     for (const { key, label, src } of products) {
@@ -158,7 +159,8 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
             output.set(areaRoute, areaIndex.join('\n'));
         }
         output.set(productRoute, overview.join('\n'));
-        productLinks.push(link(`${label} documentation`, productRoute));
+        productLinks.push(`${link(`${label} documentation`, productRoute)}: Overview, guides and reference for ${label}.`);
+        productDownloads.push(`${link(`${label} full text`, `/${key}/llms-full.txt`)}: Readable Markdown for ${label}, with canonical page URLs.`);
     }
     if (!productLinks.length || !indexedPages) throw new Error('No product pages indexed');
     const areaIndexes = output.size - productLinks.length;
@@ -179,6 +181,7 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
         'Choose a product and then a task area. The full-site downloads below are bulk archives, not the best default context for one question.',
         '',
         ...productLinks,
+        ...productDownloads,
         '',
         '## Cross-product starting points',
         '',
@@ -197,7 +200,7 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
     if (await exists(fullFile)) {
         output.set('/llms-full.txt', compactFullText(withoutPageMarkers(withoutSnippetSourceLinks(withoutExcludedPages(await fs.readFile(fullFile, 'utf8'), allPages)))));
     }
-    const documented = allPages.filter(page => !page.excluded && page.slug && page.slug !== '404');
+    const documented = allPages.filter(page => !page.excluded && page.slug && page.slug !== '404' && !/^api(?:\/|$)/.test(page.slug));
     // The most specific product owns a page (fundamentals/go before fundamentals).
     const productOf = (page) => products.filter(product => page.slug === product.key || page.slug.startsWith(`${product.key}/`))
         .sort((a, b) => b.key.length - a.key.length)[0];
@@ -210,16 +213,25 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
     const labelOf = (key) => products.find(product => product.key === key)?.label ?? 'Cratis stack';
     const orderedGroups = [...groups].sort(([a], [b]) => (a === '') === (b === '') ? a.localeCompare(b) : a === '' ? -1 : 1)
         .map(([key, pages]) => ({ key, label: labelOf(key), pages }));
-    output.set('/llms-small.txt', abridgedExport('Cratis documentation (abridged)', orderedGroups));
+    const curatedGroups = orderedGroups.map(group => ({ ...group, pages: group.pages.filter(page => isCuratedPage(page.slug, group.key)) }));
+    output.set('/llms-small.txt', abridgedExport('Cratis documentation (abridged)', curatedGroups));
     for (const { key, label, pages } of orderedGroups.filter(group => group.key && productLinks.some(item => item.includes(`${site}/${group.key}/llms.txt`)))) {
-        output.set(`/${key}/llms-small.txt`, abridgedExport(`${label} documentation (abridged)`, [{ label, pages }]));
+        const curated = pages.filter(page => isCuratedPage(page.slug, key));
+        output.set(`/${key}/llms-small.txt`, abridgedExport(`${label} documentation (abridged)`, [{ label, pages: curated }]));
+        const fullText = [`# ${label} documentation`, '', '> Readable Markdown; HTML page URLs are canonical.', ''];
+        for (const page of pages) {
+            const mirror = await fs.readFile(path.join(dist, `${page.slug}.md`), 'utf8');
+            fullText.push(`# ${page.title}`, '', `Source: ${page.url}`, '', frontmatterOf(mirror).body.trim(), '');
+        }
+        output.set(`/${key}/llms-full.txt`, compactFullText(fullText.join('\n')));
         const overview = output.get(`/${key}/llms.txt`);
-        output.set(`/${key}/llms.txt`, `${overview.trimEnd()}\n\n## Summary of all pages\n\n${link(`${label} titles and summaries`, `/${key}/llms-small.txt`)}\n`);
+        output.set(`/${key}/llms.txt`, `${overview.trimEnd()}\n\n## Downloads\n\n${link(`${label} curated starting points`, `/${key}/llms-small.txt`)}\n${link(`${label} full text`, `/${key}/llms-full.txt`)}\n`);
     }
     for (const [route, content] of output) {
+        output.set(route, `${content.trimEnd()}\n`);
         const file = path.join(dist, route.slice(1));
         await fs.mkdir(path.dirname(file), { recursive: true });
-        await fs.writeFile(file, `${content.trimEnd()}\n`);
+        await fs.writeFile(file, output.get(route));
     }
     await fs.writeFile(root, rootIndex);
     const sizes = new Map([...output].map(([route, content]) => [route, Buffer.byteLength(content)]));
