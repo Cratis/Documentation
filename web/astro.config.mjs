@@ -218,7 +218,7 @@ const overviewTopic = {
                 { label: 'CQRS in Kotlin and Java', slug: 'cqrs/kotlin' },
             ],
         },
-        { label: 'Studio', slug: 'studio', badge: { text: 'Beta', variant: 'caution' } },
+        { label: 'Studio', slug: 'studio', badge: { text: 'Preview', variant: 'caution' } },
         { label: 'Event Modeling', slug: 'event-modeling' },
         { label: 'Spec-driven development', slug: 'spec-driven-development' },
         { label: 'Screenplay', link: '/screenplay/' },
