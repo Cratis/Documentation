@@ -1,0 +1,10 @@
+---
+import Default from '@astrojs/starlight/components/PageTitle.astro';
+import LastReleased from './LastReleased.astro';
+import { repositoryForLanding } from '../lib/org-stats.mjs';
+
+const repository = repositoryForLanding(Astro.locals.starlightRoute.id);
+---
+
+<Default><slot /></Default>
+<LastReleased repository={repository} />

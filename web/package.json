@@ -3,7 +3,7 @@
     "type": "module",
     "version": "0.0.1",
     "scripts": {
-        "sync": "node scripts/sync-content.mjs && node scripts/sync-samples.mjs && node scripts/sync-upgrade-paths.mjs",
+        "sync": "node scripts/sync-content.mjs && node scripts/sync-samples.mjs && node scripts/sync-upgrade-paths.mjs && node scripts/sync-org-stats.mjs",
         "predev": "npm run sync",
         "dev": "astro dev",
         "start": "astro dev",
