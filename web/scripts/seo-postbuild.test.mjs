@@ -3,7 +3,11 @@
 
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { apiPageUrl, dateModifiedOf, noindexed, withCanonicalAndDescription } from './seo-postbuild.mjs';
+import { copyFile, mkdir, mkdtemp, rm, symlink, truncate, writeFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { apiPageUrl, checkLlmBudgets, dateModifiedOf, noindexed, withCanonicalAndDescription } from './seo-postbuild.mjs';
 import { abridgedExport, isLogPage, sizeWarnings, withoutExcludedPages, PAGE_MARKER } from './llm-bulk.mjs';
 import { pageKind, structuredData } from './page-metadata.mjs';
 
@@ -27,6 +31,53 @@ describe('SEO post-build', () => {
     it('reads dateModified from JSON-LD', () => {
         assert.equal(dateModifiedOf('{"dateModified":"2026-09-10"}'), '2026-09-10');
         assert.equal(dateModifiedOf('{}'), undefined);
+    });
+
+    it('checks disk bytes and makes the CLI fail only with explicit budget enforcement', async t => {
+        const here = path.dirname(fileURLToPath(import.meta.url));
+        const scratch = path.resolve(here, '../../.ai-work/seo');
+        await mkdir(scratch, { recursive: true });
+        const root = await mkdtemp(path.join(scratch, 'seo-postbuild-'));
+        t.after(() => rm(root, { recursive: true, force: true }));
+        const scripts = path.join(root, 'scripts');
+        const dist = path.join(root, 'dist');
+        await mkdir(scripts);
+        await mkdir(dist);
+        await copyFile(path.join(here, 'seo-postbuild.mjs'), path.join(scripts, 'seo-postbuild.mjs'));
+        await symlink(path.join(here, 'llm-bulk.mjs'), path.join(scripts, 'llm-bulk.mjs'));
+        const small = path.join(dist, 'llms-small.txt');
+        const full = path.join(dist, 'llms-full.txt');
+        await writeFile(small, '');
+        await writeFile(full, '');
+        // Sparse files exercise byte thresholds without generating documentation content.
+        await truncate(small, 400_001);
+        await truncate(full, 17_000_001);
+        const result = await checkLlmBudgets(dist, { enforce: true });
+        assert.equal(result.failed, true);
+        assert.deepEqual(result.exceeded.map(item => item.bytes), [400_001, 17_000_001]);
+        const run = (enforce) => {
+            const env = { ...process.env };
+            delete env.LLM_BUDGET_ENFORCE;
+            if (enforce !== undefined) env.LLM_BUDGET_ENFORCE = enforce;
+            return spawnSync(process.execPath, [path.join(scripts, 'seo-postbuild.mjs')], { env, encoding: 'utf8', timeout: 10_000 });
+        };
+        for (const enforce of [undefined, '', '0']) {
+            const warning = run(enforce);
+            assert.equal(warning.status, 0, warning.stderr);
+            // The exporter retains its warning; postbuild must not emit a duplicate.
+            assert.doesNotMatch(warning.stderr, /::error|LLM export size/);
+        }
+        const enforced = run('1');
+        assert.equal(enforced.status, 1, enforced.stderr);
+        assert.match(enforced.stderr, /::error title=LLM export size::/);
+        await truncate(small, 400_000);
+        await truncate(full, 17_000_000);
+        const atBudget = run('1');
+        assert.equal(atBudget.status, 0, atBudget.stderr);
+        assert.doesNotMatch(atBudget.stderr, /LLM export size/);
+        await truncate(small, 1);
+        await truncate(full, 1);
+        assert.equal(run('1').status, 0);
     });
 });
 

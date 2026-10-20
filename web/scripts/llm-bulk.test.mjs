@@ -3,7 +3,30 @@
 
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { PAGE_MARKER, PAGE_SEPARATOR, compactFullText, isLogPage, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
+import { PAGE_MARKER, PAGE_SEPARATOR, SIZE_WARNINGS, budgetResult, compactFullText, isLogPage, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
+
+describe('LLM export budgets', () => {
+    it('allows missing exports and exports at or below each byte budget even when enforced', () => {
+        assert.deepEqual(budgetResult(new Map(), true), { exceeded: [], failed: false });
+        for (const { route, bytes } of SIZE_WARNINGS) {
+            for (const size of [bytes - 1, bytes]) {
+                assert.deepEqual(budgetResult(new Map([[route, size]]), true), { exceeded: [], failed: false });
+            }
+        }
+    });
+
+    it('returns each exceeded budget with actual and allowed bytes, failing only when enforced', () => {
+        const sizes = new Map(SIZE_WARNINGS.map(({ route, bytes }) => [route, bytes + 1]));
+        const exceeded = [
+            { route: '/llms-small.txt', bytes: 400_001, budgetBytes: 400_000 },
+            { route: '/llms-full.txt', bytes: 17_000_001, budgetBytes: 17_000_000 },
+        ];
+        assert.deepEqual(budgetResult(sizes), { exceeded, failed: false });
+        assert.deepEqual(budgetResult(sizes, true), { exceeded, failed: true });
+        assert.equal(sizeWarnings(sizes).length, 2);
+        assert.ok(sizeWarnings(sizes).every(message => message.startsWith('::warning title=LLM export size::')));
+    });
+});
 
 describe('log page detection', () => {
     it('matches release digests and changelog pages', () => {
