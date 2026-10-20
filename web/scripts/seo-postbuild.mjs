@@ -96,6 +96,8 @@ export async function checkLlmBudgets(dist, { enforce = process.env.LLM_BUDGET_E
             if (error.code === 'ENOENT') return;
             throw error;
         }
+        // Sorted so the reported order does not depend on the file system.
+        entries.sort((a, b) => a.name.localeCompare(b.name));
         for (const entry of entries) {
             const file = path.join(directory, entry.name);
             if (entry.isDirectory()) await collect(file);
