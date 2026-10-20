@@ -15,6 +15,7 @@
 // so these are the only faces (no `swap` duplicate).
 import Default from '@astrojs/starlight/components/Head.astro';
 import { getCollection } from 'astro:content';
+import { withSocialPreview } from '../../scripts/social-images.mjs';
 import { contextualTitle, hasDuplicateTitle, glossaryTerms, hasPublishedChildren, hubTitle, markdownMirrorHref, pageDescription, pageKind, structuredData, serializeStructuredData } from '../../scripts/page-metadata.mjs';
 import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import interLatinExt from '@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2?url';
@@ -22,6 +23,7 @@ import jbMonoLatin from '@fontsource-variable/jetbrains-mono/files/jetbrains-mon
 import jbMonoLatinExt from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-ext-wght-normal.woff2?url';
 
 const route = Astro.locals.starlightRoute;
+route.head = withSocialPreview(route.head, Astro.url.pathname);
 const { entry, id } = route;
 const description = pageDescription(entry.data, entry.body, entry.filePath, id);
 const escapeHtml = (text: string) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
