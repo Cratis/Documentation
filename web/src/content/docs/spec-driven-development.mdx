@@ -22,7 +22,7 @@ Each step produces something the next step reads. You can enter the chain at any
 
 | Step | What you have | Where it is documented | Maturity |
 |---|---|---|---|
-| 1. Event model | Slices: a screen, its command, the event, the read model behind the next screen | [Event modeling](/event-modeling/), [Studio](/studio/) | Studio is live in beta |
+| 1. Event model | Slices: a screen, its command, the event, the read model behind the next screen | [Event modeling](/event-modeling/), [Studio](/studio/) | Studio is in Preview |
 | 2. Screenplay specifications | `specification` blocks inside a slice in a `.play` file, compiled and run by the Screenplay tool | [Screenplay](/screenplay/) | Experimental |
 | 3. Stage | Compiles `.play` folders, checks the declared specifications, and renders reviewable Arc and Chronicle code | [Stage](/screenplay/faq/#what-are-stage-and-studio) | Experimental |
 | 4. Arc and Chronicle code | The command, event and projection of the slice | [Build a full app](/build-a-full-app/) | See the [capability map](/cratis-stack/) |
@@ -114,7 +114,7 @@ Cratis AI installs rules and skills into a repository so an agent follows the co
 
 ## What is still experimental
 
-- **Screenplay, Stage and Prologue are experimental** and in early development. Studio is live in beta. Check the [capability map](/cratis-stack/) for current labels.
+- **Screenplay, Stage and Prologue are experimental** and in early development. Studio is in Preview. Check the [capability map](/cratis-stack/) for current labels.
 - **Stage's specification runner is model-level verification.** It checks declared specifications against the modeled facts and writes `results.json`. It is not a behavioral run of every slice through a live generated application, and some constructs are reported as unsupported rather than passing.
 - **Stage rendering is narrow.** Generated output needs review, and the Stage docs list what is and is not rendered.
 - **Operation specifications are syntax only.** The reference runner cannot execute them yet.

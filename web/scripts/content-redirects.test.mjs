@@ -35,6 +35,7 @@ describe('when redirecting moved content routes', () => {
     it('writes a stub, the shim and an audit manifest for every entry', () => {
         assert.equal(writeContentRedirects(directory, manifest([{ from, to }])), 1);
         const stub = readFileSync(path.join(directory, 'arc/backend/commands/index.html'), 'utf8');
+        assert.match(stub, /<meta name="robots" content="noindex">/);
         assert.match(stub, /<link rel="canonical" href="\.\.\/csharp\/commands\/">/);
         assert.match(stub, /<script src="\.\.\/\.\.\/\.\.\/content-redirect.js" defer>/);
         assert.match(stub, /<a href="\.\.\/csharp\/commands\/">/);

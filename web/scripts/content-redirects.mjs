@@ -1,8 +1,9 @@
 // Copyright (c) Cratis. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-// Writes permanent redirect stubs for moved content routes.
+// Writes client-side redirect stubs for moved content routes (not HTTP 301 responses).
 // Run after astro build: node scripts/content-redirects.mjs
+// Astro has already generated its sitemap, so these noindex stubs are not included.
 //
 // GitHub Pages has no rule engine, so a moved page 404s forever unless a stub
 // page stands where it used to be. Each stub carries the canonical target and a

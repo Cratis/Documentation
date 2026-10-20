@@ -83,6 +83,22 @@ test('a nested product syncs after the product whose output folder contains it',
     }
 });
 
+test('links to an injected documentation root omit the relative dot segment', async () => {
+    const root = path.join(reposRootFor(webRoot), 'Screenplay.CritterStack/Documentation');
+    const converted = await convertFile([
+        '---', 'title: Critter Stack', '---', '',
+        '[Home](index.md) [Directory](./) [Step](index.md?view=model#step)',
+    ].join('\n'), conversionContext(root, {
+        product: { key: 'screenplay', src: root },
+        contentRoot: root,
+        slugBase: 'screenplay/ecosystem-examples/critter-stack',
+    }));
+    assert.match(converted, /\[Home\]\(\/screenplay\/ecosystem-examples\/critter-stack\/\)/);
+    assert.match(converted, /\[Directory\]\(\/screenplay\/ecosystem-examples\/critter-stack\/\)/);
+    assert.match(converted, /\[Step\]\(\/screenplay\/ecosystem-examples\/critter-stack\/\?view=model#step\)/);
+    assert.doesNotMatch(converted, /critter-stack\/\.\//);
+});
+
 test('link rewriting leaves fenced code literal while still resolving prose links', async () => {
     const source = path.join(reposRootFor(webRoot), 'Fundamentals.Go/Documentation/dependency-injection.md');
     const body = [
