@@ -1,0 +1,113 @@
+---
+import { readOrgStats, recentRepositories, releaseDate, relativeDate } from '../lib/org-stats.mjs';
+
+const data = readOrgStats();
+const weeks = data?.weekly.slice(-12) ?? [];
+const barMax = Math.max(1, ...weeks.flatMap((week) => [week.releases, week.mergedPullRequests]));
+const days = data?.daily ?? [];
+const dailyMax = Math.max(1, ...days.map((day) => day.releases));
+// Offset Sunday to the final row, so each calendar column starts on Monday (UTC).
+const offset = days.length ? (new Date(days[0].date).getUTCDay() + 6) % 7 : 0;
+const columns = Math.ceil((days.length + offset) / 7);
+const generated = data ? new Date(data.generatedAt).toISOString() : '';
+---
+
+{!data ? <p>Activity data is unavailable right now</p> : (
+    <div class="pulse">
+        <div class="pulse-cards">
+            <section>
+                <h2>Releases in the last 7 days</h2>
+                <strong>{data.releases.last7Days.toLocaleString('en')}</strong>
+                <p>{data.releases.last7DaysByKind.major} major · {data.releases.last7DaysByKind.minor} minor · {data.releases.last7DaysByKind.patch} patch · {data.releases.last7DaysByKind.prerelease} prerelease</p>
+            </section>
+            <section><h2>Merged pull requests in the last 7 days</h2><strong>{data.mergedPullRequests.last7Days.toLocaleString('en')}</strong></section>
+            <section><h2>Issues closed in the last 7 days</h2><strong>{data.issues.closedLast7Days.toLocaleString('en')}</strong></section>
+            <section>
+                <h2>Daily release streak</h2>
+                <strong>{data.releases.streak.currentDays} days</strong>
+                <p>Longest: {data.releases.streak.longestDays} days. Consecutive UTC days with at least one release; the current streak ends today or yesterday.</p>
+            </section>
+        </div>
+
+        <h2 id="release-calendar">Release calendar</h2>
+        <p>Daily releases over the last year. Stronger color means more releases. Dates use UTC.</p>
+        <div class="calendar-scroll">
+            <svg class="calendar" viewBox={`0 0 ${columns * 14 + 32} 116`} role="img" aria-labelledby="calendar-title">
+                <title id="calendar-title">Daily release calendar: {days[0]?.date} to {days.at(-1)?.date}. Hover over a square for its date and release count.</title>
+                {['Mon', 'Wed', 'Fri', 'Sun'].map((label, index) => <text x="0" y={index * 28 + 10}>{label}</text>)}
+                {days.map((day, index) => (
+                    <rect x={32 + Math.floor((index + offset) / 7) * 14} y={((index + offset) % 7) * 14} width="11" height="11" rx="2"
+                        class={day.releases ? 'active-day' : 'empty-day'} style={day.releases ? `--intensity: ${25 + 75 * day.releases / dailyMax}%` : undefined}>
+                        <title>{day.date}: {day.releases} releases</title>
+                    </rect>
+                ))}
+                <text x="32" y="113">{days[0]?.date}</text>
+                <text x={columns * 14 + 28} y="113" text-anchor="end">{days.at(-1)?.date}</text>
+            </svg>
+        </div>
+
+        <h2 id="weekly-activity">Weekly activity</h2>
+        <p>Releases and merged pull requests for the latest 12 weeks. Weeks start Monday; the current week may be incomplete.</p>
+        <p class="legend"><span class="release-key">■ Releases</span> <span class="pr-key">■ Merged pull requests</span></p>
+        <div class="weekly-bars">
+            {weeks.map((week) => (
+                <div class="week">
+                    <div class="bar-pair" role="img" aria-label={`Week of ${week.weekStart}: ${week.releases} releases, ${week.mergedPullRequests} merged pull requests`}>
+                        <span class="release-bar" style={`height: ${100 * week.releases / barMax}%`} title={`${week.releases} releases`} />
+                        <span class="pr-bar" style={`height: ${100 * week.mergedPullRequests / barMax}%`} title={`${week.mergedPullRequests} merged pull requests`} />
+                    </div>
+                    <small>{week.weekStart.slice(5)}</small>
+                </div>
+            ))}
+        </div>
+        <details>
+            <summary>Weekly activity counts</summary>
+            <table>
+                <thead><tr><th>Week starting</th><th>Releases</th><th>Merged pull requests</th></tr></thead>
+                <tbody>{weeks.map((week) => <tr><td>{week.weekStart}</td><td>{week.releases}</td><td>{week.mergedPullRequests}</td></tr>)}</tbody>
+            </table>
+        </details>
+
+        <h2 id="recent-releases">Recently released repositories</h2>
+        <ul>{recentRepositories(data).map((repo) => (
+            <li><a href={repo.url}>{repo.name}</a>: <a href={repo.latestRelease.url}>{repo.latestRelease.tag}</a> · <time datetime={repo.latestRelease.publishedAt}>{releaseDate(repo.latestRelease.publishedAt)}</time> ({relativeDate(repo.latestRelease.publishedAt)})</li>
+        ))}</ul>
+
+        {data.contributors.firstTime.length > 0 && (
+            <section>
+                <h2 id="welcome">Welcome, first-time contributors</h2>
+                <p>Thank you for your first merged pull request in the last 90 days.</p>
+                <ul>{data.contributors.firstTime.map((person) => (
+                    <li><a href={person.profileUrl}>@{person.login}</a> · <a href={person.pullRequestUrl}>{person.repository} pull request</a> · <time datetime={person.firstMergedAt}>{releaseDate(person.firstMergedAt)}</time></li>
+                ))}</ul>
+            </section>
+        )}
+
+        <h2 id="next-milestones">Next milestones</h2>
+        {data.milestones.next.length ? <ul>{data.milestones.next.map((milestone) => <li>{milestone.label} · {milestone.remaining.toLocaleString('en')} remaining</li>)}</ul> : <p>No upcoming milestones in this snapshot.</p>}
+        <p class="scope">Generated at <time datetime={generated}>{generated}</time>. Covers public, non-archived, non-fork Cratis repositories only. Activity counts describe shipping, not individual productivity.</p>
+    </div>
+)}
+
+<style>
+    .pulse-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
+    .pulse-cards section { padding: 1rem; border: 1px solid var(--sl-color-gray-5); border-radius: 0.7rem; }
+    .pulse-cards h2 { margin: 0 0 0.5rem; font-size: var(--sl-text-base); }
+    .pulse-cards strong { font-size: 2rem; color: var(--sl-color-accent-high); }
+    .pulse-cards p, .scope { font-size: var(--sl-text-sm); }
+    .calendar-scroll { overflow-x: auto; }
+    .calendar { display: block; width: 100%; min-width: 36rem; }
+    .calendar text { fill: var(--sl-color-text); font-size: 9px; }
+    .empty-day { fill: var(--sl-color-gray-6); stroke: var(--sl-color-gray-5); stroke-width: 0.5; }
+    .active-day { fill: color-mix(in srgb, var(--sl-color-accent-high) var(--intensity), var(--sl-color-bg)); }
+    .legend { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .release-key { color: var(--sl-color-accent-high); }
+    .pr-key { color: var(--sl-color-text); }
+    .weekly-bars { display: flex; gap: 0.5rem; overflow-x: auto; }
+    .week { flex: 1; min-width: 2rem; text-align: center; }
+    .bar-pair { height: 10rem; display: flex; align-items: end; gap: 2px; }
+    .bar-pair span { flex: 1; min-height: 1px; }
+    .release-bar { background: var(--sl-color-accent-high); }
+    .pr-bar { background: var(--sl-color-gray-2); }
+    .week small { font-size: 0.65rem; }
+</style>
