@@ -484,6 +484,7 @@ function slugifyPath(urlPath) {
     let normalized = path.posix.normalize(urlPath.replace(/\\/g, '/'));
     if (leadingSlash && !normalized.startsWith('/')) normalized = '/' + normalized;
     if (trailingSlash && !normalized.endsWith('/')) normalized += '/';
+    if (normalized === '.') return '';
     const slugged = normalized
         .split('/')
         .map((seg) => (seg === '' || seg === '.' || seg === '..' ? seg : seg.toLowerCase().replace(/[^a-z0-9_-]+/g, '')))
