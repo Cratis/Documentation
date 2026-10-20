@@ -134,6 +134,7 @@ const overviewTopic = {
                 { label: 'How Cratis writes comparisons', slug: 'compare' },
                 { label: 'Marten vs Chronicle', slug: 'compare/marten-vs-chronicle' },
                 { label: 'KurrentDB vs Chronicle', slug: 'compare/kurrentdb-vs-chronicle' },
+                { label: 'Event sourcing in TypeScript', slug: 'compare/typescript-event-sourcing' },
                 { label: 'Compare event sourcing for .NET', slug: 'compare-event-sourcing-dotnet' },
                 { label: 'Compare event sourcing on the JVM', slug: 'compare-event-sourcing-jvm' },
             ],

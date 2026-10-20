@@ -1,0 +1,72 @@
+---
+title: Event sourcing in TypeScript and Node.js
+description: Compare Chronicle with Arc.TypeScript, Emmett, and the KurrentDB Node client by storage boundary, projections, CQRS, deployment, and release status.
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+For a TypeScript or Node.js event-sourcing application, start by choosing **who owns storage and processing**, not by choosing a client API. Emmett is an application framework with several storage adapters. The KurrentDB Node client connects your application to a dedicated event database. Chronicle also runs as a separate database and processing runtime; Arc.TypeScript adds an optional CQRS application layer, but remains a source preview.
+
+**Choose Emmett** when you want application-owned event handling and projections with a choice of stores. **Choose KurrentDB's Node client** when KurrentDB is your event database and you want to own the surrounding application architecture. **Consider Chronicle** when you want the runtime to own event processing and projected state, and evaluate Arc.TypeScript separately against its preview limits.
+
+This is an architectural comparison, not a throughput benchmark or a production-readiness certification. The options operate at different layers, and none removes the need to model events, concurrency, failures, and read models.
+
+## Versions and publication status
+
+Checked on **2026-10-20**. These are the versions reviewed, not floating promises about the latest release:
+
+| Option | Reviewed version and publication | Boundary |
+|---|---|---|
+| Chronicle TypeScript client | [`@cratis/chronicle` 6.53.1](https://www.npmjs.com/package/@cratis/chronicle/v/6.53.1), published 2026-10-17 | Released npm client for a separately deployed Chronicle kernel; not an embedded event store. |
+| Arc.TypeScript | [Source tag v0.57.2](https://github.com/Cratis/Arc.TypeScript/tree/v0.57.2), released 2026-10-02 | Source preview. `@cratis/arc.core` is not published on npm. A GitHub release is not an installable backend package or a full .NET parity claim. |
+| Emmett | [`@event-driven-io/emmett` 0.42.4](https://www.npmjs.com/package/@event-driven-io/emmett/v/0.42.4), published 2026-08-12 | Node.js event-sourcing framework with store-specific packages, not a standalone database server. |
+| KurrentDB Node client | [`@kurrent/kurrentdb-client` 1.3.1](https://www.npmjs.com/package/@kurrent/kurrentdb-client/v/1.3.1), published 2026-06-29 | Maintained gRPC client for a separately deployed KurrentDB server, not a CQRS application framework. |
+
+The KurrentDB client replaces the older EventStoreDB package name for this comparison. Its [versioned package README](https://github.com/kurrent-io/KurrentDB-Client-NodeJS/blob/v1.3.1/packages/db-client/README.md) describes KurrentDB 20+ and says tests run exclusively against LTS server versions. Select a supported server/client pairing; a client version is not a server version.
+
+The [npm registry metadata for Chronicle](https://registry.npmjs.org/@cratis/chronicle), [Emmett](https://registry.npmjs.org/@event-driven-io/emmett), and [KurrentDB's client](https://registry.npmjs.org/@kurrent/kurrentdb-client) supplies publication dates. Arc's [versioned README](https://github.com/Cratis/Arc.TypeScript/blob/v0.57.2/README.md) describes its source-preview and parity boundaries. Recheck those sources before adoption or an upgrade.
+
+## What runs where
+
+| Dimension | Chronicle with optional Arc.TypeScript | Emmett | KurrentDB Node client |
+|---|---|---|---|
+| Storage and ownership | Your Node.js application uses the Chronicle client over gRPC. The separate kernel stores events and owns processing. Arc.TypeScript hosts application commands and queries; it is not the database. | The framework runs in your Node.js process. Its [documented adapters](https://github.com/event-driven-io/emmett/blob/0.42.4/README.md#features) include PostgreSQL, EventStoreDB, MongoDB, SQLite, and in-memory storage. You choose the backing store and its deployment. | Your Node.js application uses the client over gRPC to KurrentDB. The database is a separate operational component; the client does not embed it. |
+| Writes and concurrency | Typed event registration and append APIs in the client; use the documented [TypeScript event-sourcing flow](/event-sourcing/typescript/) and explicit append outcomes. | Command-handling patterns and store implementations are part of the framework. Read the selected adapter's contract for transaction and concurrency behavior. | The [TypeScript example](https://github.com/kurrent-io/KurrentDB-Client-NodeJS/blob/v1.3.1/packages/db-client/README.md#example) shows typed JSON events, append, and stream reads. Application command handling is your responsibility. |
+| Projections and read models | Chronicle runs declarative projections in the kernel and materializes read models. The TypeScript client exposes registered projections, reads, and watches; see [client capabilities](/chronicle/clients/typescript/). | Emmett includes projections for building read models from events. Their storage and execution depend on your chosen adapter and application setup, rather than a mandatory Emmett server. | Client subscriptions and KurrentDB server projections are distinct tools. Choose how consumers build application read models and own their lifecycle; see the [server comparison](/compare/kurrentdb-vs-chronicle/). |
+| CQRS application layer | Arc.TypeScript supplies commands, queries, validation, hosting adapters, and bounded generated clients. It remains a [source preview with explicit gaps](/arc/backend/typescript/), not full Arc on .NET parity. Chronicle can be used without Arc. | Command patterns, Express integration, and testing utilities are documented framework features. You compose the HTTP boundary and read-model access for your application. | The SDK is a database client. Pair it with your chosen command/query framework, HTTP host, validation, and UI integration. |
+| Deployment and operations | Operate the Chronicle kernel and its storage as well as the Node.js app. Arc.TypeScript does not remove that server boundary. Follow the [compatibility matrix](/compatibility/). | Deploy the Node.js app plus the backing store you select. SQLite or in-memory development has a different operational footprint from PostgreSQL or a dedicated event database. | Operate KurrentDB, or select a hosted offering, plus your Node.js application and consumers. Follow the client's LTS compatibility policy. |
+| Testing | Chronicle's client has [fixture-backed scenarios](https://github.com/Cratis/Chronicle.TypeScript/blob/v6.53.1/Documentation/testing.md); Arc.TypeScript has source-preview test helpers with documented coverage limits. Test against the deployed kernel contract as well as application units. | Built-in unit, integration, and BDD-style testing utilities and Testcontainers support are [documented features](https://github.com/event-driven-io/emmett/blob/0.42.4/README.md#features). | The repository provides [client samples and tests](https://github.com/kurrent-io/KurrentDB-Client-NodeJS/tree/v1.3.1/packages/test/src/samples). Design application-level tests for your chosen CQRS and read-model implementation. |
+
+Emmett's feature descriptions above come from its [0.42.4 README](https://github.com/event-driven-io/emmett/blob/0.42.4/README.md). In particular, its [production-readiness FAQ](https://github.com/event-driven-io/emmett/blob/0.42.4/README.md#is-it-production-ready) says users already run it in their systems. That is the maintainer's statement, not a comparative reliability measurement. Its [licensing FAQ](https://github.com/event-driven-io/emmett/blob/0.42.4/README.md#why-theres-no-license) also describes an unresolved licensing direction at this version; review the current terms with your team rather than assuming an MIT grant.
+
+## When an alternative is the better fit
+
+**Emmett is a better fit when** you want to compose event sourcing inside an existing Node.js service, choose among its storage adapters, and keep projection/application processing in that service. It offers a path that does not require adopting Chronicle's kernel. Verify the adapter-specific guarantees and licensing for the version you will use.
+
+**KurrentDB's Node client is a better fit when** your organization already operates KurrentDB, wants its stream/subscription model, or wants the event database without adopting another application framework. You retain control over HTTP hosting, command handling, read-model consumers, and their deployment. That control comes with implementation and operational responsibilities; it is not evidence that those features are missing from the KurrentDB ecosystem.
+
+**Chronicle is worth evaluating when** server-owned projections and event processing match your architecture and you are prepared to operate its kernel. Use the released TypeScript client first. If Arc.TypeScript is also attractive, evaluate its source preview independently: source-tag availability does not make `npm install @cratis/arc.core` work, and bounded proxy generation is not full .NET parity.
+
+If a published, stable Node.js backend framework is a requirement today, Arc.TypeScript's source-preview status is a reason to choose another application layer, even if Chronicle remains your event database. See [CQRS in TypeScript](/cqrs/typescript/) for that distinction and the currently supported setup.
+
+## A useful evaluation slice
+
+Implement one command that appends an event with a concurrency expectation, one read model, and one live consumer. Then test a duplicate command, a conflicting append, a consumer restart, and rebuilding the read model from history. Record which guarantees come from the database, which come from the library, and which you implemented yourself. Run that slice on the storage adapter and server versions you intend to deploy; this page makes no benchmark or feature-parity claim for the result.
+
+## Sources and scope
+
+- [Chronicle.TypeScript 6.53.1 README](https://github.com/Cratis/Chronicle.TypeScript/blob/v6.53.1/README.md), [read-model API](https://github.com/Cratis/Chronicle.TypeScript/blob/v6.53.1/Documentation/read-models.md), and [testing boundaries](https://github.com/Cratis/Chronicle.TypeScript/blob/v6.53.1/Documentation/testing.md).
+- [Arc.TypeScript v0.57.2 README](https://github.com/Cratis/Arc.TypeScript/blob/v0.57.2/README.md), including source-preview publication status, supported features, and known gaps.
+- [Emmett 0.42.4 README](https://github.com/event-driven-io/emmett/blob/0.42.4/README.md), including adapters, projections, testing, and the production-readiness and licensing FAQs.
+- [KurrentDB Node client v1.3.1 README](https://github.com/kurrent-io/KurrentDB-Client-NodeJS/blob/v1.3.1/README.md) and [package README](https://github.com/kurrent-io/KurrentDB-Client-NodeJS/blob/v1.3.1/packages/db-client/README.md), including TypeScript usage and server compatibility.
+
+The npm publication dates are linked above. This review compares documented responsibilities and release boundaries; it does not establish performance, adoption, or operational reliability.
+
+## Continue with the implementation
+
+<CardGrid>
+  <LinkCard title="Event sourcing in TypeScript" description="The released Chronicle client, installation, append flow, projections, and tests." href="/event-sourcing/typescript/" />
+  <LinkCard title="CQRS in TypeScript" description="The Arc.TypeScript source-preview boundary and how it works with Chronicle." href="/cqrs/typescript/" />
+  <LinkCard title="KurrentDB vs Chronicle" description="Compare the separate event databases, projection models, and operational choices." href="/compare/kurrentdb-vs-chronicle/" />
+  <LinkCard title="All comparisons" description="Choose an architecture and continue to the relevant Cratis guide." href="/compare/" />
+</CardGrid>

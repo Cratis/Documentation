@@ -420,6 +420,10 @@ sitePages:
         - testing-with-cratis.mdx
         - cratis-stack.mdx
         - scenarios/**
+    - label: TypeScript event-sourcing comparison
+      axis: arc/backend
+      include:
+        - compare/typescript-event-sourcing.mdx
     - label: Every other site page
       axis: arc/backend
       include:
