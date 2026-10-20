@@ -16,6 +16,31 @@ const link = (value) => {
 };
 const rows = (value, valid) => Array.isArray(value) && value.every(valid);
 
+const repositoryCounts = (value) => rows(value, (repo) => text(repo?.name) && /^[A-Za-z0-9_.-]+$/.test(repo.name) && count(repo.releases) && repo.releases > 0);
+const durationPair = (value) => [value?.medianMinutes, value?.p90Minutes].every((minutes) => Number.isFinite(minutes) && minutes >= 0)
+    && value.p90Minutes >= value.medianMinutes;
+const leadTime = (value) => count(value?.windowDays) && value.windowDays > 0
+    && count(value.matchedReleases) && value.matchedReleases > 0
+    && durationPair(value.mergeToRelease) && durationPair(value.openedToRelease);
+
+function withoutField(value, field) {
+    const result = { ...value };
+    delete result[field];
+    return result;
+}
+
+// A malformed optional field must not hide the rest of an otherwise valid snapshot.
+function validateOptionalFields(data) {
+    let result = data;
+    const daily = data.daily.map((day) => day.repositories !== undefined && !repositoryCounts(day.repositories)
+        ? withoutField(day, 'repositories') : day);
+    if (daily.some((day, index) => day !== data.daily[index])) result = { ...result, daily };
+    for (const [field, valid] of [['releasesThisWeek', repositoryCounts], ['deliveryLeadTime', leadTime]]) {
+        if (result[field] !== undefined && !valid(result[field])) result = withoutField(result, field);
+    }
+    return result;
+}
+
 // Validate every field rendered by the site; unconsumed and future fields are ignored.
 export function validateOrgStats(data) {
     try {
@@ -31,7 +56,7 @@ export function validateOrgStats(data) {
             && rows(data.contributors.firstTime, (person) => text(person.login) && link(person.profileUrl)
                 && text(person.repository) && link(person.pullRequestUrl) && timestamp(person.firstMergedAt))
             && rows(data.milestones.next, (milestone) => text(milestone.id) && text(milestone.label) && count(milestone.remaining));
-        return valid ? data : null;
+        return valid ? validateOptionalFields(data) : null;
     } catch {
         return null;
     }
