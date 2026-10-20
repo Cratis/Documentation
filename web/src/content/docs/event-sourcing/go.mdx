@@ -28,10 +28,10 @@ Contracts are pinned to Chronicle 19.32.3, and the generated contracts are publi
 
 ## Install
 
-The client requires Go 1.26 or later. The README gives this command, to be used after the first tagged release:
+The client requires Go 1.26 or later. The latest released tag checked on 2026-10-20 is [v0.11.0](https://github.com/Cratis/Chronicle.Go/releases/tag/v0.11.0). Install that version with:
 
 ```sh
-go get github.com/cratis/chronicle.go@latest
+go get github.com/cratis/chronicle.go@v0.11.0
 ```
 
 Check the [Go package page](https://pkg.go.dev/github.com/cratis/chronicle.go) for what has been published before you depend on it.
@@ -107,7 +107,9 @@ func appendCustomer(ctx context.Context) (err error) {
 
 ## Arc for Go
 
-[Arc](/arc/) is Cratis's CQRS application framework, and Arc.Go is its Go counterpart (`github.com/cratis/arc.go`). Its README states **early development**: foundation packages, HTTP hosting, and model-bound command and query pipelines exist, with experimental TypeScript proxy generation and optional Chronicle integration. There is no tagged Go release yet, so the install command and the Go reference page become usable after the first release. The [Arc.Go parity ledger](/arc/go/parity/) lists the Partial areas and limits.
+[Arc](/arc/) is Cratis's CQRS application framework, and Arc.Go is its Go counterpart (`github.com/cratis/arc.go`). Its README states **early development**: foundation packages, HTTP hosting, and model-bound command and query pipelines exist, with experimental TypeScript proxy generation and optional Chronicle integration. The latest released root-module tag checked on 2026-10-20 is [v0.1.1](https://github.com/Cratis/Arc.Go/releases/tag/v0.1.1); the API remains experimental. Install it with `go get github.com/cratis/arc.go@v0.1.1`. A root-module tag does not release its separate integration or tools modules. The [Arc.Go parity ledger](/arc/go/parity/) lists the Partial areas and limits.
+
+For shared Go building blocks, Fundamentals.Go is released as [v0.3.2](https://github.com/Cratis/Fundamentals.Go/releases/tag/v0.3.2), checked on the same date. Install it with `go get github.com/cratis/fundamentals.go@v0.3.2`; see [Fundamentals for Go](/fundamentals/go/).
 
 ## Where to go next
 

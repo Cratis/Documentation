@@ -22,6 +22,7 @@ Cratis spans .NET packages, TypeScript packages, JVM and Elixir clients, Docker 
 | .NET web template | The current `dotnet new cratis` template targets `net10.0` and requires the .NET 10 SDK. In the template source, the Cratis package references use `Version="*"`. When you scaffold, the template's post-actions run `dotnet add package` for those packages, which writes the then-current released version into your project file. A new project therefore starts pinned to concrete NuGet versions, not floating ones. Library multi-targeting does not mean the template supports every target. |
 | Frontend packages in the web template | `package.json` uses caret ranges, such as `^22.10.4` for the `@cratis/arc` packages and `^4.1.1` for `@cratis/components`. Your package manager resolves the newest release inside each range when it installs, independently of the NuGet versions the backend was pinned to. |
 | Kotlin and Java templates | The templates use `latest.release` for the Arc Gradle plugin and the `io.cratis:cratis` meta package, with dependency management enabled. Inspect the resolved dependencies before choosing production versions. |
+| Go modules | Chronicle.Go, Arc.Go, and Fundamentals.Go require Go 1.26 or later. Fundamentals.Go [v0.3.2](https://github.com/Cratis/Fundamentals.Go/releases/tag/v0.3.2) installs with `go get github.com/cratis/fundamentals.go@v0.3.2`. |
 | CLI | The `cratis` CLI targets `net10.0`. |
 | Node.js for applications | The full-stack web template's README asks for Node.js `^20.19.0` or `>=22.12.0`. Individual [samples](/samples/) list their own Node.js requirement. |
 | Node.js for contributors | The Arc, Components, and Fundamentals repositories declare `node >=23.0.0` for their own workspaces. |
@@ -48,12 +49,12 @@ Chronicle runs on four storage backends, has clients for four languages, and run
 | Chronicle client | TypeScript and Node.js | Released | `@cratis/chronicle` on npm. |
 | Chronicle client | Kotlin and Java | Released | `io.cratis:chronicle` on Maven Central. |
 | Chronicle client | Elixir | Released | `cratis_chronicle` on Hex. |
-| Chronicle client | Go | Experimental | v0.x foundation: no observers or projections yet. Install with `go get github.com/cratis/chronicle.go@latest` after the first tagged release. |
+| Chronicle client | Go | Experimental | [v0.11.0](https://github.com/Cratis/Chronicle.Go/releases/tag/v0.11.0), a v0.x foundation: no observers or projections yet. Install with `go get github.com/cratis/chronicle.go@v0.11.0`. |
 | Chronicle client | Python | Pre-alpha | Not published. |
 | Arc backend | C# on ASP.NET Core | Released | |
 | Arc backend | Kotlin and Java on Spring Boot | Released | |
 | Arc backend | TypeScript on Node.js | Source preview | No package is published. |
-| Arc backend | Go | Early development | `github.com/cratis/arc.go`; no tagged release yet. |
+| Arc backend | Go | Early development | [v0.1.1](https://github.com/Cratis/Arc.Go/releases/tag/v0.1.1); the API remains experimental. Install with `go get github.com/cratis/arc.go@v0.1.1`. |
 | Frontend | React | Released | Arc React packages accept React 18 or 19; Components requires React 19. |
 | .NET | .NET 8, 9, and 10 | Released | Arc and Fundamentals package for all three; Chronicle's packaging targets the same. The CLI and the `dotnet new cratis` template target .NET 10. |
 | Hosting | Docker | Released | `cratis/chronicle` image; the `latest-development` image bundles MongoDB and is for development and CI only. |
