@@ -8,7 +8,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { budgetResult, SIZE_WARNINGS, sizeWarnings } from './llm-bulk.mjs';
+import { budgetResult, sizeWarnings } from './llm-bulk.mjs';
 
 const site = 'https://www.cratis.io';
 // The title text is already HTML-encoded; only quotes can end the attribute early.
@@ -88,13 +88,23 @@ export async function addSitemapLastmod(dist) {
 /** Check the bytes actually written by the LLM exporter, including its final newline. */
 export async function checkLlmBudgets(dist, { enforce = process.env.LLM_BUDGET_ENFORCE === '1' } = {}) {
     const sizes = new Map();
-    for (const { route } of SIZE_WARNINGS) {
+    async function collect(directory) {
+        let entries;
         try {
-            sizes.set(route, (await fs.stat(path.join(dist, route.slice(1)))).size);
+            entries = await fs.readdir(directory, { withFileTypes: true });
         } catch (error) {
-            if (error.code !== 'ENOENT') throw error;
+            if (error.code === 'ENOENT') return;
+            throw error;
+        }
+        for (const entry of entries) {
+            const file = path.join(directory, entry.name);
+            if (entry.isDirectory()) await collect(file);
+            else if (entry.isFile() && /^llms-(small|full)\.txt$/.test(entry.name)) {
+                sizes.set(`/${path.relative(dist, file).replace(/\\/g, '/')}`, (await fs.stat(file)).size);
+            }
         }
     }
+    await collect(dist);
     const result = budgetResult(sizes, enforce);
     // emit-llm-indexes.mjs already emits the warning; only add errors when enforcement is on.
     if (enforce) {

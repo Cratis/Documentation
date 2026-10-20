@@ -4,7 +4,7 @@
 // The site-wide bulk exports (llms-full.txt, llms-small.txt) must stay usable as
 // context. Release digests and changelogs are time-ordered logs, not documentation
 // to answer questions from, so they are left out; llms-small.txt is a compact
-// page-by-page summary rather than a second copy of the full text. The full export is also
+// curated starting-point summary rather than a second copy of the full text. The full export is also
 // compacted (see compactFullText) so it stays under its size budget.
 import { deriveDescription, shortenDescription } from './page-metadata.mjs';
 
@@ -88,12 +88,32 @@ export function pageSummary(frontmatter, body, file) {
     return description;
 }
 
+// Select overviews, first steps and core concepts, not the complete page inventory.
+const startingPoint = /^(?:get-started|getting-started|tutorial|concepts|core-concepts)(?:\/[^/]+)?$/;
+const coreOverviews = new Set([
+    'overview', 'introduction', 'why-arc', 'why-event-sourcing', 'cqrs-without-event-sourcing',
+    'events', 'read-models', 'projections', 'reactors', 'reducers', 'commands', 'queries',
+    'concepts', 'serialization', 'dependency-injection', 'type-discovery', 'context',
+    'backend/csharp/commands', 'backend/csharp/queries',
+]);
+const stackStartingPoints = new Set([
+    'cratis-stack', 'build-a-full-app', 'samples', 'learning-paths', 'glossary',
+    'concepts/event-store', 'concepts/cqrs', 'event-sourcing', 'cqrs',
+]);
+
+export function isCuratedPage(slug, productKey) {
+    if (!productKey) return stackStartingPoints.has(slug);
+    if (slug === productKey) return true;
+    const relative = slug.slice(productKey.length + 1);
+    return startingPoint.test(relative) || coreOverviews.has(relative);
+}
+
 const entry = ({ title, url, description }) =>
     `- [${title.replace(/\s+/g, ' ').replace(/[\\\[\]]/g, '\\$&')}](${url})${description ? `: ${description}` : ''}`;
 
 /** `groups` is [{ label, pages: [{ title, url, description }] }]; empty groups are omitted. */
 export function abridgedExport(heading, groups) {
-    const lines = [`# ${heading}`, '', '> Titles and one-line summaries of the documentation pages. Open a page for the full text; HTML is canonical.', ''];
+    const lines = [`# ${heading}`, '', '> Curated overviews, getting-started guides and core concepts. Open a page for the full text; HTML is canonical. Budget: 400,000 bytes (400 KB).', ''];
     for (const { label, pages } of groups) {
         if (!pages.length) continue;
         lines.push(`## ${label}`, '', ...pages.map(entry), '');
@@ -101,10 +121,18 @@ export function abridgedExport(heading, groups) {
     return lines.join('\n');
 }
 
+/** Product downloads use the same explicit budgets as the corresponding site-wide export. */
+export function llmBudget(route) {
+    const name = /^\/(?:[a-z0-9_-]+\/)*llms-(small|full)\.txt$/.exec(route)?.[1];
+    return name ? SIZE_WARNINGS.find(item => item.route === `/llms-${name}.txt`).bytes : undefined;
+}
+
 /** Structured budget verdict; enforcement must be explicitly enabled by the caller. */
 export function budgetResult(sizes, enforce = false) {
-    const exceeded = SIZE_WARNINGS.filter(({ route, bytes }) => (sizes.get(route) ?? 0) > bytes)
-        .map(({ route, bytes }) => ({ route, bytes: sizes.get(route), budgetBytes: bytes }));
+    const exceeded = [...sizes].flatMap(([route, bytes]) => {
+        const budgetBytes = llmBudget(route);
+        return budgetBytes !== undefined && bytes > budgetBytes ? [{ route, bytes, budgetBytes }] : [];
+    });
     return { exceeded, failed: enforce && exceeded.length > 0 };
 }
 

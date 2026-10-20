@@ -163,7 +163,7 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
         }
     });
 
-    test(`${productKey} macros in MDX expressions and ESM are literal in rendering and mirrors`, async (t) => {
+    test(`${productKey} macros in MDX expressions and ESM are not expanded and are stripped from mirrors`, async (t) => {
         const f = await fixture(productKey, axisKey);
         t.after(() => rm(f.root, { recursive: true, force: true }));
         const literal = `<${f.axis.macro} snippet="missing" />`;
@@ -188,7 +188,8 @@ for (const [productKey, axisKey] of [['arc', 'backend'], ['chronicle', 'client']
                 axes: [f.axis], reposRoot: f.root, docRepoRoot: f.docRepoRoot,
             });
             const mirror = await readFile(path.join(distRoot, 'capstone.md'), 'utf8');
-            assert.ok(mirror.includes(expression));
+            assert.ok(!mirror.includes(literal));
+            assert.doesNotMatch(mirror, /export const|\{\/\*/);
             assert.doesNotMatch(mirror, /<Tabs syncKey=/);
             assert.equal(await readFile(f.sitePath, 'utf8'), source);
         }

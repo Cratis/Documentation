@@ -3,7 +3,7 @@
 
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { PAGE_MARKER, PAGE_SEPARATOR, SIZE_WARNINGS, budgetResult, compactFullText, isLogPage, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
+import { PAGE_MARKER, PAGE_SEPARATOR, SIZE_WARNINGS, budgetResult, compactFullText, isCuratedPage, isLogPage, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
 
 describe('LLM export budgets', () => {
     it('allows missing exports and exports at or below each byte budget even when enforced', () => {
@@ -74,5 +74,34 @@ describe('full export compaction', () => {
     it('leaves fenced code untouched', () => {
         const code = '```text\n| A    | B |\n[Section titled “X”](#x)\n```\n| a  | b |';
         assert.equal(compactFullText(code), '```text\n| A    | B |\n[Section titled “X”](#x)\n```\n| a | b |');
+    });
+});
+
+
+describe('curated starting points', () => {
+    it('selects product overviews, first steps and core concepts rather than every page', () => {
+        for (const slug of ['chronicle', 'chronicle/get-started', 'chronicle/get-started/first-event', 'chronicle/concepts/events', 'chronicle/projections']) {
+            assert.equal(isCuratedPage(slug, 'chronicle'), true, slug);
+        }
+        for (const slug of ['chronicle/events/append', 'chronicle/configuration/storage', 'chronicle/tutorial/deep/reference']) {
+            assert.equal(isCuratedPage(slug, 'chronicle'), false, slug);
+        }
+        assert.equal(isCuratedPage('fundamentals/go/getting-started', 'fundamentals/go'), true);
+        assert.equal(isCuratedPage('cratis-stack'), true);
+        assert.equal(isCuratedPage('community'), false);
+    });
+
+    it('enforces the same budgets for product and nested-product downloads', () => {
+        const sizes = new Map([
+            ['/chronicle/llms-small.txt', 400_001],
+            ['/fundamentals/go/llms-full.txt', 17_000_001],
+            ['/arc/llms-small.txt', 400_000],
+            ['/cli/llms-full.txt', 17_000_000],
+            ['/other.txt', 20_000_000],
+        ]);
+        const result = budgetResult(sizes, true);
+        assert.equal(result.failed, true);
+        assert.deepEqual(result.exceeded.map(item => item.route), ['/chronicle/llms-small.txt', '/fundamentals/go/llms-full.txt']);
+        assert.equal(budgetResult(sizes).failed, false);
     });
 });

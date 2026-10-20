@@ -61,6 +61,8 @@ it('indexes a nested product once, as its own product', async () => {
     const nested = [...products, { key: 'chronicle/go', label: 'Chronicle.Go' }];
     assert.deepEqual(await emitLlmIndexes(dist, nested, sets, docsRoot), { indexedPages: 5, products: 2, areas: 1 });
     assert.doesNotMatch(readFileSync(path.join(dist, 'chronicle/llms.txt'), 'utf8'), /chronicle\/go\//);
+    assert.doesNotMatch(readFileSync(path.join(dist, 'chronicle/llms-full.txt'), 'utf8'), /Chronicle for Go/);
+    assert.match(readFileSync(path.join(dist, 'chronicle/go/llms-full.txt'), 'utf8'), /Chronicle for Go/);
     assert.match(readFileSync(path.join(dist, 'chronicle/go/llms.txt'), 'utf8'), /## Start here\n\n- \[Getting started\]\(https:\/\/www\.cratis\.io\/chronicle\/go\/getting-started\/\)/);
 });
 
@@ -134,4 +136,44 @@ it('rejects a valid-sized set missing an expected page', async () => {
 it('does not publish an empty required product', async () => {
     rmSync(path.join(docsRoot, 'chronicle'), { recursive: true, force: true });
     await assert.rejects(emitLlmIndexes(dist, products, sets, docsRoot), /Missing required product in build: chronicle/);
+});
+
+
+it('curates the small download but retains detailed pages in described product full-text sets', async () => {
+    for (const [key, label] of [['arc', 'Arc'], ['components', 'Components'], ['fundamentals', 'Fundamentals'], ['cli', 'CLI']]) {
+        const content = `---\ntitle: ${label}\n---\n${label} overview.\n`;
+        source(`${key}/index.md`, content);
+        file(`${key}.md`, content);
+        file(`${key}/index.html`, `<h1>${label}</h1>`);
+    }
+    const allProducts = [...products, ...['arc', 'components', 'fundamentals', 'cli'].map(key => ({ key, label: key }))];
+    await emitLlmIndexes(dist, allProducts, sets, docsRoot);
+    const small = readFileSync(path.join(dist, 'llms-small.txt'), 'utf8');
+    assert.match(small, /400,000 bytes/);
+    assert.match(small, /\[Events\]/);
+    assert.doesNotMatch(small, /Append an event/);
+    assert.ok(Buffer.byteLength(small) <= 400_000);
+    const root = readFileSync(path.join(dist, 'llms.txt'), 'utf8');
+    for (const { key } of allProducts) {
+        assert.ok(root.includes(`/${key}/llms-full.txt): Readable Markdown for`), key);
+        assert.ok(existsSync(path.join(dist, key, 'llms-full.txt')), key);
+    }
+    const full = readFileSync(path.join(dist, 'chronicle/llms-full.txt'), 'utf8');
+    assert.match(full, /# Append an event\n\nSource: https:\/\/www\.cratis\.io\/chronicle\/events\/append\//);
+    assert.doesNotMatch(full, /title: Chronicle|---/);
+    assert.doesNotMatch(root, /dapr|wolverine/i);
+});
+
+
+it('excludes logs and generated API references from curated and product downloads', async () => {
+    for (const slug of ['chronicle/changelog', 'release-digests/2026-10-20', 'api/dotnet/type']) {
+        const content = '---\ntitle: Excluded reference\n---\nNot starting-point context.\n';
+        source(`${slug}.md`, content);
+        file(`${slug}.md`, content);
+        file(`${slug}/index.html`, '<h1>Excluded reference</h1>');
+    }
+    await emitLlmIndexes(dist, products, sets, docsRoot);
+    for (const name of ['llms-small.txt', 'chronicle/llms-full.txt']) {
+        assert.doesNotMatch(readFileSync(path.join(dist, name), 'utf8'), /Excluded reference|release-digests|api\/dotnet/);
+    }
 });
