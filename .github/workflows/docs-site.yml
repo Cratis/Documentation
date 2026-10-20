@@ -45,11 +45,13 @@ permissions:
 # Superseded pull-request builds are cancelled. A running main build is never cancelled:
 # repeated source notifications must not starve deployment. Hourly runs share the main
 # push/manual group; GitHub keeps only the newest pending run (latest wins).
-# Source notifications (repository_dispatch) share a separate latest-wins dispatch group:
-# a running probe/build/deploy finishes before the newest pending notification probes again.
+# Source notifications (repository_dispatch) join the main group with pushes and hourly runs:
+# deployments never overlap, a running probe/build/deploy finishes, and only the newest pending
+# run waits. The probe fingerprints this repository too, so a pending push that a newer
+# notification replaces is still built.
 # The nightly check-only run has its own group, so an hourly run cannot replace it while it waits.
 concurrency:
-  group: docs-site-${{ github.event_name == 'repository_dispatch' && 'dispatch' || github.event_name == 'schedule' && github.event.schedule == '17 2 * * *' && 'nightly' || github.ref_name }}
+  group: docs-site-${{ github.event_name == 'schedule' && github.event.schedule == '17 2 * * *' && 'nightly' || github.ref_name }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Product repos are checked out at docs-overhaul only for docs-overhaul validation.

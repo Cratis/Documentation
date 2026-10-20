@@ -173,7 +173,7 @@ test('failed builds and validation branches should never deploy', () => {
     }
 });
 
-test('dispatch bursts should share a separate latest-wins group while other groups stay unchanged', () => {
+test('dispatch bursts should share the latest-wins main group so deployments never overlap', () => {
     const expression = workflow.match(/^  group: docs-site-\$\{\{ (.+) \}\}$/m)[1];
     const group = (eventName, schedule, runId = 42, refName = 'main') => runInNewContext(expression, {
         github: { event_name: eventName, event: { schedule }, ref_name: refName, run_id: runId },
@@ -181,8 +181,8 @@ test('dispatch bursts should share a separate latest-wins group while other grou
     assert.equal(group('schedule', '41 * * * *'), 'main');
     assert.equal(group('push'), 'main');
     assert.equal(group('workflow_dispatch'), 'main');
-    assert.equal(group('repository_dispatch'), 'dispatch');
-    assert.equal(group('repository_dispatch', undefined, 43), 'dispatch');
+    assert.equal(group('repository_dispatch'), 'main');
+    assert.equal(group('repository_dispatch', undefined, 43), 'main');
     assert.equal(group('schedule', '17 2 * * *'), 'nightly');
     assert.equal(group('pull_request', undefined, 44, '240/merge'), '240/merge');
     assert.equal(group('pull_request', undefined, 45, '241/merge'), '241/merge');
