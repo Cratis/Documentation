@@ -44,13 +44,18 @@ describe('SEO lint', () => {
         assert.deepEqual(duplicateBrowserTitles([
             page('chronicle/csharp/commands.md', 'Commands'),
             page('chronicle/typescript/commands.md', 'Commands'),
+            page('chronicle/go/commands.md', 'Commands'),
+            page('chronicle/kotlin/index.md', 'Kotlin and Java'),
+            page('chronicle/java/index.md', 'Kotlin and Java'),
+            page('chronicle/kotlin/commands.md', 'Commands'),
+            page('chronicle/java/commands.md', 'Commands'),
         ]), []);
     });
 
     it('reports variants whose languages contextualTitle cannot disambiguate', () => {
         const groups = duplicateBrowserTitles([
-            page('chronicle/go/commands.md', 'Commands'),
             page('chronicle/swift/commands.md', 'Commands'),
+            page('chronicle/ruby/commands.md', 'Commands'),
         ]);
         assert.equal(groups.length, 1);
         assert.equal(groups[0].title, 'Commands – Chronicle | Cratis');

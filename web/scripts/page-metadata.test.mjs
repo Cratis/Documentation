@@ -106,21 +106,26 @@ describe('page descriptions', () => {
 describe('page metadata', () => {
     it('contextualizes generic titles without changing specific titles', () => {
         assert.equal(contextualTitle('Glossary', 'arc/glossary'), 'Glossary – Arc | Cratis');
-        assert.equal(contextualTitle('Getting started', 'fundamentals/go/getting-started'), 'Getting started – Fundamentals | Cratis');
+        assert.equal(contextualTitle('Getting started', 'fundamentals/go/getting-started'), 'Getting started (Go) – Fundamentals | Cratis');
         assert.equal(contextualTitle('Overview', 'cli'), 'Overview – CLI | Cratis');
         assert.equal(contextualTitle('Glossary', 'glossary'), 'Glossary – Cratis Stack | Cratis');
         assert.equal(contextualTitle('Store events', 'chronicle/events'), undefined);
+        assert.equal(contextualTitle('Projections', 'chronicle/projections'), 'Projections – Chronicle | Cratis');
+        assert.equal(contextualTitle('Observers', 'arc/observers'), 'Observers – Arc | Cratis');
     });
 
     it('names the language so variant pages do not share a title', () => {
         const parents = ['Arc', 'Backend', 'Commands'];
         const csharp = contextualTitle('Command pipeline', 'arc/backend/csharp/commands/command-pipeline', parents, true);
         const typescript = contextualTitle('Command pipeline', 'arc/backend/typescript/commands/command-pipeline', parents, true);
-        assert.equal(csharp, 'Command pipeline – Commands – C# – Arc | Cratis');
-        assert.equal(typescript, 'Command pipeline – Commands – TypeScript – Arc | Cratis');
-        assert.equal(contextualTitle('Backend', 'arc/backend/csharp', ['Arc', 'Backend'], true), 'Backend – Arc – C# | Cratis');
+        assert.equal(csharp, 'Command pipeline (C#) – Commands – Arc | Cratis');
+        assert.equal(typescript, 'Command pipeline (TypeScript) – Commands – Arc | Cratis');
+        assert.equal(contextualTitle('Backend', 'arc/backend/csharp', ['Arc', 'Backend'], true), 'Backend (C#) – Arc | Cratis');
         assert.equal(contextualTitle('Backend', 'arc/backend', ['Arc'], true), 'Backend – Arc | Cratis');
         assert.equal(pageLanguage('chronicle/events'), undefined);
+        assert.equal(pageLanguage('fundamentals/go/concepts'), 'Go');
+        assert.equal(contextualTitle('Run a command', 'arc/backend/typescript/run', parents), 'Run a command (TypeScript) – Commands – Arc | Cratis');
+        assert.equal(contextualTitle('Overview', 'arc/backend/java/overview', ['Arc', 'Kotlin and Java']), 'Overview (Java) – Kotlin and Java – Arc | Cratis');
     });
 
     it('gives the home page and product hubs descriptive titles', () => {
@@ -132,7 +137,7 @@ describe('page metadata', () => {
     });
 
     it('keeps every hub title within 60 characters', () => {
-        for (const id of ['chronicle', 'arc', 'components', 'cli', 'authproxy', 'chronicle-mcp', 'prompter', 'templates', 'screenplay', '']) {
+        for (const id of ['chronicle', 'arc', 'components', 'cli', 'authproxy', 'chronicle-mcp', 'prompter', 'templates', 'screenplay', 'fundamentals', 'prologue', 'architecture', 'ai', '']) {
             assert.ok(hubTitle(id).length <= 60, hubTitle(id));
         }
     });
@@ -177,7 +182,7 @@ describe('page metadata', () => {
     it('uses the nearest meaningful parent and retains product context', () => {
         assert.equal(contextualTitle('Configuration', 'chronicle/hosting/configuration', ['Chronicle', 'Kernel']), 'Configuration – Kernel – Chronicle | Cratis');
         assert.equal(contextualTitle('Events', 'chronicle/projections/events', ['Chronicle', 'Projections']), 'Events – Projections – Chronicle | Cratis');
-        assert.equal(contextualTitle('Concepts', 'arc/backend/kotlin/concepts', ['Arc', 'Backend', 'Kotlin and Java', 'Overview']), 'Concepts – Kotlin and Java – Arc | Cratis');
+        assert.equal(contextualTitle('Concepts', 'arc/backend/kotlin/concepts', ['Arc', 'Backend', 'Kotlin and Java', 'Overview']), 'Concepts (Kotlin) – Kotlin and Java – Arc | Cratis');
     });
 
     it('falls back to the product when parents are generic or missing', () => {
@@ -186,7 +191,7 @@ describe('page metadata', () => {
     });
 
     it('contextualizes other repeated titles without repeating the current title', () => {
-        assert.equal(contextualTitle('Identity', 'arc/backend/typescript/identity', ['Arc', 'TypeScript'], true), 'Identity – TypeScript – Arc | Cratis');
+        assert.equal(contextualTitle('Identity', 'arc/backend/typescript/identity', ['Arc', 'TypeScript'], true), 'Identity (TypeScript) – Arc | Cratis');
         assert.equal(contextualTitle('Chronicle', 'cli/chronicle', ['CLI'], true), 'Chronicle – CLI | Cratis');
         assert.equal(contextualTitle('Events', 'chronicle/events/overview', ['Chronicle', 'Events']), 'Events – Chronicle | Cratis');
     });
