@@ -105,15 +105,18 @@ function jobCondition(job, context) {
     return runInNewContext(expression, { cancelled: () => false, ...context });
 }
 
-test('event matrix should keep immediate validation, batch hourly builds and skip dispatches', () => {
+test('event matrix should keep immediate validation and probe dispatches and hourly builds', () => {
     const cases = [
         ['pull_request', undefined, undefined, true, false, false],
         ['push', undefined, undefined, true, true, false],
         ['workflow_dispatch', undefined, undefined, true, true, false],
-        ['repository_dispatch', undefined, undefined, false, false, false],
+        ['repository_dispatch', undefined, 'true', true, true, true],
+        ['repository_dispatch', undefined, 'false', false, false, true],
+        ['repository_dispatch', undefined, undefined, false, false, true],
         ['schedule', '17 2 * * *', undefined, true, false, false],
-        ['schedule', '7 * * * *', 'true', true, true, true],
-        ['schedule', '7 * * * *', 'false', false, false, true],
+        ['schedule', '41 * * * *', 'true', true, true, true],
+        ['schedule', '41 * * * *', 'false', false, false, true],
+        ['schedule', '41 * * * *', undefined, false, false, true],
     ];
     for (const [eventName, schedule, changed, build, deploy, runProbe] of cases) {
         const context = {
@@ -126,12 +129,27 @@ test('event matrix should keep immediate validation, batch hourly builds and ski
     }
 });
 
+test('schedule should retain the nightly check and use an off-peak hourly backstop', () => {
+    assert.deepEqual([...workflow.matchAll(/^    - cron: '(.+)'$/gm)].map((match) => match[1]), [
+        '41 * * * *', '17 2 * * *',
+    ]);
+});
+
+test('probe should only check out this repository and run the existing source probe', () => {
+    const definition = workflow.split('  probe:\n')[1].split('\n  build:')[0];
+    assert.equal((definition.match(/uses: actions\/checkout@/g) ?? []).length, 1);
+    assert.doesNotMatch(definition, /^\s+repository:/m);
+    assert.match(definition, /^    timeout-minutes: 5$/m);
+    assert.match(definition, /^        run: node \.github\/scripts\/docs-source-fingerprint\.mjs$/m);
+});
+
 test('slow checks should run only on PR, manual and nightly builds', () => {
     const script = workflow.match(/      - name: Plan the build[\s\S]*?        run: \|\n([\s\S]*?)(?=\n      - )/)[1]
         .split('\n').map((line) => line.slice(10)).join('\n');
     for (const [eventName, schedule, checks] of [
         ['pull_request', '', true], ['workflow_dispatch', '', true], ['push', '', false],
-        ['schedule', '17 2 * * *', true], ['schedule', '7 * * * *', false],
+        ['repository_dispatch', '', false],
+        ['schedule', '17 2 * * *', true], ['schedule', '41 * * * *', false],
     ]) {
         // GITHUB_OUTPUT is a real file, as on a runner: /dev/stdout is not writable under CI.
         const outputFile = path.join(mkdtempSync(path.join(tmpdir(), 'docs-plan-')), 'output');
@@ -155,15 +173,24 @@ test('failed builds and validation branches should never deploy', () => {
     }
 });
 
-test('hourly and main builds should share concurrency while notifications and nightly stay separate', () => {
+test('dispatch bursts should share a separate latest-wins group while other groups stay unchanged', () => {
     const expression = workflow.match(/^  group: docs-site-\$\{\{ (.+) \}\}$/m)[1];
-    const group = (eventName, schedule) => runInNewContext(expression, {
-        github: { event_name: eventName, event: { schedule }, ref_name: 'main', run_id: 42 },
-        format: (template, ...values) => template.replace(/\{(\d+)\}/g, (_, index) => String(values[Number(index)])),
+    const group = (eventName, schedule, runId = 42, refName = 'main') => runInNewContext(expression, {
+        github: { event_name: eventName, event: { schedule }, ref_name: refName, run_id: runId },
     });
-    assert.equal(group('schedule', '7 * * * *'), 'main');
+    assert.equal(group('schedule', '41 * * * *'), 'main');
     assert.equal(group('push'), 'main');
     assert.equal(group('workflow_dispatch'), 'main');
-    assert.equal(group('repository_dispatch'), 'dispatch-42');
+    assert.equal(group('repository_dispatch'), 'dispatch');
+    assert.equal(group('repository_dispatch', undefined, 43), 'dispatch');
     assert.equal(group('schedule', '17 2 * * *'), 'nightly');
+    assert.equal(group('pull_request', undefined, 44, '240/merge'), '240/merge');
+    assert.equal(group('pull_request', undefined, 45, '241/merge'), '241/merge');
+});
+
+test('only superseded pull-request runs should be cancelled, never running builds or deployments', () => {
+    const expression = workflow.match(/^  cancel-in-progress: \$\{\{ (.+) \}\}$/m)[1];
+    for (const eventName of ['pull_request', 'push', 'workflow_dispatch', 'repository_dispatch', 'schedule']) {
+        assert.equal(runInNewContext(expression, { github: { event_name: eventName } }), eventName === 'pull_request');
+    }
 });

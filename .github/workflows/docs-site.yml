@@ -8,14 +8,14 @@
 # builds.
 #
 # Pushes, pull requests and manual runs still build immediately. Product doc changes
-# appear within about an hour plus runner queue/build time: an hourly probe compares
-# all checkout SHAs with /build-info.json from the last successful Pages deployment.
-# Unchanged hours skip the build; unavailable metadata or source APIs fail open.
-# `build-docs` dispatches are accepted during migration but allocate no runner.
+# trigger a cheap probe through `build-docs` dispatches, with an off-peak hourly backstop.
+# The probe compares all checkout SHAs with /build-info.json from the last successful
+# Pages deployment. Unchanged sources skip the build; unavailable metadata or source
+# APIs fail open.
 # The deploy job runs ONLY on `main`, so docs-overhaul pushes validate without publishing.
 #
 # Slow checks (variant docs, internal links) run on pull requests, the nightly schedule
-# and manual runs. Hourly and push builds only build, and publish from main. The nightly
+# and manual runs. Dispatch, hourly and push builds only build, and publish from main. The nightly
 # run never deploys; a failing check fails it, and that failure is the report.
 # API Release assemblies remain cached by repository and checked-out commit.
 #
@@ -36,7 +36,7 @@ on:
   repository_dispatch:
     types: [build-docs]
   schedule:
-    - cron: '7 * * * *'
+    - cron: '41 * * * *'
     - cron: '17 2 * * *'
 
 permissions:
@@ -45,15 +45,15 @@ permissions:
 # Superseded pull-request builds are cancelled. A running main build is never cancelled:
 # repeated source notifications must not starve deployment. Hourly runs share the main
 # push/manual group; GitHub keeps only the newest pending run (latest wins).
-# Source notifications (repository_dispatch) allocate no runner and get a group of their
-# own per run, so a no-op notification can never replace a pending build. The nightly
-# check-only run has its own group, so an hourly run cannot replace it while it waits.
+# Source notifications (repository_dispatch) share a separate latest-wins dispatch group:
+# a running probe/build/deploy finishes before the newest pending notification probes again.
+# The nightly check-only run has its own group, so an hourly run cannot replace it while it waits.
 concurrency:
-  group: docs-site-${{ github.event_name == 'repository_dispatch' && format('dispatch-{0}', github.run_id) || github.event_name == 'schedule' && github.event.schedule == '17 2 * * *' && 'nightly' || github.ref_name }}
+  group: docs-site-${{ github.event_name == 'repository_dispatch' && 'dispatch' || github.event_name == 'schedule' && github.event.schedule == '17 2 * * *' && 'nightly' || github.ref_name }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Product repos are checked out at docs-overhaul only for docs-overhaul validation.
-# Main pushes, manual runs from main, and scheduled builds use main.
+# Main pushes, dispatches, manual runs from main, and scheduled builds use main.
 env:
   DOCS_REF: ${{ github.ref_name == 'docs-overhaul' && 'docs-overhaul' || 'main' }}
   ELIXIR_VERSION: "1.19.5"
@@ -61,7 +61,7 @@ env:
 
 jobs:
   probe:
-    if: github.event_name == 'schedule' && github.event.schedule == '7 * * * *'
+    if: github.event_name == 'repository_dispatch' || github.event_name == 'schedule' && github.event.schedule == '41 * * * *'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -78,9 +78,9 @@ jobs:
 
   build:
     needs: probe
-    # A skipped probe must not skip PR/push/manual/nightly validation. Dispatches
-    # intentionally end here without starting either job during producer migration.
-    if: ${{ !cancelled() && github.event_name != 'repository_dispatch' && (github.event_name != 'schedule' || github.event.schedule == '17 2 * * *' || needs.probe.outputs.build == 'true') }}
+    # A skipped probe must not skip PR/push/manual/nightly validation. Dispatch and
+    # hourly builds run only when the probe finds changed sources (or fails open).
+    if: ${{ !cancelled() && ((github.event_name != 'repository_dispatch' && github.event_name != 'schedule') || github.event.schedule == '17 2 * * *' || needs.probe.outputs.build == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
