@@ -224,6 +224,10 @@ describe('page metadata', () => {
         const data = structuredData({ home: true, description: 'Docs.' });
         assert.deepEqual(data['@graph'].map(item => item['@type']), ['Organization', 'WebSite']);
         assert.equal(data['@graph'][1].publisher['@id'], data['@graph'][0]['@id']);
+        assert.deepEqual(data['@graph'][0].sameAs, [
+            'https://www.linkedin.com/company/cratis-stack',
+            'https://www.youtube.com/@CratisStack',
+        ]);
     });
 
     it('publishes article and ordered breadcrumbs on content pages', () => {
@@ -234,6 +238,10 @@ describe('page metadata', () => {
         assert.deepEqual(data['@graph'].map(item => item['@type']), ['TechArticle', 'BreadcrumbList']);
         assert.equal(data['@graph'][0].inLanguage, 'en');
         assert.equal(data['@graph'][0].publisher.name, 'Cratis');
+        assert.deepEqual(data['@graph'][0].publisher.sameAs, [
+            'https://www.linkedin.com/company/cratis-stack',
+            'https://www.youtube.com/@CratisStack',
+        ]);
         assert.deepEqual(data['@graph'][1].itemListElement.map(item => item.position), [1, 2]);
     });
 

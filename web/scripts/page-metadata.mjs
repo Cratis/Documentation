@@ -239,7 +239,10 @@ function pageNode(kind, { title, description, url, dateModified, terms = [] }) {
 
 export function structuredData({ home, notFound = false, title, description, url, breadcrumbs, kind = 'article', dateModified, terms }) {
     if (notFound) return undefined;
-    const organization = { '@type': 'Organization', '@id': 'https://cratis.no/#organization', name: 'Cratis', url: 'https://cratis.no' };
+    const organization = {
+        '@type': 'Organization', '@id': 'https://cratis.no/#organization', name: 'Cratis', url: 'https://cratis.no',
+        sameAs: ['https://www.linkedin.com/company/cratis-stack', 'https://www.youtube.com/@CratisStack'],
+    };
     return {
         '@context': 'https://schema.org',
         '@graph': home ? [organization, {
