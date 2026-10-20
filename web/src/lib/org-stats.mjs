@@ -9,8 +9,16 @@ import { validateOrgStats } from '../../scripts/sync-org-stats.mjs';
 // does not point at src/lib any more. Astro runs from web/, where the sync step writes the file.
 export const generatedFile = resolve(process.cwd(), 'src/generated/org-stats.json');
 
+const cache = new Map();
+
+// Every page renders the title override, so read and validate the snapshot once per build.
 export function readOrgStats(file = generatedFile) {
-    try { return validateOrgStats(JSON.parse(readFileSync(file, 'utf8'))); } catch { return null; }
+    if (!cache.has(file)) {
+        let data = null;
+        try { data = validateOrgStats(JSON.parse(readFileSync(file, 'utf8'))); } catch { data = null; }
+        cache.set(file, data);
+    }
+    return cache.get(file);
 }
 
 export function releaseDate(value) {
@@ -29,7 +37,8 @@ const repositories = {
     'chronicle/clients/dotnet': 'Chronicle', 'chronicle/clients/typescript': 'Chronicle.TypeScript',
     'chronicle/clients/kotlin': 'Chronicle.Kotlin', 'chronicle/clients/elixir': 'Chronicle.Elixir',
     'fundamentals/go': 'Fundamentals.Go', 'chronicle/go': 'Chronicle.Go', 'arc/go': 'Arc.Go',
-    screenplay: 'Screenplay',
+    'arc/backend/kotlin': 'Arc.Kotlin', 'arc/backend/typescript': 'Arc.TypeScript',
+    specifications: 'Specifications', screenplay: 'Screenplay',
     'screenplay/ecosystem-examples/critter-stack': 'Screenplay.CritterStack',
     prologue: 'Prologue', cli: 'cli', ai: 'AI', authproxy: 'AuthProxy',
     'chronicle-mcp': 'Chronicle.Mcp', prompter: 'Prompter', templates: 'Templates',
