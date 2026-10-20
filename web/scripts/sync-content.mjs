@@ -995,7 +995,7 @@ function variantDocsSlugBase(axis, variantKey) {
     return `${axis.productKey}/${axis.mount.route}/${variantKey}`;
 }
 
-async function writeVariantDocsLanding(outDir, axis, variants) {
+export async function writeVariantDocsLanding(outDir, axis, variants) {
     if (!variants.length) return;
 
     const mountDir = path.join(outDir, axis.mount.route);
@@ -1016,7 +1016,7 @@ async function writeVariantDocsLanding(outDir, axis, variants) {
             // Nothing authored here, so the generated landing is the only page.
         }
     }
-    const { title, intro, sharedHeading, variantHeading } = axis.mount.landing;
+    const { title, intro, sharedHeading, variantHeading, description } = axis.mount.landing;
     const topicLinks = axis.sharedTopics
         .map((topic) => `- [${topic.label}](${topic.href})`)
         .join('\n');
@@ -1026,7 +1026,8 @@ async function writeVariantDocsLanding(outDir, axis, variants) {
 
     // The landing is generated from configuration and has no authored source
     // file, so disable the site-wide edit link rather than pointing at this copy.
-    const body = `---\ntitle: ${title}\neditUrl: false\n---\n\n${intro}\n\n## ${sharedHeading}\n\n${topicLinks}\n\n## ${variantHeading}\n\n${variantLinks}\n`;
+    const descriptionLine = description ? `description: ${JSON.stringify(description)}\n` : '';
+    const body = `---\ntitle: ${title}\n${descriptionLine}editUrl: false\n---\n\n${intro}\n\n## ${sharedHeading}\n\n${topicLinks}\n\n## ${variantHeading}\n\n${variantLinks}\n`;
 
     await fs.writeFile(landingPath, body, 'utf8');
 }

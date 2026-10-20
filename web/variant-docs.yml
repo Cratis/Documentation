@@ -33,6 +33,7 @@ products:
           route: clients
           landing:
             title: Client SDKs
+            description: Install and connect a Chronicle client SDK in your language, and find where each client's installation, setup and API details live.
             intro: >-
               Chronicle concepts, guides, and feature workflows live in the shared
               Chronicle docs and use language tabs when the client APIs differ. Use

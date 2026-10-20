@@ -153,6 +153,8 @@ function normalizeMount(r, mount, name) {
             intro: r.string(landing.intro, `${name}.landing.intro`),
             sharedHeading: r.string(landing.sharedHeading, `${name}.landing.sharedHeading`),
             variantHeading: r.string(landing.variantHeading, `${name}.landing.variantHeading`),
+            // Optional: the generated landing has no authored file, so this is its only description.
+            ...(landing.description === undefined ? {} : { description: r.string(landing.description, `${name}.landing.description`) }),
         },
     };
 }

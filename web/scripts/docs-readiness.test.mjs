@@ -9,7 +9,7 @@ import { existsSync, promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
-import { PRODUCTS, applyAfterBucketInjections, variantSidebarInjections, applyBuckets, bucketsWithInjectedSections, collectSlugs, convertFile, droppedSidebarEntriesSnapshot, entryToItem, isExcludedRootTocHref, nestedUnder, tocToSidebar, unbucketedSections, walk } from './sync-content.mjs';
+import { PRODUCTS, applyAfterBucketInjections, variantSidebarInjections, applyBuckets, bucketsWithInjectedSections, collectSlugs, convertFile, droppedSidebarEntriesSnapshot, entryToItem, isExcludedRootTocHref, nestedUnder, tocToSidebar, unbucketedSections, walk, writeVariantDocsLanding } from './sync-content.mjs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { emitDocArtifacts } from './emit-doc-artifacts.mjs';
 import { DOC_ARTIFACTS_INTEGRATION, docArtifactsIntegration } from './doc-artifacts-integration.mjs';
@@ -633,6 +633,19 @@ test('a snippet outside an owned public repository gets no invented source link'
     );
     assert.match(expanded, /store\.Connect\(\);/);
     assert.doesNotMatch(expanded, /snippet source on GitHub/);
+});
+
+test('the generated Chronicle client SDKs landing carries its configured description', async (context) => {
+    const root = await fixture(context);
+    const config = await loadVariantDocsConfig();
+    const axis = config.getAxis('chronicle', 'client');
+    assert.match(axis.mount.landing.description, /Chronicle client SDK/);
+    await writeVariantDocsLanding(root, axis, [{ key: 'csharp', label: 'C#' }]);
+    const written = await fs.readFile(path.join(root, axis.mount.route, 'index.md'), 'utf8');
+    assert.ok(written.startsWith(`---\ntitle: ${axis.mount.landing.title}\ndescription: ${JSON.stringify(axis.mount.landing.description)}\neditUrl: false\n---`));
+    // Without a configured description the front matter is unchanged.
+    await writeVariantDocsLanding(path.join(root, 'plain'), { ...axis, mount: { ...axis.mount, landing: { ...axis.mount.landing, description: undefined } } }, [{ key: 'csharp', label: 'C#' }]);
+    assert.doesNotMatch(await fs.readFile(path.join(root, 'plain', axis.mount.route, 'index.md'), 'utf8'), /^description:/m);
 });
 
 test('each configured client tab links its exact snippet file in the owning repository', async (context) => {
