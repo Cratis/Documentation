@@ -52,3 +52,50 @@ export function repositoryForLanding(route) {
 export function recentRepositories(data) {
     return [...data.repositories].sort((a, b) => Date.parse(b.latestRelease.publishedAt) - Date.parse(a.latestRelease.publishedAt)).slice(0, 10);
 }
+
+export function releaseIntensity(releases, max) {
+    return releases > 0 ? Math.ceil(Math.log1p(releases) / Math.log1p(Math.max(1, max)) * 4) : 0;
+}
+
+export function repositorySummary(repositories = [], limit = 5) {
+    const sorted = [...repositories].sort((a, b) => b.releases - a.releases || a.name.localeCompare(b.name));
+    const names = sorted.slice(0, limit).map((repo) => `${repo.name} ${repo.releases}`).join(', ');
+    return names + (sorted.length > limit ? ` and ${sorted.length - limit} more` : '');
+}
+
+export function busiestDays(days) {
+    return days.filter((day) => day.releases > 0 && day.repositories?.length)
+        .sort((a, b) => b.releases - a.releases || b.date.localeCompare(a.date)).slice(0, 3);
+}
+
+// Use the same Monday-based UTC weeks as the existing activity chart, not rolling seven-day bins.
+export function repositoryRhythm(data) {
+    const weeks = data.weekly.slice(-12);
+    const weekIndices = new Map(weeks.map((week, index) => [week.weekStart, index]));
+    const repositories = new Map();
+    for (const day of data.daily) {
+        const monday = new Date(`${day.date}T00:00:00Z`);
+        monday.setUTCDate(monday.getUTCDate() - (monday.getUTCDay() + 6) % 7);
+        const index = weekIndices.get(monday.toISOString().slice(0, 10));
+        if (index === undefined) continue;
+        for (const repo of day.repositories ?? []) {
+            if (!repositories.has(repo.name)) {
+                repositories.set(repo.name, {
+                    name: repo.name, url: `https://github.com/Cratis/${encodeURIComponent(repo.name)}`,
+                    counts: weeks.map(() => 0), total: 0,
+                });
+            }
+            const row = repositories.get(repo.name);
+            row.counts[index] += repo.releases;
+            row.total += repo.releases;
+        }
+    }
+    return [...repositories.values()].sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+}
+
+export function humanDuration(minutes) {
+    const [value, unit] = minutes < 1 ? [Math.round(minutes * 60), 'second']
+        : minutes < 60 ? [minutes, 'minute']
+        : minutes < 1440 ? [minutes / 60, 'hour'] : [minutes / 1440, 'day'];
+    return new Intl.NumberFormat('en', { style: 'unit', unit, unitDisplay: 'long', maximumFractionDigits: 1 }).format(value);
+}

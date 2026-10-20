@@ -8,7 +8,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { it } from 'node:test';
 import { fetchOrgStats, syncOrgStats, validateOrgStats } from './sync-org-stats.mjs';
-import { recentRepositories, releaseDate, relativeDate, repositoryForLanding } from '../src/lib/org-stats.mjs';
+import { busiestDays, humanDuration, recentRepositories, releaseDate, relativeDate, releaseIntensity, repositoryForLanding, repositoryRhythm, repositorySummary } from '../src/lib/org-stats.mjs';
 
 const fixtureFile = new URL('./fixtures/org-stats.json', import.meta.url);
 const fixture = JSON.parse(await readFile(fixtureFile, 'utf8'));
@@ -17,6 +17,60 @@ const warn = () => {};
 it('accepts the version 1 snapshot and future optional fields', () => {
     assert.equal(validateOrgStats(fixture), fixture);
     assert.ok(validateOrgStats({ ...fixture, futureField: true }));
+});
+
+it('accepts an older snapshot without optional fields', async () => {
+    const older = JSON.parse(await readFile(new URL('./fixtures/org-stats-old.json', import.meta.url), 'utf8'));
+    assert.equal(validateOrgStats(older), older);
+    assert.equal(older.deliveryLeadTime, undefined);
+    assert.ok(older.daily.every((day) => day.repositories === undefined));
+    assert.deepEqual(repositoryRhythm(older), []);
+    assert.deepEqual(busiestDays(older.daily), []);
+});
+
+it('drops only malformed daily repository breakdowns without mutating the input', () => {
+    for (const repositories of [null, {}, [null], [{ name: 123, releases: 1 }], [{ name: '../unsafe', releases: 1 }],
+        [{ name: 'Stage', releases: -1 }], [{ name: 'Stage', releases: 1.5 }], [{ name: 'Stage', releases: 0 }]]) {
+        const data = structuredClone(fixture);
+        data.daily[0].repositories = repositories;
+        const validated = validateOrgStats(data);
+        assert.ok(validated);
+        assert.equal(validated.daily[0].repositories, undefined);
+        assert.deepEqual(validated.daily[1], fixture.daily[1]);
+        assert.deepEqual(validated.deliveryLeadTime, fixture.deliveryLeadTime);
+        assert.equal(data.daily[0].repositories, repositories);
+    }
+});
+
+it('drops malformed optional weekly repository counts but keeps the snapshot', () => {
+    const data = { ...fixture, releasesThisWeek: [{ name: 'Arc', releases: '3' }] };
+    const validated = validateOrgStats(data);
+    assert.ok(validated);
+    assert.equal(validated.releasesThisWeek, undefined);
+    assert.deepEqual(validated.daily, fixture.daily);
+});
+
+it('drops malformed lead times but keeps all existing sections available', () => {
+    for (const value of [null, {}, { ...fixture.deliveryLeadTime, matchedReleases: 0 },
+        { ...fixture.deliveryLeadTime, windowDays: -1 }, { ...fixture.deliveryLeadTime, matchedReleases: 1.5 },
+        { ...fixture.deliveryLeadTime, mergeToRelease: { medianMinutes: -1, p90Minutes: 9 } },
+        { ...fixture.deliveryLeadTime, mergeToRelease: { medianMinutes: '2', p90Minutes: 9 } },
+        { ...fixture.deliveryLeadTime, mergeToRelease: { medianMinutes: 10, p90Minutes: 9 } },
+        { ...fixture.deliveryLeadTime, openedToRelease: { medianMinutes: 2, p90Minutes: Infinity } }]) {
+        const data = { ...fixture, deliveryLeadTime: value };
+        const validated = validateOrgStats(data);
+        assert.ok(validated);
+        assert.equal(validated.deliveryLeadTime, undefined);
+        assert.equal(validated.releases, data.releases);
+        assert.equal(validated.daily, data.daily);
+        assert.equal(data.deliveryLeadTime, value);
+    }
+});
+
+it('accepts zero-minute lead times', () => {
+    const data = { ...fixture, deliveryLeadTime: { ...fixture.deliveryLeadTime,
+        mergeToRelease: { medianMinutes: 0, p90Minutes: 0 } } };
+    assert.equal(validateOrgStats(data), data);
 });
 
 it('rejects unsupported versions, absent fields, malformed dates, unsafe links, and invalid counts', () => {
@@ -112,4 +166,71 @@ it('shows the ten most recently released repositories, not release-volume order'
     assert.equal(recent[0].name, 'Arc');
     assert.equal(recent.at(-1).name, 'AuthProxy');
     assert.equal(fixture.repositories[0].name, 'Screenplay.CritterStack');
+});
+
+it('uses logarithmic release intensity buckets for zero, sparse, and busy cells', () => {
+    assert.equal(releaseIntensity(0, 1000), 0);
+    assert.equal(releaseIntensity(1, 1000), 1);
+    assert.equal(releaseIntensity(10, 1000), 2);
+    assert.equal(releaseIntensity(100, 1000), 3);
+    assert.equal(releaseIntensity(1000, 1000), 4);
+    assert.equal(releaseIntensity(1, 1), 4);
+    assert.equal(releaseIntensity(0, 0), 0);
+});
+
+it('lists the busiest repositories with bounded summaries and no input changes', () => {
+    const repositories = [{ name: 'Stage', releases: 30 }, { name: 'Arc', releases: 25 },
+        ...Array.from({ length: 15 }, (_, index) => ({ name: `Repo${index}`, releases: 1 }))];
+    const original = structuredClone(repositories);
+    assert.match(repositorySummary(repositories), /^Stage 30, Arc 25, .* and 12 more$/);
+    assert.match(repositorySummary(repositories, 3), /^Stage 30, Arc 25, .* and 14 more$/);
+    assert.equal(repositorySummary([{ name: 'Arc', releases: 1 }]), 'Arc 1');
+    assert.equal(repositorySummary(), '');
+    assert.deepEqual(repositories, original);
+});
+
+it('shows the three busiest days with available repository breakdowns', () => {
+    const original = structuredClone(fixture.daily);
+    assert.deepEqual(busiestDays(fixture.daily).map((day) => day.date), ['2026-10-20', '2026-10-19', '2026-10-18']);
+    assert.deepEqual(fixture.daily, original);
+});
+
+it('aggregates repository releases into Monday UTC weeks and excludes older releases', () => {
+    const data = {
+        weekly: [{ weekStart: '2026-10-12' }, { weekStart: '2026-10-19' }],
+        daily: [
+            { date: '2026-10-11', repositories: [{ name: 'Older', releases: 100 }] },
+            { date: '2026-10-12', repositories: [{ name: 'Stage', releases: 2 }] },
+            { date: '2026-10-18', repositories: [{ name: 'Stage', releases: 3 }, { name: 'Arc', releases: 5 }] },
+            { date: '2026-10-19', repositories: [{ name: 'Stage', releases: 1 }] },
+            { date: '2026-10-20' },
+        ],
+    };
+    const rhythm = repositoryRhythm(data);
+    assert.deepEqual(rhythm, [
+        { name: 'Stage', url: 'https://github.com/Cratis/Stage', counts: [5, 1], total: 6 },
+        { name: 'Arc', url: 'https://github.com/Cratis/Arc', counts: [5, 0], total: 5 },
+    ]);
+});
+
+it('ranks all active repositories across the latest twelve weeks before display capping', () => {
+    const rhythm = repositoryRhythm(fixture);
+    assert.equal(rhythm.length, 22);
+    assert.ok(rhythm.every((repo) => repo.counts.length === 12));
+    assert.ok(rhythm.every((repo) => repo.total === repo.counts.reduce((sum, count) => sum + count, 0)));
+    assert.equal(rhythm[0].name, 'Stage');
+    assert.ok(rhythm[0].total > rhythm[1].total);
+    assert.ok(rhythm.every((repo, index) => !index || repo.total <= rhythm[index - 1].total));
+});
+
+it('formats delivery durations as human-readable seconds, minutes, hours, and days', () => {
+    assert.equal(humanDuration(0), '0 seconds');
+    assert.equal(humanDuration(0.1), '6 seconds');
+    assert.equal(humanDuration(1), '1 minute');
+    assert.equal(humanDuration(2.1), '2.1 minutes');
+    assert.equal(humanDuration(9.8), '9.8 minutes');
+    assert.equal(humanDuration(60), '1 hour');
+    assert.equal(humanDuration(95), '1.6 hours');
+    assert.equal(humanDuration(1440), '1 day');
+    assert.equal(humanDuration(2880), '2 days');
 });
