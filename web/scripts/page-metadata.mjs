@@ -76,13 +76,13 @@ export function pageSection(id) {
     return sections[id.split('/')[0].toLowerCase()] ?? 'Cratis Stack';
 }
 
-const genericTitle = /^(glossary|configuration|overview|introduction|getting[ -]started|index|events|concepts|commands|queries|reference)$/i;
+const genericTitle = /^(glossary|configuration|overview|introduction|getting[ -]started|index|events|projections|observers|concepts|commands|queries|reference)$/i;
 const genericParent = /^(glossary|configuration|overview|introduction|getting[ -]started|index|concepts|reference|guides)$/i;
 
 // Path segments that select one language of an otherwise identical page.
 const languageSegments = {
     csharp: 'C#', dotnet: '.NET', typescript: 'TypeScript', kotlin: 'Kotlin',
-    java: 'Java', elixir: 'Elixir', python: 'Python', rust: 'Rust',
+    java: 'Java', elixir: 'Elixir', python: 'Python', rust: 'Rust', go: 'Go',
 };
 
 /** Display name of the language a variant page documents, taken from its route. */
@@ -106,6 +106,10 @@ const titleOverrides = new Map([
     ['prompter', 'Prompter: Cratis docs assistant on Discord | Cratis'],
     ['templates', 'Templates: dotnet new templates for Cratis | Cratis'],
     ['screenplay', 'Screenplay: model-first language (experimental) | Cratis'],
+    ['fundamentals', 'Fundamentals: .NET and TypeScript utilities | Cratis'],
+    ['prologue', 'Prologue: experimental event-model discovery | Cratis'],
+    ['architecture', 'Architecture: .NET architectural analyzers | Cratis'],
+    ['ai', 'Cratis AI: rules and skills for coding agents'],
 ]);
 
 /** Full `<title>` for the home page and product hubs, or undefined for every other page. */
@@ -122,13 +126,14 @@ export function markdownMirrorHref(pageUrl) {
 
 /** Parents are published ancestor page titles, ordered from the product down. */
 export function contextualTitle(title, id, parents = [], isDuplicate = false) {
-    if (!genericTitle.test(title.trim()) && !isDuplicate) return undefined;
-    const parent = parents.findLast((name) => !genericParent.test(name.trim())
-        && name.trim().toLowerCase() !== title.trim().toLowerCase());
-    // Language variants share their title; name the language unless a parent already does.
     const language = pageLanguage(id);
-    const named = language && ![title, parent].some((part) => part?.toLowerCase().includes(language.toLowerCase()));
-    const parts = [title, parent, named ? language : undefined, pageSection(id)].filter(Boolean);
+    if (!genericTitle.test(title.trim()) && !isDuplicate && !language) return undefined;
+    const parent = parents.findLast((name) => !genericParent.test(name.trim())
+        && name.trim().toLowerCase() !== title.trim().toLowerCase()
+        && name.trim().toLowerCase() !== language?.toLowerCase());
+    // Name the selected language even for unique titles and multi-language parents.
+    const namedTitle = language ? `${title} (${language})` : title;
+    const parts = [namedTitle, parent, pageSection(id)].filter(Boolean);
     const unique = parts.filter((part, index) => parts.findIndex((other) =>
         other.trim().toLowerCase() === part.trim().toLowerCase()) === index);
     return `${unique.join(' – ')} | Cratis`;
