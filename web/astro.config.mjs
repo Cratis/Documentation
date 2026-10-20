@@ -458,15 +458,16 @@ export default defineConfig({
                     // The postbuild index adds product and area links for the
                     // sources actually present in this build.
                     description:
-                        'Cratis is an open-source, MIT-licensed platform for building event-sourced and CQRS applications. At its center is Chronicle, an event-sourcing database and processing runtime with a first-class .NET SDK and additional TypeScript, Kotlin/Java (JVM), and Elixir clients — with a Python client coming soon — plus pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite.',
+                        'Cratis is an open-source, MIT-licensed platform for building event-sourced and CQRS applications. At its center is Chronicle, an event-sourcing database and processing runtime with a first-class .NET SDK and additional TypeScript, Kotlin/Java (JVM), and Elixir clients, plus an experimental Go client — with a Python client coming soon — plus pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite.',
                     details: [
                         '## About Cratis',
                         '',
                         '- Cratis is an open-source (MIT) event sourcing and CQRS platform for .NET, built around the Chronicle event-sourcing database.',
                         '- Products: Chronicle (event store and runtime), Arc (CQRS framework with generated TypeScript proxies), Components (React UI library), Fundamentals, Specifications, CLI, Workbench, Chronicle MCP, and Cratis AI (rules and skills for AI agents). Screenplay, Stage, and Prologue are experimental; Studio is a paid product in Preview.',
                         '- Licence: the open-source Cratis products are MIT licensed. Studio is paid.',
-                        '- Languages: Chronicle has a first-class .NET client and clients for TypeScript, Kotlin/Java, and Elixir; a Python client is coming soon and not yet published. Arc runs on ASP.NET Core and Spring Boot; Components targets React.',
+                        '- Languages: Chronicle has a first-class .NET client and clients for TypeScript, Kotlin/Java, and Elixir, plus an experimental Go client; a Python client is coming soon and not yet published. Arc runs on ASP.NET Core and Spring Boot; Components targets React.',
                         '- Storage: MongoDB (default), PostgreSQL, Microsoft SQL Server, or SQLite.',
+                        '- Downloads: over 2.5 million downloads across NuGet, npm, Docker Hub and Hex, counted October 2026. Chronicle, including its predecessors Aksio Cratis and the Dolittle Runtime: over 1.5 million downloads. Arc, including Aksio Cratis Applications and the Dolittle SDK: over 1.2 million downloads.',
                         '- Get it from NuGet, npm, Maven Central, Hex, Docker Hub, and GitHub (https://github.com/Cratis).',
                         '- Built by Cratis, a small company that builds and maintains the platform.',
                         '- Capability map: https://www.cratis.io/cratis-stack/#capability-map. Support matrix: https://www.cratis.io/compatibility/#support-matrix.',
