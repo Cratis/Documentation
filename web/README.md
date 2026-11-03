@@ -64,7 +64,7 @@ You do not need every product. What happens when one is missing:
 | `Chronicle`, `Arc`, `Components` | Their product sections, plus Chronicle's shared client docs | Sync skips them. Unless an earlier sync left a copy behind, the post-build step then fails with "Missing required product in build". Required for `npm run build`. |
 | `Chronicle.Kotlin`, `Chronicle.Elixir`, `Chronicle.TypeScript`, `Arc.Kotlin` | Language tabs and language-specific pages configured in `variant-docs.yml` | Sync warns and leaves those tabs and pages out. |
 | `.github` | `/contributing/` and release digests | Skipped. |
-| `AuthProxy`, `cli`, `Fundamentals`, `Templates`, `Chronicle.Mcp`, `Architecture`, `Prompter`, `Prologue`, `Screenplay`, `Stage`, `Screenplay.Generation`, `Screenplay.CritterStack`, `Eventmodelers-Build-Kit-CSharp`, `Eventmodelers-Build-Kit-Kotlin`, `Eventmodelers-Build-Kit-Java` | Their product sections | Skipped with a `[sync] SKIP ... source not found` warning. |
+| `AuthProxy`, `cli`, `Fundamentals`, `Templates`, `Chronicle.Mcp`, `Architecture`, `Prompter`, `Prologue`, `Showrunner`, `Screenplay`, `Stage`, `Screenplay.Generation`, `Screenplay.CritterStack`, `Eventmodelers-Build-Kit-CSharp`, `Eventmodelers-Build-Kit-Kotlin`, `Eventmodelers-Build-Kit-Java` | Their product sections | Skipped with a `[sync] SKIP ... source not found` warning. |
 
 Two things about a skipped product can mislead you:
 
