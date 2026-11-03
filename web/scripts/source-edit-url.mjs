@@ -11,7 +11,7 @@ const checkoutAliases = new Map([
 // Explicit public source repositories. An arbitrary local folder must not
 // become an edit link to an invented or unrelated GitHub repository.
 const publicCheckouts = new Set([
-    '.github', 'GitHubLanding', 'Arc', 'Arc.Go', 'Arc.Kotlin', 'Arc.TypeScript', 'Architecture', 'AuthProxy',
+    '.github', 'GitHubLanding', 'Arc', 'Arc.Elixir', 'Arc.Go', 'Arc.Kotlin', 'Arc.TypeScript', 'Architecture', 'AuthProxy',
     'Chronicle', 'Chronicle.Elixir', 'Chronicle.Go', 'Chronicle.Kotlin', 'Chronicle.Mcp',
     'Chronicle.TypeScript', 'CLI', 'cli', 'Components', 'DirectDocumentation',
     'Eventmodelers-Build-Kit-CSharp', 'Eventmodelers-Build-Kit-Kotlin',
