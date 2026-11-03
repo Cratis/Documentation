@@ -84,7 +84,7 @@ jobs:
     # hourly builds run only when the probe finds changed sources (or fails open).
     if: ${{ !cancelled() && ((github.event_name != 'repository_dispatch' && github.event_name != 'schedule') || github.event.schedule == '17 2 * * *' || needs.probe.outputs.build == 'true') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
     steps:
       - name: Checkout Documentation
         uses: actions/checkout@v4
@@ -214,6 +214,15 @@ jobs:
           fetch-depth: 0
           filter: blob:none
           path: Components
+
+      - name: Checkout Choreography
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Choreography
+          ref: main
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          path: Choreography
 
       - name: Checkout DirectDocumentation
         uses: actions/checkout@v4
