@@ -113,7 +113,7 @@ export const PRODUCTS = [
                 label: 'Component library',
                 sections: [
                     'Storybook', 'Canvas', 'Chat', 'CommandDialog', 'CommandForm', 'CommandStepper', 'StepperCommandDialog', 'DataPage',
-                    'DataTables', 'Dialogs', 'ConfigurationEditor', 'Filter', 'Dropdown', 'IconPicker', 'MarkdownEditor', 'Display', 'Notifications', 'Toolbar', 'ObjectNavigationalBar',
+                    'DataTables', 'Dialogs', 'ConfigurationEditor', 'Filter', 'Dropdown', 'ComponentPicker', 'IconPicker', 'MarkdownEditor', 'Display', 'Notifications', 'Toolbar', 'ObjectNavigationalBar',
                     'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common',
                 ],
             },
