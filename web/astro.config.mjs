@@ -422,6 +422,7 @@ export default defineConfig({
                         components: ['/components', '/components/**'],
                         authproxy: ['/authproxy', '/authproxy/**'],
                         cli: ['/cli', '/cli/**'],
+                        choreography: ['/choreography', '/choreography/**'],
                         templates: ['/templates', '/templates/**'],
                         direct: ['/direct', '/direct/**'],
                         ai: ['/ai', '/ai/**', '/agentic-development', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],

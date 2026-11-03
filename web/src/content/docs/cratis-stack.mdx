@@ -133,6 +133,7 @@ Cratis has one event store, one application framework, one UI library, and the t
 | Chronicle | Event-sourcing database and runtime with an Orleans-based .NET kernel and gRPC/protobuf contracts | Released | MIT | [Chronicle](/chronicle/) |
 | Arc | CQRS application framework with commands, queries, validation, and generated TypeScript proxies | Released | MIT | [Arc](/arc/) |
 | Components | React component library: command dialogs, typed forms, and query-backed data tables | Released | MIT | [Components](/components/) |
+| Choreography | Runtime for durable business processes on Orleans: jobs, workflows, state machines, workers, and startup patching | Released | MIT | [Choreography](/choreography/) |
 | Fundamentals | Shared .NET and TypeScript building blocks beneath the other products | Released | MIT | [Fundamentals](/fundamentals/) |
 | Specifications | BDD-style Given/When/Then specs for .NET with xUnit and NUnit | Released | MIT | [Specifications](/specifications/) |
 | CLI | Terminal tool (`cratis`) to inspect and diagnose Chronicle and install Cratis AI | Released | MIT | [CLI](/cli/) |
@@ -177,6 +178,9 @@ The .NET client ships with Chronicle itself. See [Chronicle in your language](/c
   </SimpleCard>
   <SimpleCard title="Arc — CQRS + proxies" icon="puzzle" link="/arc/">
     Full-stack CQRS with typed TypeScript proxies generated from a C#, Kotlin, Java, or TypeScript backend. It pairs naturally with Chronicle, and can also run over MongoDB or a relational database: EF Core in C#, Spring Data JPA on the JVM, or Drizzle in TypeScript.
+  </SimpleCard>
+  <SimpleCard title="Choreography — durable processes" icon="list-format" link="/choreography/">
+    Jobs, workflows and state machines on Orleans that survive restarts, with pluggable storage and startup patching.
   </SimpleCard>
   <SimpleCard title="Components — React" icon="laptop" link="/components/">
     Command dialogs, forms, and live data tables that consume Arc's proxies — a screen is a few lines.
