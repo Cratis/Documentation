@@ -86,6 +86,17 @@ if (!existsSync(path.join(generatedSite, 'index.html'))) throw new Error('DocFX 
 console.log(`Created ${writeApiRedirects(generatedSite, audit)} validated legacy API page redirects.`);
 
 console.log('== [3/4] Generate every required TypeDoc package ==');
+// Arc.React extends types from @cratis/arc, which resolves through the package's built declarations. A checkout that
+// never built them (CI) leaves those types unresolved, and TypeDoc then links interfaces such as IIdentityContext to
+// hierarchy anchors it never generates. Emit the declarations first so TypeDoc sees the same types as a built checkout.
+const arcPackage = path.join(repositories, 'Arc/Source/JavaScript/Arc');
+const arcTsc = path.join(repositories, 'Arc', 'node_modules', '.bin', 'tsc');
+if (!existsSync(path.join(arcPackage, 'dist/esm/index.d.ts'))) {
+    if (!existsSync(arcTsc)) throw new Error(`The TypeScript compiler is missing at ${arcTsc}. Install the Arc JavaScript dependencies first.`);
+    run(arcTsc, ['-b'], arcPackage);
+    if (!existsSync(path.join(arcPackage, 'dist/esm/index.d.ts'))) throw new Error('Arc declarations were not emitted; the Arc.React API reference would be incomplete.');
+}
+
 for (const packageDefinition of typeScriptPackages) {
     const source = path.join(repositories, packageDefinition.source);
     const destination = path.join(generatedSite, packageDefinition.output);
