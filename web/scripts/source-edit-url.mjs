@@ -17,7 +17,7 @@ const publicCheckouts = new Set([
     'Eventmodelers-Build-Kit-CSharp', 'Eventmodelers-Build-Kit-Kotlin',
     'Eventmodelers-Build-Kit-Java', 'Fundamentals', 'Fundamentals.Go', 'Prologue', 'Prompter',
     'Screenplay', 'Screenplay.CritterStack', 'Screenplay.Generation',
-    'Stage', 'Templates',
+    'Showrunner', 'Stage', 'Templates',
 ]);
 
 function within(root, file) {

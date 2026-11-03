@@ -421,6 +421,7 @@ export default defineConfig({
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],
                         authproxy: ['/authproxy', '/authproxy/**'],
+                        showrunner: ['/showrunner', '/showrunner/**'],
                         cli: ['/cli', '/cli/**'],
                         templates: ['/templates', '/templates/**'],
                         ai: ['/ai', '/ai/**', '/agentic-development', '/plugins', '/code-analysis', '/chronicle-mcp', '/chronicle-mcp/**', '/prompter', '/prompter/**'],

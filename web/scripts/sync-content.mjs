@@ -130,6 +130,15 @@ export const PRODUCTS = [
             path.join(docRepoRoot, 'AuthProxy', 'Documentation')),
     },
     {
+        // Showrunner — ready-made product parts (Usher, Box Office, Marquee, Notes, Herald) and
+        // the Stage Manager Kubernetes operator, each a set of NuGet/npm packages or a Helm chart.
+        // Each part has its own toc.yml, nested from the product's root toc.yml.
+        key: 'showrunner', label: 'Showrunner', icon: 'bell', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Showrunner', 'Documentation'),
+            path.join(docRepoRoot, 'Showrunner', 'Documentation')),
+    },
+    {
         // Screenplay — the modeling language. A single declarative `.play` file describes
         // a whole bounded context; Stage runs it live and Studio visualizes the same model.
         // Content lives in the `screenplay/` subfolder, so point straight at it for clean
