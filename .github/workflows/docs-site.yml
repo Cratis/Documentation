@@ -84,7 +84,7 @@ jobs:
     # hourly builds run only when the probe finds changed sources (or fails open).
     if: ${{ !cancelled() && ((github.event_name != 'repository_dispatch' && github.event_name != 'schedule') || github.event.schedule == '17 2 * * *' || needs.probe.outputs.build == 'true') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - name: Checkout Documentation
         uses: actions/checkout@v4
