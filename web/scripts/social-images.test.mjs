@@ -25,6 +25,7 @@ describe('section social images', () => {
             ['eventmodelers-ai/csharp', 'ai', 'AI'],
             ['cli', 'tools', 'CLI'],
             ['templates', 'tools', 'Templates'],
+            ['direct', 'tools', 'Direct'],
         ]) {
             assert.equal(socialPreview(`/${route}/`).url, `https://www.cratis.io/og/${section}.png`);
             assert.equal(socialPreview(`/${route}/`).alt, `Cratis ${label} documentation`);
