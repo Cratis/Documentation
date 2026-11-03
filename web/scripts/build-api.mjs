@@ -93,7 +93,12 @@ const arcPackage = path.join(repositories, 'Arc/Source/JavaScript/Arc');
 const arcTsc = path.join(repositories, 'Arc', 'node_modules', '.bin', 'tsc');
 if (!existsSync(path.join(arcPackage, 'dist/esm/index.d.ts'))) {
     if (!existsSync(arcTsc)) throw new Error(`The TypeScript compiler is missing at ${arcTsc}. Install the Arc JavaScript dependencies first.`);
-    run(arcTsc, ['-b'], arcPackage);
+    try {
+        run(arcTsc, ['-b'], arcPackage);
+    } catch (error) {
+        // Type errors still leave the declarations TypeDoc needs; the existence check below is the real gate.
+        console.warn(`tsc -b reported errors (${error.status}); checking whether the declarations were emitted anyway.`);
+    }
     if (!existsSync(path.join(arcPackage, 'dist/esm/index.d.ts'))) throw new Error('Arc declarations were not emitted; the Arc.React API reference would be incomplete.');
 }
 
