@@ -114,7 +114,7 @@ export const PRODUCTS = [
                 sections: [
                     'Storybook', 'Canvas', 'Chat', 'CommandDialog', 'CommandForm', 'CommandStepper', 'StepperCommandDialog', 'DataPage',
                     'DataTables', 'Dialogs', 'ConfigurationEditor', 'Filter', 'Dropdown', 'IconPicker', 'MarkdownEditor', 'Display', 'Notifications', 'Toolbar', 'ObjectNavigationalBar',
-                    'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common',
+                    'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common', 'ComponentPicker',
                 ],
             },
             { label: 'Reference', sections: ['Architecture decisions', 'Renderer adapters', 'Types', 'Troubleshooting', 'Migration'] },
