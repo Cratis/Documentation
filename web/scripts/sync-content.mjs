@@ -121,6 +121,22 @@ export const PRODUCTS = [
         ],
     },
     {
+        // Choreography — the runtime for durable business processes on Orleans: jobs, workflows,
+        // state machines and workers that survive restarts, with pluggable storage and startup patching.
+        // The section labels below are the root toc.yml names of Cratis/Choreography's Documentation.
+        key: 'choreography', label: 'Choreography', icon: 'list-format', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Choreography', 'Documentation'),
+            path.join(docRepoRoot, 'Choreography', 'Documentation')),
+        buckets: [
+            { label: 'Start here', sections: ['Getting started', 'Choosing a building block'] },
+            { label: 'Building blocks', sections: ['Jobs', 'Workflows', 'State machines', 'Workers'] },
+            { label: 'Running Choreography', sections: ['Hosting', 'Storage', 'Patching', 'Tenancy', 'Serializers and grain keys'] },
+            { label: 'Upgrading and testing', sections: ['Upgrading and compatibility', 'Testing'] },
+            { label: 'Reference', sections: ['Reference'] },
+        ],
+    },
+    {
         // AuthProxy — the ASP.NET Core gateway that sits in front of a Cratis app's
         // backend and frontend services and owns the edge concerns (authentication,
         // tenancy, identity enrichment, invites/lobby).

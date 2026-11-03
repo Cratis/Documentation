@@ -40,3 +40,6 @@
 [submodule "DirectDocumentation"]
 	path = DirectDocumentation
 	url = https://github.com/Cratis/DirectDocumentation
+[submodule "Choreography"]
+	path = Choreography
+	url = https://github.com/Cratis/Choreography
