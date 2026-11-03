@@ -215,6 +215,15 @@ jobs:
           filter: blob:none
           path: Components
 
+      - name: Checkout DirectDocumentation
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/DirectDocumentation
+          ref: main
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          path: DirectDocumentation
+
       - name: Checkout AuthProxy
         uses: actions/checkout@v4
         with:

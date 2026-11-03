@@ -113,8 +113,8 @@ export const PRODUCTS = [
                 label: 'Component library',
                 sections: [
                     'Storybook', 'Canvas', 'Chat', 'CommandDialog', 'CommandForm', 'CommandStepper', 'StepperCommandDialog', 'DataPage',
-                    'DataTables', 'Dialogs', 'ConfigurationEditor', 'Filter', 'Dropdown', 'ComponentPicker', 'IconPicker', 'MarkdownEditor', 'Display', 'Notifications', 'Toolbar', 'ObjectNavigationalBar',
-                    'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common',
+                    'DataTables', 'Dialogs', 'ConfigurationEditor', 'Filter', 'Dropdown', 'IconPicker', 'MarkdownEditor', 'Display', 'Notifications', 'Toolbar', 'ObjectNavigationalBar',
+                    'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common', 'ComponentPicker',
                 ],
             },
             { label: 'Reference', sections: ['Architecture decisions', 'Renderer adapters', 'Types', 'Troubleshooting', 'Migration'] },
@@ -219,6 +219,15 @@ export const PRODUCTS = [
             { label: 'Start here', sections: ['Overview', 'Getting Started'] },
             { label: 'The templates', sections: ['Cratis Web Application', 'Cratis Kotlin Application', 'Cratis Java Application', 'Chronicle Console', 'Chronicle Web', 'Cratis Aspire'] },
         ],
+    },
+    {
+        // Direct — the platform that schedules and governs AI agents across a GitHub organization.
+        // Only its public pieces are documented here, from Cratis/DirectDocumentation (Direct itself is
+        // private): today the Direct Agent Runner.
+        key: 'direct', label: 'Direct', icon: 'random', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'DirectDocumentation', 'Documentation'),
+            path.join(docRepoRoot, 'DirectDocumentation', 'Documentation')),
     },
     {
         // The Chronicle MCP server — connects an AI agent to a running store over the Model Context
