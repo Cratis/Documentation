@@ -221,6 +221,15 @@ export const PRODUCTS = [
         ],
     },
     {
+        // Direct — the platform that schedules and governs AI agents across a GitHub organization.
+        // Only its public pieces are documented here, from Cratis/DirectDocumentation (Direct itself is
+        // private): today the Direct Agent Runner.
+        key: 'direct', label: 'Direct', icon: 'random', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'DirectDocumentation', 'Documentation'),
+            path.join(docRepoRoot, 'DirectDocumentation', 'Documentation')),
+    },
+    {
         // The Chronicle MCP server — connects an AI agent to a running store over the Model Context
         // Protocol, for both operating the store and design-time, schema-grounded artifact generation.
         key: 'chronicle-mcp', label: 'Chronicle MCP', icon: 'node', sidebarMode: 'toc',
