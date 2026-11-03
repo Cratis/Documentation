@@ -101,6 +101,12 @@ for (const packageDefinition of typeScriptPackages) {
         // generated-output and API link checks below remain hard gates.
         '--skipErrorChecking',
         '--excludeExternals',
+        // With --excludeExternals, a type whose hierarchy reaches an excluded external
+        // interface still gets a "(View Summary)" link to hierarchy.html#<name>, but that
+        // page never gets an anchor for it (TypeDoc only anchors hierarchies reachable from
+        // a root within this project). Turn the summary page off so no page promises a link
+        // the verifier below cannot resolve.
+        '--includeHierarchySummary', 'false',
         '--readme', 'none',
         path.join(source, 'index.ts'),
     ]);
