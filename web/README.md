@@ -155,6 +155,24 @@ Several checks depend on tools that are not npm dependencies. When a tool is mis
 
 `npm run build:api` has no skip path. It throws when the .NET SDK, DocFX, compiled assemblies or TypeScript inputs are missing.
 
+## Writing and maintaining Platform documentation
+
+Lead with one reader task and an observable first success, rather than a tour of every product. Show the prerequisites, where the code enters the application and how to recognize the result. A Chronicle tutorial should distinguish an event being stored from an observer completing and a read model becoming available. Introduce the next concept when it explains what the reader just observed or helps them take the next step.
+
+Edit product explanations, configuration, migrations and snippets in their owning source repository. This site owns platform selection and cross-product journeys: explain how the pieces connect, then link to the product-owned steps instead of copying them. Pages written by `scripts/sync-content.mjs`, generated sidebars, generated API reference, Markdown mirrors and LLM exports are outputs, not authoring sources.
+
+Keep product names, repository names, package IDs and published routes distinct; renaming one does not rename the others. State the implementation, client/package version, prerequisites and experimental or Preview limits relevant to the task. A C# example is not evidence that another client supports the same operation.
+
+Keep a coherent example in Samples or the owning implementation/client repository, and link to its files and entry points. Explain the expected output and local persistence or external-service boundaries. In review, distinguish source inspection and compilation from behavior actually exercised at runtime; do not present expected output as a recorded result.
+
+Ask product maintainers to review behavior and examples, and site maintainers to review navigation, metadata, accessibility and exports. Cross-product guides need review at each boundary they cross. When behavior or a package changes, update the affected explanation, sample, support claim and upgrade guidance in the same review, or explain why no documentation change is needed. Revisit version and maturity claims when preparing a release.
+
+When adding a documentation source, coordinate its `PRODUCTS` entry in `scripts/sync-content.mjs`, source edit links, navigation, CI checkouts and source fingerprint, and LLM indexes. Include `variant-docs.yml` and generated reference inputs where applicable. A public repository alone does not establish a site import, supported client feature or available release; check each against the owning source.
+
+Keep published URLs and useful anchors stable. For an approved route move, update links and add a permanent entry to `content-redirects.yml`; preserve existing entries and avoid redirect chains. A product rename alone is not a reason to move its documentation.
+
+Prefer Markdown. Use supported MDX components when they help explain a task, but keep required setup, results and limitations readable without an interactive tab or diagram. Give diagrams a prose explanation and images useful alternative text. Use precise titles, descriptions and canonical links so readers and assistants can find the same source through the site, Markdown mirrors and selective LLM exports.
+
 ## Add or change a page
 
 **Product page.** Edit the Markdown in the product repository's `Documentation/` folder and add new pages to that folder's `toc.yml`. Re-sync and check the page locally. Commit in the product repository. Product changes on `main` are batched by the hourly probe and appear within about an hour plus runner queue and build time. The change is live once that build has deployed, not when the merge lands. For an immediate refresh, run the central Documentation site workflow manually on `main`.
