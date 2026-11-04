@@ -257,6 +257,15 @@ jobs:
           filter: blob:none
           path: AuthProxy
 
+      - name: Checkout Showrunner
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Showrunner
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          path: Showrunner
+
       - name: Checkout Fundamentals
         uses: actions/checkout@v4
         with:

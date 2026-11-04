@@ -421,6 +421,7 @@ export default defineConfig({
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],
                         authproxy: ['/authproxy', '/authproxy/**'],
+                        showrunner: ['/showrunner', '/showrunner/**'],
                         cli: ['/cli', '/cli/**'],
                         choreography: ['/choreography', '/choreography/**'],
                         templates: ['/templates', '/templates/**'],
