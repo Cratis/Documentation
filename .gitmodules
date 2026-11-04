@@ -37,3 +37,9 @@
 [submodule "Chronicle.Mcp"]
 	path = Chronicle.Mcp
 	url = https://github.com/Cratis/Chronicle.Mcp
+[submodule "DirectDocumentation"]
+	path = DirectDocumentation
+	url = https://github.com/Cratis/DirectDocumentation
+[submodule "Choreography"]
+	path = Choreography
+	url = https://github.com/Cratis/Choreography

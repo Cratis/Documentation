@@ -66,7 +66,7 @@ export function deriveDescription(body, sourcePath = 'page.md') {
 const sections = {
     chronicle: 'Chronicle', arc: 'Arc', components: 'Components',
     fundamentals: 'Fundamentals', cli: 'CLI', authproxy: 'AuthProxy', showrunner: 'Showrunner',
-    screenplay: 'Screenplay', prologue: 'Prologue', templates: 'Templates',
+    screenplay: 'Screenplay', prologue: 'Prologue', templates: 'Templates', direct: 'Direct', choreography: 'Choreography',
     'chronicle-mcp': 'Chronicle MCP', prompter: 'Prompter', ai: 'AI',
     architecture: 'Architecture', contributing: 'Contributing',
     'eventmodelers-ai': 'EventModelers.ai', 'release-digests': 'Release Digests',
@@ -106,6 +106,8 @@ const titleOverrides = new Map([
     ['chronicle-mcp', 'Chronicle MCP: connect AI agents to Chronicle | Cratis'],
     ['prompter', 'Prompter: Cratis docs assistant on Discord | Cratis'],
     ['templates', 'Templates: dotnet new templates for Cratis | Cratis'],
+    ['direct', 'Direct: run and configure the Direct Agent Runner | Cratis'],
+    ['choreography', 'Choreography: jobs, workflows and state machines | Cratis'],
     ['screenplay', 'Screenplay: model-first language (experimental) | Cratis'],
     ['fundamentals', 'Fundamentals: .NET and TypeScript utilities | Cratis'],
     ['prologue', 'Prologue: experimental event-model discovery | Cratis'],
@@ -160,7 +162,7 @@ export function pageDescription(data, body, sourcePath, id) {
 }
 
 // Product landing pages describe software; everything else is an article, hub or glossary.
-const softwareProducts = new Set(['chronicle', 'arc', 'components', 'authproxy', 'showrunner', 'cli', 'chronicle-mcp', 'prompter', 'templates', 'screenplay']);
+const softwareProducts = new Set(['chronicle', 'arc', 'components', 'authproxy', 'showrunner', 'cli', 'chronicle-mcp', 'prompter', 'templates', 'direct', 'choreography', 'screenplay']);
 
 /**
  * Schema.org page kind: `glossary`, `software` (product landing), `collection` (a page that

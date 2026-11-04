@@ -114,10 +114,26 @@ export const PRODUCTS = [
                 sections: [
                     'Storybook', 'Canvas', 'Chat', 'CommandDialog', 'CommandForm', 'CommandStepper', 'StepperCommandDialog', 'DataPage',
                     'DataTables', 'Dialogs', 'ConfigurationEditor', 'Filter', 'Dropdown', 'IconPicker', 'MarkdownEditor', 'Display', 'Notifications', 'Toolbar', 'ObjectNavigationalBar',
-                    'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common',
+                    'ObjectContentEditor', 'PivotViewer', 'SchemaEditor', 'TimeMachine', 'Common', 'ComponentPicker',
                 ],
             },
             { label: 'Reference', sections: ['Architecture decisions', 'Renderer adapters', 'Types', 'Troubleshooting', 'Migration'] },
+        ],
+    },
+    {
+        // Choreography — the runtime for durable business processes on Orleans: jobs, workflows,
+        // state machines and workers that survive restarts, with pluggable storage and startup patching.
+        // The section labels below are the root toc.yml names of Cratis/Choreography's Documentation.
+        key: 'choreography', label: 'Choreography', icon: 'list-format', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Choreography', 'Documentation'),
+            path.join(docRepoRoot, 'Choreography', 'Documentation')),
+        buckets: [
+            { label: 'Start here', sections: ['Getting started', 'Choosing a building block'] },
+            { label: 'Building blocks', sections: ['Jobs', 'Workflows', 'State machines', 'Workers'] },
+            { label: 'Running Choreography', sections: ['Hosting', 'Storage', 'Patching', 'Tenancy', 'Serializers and grain keys'] },
+            { label: 'Upgrading and testing', sections: ['Upgrading and compatibility', 'Testing'] },
+            { label: 'Reference', sections: ['Reference'] },
         ],
     },
     {
@@ -228,6 +244,15 @@ export const PRODUCTS = [
             { label: 'Start here', sections: ['Overview', 'Getting Started'] },
             { label: 'The templates', sections: ['Cratis Web Application', 'Cratis Kotlin Application', 'Cratis Java Application', 'Chronicle Console', 'Chronicle Web', 'Cratis Aspire'] },
         ],
+    },
+    {
+        // Direct — the platform that schedules and governs AI agents across a GitHub organization.
+        // Only its public pieces are documented here, from Cratis/DirectDocumentation (Direct itself is
+        // private): today the Direct Agent Runner.
+        key: 'direct', label: 'Direct', icon: 'random', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'DirectDocumentation', 'Documentation'),
+            path.join(docRepoRoot, 'DirectDocumentation', 'Documentation')),
     },
     {
         // The Chronicle MCP server — connects an AI agent to a running store over the Model Context

@@ -252,7 +252,13 @@ products:
         #     append-through-definition APIs and client compatibility. Like the
         #     .NET clients/dotnet/event-sources page, this is SDK reference; the
         #     shared event-source concept and event-source-id pages do not cover it.
-        kotlin: 11
+        #   - correlation.md: documents the Kotlin client's thread-ambient `correlationIdManager`
+        #     (bound to Fundamentals' CorrelationIdContext) and AppendOptions.correlationId —
+        #     JVM client mechanics with no shared or non-JVM equivalent page.
+        #   - migrate-to-fundamentals.md: a Kotlin/Java-client-only breaking-change migration
+        #     guide for adopting io.cratis:fundamentals (concepts and correlation ids) — no
+        #     shared or other per-client page covers this migration.
+        kotlin: 13
         elixir: 0
         typescript: 0
 
