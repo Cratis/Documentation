@@ -1,19 +1,20 @@
 ---
 title: Learning paths
-description: Ordered routes through the Cratis documentation for event-sourcing beginners, full-stack builders, developers on other languages, evaluators, operators, frontend developers, and contributors.
+description: Choose a Cratis Platform learning path with a concrete outcome — build and verify a feature, work with an agent, adopt one component, or operate Chronicle.
 ---
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-Cratis covers an event store, an application framework, a UI library, and the tools around them, so the documentation is wide. A path gives you an order to read it in. Each one says who it is for, what you can do when you finish, and which pages to read or build along the way.
+Choose a path by the result you need. Cratis Platform connects the design, implementation, verification, and operation of a feature, but you do not need to learn every component before using one.
 
-Paths share pages, and you can switch at any point. If none of them fits, [Adopting Cratis](/adopting-cratis/) helps you pick a starting product first.
+For the shortest end-to-end route, build the author feature, check its recorded event and projected list, then add specifications. If you are changing an existing app, start with [Adopting Cratis](/adopting-cratis/) and choose the boundary to prove. Paths share pages; you can switch when your task changes.
 
 <CardGrid>
   <LinkCard title="New to event sourcing" description="Understand facts, projections, and consistency before you commit to a design." href="#new-to-event-sourcing" />
   <LinkCard title="Build a full-stack app" description="Scaffold an app and follow a command through an event and a read model to a live React screen." href="#build-a-full-stack-app" />
+  <LinkCard title="Work with an AI agent" description="Give an agent a bounded feature, framework guidance, and checks from implementation through runtime inspection." href="#work-with-an-ai-agent" />
   <LinkCard title="Keep decisions correct" description="Make a rule that depends on state hold when two requests run at once, from the first protected command to the advanced scenarios." href="#write-side-consistency" />
-  <LinkCard title="Use Chronicle from another language" description="Start from the TypeScript, Kotlin/Java, or Elixir client instead of .NET." href="#use-chronicle-from-another-language" />
+  <LinkCard title="Use Chronicle from another language" description="Start from the TypeScript, Kotlin/Java, Elixir, or experimental Go client instead of .NET." href="#use-chronicle-from-another-language" />
   <LinkCard title="Evaluate Cratis" description="Decide whether the stack, or one product from it, fits your system." href="#evaluate-cratis" />
   <LinkCard title="Operate Chronicle" description="Run, inspect, diagnose, replay, and upgrade a Chronicle deployment." href="#operate-chronicle" />
   <LinkCard title="Frontend developer" description="Work with generated proxies and Components on an existing Arc backend." href="#frontend-developer" />
@@ -34,14 +35,26 @@ Paths share pages, and you can switch at any point. If none of them fits, [Adopt
 
 **For** .NET developers starting a new information system with Chronicle, Arc, and Components together. **When you finish**, you have a running application with one slice you wrote yourself, and you know where the command, event, projection, query, and screen for a feature live.
 
-1. Follow [Build a full-stack feature](/build-a-full-app/). It scaffolds an application from the Cratis template and adds one slice end to end.
+1. Follow [Build a full-stack feature](/build-a-full-app/), including its toolchain and local-hosting prerequisites. Add the slice, then use its [runtime checkpoints](/build-a-full-app/#check-the-running-feature) to trace the author from the command to the projected list. A rendered screen or passing build alone is not the finish line.
 2. Read [Vertical slices](/arc/vertical-slices/) to see why the feature lives in one folder.
 3. Work through the [Arc tutorial](/arc/tutorial/) for validation, related slices, live queries, and authorization. It runs over a plain database, which keeps the focus on commands, queries, and generated proxies.
 4. Read [Add event sourcing to an Arc slice](/arc/backend/csharp/chronicle/add-event-sourcing/) to see what changes when a slice's writes move to Chronicle, and what does not.
 5. Continue with the [vertical slices scenario](/scenarios/vertical-slices/) for the state view, automation, and translation patterns, and [Testing with Cratis](/testing-with-cratis/) for specs.
-6. Follow [Generated values, from Screenplay to running app](/generated-values/) to have the server own your ids and secrets, from the model through Stage and Arc to pinned specs.
+6. Optionally explore [Generated values, from Screenplay to running app](/generated-values/) for server-owned ids and secrets. This path uses Screenplay and Stage, which are experimental; it is not a prerequisite for the application loop.
 
 Building on Kotlin or Java instead? The [Cratis Kotlin](/templates/cratis-kotlin/) and [Cratis Java](/templates/cratis-java/) templates scaffold the same full-stack shape on Spring Boot, and the Arc tutorial shows its main slice examples in Kotlin as well as C#. Some backend snippets are C# only.
+
+## Work with an AI agent
+
+**For** developers who can run the app locally and want an agent to help change it. **When you finish**, you can give the agent a bounded slice, review its implementation, and distinguish a passing code check from an observed runtime result.
+
+1. Read [One feature through the agentic lifecycle](/ai/#one-feature-through-the-agentic-lifecycle). Use the author-registration task, or name an equally small command, event, and read model in your own app.
+2. Follow [Start using Cratis AI](/ai/getting-started/) and choose the relevant [profile](/ai/profiles/) and languages. Cratis AI is in Preview; confirm the tool sees the guidance before relying on it.
+3. Work through [Build a full-stack feature](/build-a-full-app/) with the agent. Keep generated proxies as build output, and require exact check results with skipped checks called out.
+4. Add given/when/then checks with [Testing with Cratis](/testing-with-cratis/). Then run the feature locally and inspect its event and read model through [CLI](/cli/getting-started/) or [Workbench](/chronicle/workbench/).
+5. If your tool supports MCP, follow [Chronicle MCP setup](/chronicle-mcp/getting-started/) for the local store. Review credentials and tool permissions separately; approve recovery or job changes before the agent performs them.
+
+You can complete this path without Studio or Stage. It teaches assisted development and verification, not autonomous deployment.
 
 ## Write-side consistency
 
@@ -62,12 +75,16 @@ Building on Kotlin or Java instead? The [Cratis Kotlin](/templates/cratis-kotlin
 
 ## Use Chronicle from another language
 
-**For** developers whose services are not written in .NET. **When you finish**, your service appends events to Chronicle and a projection or reactor responds to them.
+**For** developers whose services are not written in .NET. **When you finish**, your service appends an event to Chronicle.
+
+For TypeScript, Kotlin/Java, or Elixir, follow this sequence:
 
 1. Read [Chronicle in your language](/chronicle-clients/) to see which clients are published and where each is documented.
 2. Start a local kernel and follow the shared loop on [Chronicle getting started](/chronicle/get-started/). Its examples have a tab for each client that implements them.
 3. Follow your client's setup guide: [TypeScript](/chronicle/clients/typescript/getting-started/), [Kotlin and Java](/chronicle/clients/kotlin/get-started/), or [Elixir](/chronicle/clients/elixir/get-started/).
 4. Build the [Chronicle tutorial](/chronicle/tutorial/) and pick your client's tab where one exists.
+
+For Go, take the experimental client's own route: [set up a local development kernel and append your first event](/chronicle/go/clients/go/getting-started/). The example prints the appended event's position. Then use [Go event history reads](/chronicle/go/events/reading-events/) to inspect events for the same store, namespace, sequence, and event source. These reads are finite requests, not a live subscription. Before extending this into a projection or reactor, check [Go parity and limitations](/chronicle/go/parity/) for the supported subset and C# differences.
 
 The Python client is pre-release and not published yet; [Event sourcing in Python](/event-sourcing/python/) tracks it.
 
@@ -75,7 +92,7 @@ The Python client is pre-release and not published yet; [Event sourcing in Pytho
 
 **For** architects and team leads deciding whether to adopt Cratis. **When you finish**, you can name the product you would start with, the first slice you would move, and the version and production questions you still need answered.
 
-1. Read [Why developers choose Cratis](/why-cratis/), including when it is not a good fit.
+1. Read [Cratis Platform](/cratis-stack/) for the component flow, then [Why developers choose Cratis](/why-cratis/) for the trade-offs and when it is not a good fit.
 2. Read [Adopting Cratis](/adopting-cratis/) to pick an entry point for a new or existing system.
 3. If you are comparing event stores, read [Compare event sourcing for .NET](/compare-event-sourcing-dotnet/) or [Compare event sourcing on the JVM](/compare-event-sourcing-jvm/). [Marten vs Chronicle](/compare/marten-vs-chronicle/) is a head-to-head for .NET teams on PostgreSQL.
 4. Check the [FAQ](/faq/), [Version compatibility](/compatibility/), and [Production readiness](/production-readiness/).

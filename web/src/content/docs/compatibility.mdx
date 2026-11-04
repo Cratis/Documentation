@@ -5,7 +5,20 @@ description: Storage backends, client languages, frontend frameworks, .NET versi
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
-Cratis spans .NET packages, TypeScript packages, JVM and Elixir clients, Docker images, storage engines, and React components. This page records the baseline the current product sources declare, and how the products constrain each other's versions. For exact released package versions, use the package manager and the repository release pages linked from [What's new](/whats-new/).
+Cratis Platform connects independently versioned products. A Platform label does not mean one release number, equal feature coverage across languages, or a verified pairing of every package and kernel. This page records the baselines and compatibility constraints declared by the product sources. For exact released versions, use the package manager and repository release pages linked from [What's new](/whats-new/).
+
+## Choose versions for a feature, not just a product
+
+For the [author-registration feature](/build-a-full-app/), the chain is the backend host and Arc packages, Chronicle client and kernel, generated TypeScript proxies, Arc frontend packages, and Components with React. A package restore checks only part of that chain.
+
+Before treating a scaffold or agent-generated change as a baseline:
+
+1. Record the concrete backend dependencies and Chronicle image tag you resolved. Check the kernel/client relationship in [Which pairings are verified](#which-pairings-are-verified).
+2. Check the installed Components and Arc frontend peer ranges, and use a React version that satisfies both. A supported Arc React version alone does not establish Components compatibility.
+3. Regenerate proxies from that backend, compile the frontend, and run the feature. Confirm command success, the recorded event, the projected model, and the visible query result separately.
+4. Keep the resolved versions and lockfile with the application. Repeat the checks when any boundary changes; an agent's successful code generation does not establish a supported version combination.
+
+The tables below distinguish published artifacts from previews and unverified combinations. For operational readiness beyond compatibility, use [Production readiness](/production-readiness/).
 
 <CardGrid>
   <LinkCard title="Review releases" description="Use curated release digests and repository releases for exact published versions." href="/whats-new/" />
@@ -36,7 +49,7 @@ Cratis spans .NET packages, TypeScript packages, JVM and Elixir clients, Docker 
 
 ## Support matrix
 
-Chronicle runs on four storage backends, has clients for four languages, and runs in Docker or under .NET Aspire; the tables below give each option and its maturity. Released means the product publishes packages or images; the sources state no further maturity label. [The Cratis Stack](/cratis-stack/#capability-map) lists every product.
+Chronicle's durable storage choices, client runtimes, Arc backends, and hosting options have different boundaries. The tables below name each option and its maturity. Released means the product publishes packages or images; it does not certify your deployment. [The Platform capability map](/cratis-stack/#capability-map) lists the products, including AI and model-first tools.
 
 | Area | Option | Maturity | Notes |
 |---|---|---|---|
@@ -61,7 +74,7 @@ Chronicle runs on four storage backends, has clients for four languages, and run
 | Hosting | Docker Compose | Documented | See [Docker Compose hosting](/chronicle/hosting/docker-compose/). |
 | Hosting | .NET Aspire | Released | `Cratis.Chronicle.Aspire` package; a .NET hosting option only. |
 
-Model-first tools (Screenplay, Stage, Prologue) are experimental and Studio is in Preview; see the [capability map](/cratis-stack/#capability-map). The kernel can also run wherever you operate containers, such as Kubernetes; the docs describe Docker, Compose, and Aspire topologies and give no Kubernetes deployment guide.
+Model-first tools (Screenplay, Stage, Prologue) are experimental; see the [capability map](/cratis-stack/#capability-map). Studio is a collaborative workspace for event modeling. See the [Studio website](https://cratis.studio/) for access and pricing. The kernel can also run wherever you operate containers, such as Kubernetes; the docs describe Docker, Compose, and Aspire topologies and give no Kubernetes deployment guide.
 
 ## Product relationships
 

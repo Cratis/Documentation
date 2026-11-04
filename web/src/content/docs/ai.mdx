@@ -1,6 +1,6 @@
 ---
 title: AI-native development
-description: Give your coding agent Cratis conventions through Cratis AI rules and skills, and let it inspect a running Chronicle store through the CLI and the Chronicle MCP server.
+description: Follow an agent-assisted feature through Cratis Platform — establish the model, load guidance, implement a slice, verify it, inspect runtime facts, and approve the next change.
 slug: ai
 ---
 
@@ -8,8 +8,8 @@ import { CardGrid, Aside } from '@astrojs/starlight/components';
 import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
-<TopicHero icon="rocket" eyebrow="The Cratis Stack" title="Build and operate with AI agents">
-Give your coding agent the same conventions, framework boundaries, and checks your team works to. Install the Cratis AI rules and skills into a repository with the Cratis CLI, or add the skills to one tool through its plugin. Then connect the agent to a running Chronicle store through the CLI and the Chronicle MCP server.
+<TopicHero icon="rocket" eyebrow="Cratis Platform" title="Give the agent a task it can verify">
+An agent can help design, implement, test, and investigate a feature when it has the framework conventions and access to the right evidence. Cratis AI supplies guidance for the code; Arc and Chronicle give the feature explicit contracts and recorded facts; the CLI and Chronicle MCP expose the running store. You decide the scope, review the result, and approve operational changes.
 </TopicHero>
 
 For the case behind this approach — why explicit events, commands and specifications make agent-written changes verifiable — read [Agentic development with event sourcing](/agentic-development/).
@@ -25,6 +25,36 @@ event store and it has no idea how to read the log or find a failed partition.
 Cratis addresses both halves. On the build side, Cratis AI gives the agent the
 conventions. On the operate side, the CLI and the Chronicle MCP server give it a
 documented way into the store.
+
+## One feature through the agentic lifecycle
+
+Use the [author-registration feature](/build-a-full-app/) as a bounded first task. You need a working local app, its backend toolchain, a React frontend, and a local Chronicle kernel. Follow that guide's prerequisites before asking the agent to extend it. Start with local data; access to a shared store is a separate permission decision.
+
+Before guidance, the agent has to infer the architecture and may create a handler layer or hand-written client the framework does not need. With the relevant rules and skills loaded, it has a concrete feature shape to follow. After implementation, the useful output is the changed slice plus checks and observed results, not an assurance that the code looks right.
+
+| Stage | Work with the agent | Check before continuing |
+|---|---|---|
+| Understand | Name `RegisterAuthor`, `AuthorRegistered`, and the author list; agree what registration means | The model states the intent, resulting fact, and expected visible behavior |
+| Prepare | Select a guidance channel below and the profile/languages for the repository | The tool can discover the relevant skills; installing files alone does not prove it used them |
+| Implement | Ask for one slice: command/event, read model/query, React screen, and specifications | The code follows the selected backend's conventions; generated proxies remain build output |
+| Verify | Run the backend checks, regenerate proxies, and compile the frontend | Record exact commands and outcomes; a failed or skipped check remains visible |
+| Observe | Run locally, register an author, and trace the id through the event and projected list | The event exists and the screen eventually shows the author; compilation alone cannot establish this |
+| Diagnose and evolve | If the list stays empty, inspect events, observer state, and read models through CLI, Workbench, or MCP | Establish which handoff failed before changing code or proposing recovery; review the next change and repeat the checks |
+
+Specifications express the behavior you expect. Runtime inspection shows what
+happened in that environment. Neither replaces the other. The [capstone
+checkpoints](/build-a-full-app/#check-the-running-feature) walk through the
+command-to-screen handoff without requiring an agent or experimental model-first
+generation.
+
+<Aside type="caution" title="Keep assistance and authority separate">
+Cratis AI is in Preview. Guidance does not guarantee correct code, and an MCP
+connection does not authorize every action its tools expose. Review domain
+rules, authorization, and data access yourself. Give an agent only the store
+access the task needs, and require approval before state-changing operations
+such as job management or replay in a shared environment. Do not give it
+production credentials to try the tutorial.
+</Aside>
 
 ## Build with AI: skills that know the Cratis way
 
@@ -54,9 +84,9 @@ A few of what you get, by name:
   specs, and review the result against the project's standards.
 
 Prompts come with the managed install and `@cratis/pi`; the marketplace plugin
-has the skills only. Because the skills encode the conventions, an agent that
-uses them produces slices that look like the rest of your codebase instead of a
-layered approximation of it.
+has the skills only. The skills describe the expected feature shape. Review the resulting code
+against those conventions and the behavior you requested; an installed skill
+is not evidence that the agent followed it.
 
 Start with [Start using Cratis AI](/ai/getting-started/). The
 [agent harness guide](/ai/harnesses/) has the command for each coding tool,
@@ -67,8 +97,10 @@ framework contracts during the build, whether or not an agent wrote the code.
 
 <Aside type="tip" title="Model first, then build">
 You can pair this with [Studio](/studio/) or [Screenplay](/screenplay/): model the
-feature, then let an agent build the slices around it. Studio is in Preview;
-review generated output from Stage, which remains experimental.
+feature, then let an agent build the slices around it. Studio is a collaborative
+workspace for event modeling. See the [Studio website](https://cratis.studio/)
+for access and pricing. Review generated output from Stage, which remains
+experimental.
 </Aside>
 
 ## Operate with AI: teach your assistant your store
@@ -124,9 +156,10 @@ Once connected, your assistant can:
   source ended up in its state, run an ad-hoc projection, suggest next event
   types, and scaffold a read model.
 
-To replay an observer or recover a failed partition, use the
-[CLI](/cli/chronicle/) or the Workbench after the agent has helped you diagnose
-the cause.
+For replay and failed-partition recovery, follow the
+[CLI](/cli/chronicle/) or Workbench procedure after diagnosing the cause and
+approving the operation. Inspection is a useful first task; recovery changes
+runtime state and needs a separate decision.
 
 <Aside type="note" title="Operate, not change history">
 The MCP server and the CLI inspect and operate the store: they read the log and
@@ -134,7 +167,7 @@ manage observers and jobs. To change application state you still go through
 commands and events, so history stays honest.
 </Aside>
 
-## The whole loop, AI-accelerated
+## Where guidance and runtime access meet
 
 ```mermaid
 flowchart LR

@@ -66,7 +66,7 @@ productTopics = productTopics.filter((topic) => topic.id !== 'chronicle-mcp' && 
 
 // The three EventModelers.ai build kits (one per language) are generated like any
 // other product topic, but in the nav they surface nested under the hand-authored
-// "EventModelers.ai" group in the "Cratis Stack" topic below, not as their own
+// "EventModelers.ai" group in the "Cratis Platform" topic below, not as their own
 // icon-rail entries — the same pattern chronicle-mcp/prompter use under "AI".
 const eventModelersCSharpTopic = productTopics.find((topic) => topic.id === 'eventmodelers-ai/csharp');
 const eventModelersKotlinTopic = productTopics.find((topic) => topic.id === 'eventmodelers-ai/kotlin');
@@ -104,11 +104,11 @@ productTopics = productTopics.filter((topic) => !nestedSections.some((section) =
 // web/, not owned by any product): the "why", the capstone, samples, tools.
 const overviewTopic = {
     id: 'overview',
-    label: 'Cratis Stack',
+    label: 'Cratis Platform',
     link: 'cratis-stack',
     icon: 'open-book',
     items: [
-        { label: 'The Cratis Stack', slug: 'cratis-stack' },
+        { label: 'Cratis Platform', slug: 'cratis-stack' },
         { label: 'Why developers choose Cratis', slug: 'why-cratis' },
         {
             label: 'Concepts',
@@ -353,7 +353,7 @@ export default defineConfig({
             // get `lastUpdated` frontmatter from their source repository in sync-content.mjs.
             lastUpdated: true,
             description:
-                'Build event-sourced and CQRS applications with Cratis — an open-source (MIT) event-sourcing database and full-stack platform. Chronicle stores events in MongoDB, PostgreSQL, SQL Server, or SQLite and has clients for .NET, TypeScript, Kotlin/Java, and Elixir, with Arc and Components completing the type-safe stack.',
+                'Cratis Platform connects event-sourced applications, typed command/query contracts, React UI, specifications, and operating tools. Build with Chronicle, Arc, and Components, adopt one component, or follow the same conventions with an AI agent. Start with a feature you can trace from intent to recorded event and running screen.',
             // Head.astro chooses the section image; keep the global card type here.
             head: [
                 { tag: 'link', attrs: { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' } },

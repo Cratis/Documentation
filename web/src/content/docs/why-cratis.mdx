@@ -1,15 +1,28 @@
 ---
 title: Why developers choose Cratis
-description: "The practical reasons teams choose Cratis: one stack that fits together, strong conventions, open Chronicle boundaries, a database-agnostic event store (MongoDB, PostgreSQL, SQL Server, SQLite), full-stack contracts, end-to-end foundations, and codebases that stay predictable for people and AI."
+description: "Evaluate Cratis Platform by the work it changes: typed contracts, event history, bounded features, specifications, and runtime inspection — with adoption choices and trade-offs."
 ---
 
 import { CardGrid } from '@astrojs/starlight/components';
 import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
-<TopicHero icon="open-book" eyebrow="Why developers choose Cratis" title="Build the system you modeled">
-In the age of AI, software gets built differently — and the systems that stay coherent are the ones where the pieces were designed together. In Cratis, Chronicle records the facts, Arc shapes the application, Components renders it, AuthProxy secures the edge, the CLI and Workbench let you see it run, and Cratis AI teaches assistants the same conventions developers use. Write the behavior once, keep the contract typed, run on the database you already operate — MongoDB (default), PostgreSQL, SQL Server, or SQLite — and use it from .NET, TypeScript, Kotlin/Java, or Elixir. We believe software built this way is better, more robust, faster to deliver, and more cost-effective to own. [Get started →](/chronicle/get-started/) · [Build a full-stack feature →](/build-a-full-app/)
+<TopicHero icon="open-book" eyebrow="Why Cratis Platform" title="Less translation between the decision and the software">
+A feature crosses a design, backend types, frontend contracts, tests, and a running system. Cratis Platform gives those handoffs a shared shape: commands express intent, events record facts, projections serve read models, and generated proxies connect the UI. That makes a feature easier to trace when a developer or an AI agent changes it. [Build the author feature →](/build-a-full-app/) · [See component roles →](/cratis-stack/)
 </TopicHero>
+
+## What changes in the work
+
+Consider adding author registration to a library. Before the change, decide what counts as registration and what the list should show. With the Platform, keep that behavior in a vertical slice and follow the same names through the command, recorded event, read model, generated proxy, and screen. After the change, use specifications and runtime inspection to check that the requested behavior actually happened.
+
+| Work you would otherwise maintain | What Cratis provides | What you still own |
+|---|---|---|
+| A second frontend description of each backend contract | Arc generates TypeScript command/query proxies from backend types | Regenerate, compile the frontend, and review intentional contract changes |
+| A history reconstructed from overwritten rows or incidental logs | Chronicle stores domain events and derives read models | Choose meaningful facts, evolve schemas, and design consistency rules |
+| A different feature layout for every contributor | Vertical-slice conventions, analyzers, and Cratis AI guidance | Bound the task and review behavior, security, and domain decisions |
+| Debugging an empty list from application logs alone | CLI and Workbench expose events, observers, and projected models | Connect to the right store and namespace, diagnose the cause, and approve recovery |
+
+This is the practical case for a Platform: less repeated translation at the boundaries, with checks and operating tools that refer to the same feature. It is not a guarantee that generated code or an agent's implementation is correct.
 
 ## The developer payoff
 
@@ -21,7 +34,7 @@ In the age of AI, software gets built differently — and the systems that stay 
     Commands and queries become HTTP endpoints and generated TypeScript proxies. You do not hand-write controllers, DTO mirrors, or fetch wrappers for every feature.
   </SimpleCard>
   <SimpleCard title="A compiler-enforced boundary" icon="seti:typescript" link="/arc/understanding-the-proxy-boundary/">
-    The frontend imports code generated from the backend. If C# changes, TypeScript changes with it, and drift becomes a build error.
+    Regenerate proxies after a backend change and compile the frontend against them. Type errors expose incompatible uses; compilation does not verify runtime behavior.
   </SimpleCard>
   <SimpleCard title="Predictable by convention" icon="approve-check" link="/code-analysis/">
     Cratis is opinionated about names, folders, attributes, and discovery. The conventions make codebases consistent, and analyzers catch convention drift at build time.
@@ -51,11 +64,11 @@ In the age of AI, software gets built differently — and the systems that stay 
 
 ## The big win: the platform fit
 
-The point is not that Cratis has many packages. The point is that the packages agree about how an application is shaped. A command, an event, a read model, a tenant, an identity, a React form, and an operating tool are not separate islands with separate conventions. They are parts of one model.
+The benefit comes from how the components meet. Arc's generated contract points back to the backend. A read model points back to the events that built it. The operating tools expose those events and the processing state. These connections give a reviewer places to check an implementation, including one written by an agent.
 
 | Concern | Where Cratis carries it |
 |---|---|
-| Domain behavior | Arc turns it into commands and queries, Chronicle records the facts as the default source of truth for information systems; Studio (Preview) and Screenplay model it |
+| Domain behavior | Arc turns it into commands and queries, Chronicle records the facts as the default source of truth for information systems; Studio and Screenplay model it |
 | Frontend contract | Arc generates TypeScript proxies from C#, and Components renders those proxies as forms, dialogs, and live tables |
 | Chronicle client boundary | Chronicle exposes gRPC/protobuf contracts, with .NET as the first-class client and TypeScript, Kotlin/Java, and Elixir clients for other runtimes |
 | Chronicle storage | MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite implementations let the event store fit the deployment |
@@ -67,7 +80,7 @@ The point is not that Cratis has many packages. The point is that the packages a
 | Testing | Cratis Specifications, Arc command scenarios, and Chronicle in-process scenarios turn an event-model column into executable given/when/then specs |
 | AI assistance | Cratis AI rules and skills in `.cratis/ai`, analyzers, the CLI catalog, and the Chronicle MCP server give agents the same rails developers use |
 
-That is why the opinions matter. They make codebases consistent. Consistency makes onboarding faster, reviews sharper, and AI assistance far less speculative.
+The conventions give a new contributor a starting point. [The AI lifecycle](/ai/#one-feature-through-the-agentic-lifecycle) shows how to turn that guidance into a bounded change, checked behavior, and a runtime investigation.
 
 ## Chronicle as an architecture choice
 
@@ -121,7 +134,7 @@ The result is a workflow that stays close to the language developers already use
     The edge gateway. Handles authentication, tenant resolution, identity enrichment, routing, and invite-based onboarding.
   </SimpleCard>
   <SimpleCard title="Studio" icon="open-book" link="/studio/">
-    The modeling surface for designing and editing Screenplay event models with the team. Available as a paid Preview; public sign-up is not open yet.
+    A collaborative workspace for event modeling. See the [Studio website](https://cratis.studio/) for access and pricing.
   </SimpleCard>
   <SimpleCard title="CLI" icon="rocket" link="/cli/">
     A terminal window into a running store — inspect events, watch observers, and diagnose issues.
@@ -134,7 +147,7 @@ The core pieces are built to stand alone. Each solves a complete problem by itse
 
 - **Chronicle on its own** is an event-sourcing database you can use from *any* .NET host — a worker, a console app, a different web framework — and from other runtimes too. The .NET client is the first-class path, but the kernel boundary is gRPC/protobuf and Chronicle also ships [TypeScript, Kotlin/Java, and Elixir clients](/chronicle-clients/) — the JVM client with a Spring Boot starter. Append events, build projections, react to them. No Arc, no React required.
 - **Arc on its own** is a full-stack CQRS framework with **generated, typed C# → TypeScript proxies**. Its commands and queries can persist straight to **MongoDB** or **EF Core / SQL** when you deliberately want CQRS without an event log ([here's the standalone shape](/arc/arc-without-event-sourcing/)). You still get the typed frontend, the command forms, and live queries.
-- **Components on its own** is a React library that renders Arc's generated proxies as forms, tables, and dialogs.
+- **Components** is optional React UI for Arc's generated proxies: forms, tables, and dialogs. It does not require Chronicle, but its command/query components use Arc contracts.
 - **AuthProxy on its own** is a gateway for authentication, tenancy, identity enrichment, routing, and invites in front of any backend and frontend you point it at.
 
 We think event sourcing is the default architecture for information systems. We also think CQRS is the right way to shape information going into and out of a system. Those ideas fit extremely well together and are often associated, but they are not co-dependent: you can use Chronicle without Arc, and Arc can run without Chronicle.

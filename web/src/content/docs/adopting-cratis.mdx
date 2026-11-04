@@ -1,14 +1,14 @@
 ---
 title: Adopting Cratis
-description: Where to start with Cratis — default to the full event-sourced stack for new information systems, or adopt one product at a time in existing systems.
+description: Choose an adoption boundary in Cratis Platform, prove one feature through it, and decide what to add next without rewriting a working system.
 ---
 
 import { CardGrid, Aside } from '@astrojs/starlight/components';
 import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
-<TopicHero icon="rocket" eyebrow="Getting oriented" title="Where to start">
-Cratis products stand on their own and compose when you want them to. For a new information system, our default is the full loop: Chronicle for event sourcing, Arc for CQRS, Components for React, and AuthProxy at the edge. For an existing system or a bounded current-state slice, you can adopt one piece at a time without losing the path back to the full stack.
+<TopicHero icon="rocket" eyebrow="Adopting Cratis Platform" title="Start with a boundary you can prove">
+Choose one behavior and the problem you want to solve first: contract drift, missing history, or a new full-stack feature. Chronicle, Arc, and the UI can be introduced at different boundaries. For a new information system, we recommend the event-sourced loop; for an existing one, keep what works and prove a bounded addition before expanding it.
 </TopicHero>
 
 ## Pick your entry point
@@ -27,7 +27,7 @@ flowchart TD
 
 | Your situation | Start with | Why |
 | --- | --- | --- |
-| New information system | **Arc + Chronicle + Components** | The default Cratis loop: CQRS at the boundary, event history underneath, React generated from C# — the [full-stack capstone](/build-a-full-app/) builds the shape. |
+| New information system | **Arc + Chronicle + Components** | The default Cratis loop: CQRS at the boundary, event history underneath, and React using generated TypeScript proxies — the [full-stack capstone](/build-a-full-app/) builds the shape. |
 | Bounded slice where current state is genuinely enough | **Arc + Components** over a database | Typed commands, queries, and a generated React client with CQRS but no event log — [CQRS without event sourcing](/arc/arc-without-event-sourcing/). |
 | Existing .NET API, frontend glue is the pain | **Arc**, added to your app | A typed TS client for new endpoints, without rewriting what you have. |
 | Existing system, you need history or audit | **Chronicle**, incrementally | Event-source one bounded context; leave the rest as it is. |
@@ -35,9 +35,22 @@ flowchart TD
 | Services in TypeScript, Kotlin/Java, or Elixir that need an event store | **Chronicle** with your language's client | Chronicle's clients talk to the same kernel over gRPC — see [Chronicle in your language](/chronicle-clients/). |
 | Need to separate CQRS from event sourcing | Read first | [CQRS without event sourcing](/arc/arc-without-event-sourcing/), then [Why developers choose Cratis](/why-cratis/). |
 
+## Prove the first slice
+
+Use a small acceptance test for the adoption decision, not just a successful install:
+
+| Your first boundary | A useful first result | Before expanding |
+|---|---|---|
+| Arc in an existing app | A new command/query is callable from React through generated proxies; an existing endpoint still works | Regenerate and compile both sides after a contract change; keep the current authentication and persistence behavior explicit |
+| Chronicle in one context | A real business action records an event, and a projection produces the expected read model | Decide the source of truth, test consistency rules, and inspect a failed or delayed projection |
+| Full application loop | Register an author and trace its id through the event, projected list, and screen | Add behavior specs, pin the resolved versions, and review hosting and authorization before sharing the environment |
+| Components on an Arc frontend | A command dialog and query-backed screen consume the existing generated contracts | Check React and Arc peer ranges; Components is optional, not a replacement backend |
+
+An agent can help implement the slice after you install the relevant [Cratis AI guidance](/ai/). Ask it to report the checks it actually ran and what it could not verify. Keep the acceptance decision with your team. Model-first tools are optional. Studio is a collaborative workspace for event modeling. See the [Studio website](https://cratis.studio/) for access and pricing. Screenplay, Stage, and Prologue are experimental. You can make this adoption decision without them.
+
 ## Starting from scratch (greenfield)
 
-A new project is the easy case — nothing to migrate, no constraints. For an information system, start with the whole loop unless you have a clear reason not to:
+For a new information system, the full loop gives you a starting architecture. You still choose the domain boundaries, deployment, identity, and operational requirements:
 
 - **Default to the full experience.** Follow [Build a full-stack feature](/build-a-full-app/): it scaffolds the application from the [Cratis templates](/templates/getting-started/) and adds one slice by hand. You'll have the command → event → projection → query → React loop running, with history available from the event log. The template wires Arc and Chronicle into one host through the [Cratis package](/arc/backend/csharp/chronicle/cratis-package/)'s `AddCratis`/`UseCratis`.
 - **Use Arc-only for deliberate current-state slices.** If a bounded part of the app is just reference data, settings, or an adoption step, [Arc over a database](/arc/arc-without-event-sourcing/) still gives you CQRS, generated proxies, and live queries. Adopting Chronicle later is mostly a write-side change: the query contract and the React screens that use it can stay the same, though the query's implementation moves to the read model a projection builds.
@@ -48,7 +61,7 @@ Arc gives you CQRS: commands for information entering the system, queries for in
 
 ## Adding to an existing system (brownfield)
 
-You rarely get to start clean. Cratis is built to be adopted a slice at a time, alongside code that already works — you don't rewrite, you grow into it.
+Keep existing endpoints, data, and screens in place while you introduce the new boundary. A first slice should let you evaluate Cratis without making an unrelated migration a prerequisite.
 
 ### Add Arc to an existing ASP.NET Core app
 
@@ -80,7 +93,7 @@ However you start, the pieces are designed to be *added*, not swapped out. The c
 
 - **Arc-over-a-database → add Chronicle.** Move a slice's write side from a direct insert to appending an event with a projection behind it. The query's contract and the React that calls it can stay the same, while the query now reads the projected read model; see the side-by-side in [CQRS without event sourcing](/arc/arc-without-event-sourcing/).
 - **Chronicle-only service → add Arc and a frontend.** Already event-sourcing from a worker or service? Put Arc in front to expose typed commands and queries, and Components to render them — without changing how your events are stored.
-- **Any backend → add Components.** The React library consumes Arc's generated proxies, so adding it is a frontend-only step.
+- **Arc frontend → add Components.** The React library consumes Arc's generated proxies, so adding it is a frontend step once those contracts and compatible packages are in place.
 
 ## Next steps
 
