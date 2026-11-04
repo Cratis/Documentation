@@ -41,7 +41,7 @@ const repositories = {
     specifications: 'Specifications', screenplay: 'Screenplay',
     'screenplay/ecosystem-examples/critter-stack': 'Screenplay.CritterStack',
     prologue: 'Prologue', cli: 'cli', ai: 'AI', authproxy: 'AuthProxy',
-    'chronicle-mcp': 'Chronicle.Mcp', prompter: 'Prompter', templates: 'Templates',
+    'chronicle-mcp': 'Chronicle.Mcp', prompter: 'Prompter', templates: 'Templates', choreography: 'Choreography',
     'tools/lens': 'Lens', 'tools/vscode-extension': 'Narrator',
 };
 

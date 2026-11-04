@@ -26,6 +26,7 @@ describe('section social images', () => {
             ['cli', 'tools', 'CLI'],
             ['templates', 'tools', 'Templates'],
             ['direct', 'tools', 'Direct'],
+            ['choreography', 'tools', 'Choreography'],
         ]) {
             assert.equal(socialPreview(`/${route}/`).url, `https://www.cratis.io/og/${section}.png`);
             assert.equal(socialPreview(`/${route}/`).alt, `Cratis ${label} documentation`);
