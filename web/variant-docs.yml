@@ -397,6 +397,18 @@ products:
               blockedOutput:
                 - "BLOCKED: could not validate the TypeScript snippets"
 
+          # Arc for Elixir is in source preview and Chronicle-only. It mounts its
+          # own docs and contributes no shared snippets yet, so shared pages show
+          # no Elixir tab; its pages carry Elixir code directly.
+          elixir:
+            label: Elixir (preview)
+            publicDocs:
+              key: elixir
+              label: Elixir
+              paths:
+                - ../../Arc.Elixir/Documentation
+                - ../Arc.Elixir/Documentation
+
 # Site-authored pages under web/src/content/docs.
 #
 # The product walks above only see pages synced from the product repositories.
