@@ -10,6 +10,8 @@ Generated values let the server create an identifier or token without accepting 
 
 This tutorial follows a small shop from its model to code rendered by [Stage](/stage/), then compares the same behavior written by hand with [Arc](/arc/). Arc creates the value before calling the handler. Specifications pin it by name, making the command's result predictable without putting the generated value back into the request.
 
+The code, attributes, and test controls below use Arc's .NET backend. They are not a cross-backend contract. If you use another host, check [Arc backend capabilities](/arc/backend/) for its generated-value support before applying this pattern.
+
 <YouWillLearn>
 
 - how to declare four generated values in a Screenplay model, and how to choose a strategy for each

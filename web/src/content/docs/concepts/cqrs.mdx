@@ -109,10 +109,10 @@ No. A command can be an ordinary method call handled in the same process. A bus 
 
 ### How do commands and queries reach a React or TypeScript frontend?
 
-Arc generates TypeScript proxies from the .NET command and query contracts, so the frontend calls typed methods. See [Why Arc](/arc/why-arc/).
+Arc generates TypeScript proxies from backend command and query contracts, so the frontend calls typed methods. Each backend has its own declaration and generation setup. See [Why Arc](/arc/why-arc/).
 
 ## Next steps
 
-To build the state-based version first, read [CQRS without event sourcing](/arc/arc-without-event-sourcing/). The [Arc overview](/arc/) and [.NET getting started guide](/arc/backend/csharp/getting-started/) explain the framework and host setup. For a language-specific path, choose [C# and .NET](/cqrs/dotnet/), [TypeScript and Node.js](/cqrs/typescript/), [Kotlin and Java](/cqrs/kotlin/), or [Elixir](/cqrs/elixir/).
+To build the state-based version first, read [CQRS without event sourcing](/arc/arc-without-event-sourcing/). The [Arc overview](/arc/) explains the framework; choose your host setup in [C# and .NET](/cqrs/dotnet/), [TypeScript and Node.js](/cqrs/typescript/), [Kotlin and Java](/cqrs/kotlin/), or [Elixir](/cqrs/elixir/).
 
-If your feature needs history, first review [what is event sourcing?](/concepts/event-sourcing/) and [projections and read models](/concepts/projections-and-read-models/), then [add event sourcing to an Arc slice](/arc/backend/csharp/chronicle/add-event-sourcing/). Adding notifications between components is a separate decision, covered in [event-driven architecture vs. event sourcing](/concepts/event-driven-architecture/).
+If your feature needs history, first review [what is event sourcing?](/concepts/event-sourcing/) and [projections and read models](/concepts/projections-and-read-models/), then use your [Arc backend's Chronicle integration](/arc/backend/). The C# guide to [adding event sourcing to an Arc slice](/arc/backend/csharp/chronicle/add-event-sourcing/) is one implementation, not a shared API. Adding notifications between components is a separate decision, covered in [event-driven architecture vs. event sourcing](/concepts/event-driven-architecture/).

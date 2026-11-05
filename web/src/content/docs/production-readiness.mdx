@@ -29,7 +29,8 @@ Start with the versions you have tested together. A rollback plan needs to cover
 - Keep environment-specific configuration outside images.
 - Run the full build, specs, and documentation gates before release.
 - Keep a rollback plan for application code, projections, configuration, and infrastructure.
-- Record which Chronicle, Arc, Components, CLI, and app versions are deployed together.
+- Record which Chronicle, Arc, Components, CLI, and app versions are deployed together, including your backend runtime and Chronicle client.
+- Verify the features your application uses against its [Arc backend](/arc/backend/) and [Chronicle client](/chronicle-clients/). The kernel's .NET implementation does not require a .NET application host, and client APIs and feature coverage differ.
 
 ## Storage and data
 

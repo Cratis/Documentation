@@ -24,8 +24,10 @@ TypeDoc generates a separate reference for each of these TypeScript packages:
 - [`@cratis/arc`](/api/arc/javascript/arc/) — the Arc client core
 - [`@cratis/arc.react`](/api/arc/javascript/arc.react/) — React hooks and bindings
 - [`@cratis/arc.react.mvvm`](/api/arc/javascript/arc.react.mvvm/) — model-view-viewmodel (MVVM) integration for React
-- [`@cratis/arc.vite`](/api/arc/javascript/arc.vite/) — Vite integration for metadata and queries; the .NET build generates proxies
+- [`@cratis/arc.vite`](/api/arc/javascript/arc.vite/) — Vite integration for metadata and queries; the backend generates proxies
 - [`@cratis/fundamentals`](/api/fundamentals/javascript/) — shared utilities and concepts
+
+These generated references do not cover every backend or Chronicle client. For other runtimes, start with [Chronicle clients](/chronicle-clients/) or [Arc backends](/arc/backend/) and use that implementation's API documentation.
 
 ## How it's produced (for contributors)
 

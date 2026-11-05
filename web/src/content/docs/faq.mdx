@@ -38,9 +38,9 @@ To scaffold, you need either the .NET SDK (for `dotnet new`) or the [Cratis CLI]
 
 ## Do I have to use .NET?
 
-No. Chronicle's kernel speaks gRPC, and it ships TypeScript, Kotlin/Java, and Elixir clients in addition to the .NET SDK; [Which languages can talk to Chronicle?](#which-languages-can-talk-to-chronicle) lists the packages. Arc has Kotlin and Java backends on Spring Boot, and the [Cratis Kotlin](/templates/cratis-kotlin/) and [Cratis Java](/templates/cratis-java/) templates scaffold a full-stack application with them. On macOS and Linux, the Cratis CLI's [`cratis new`](/cli/new/) can scaffold those projects without the .NET SDK installed.
+No. Chronicle's kernel speaks gRPC, and it ships TypeScript, Kotlin/Java, and Elixir clients in addition to the .NET SDK; [Which languages can talk to Chronicle?](#which-languages-can-talk-to-chronicle) lists the packages. Arc has [TypeScript on Node.js](/cqrs/typescript/), [Kotlin and Java on Spring Boot](/cqrs/kotlin/), and [Elixir on Plug, Phoenix or LiveView](/cqrs/elixir/) backends. The [Cratis Kotlin](/templates/cratis-kotlin/) and [Cratis Java](/templates/cratis-java/) templates scaffold full-stack applications. On macOS and Linux, the Cratis CLI's [`cratis new`](/cli/new/) can scaffold those projects without the .NET SDK installed.
 
-The .NET SDK remains the first-class Chronicle client, and some pages document C# only.
+Choose a [Chronicle client](/chronicle-clients/) and check [Arc backend capabilities](/arc/backend/) for your runtime. Some examples are specific to C#; their attributes and hosting APIs are not required by other backends.
 
 ## How do event sourcing and CQRS connect to a React frontend?
 
@@ -86,13 +86,13 @@ Start with [Chronicle getting started](/chronicle/get-started/) and [Chronicle a
 
 ## Which languages can talk to Chronicle?
 
-Chronicle is an event-sourcing database with a language-agnostic gRPC/protobuf boundary. The first-class client is the .NET SDK (`Cratis.Chronicle` on NuGet), and Chronicle also ships TypeScript (`@cratis/chronicle` on npm), Kotlin/Java (`io.cratis:chronicle` on Maven Central, including a Spring Boot starter), and Elixir (`cratis_chronicle` on Hex) clients, plus a Go client (`github.com/cratis/chronicle.go`, v0.x, without observers and projections yet). A Python client is not yet published. Any language can implement the gRPC contracts directly.
+Chronicle is an event-sourcing database with a language-agnostic gRPC/protobuf boundary. Clients include TypeScript (`@cratis/chronicle` on npm), Kotlin/Java (`io.cratis:chronicle` on Maven Central, including a Spring Boot starter), Elixir (`cratis_chronicle` on Hex), and .NET (`Cratis.Chronicle` on NuGet), plus a Go client (`github.com/cratis/chronicle.go`, v0.x, without observers and projections yet). A Python client is not yet published. Any language can implement the gRPC contracts directly.
 
 See [Chronicle in your language](/chronicle-clients/) and the [client SDK docs](/chronicle/clients/).
 
 ## Which languages can I use for CQRS?
 
-Cratis Arc provides CQRS backends for C# on ASP.NET Core and Kotlin or Java on Spring Boot, with generated TypeScript clients for the frontend. The TypeScript backend runs on Node.js and is published on npm at 1.0.0. Start with [CQRS in C#](/cqrs/dotnet/), [Kotlin and Java](/cqrs/kotlin/), or [TypeScript](/cqrs/typescript/); check [Arc.Go](/arc/go/) separately for Go capabilities. These implementations do not have identical feature coverage.
+Cratis Arc provides CQRS backends for TypeScript on Node.js, Kotlin or Java on Spring Boot, Elixir on Plug, Phoenix or LiveView, and C# on ASP.NET Core, with generated TypeScript clients for the frontend. Start with CQRS in [TypeScript](/cqrs/typescript/), [Kotlin and Java](/cqrs/kotlin/), [Elixir](/cqrs/elixir/), or [C#](/cqrs/dotnet/); check [Arc.Go](/arc/go/) separately for Go capabilities. These implementations do not have identical feature coverage; compare [Arc backends](/arc/backend/) before choosing one.
 
 ## Can I use Arc without Chronicle?
 

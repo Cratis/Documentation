@@ -16,7 +16,7 @@ Compare the [day-to-day changes](#what-changes-day-to-day) with the work your ap
 </TopicHero>
 
 <Aside type="note" title="Choose the integration for your backend">
-Cratis Chronicle also has [TypeScript, Kotlin/Java, and Elixir clients](/chronicle-clients/). Cratis Arc backend capabilities differ by language. For Arc and Chronicle together, follow the [C# integration](/arc/backend/csharp/chronicle/), [Kotlin and Java integration](/arc/backend/kotlin/guides/chronicle/), or [TypeScript integration](/arc/backend/typescript/chronicle/). Check the [support matrix](/compatibility/#support-matrix) and each backend's capabilities before choosing a path.
+Choose a [Chronicle client](/chronicle-clients/) for your host. Cratis Arc backend capabilities differ by language. For Arc and Chronicle together, follow the [TypeScript integration](/arc/backend/typescript/chronicle/), [Kotlin and Java integration](/arc/backend/kotlin/guides/chronicle/), [Elixir CQRS guide](/cqrs/elixir/), or [C# integration](/arc/backend/csharp/chronicle/). Check the [support matrix](/compatibility/#support-matrix) and each backend's capabilities before choosing a path.
 </Aside>
 
 <span id="the-developer-payoff"></span>
@@ -33,7 +33,7 @@ An order's current status tells you where it is now. When someone disputes a cha
     A new order screen need not replace the recorded facts. Chronicle [projections](/chronicle/projections/) derive multiple focused read models from the same events. Supported replay can rebuild a view from available history, but cannot recover facts that were never recorded. Materialized views update asynchronously; a full replay takes its observer out of live processing until catch-up, so plan for capacity, failures, and side effects.
   </Card>
   <Card title="Find the frontend usages a contract change affects" icon="puzzle">
-    When an order field changes in C#, regenerate its TypeScript proxies and type-check the frontend for incompatible typed usages. Arc separates writes into commands and reads into queries, the pattern called Command Query Responsibility Segregation (CQRS), exposes them over HTTP, and generates the clients. Cratis Components uses them in React command forms and query-backed tables instead of hand-maintained contract copies. [The proxy boundary](/arc/understanding-the-proxy-boundary/) explains the check: generation must run, and typed agreement does not replace runtime integration checks.
+    When an order field changes in the backend, regenerate its TypeScript proxies and type-check the frontend for incompatible typed usages. Arc separates writes into commands and reads into queries, the pattern called Command Query Responsibility Segregation (CQRS), exposes them over HTTP, and generates the clients. Cratis Components uses them in React command forms and query-backed tables instead of hand-maintained contract copies. [The proxy boundary](/arc/understanding-the-proxy-boundary/) explains the check: generation must run, and typed agreement does not replace runtime integration checks.
   </Card>
 </CardGrid>
 
@@ -60,8 +60,8 @@ The products connect at explicit boundaries. A command describes intent, an even
 | Concern | Where Cratis carries it |
 |---|---|
 | Domain behavior | Arc turns it into commands and queries, Chronicle records the facts as the default source of truth for information systems; Studio (an optional paid workspace) and Screenplay model it |
-| Frontend contract | Arc generates TypeScript proxies from C#, and Components renders those proxies as forms, dialogs, and live tables |
-| Chronicle client boundary | Chronicle exposes gRPC/protobuf contracts, with .NET as the first-class client and TypeScript, Kotlin/Java, and Elixir clients for other runtimes |
+| Frontend contract | Arc generates TypeScript proxies from backend commands and queries, and Components renders those proxies as forms, dialogs, and live tables |
+| Chronicle client boundary | Chronicle exposes gRPC/protobuf contracts to TypeScript, Kotlin/Java, Elixir, .NET, and Go clients; feature coverage varies by client |
 | Chronicle storage | MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite implementations let the event store fit the deployment |
 | Runtime scale | Chronicle runs its kernel on .NET Orleans, so event sequences, observers, jobs, and long-running processing live on a distributed actor runtime |
 | Authentication and tenant resolution | AuthProxy handles the edge and forwards trusted identity and tenant context into the app |
@@ -78,11 +78,11 @@ Use this map to locate a responsibility before configuring it. For example, choo
 
 ## Chronicle as an architecture choice
 
-Chronicle is more than a .NET package. It is a client-server event-sourcing database and runtime with an open protocol boundary and a kernel built for long-running event processing.
+Chronicle is a client-server event-sourcing database and runtime with an open protocol boundary and a kernel built for long-running event processing. Your application's language is separate from the kernel's .NET implementation.
 
 <CardGrid>
   <SimpleCard title="Language-neutral boundary" icon="puzzle" link="/chronicle/architecture/">
-    Chronicle speaks gRPC/protobuf at the kernel boundary. The .NET client is the first-class experience, and Chronicle also ships TypeScript, Kotlin/Java, and Elixir clients — the JVM client includes a Spring Boot starter.
+    Chronicle speaks gRPC/protobuf at the kernel boundary. Choose a TypeScript, Kotlin/Java, Elixir, .NET, or Go client for your host. The JVM client includes a Spring Boot starter; compare feature coverage in [Chronicle in your language](/chronicle-clients/).
   </SimpleCard>
   <SimpleCard title="A database-agnostic event store" icon="seti:db" link="/chronicle/hosting/configuration/storage/">
     The event store is database-agnostic, with pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite — pick the one you already operate.
@@ -101,7 +101,7 @@ Compare the work you do today with the conventions you would adopt:
 
 | Instead of... | You work with... |
 |---|---|
-| Duplicating request and response shapes in C# and TypeScript | One C# command/query model, generated into typed frontend proxies |
+| Duplicating backend request and response shapes in the frontend | Backend command/query declarations, generated into typed TypeScript proxies |
 | Spreading one feature across controllers, handlers, clients, and UI folders | A vertical slice organized by behavior |
 | Rebuilding screens by hand after a write | Observable queries and components that follow the read model |
 | Rebuilding authentication, tenancy, and identity plumbing per service | AuthProxy at the edge, Arc identity and tenancy inside the app, Chronicle namespaces underneath |
@@ -116,7 +116,7 @@ The result is a workflow that stays close to the language developers already use
 
 <CardGrid>
   <SimpleCard title="Chronicle" icon="seti:db" link="/chronicle/">
-    The event-sourcing database and runtime. gRPC/protobuf at the boundary, .NET-first client experience, storage choice underneath, and Orleans-powered processing inside.
+    The event-sourcing database and runtime. Language-specific clients over gRPC/protobuf, storage choice underneath, and Orleans-powered processing inside.
   </SimpleCard>
   <SimpleCard title="Arc" icon="puzzle" link="/arc/">
     The application framework. Exposes commands and queries and generates TypeScript proxies from backend declarations for the frontend to call.
@@ -144,8 +144,8 @@ The result is a workflow that stays close to the language developers already use
 
 You do not have to adopt the whole stack. Start with the boundary you need, keeping the dependencies of that choice in view:
 
-- **Chronicle on its own** is an event-sourcing database you can use from *any* .NET host — a worker, a console app, a different web framework — and from other runtimes too. The .NET client is the first-class path, but the kernel boundary is gRPC/protobuf and Chronicle also ships [TypeScript, Kotlin/Java, and Elixir clients](/chronicle-clients/) — the JVM client with a Spring Boot starter. Append events, build projections, react to them. No Arc, no React required.
-- **Arc on its own** is a full-stack CQRS framework with **generated, typed C# → TypeScript proxies**. Its commands and queries can persist straight to **MongoDB** or **EF Core / SQL** when you deliberately want CQRS without an event log ([here's the standalone shape](/arc/arc-without-event-sourcing/)). You still get the typed frontend, the command forms, and live queries.
+- **Chronicle on its own** records event history in a service, worker, console app, or API. Choose a [client for your language](/chronicle-clients/) and check its support for projections, reactors, and testing. No Arc or React is required.
+- **Arc on its own** supplies commands, queries, and generated TypeScript proxies without requiring an event log. Choose an [Arc backend](/arc/backend/) for your runtime and persistence needs. The .NET backend, for example, integrates with MongoDB and EF Core / SQL; [CQRS without event sourcing](/arc/arc-without-event-sourcing/) explains that adoption boundary.
 - **Components without Chronicle** is a React library that renders Arc's generated proxies as forms, tables, and dialogs. Those compositions still need Arc contracts; they are not a frontend-only integration for an arbitrary backend.
 - **AuthProxy on its own** is a gateway for authentication, tenancy, identity enrichment, routing, and invites in front of any backend and frontend you point it at.
 
@@ -189,17 +189,17 @@ flowchart LR
     Q -->|typed proxy| UI
 ```
 
-In the C# path, you write the command, event, and projection on the backend. Arc generates the client contract, and Components uses it in the screen. Chronicle keeps the events in the selected tenant's namespace. You must still configure tenant membership checks and the storage isolation your application requires.
+You write the command, event, and read-model definition on your chosen backend. Arc generates the client contract, and Components uses it in the screen. Chronicle keeps the events in the selected tenant's namespace. You must still configure tenant membership checks and the storage isolation your application requires.
 
 <Aside type="note" title="Regenerate and type-check after contract changes">
-When a C# command's shape changes, regenerate the TypeScript proxies and type-check the frontend to find incompatible typed usages. This checks the generated contract; it does not replace runtime integration checks.
+When a backend command's shape changes, regenerate the TypeScript proxies and type-check the frontend to find incompatible typed usages. This checks the generated contract; it does not replace runtime integration checks.
 </Aside>
 
 ## The principles behind it
 
 Cratis recommends immutable, past-tense, single-purpose events as the default source of truth for information systems. If an event needs nullable fields to describe different outcomes, consider whether those outcomes are separate facts. Keep the behavior and its [specifications](/testing-with-cratis/) together in a [vertical slice](/arc/vertical-slices/) so the code can be read alongside the model.
 
-The protocol and storage choices are separate from that domain model. Chronicle exposes gRPC/protobuf contracts, with .NET as the first-class client and other clients using the same kernel boundary. MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite are storage options; choosing one does not require changing your event vocabulary.
+The protocol and storage choices are separate from that domain model. Chronicle's clients use the same gRPC/protobuf kernel boundary, with feature coverage documented per client. MongoDB, PostgreSQL, Microsoft SQL Server, and SQLite are storage options; choosing one does not require changing your event vocabulary.
 
 Configuration still matters where responsibilities meet. Follow [identity and access](/arc/understanding-identity-and-access/), [authorization](/arc/backend/csharp/core/authorization/), [tenancy](/arc/backend/csharp/tenancy/), [AuthProxy](/authproxy/), and [Chronicle namespaces](/chronicle/concepts/namespaces/) for the boundaries your application uses. Naming and discovery conventions reduce repetitive registration, but they do not choose your access policy. Likewise, generated contracts, analyzers, and AI guidance help you check and navigate a feature; they do not establish that its behavior is correct.
 
@@ -207,13 +207,13 @@ Configuration still matters where responsibilities meet. Follow [identity and ac
 
 Because the products are separable, "is Cratis a good fit?" is really a set of connected questions.
 
-Arc is worth evaluating when you have a .NET backend or a [Kotlin or Java backend on Spring Boot](/arc/backend/kotlin/) and maintain the same contract again in TypeScript. Its command/query boundary and generated proxies replace that duplication. You adopt its conventions for declaring and discovering endpoints, so try one feature before applying them across an existing application.
+Arc is worth evaluating when you maintain the same contract in your backend and again in the frontend. Choose among [TypeScript on Node.js](/cqrs/typescript/), [Kotlin or Java on Spring Boot](/cqrs/kotlin/), [Elixir on Plug or Phoenix](/cqrs/elixir/), and [C# on ASP.NET Core](/cqrs/dotnet/). Its command/query boundary and generated proxies replace that duplication. You adopt its conventions for declaring and discovering endpoints, so try one feature before applying them across an existing application.
 
 For event sourcing, Cratis's default recommendation is yes for information systems. Choose Chronicle when decisions, processes, or integrations need a record of how they reached their current state. For a genuinely current-state-only slice, such as reference data or settings, Arc over a database can be the simpler boundary. [Why Event Sourcing](/chronicle/why-event-sourcing/) explains the recommendation and its trade-offs.
 
 For a throwaway prototype, decide what you need to demonstrate. Evaluate event history or a typed command/query boundary in a small slice if either is part of the question. If neither is, leave Cratis out of the prototype.
 
-When *neither* fits — a couple of static pages, say — Cratis is more than you need, and that's fine. Your backend language narrows the choice more than it rules Cratis out: Arc's backends are C#, Kotlin/Java, and TypeScript (published on npm at 1.0.0, without full .NET parity), while Chronicle also has [TypeScript and Elixir clients](/chronicle-clients/), and any language with a gRPC implementation can [implement its contracts](/chronicle/building-a-client/).
+When *neither* fits — a couple of static pages, say — Cratis is more than you need, and that's fine. Your backend language narrows the choice more than it rules Cratis out: Arc and Chronicle have different language and feature coverage. Check [Arc backends](/arc/backend/) and [Chronicle clients](/chronicle-clients/) for the behavior you need; a language with a gRPC implementation can also [implement Chronicle's contracts](/chronicle/building-a-client/).
 
 ## Try modeled behavior before generating an application
 

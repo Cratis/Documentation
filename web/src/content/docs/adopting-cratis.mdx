@@ -31,10 +31,10 @@ flowchart TD
 
 | Result your team needs | Start with | What this gives you and what to check |
 | --- | --- | --- |
-| Find frontend usages affected by changes to an existing .NET API | **Arc**, added to your app | Generate typed TypeScript clients for new commands and queries while existing endpoints keep running. Regenerate after a change and type-check the frontend; this does not replace runtime integration checks. |
+| Find frontend usages affected by changes to an existing API on a supported Arc backend | **Arc**, added to your app | Generate typed TypeScript clients for new commands and queries while existing endpoints keep running. Regenerate after a change and type-check the frontend; this does not replace runtime integration checks. |
 | Explain how one business area reached its current state | **Chronicle**, incrementally | Record that context's facts as events; leave the rest of the system as it is. Decide where history begins: existing rows do not become events automatically. |
 | Answer a new question from existing event history | **Chronicle projections** | Derive a focused [read model](/chronicle/projections/) from the recorded facts. Supported replay can rebuild a view, but cannot supply missing facts; projections update asynchronously. |
-| Keep history behind a typed React screen in a new information system | **Arc + Chronicle + Components** | The default Cratis loop: CQRS at the boundary, event history underneath, TypeScript clients generated from C#, consumed by React — the [full-stack capstone](/build-a-full-app/) builds the shape. |
+| Keep history behind a typed React screen in a new information system | **Arc + Chronicle + Components** | The default Cratis loop: CQRS at the boundary, event history underneath, TypeScript clients generated from backend commands and queries, consumed by React — the [full-stack capstone](/build-a-full-app/) builds the shape. |
 | Check frontend contract changes in a bounded slice that needs only current state | **Arc + Components** over a database | Typed commands, queries, and a generated React client with CQRS but no event log — [CQRS without event sourcing](/arc/arc-without-event-sourcing/). |
 | Keep history behind a new Kotlin or Java full-stack app | **Arc + Chronicle** on Spring Boot | The [Cratis Kotlin](/templates/cratis-kotlin/) and [Cratis Java](/templates/cratis-java/) templates scaffold the same full-stack shape with a React frontend. Check the backend's capabilities rather than assuming parity. |
 | Keep event history from a TypeScript, Kotlin/Java, or Elixir service | **Chronicle** with your language's client | Chronicle's clients talk to the same kernel over gRPC — see [Chronicle in your language](/chronicle-clients/). |
@@ -66,9 +66,11 @@ Keep existing behavior running while you introduce a new boundary. Choose a feat
 
 ### Find frontend usages affected by backend changes
 
-If you maintain controllers, duplicate data types in TypeScript, and fetch wrappers for each new feature, start with Arc's application boundary. Register Arc on your existing host and express new endpoints as commands and queries. Arc generates their typed proxies while existing controllers continue to serve their routes. [Set up a standalone Arc backend](/arc/backend/csharp/getting-started/) gives you the packages and proxy-generation settings without requiring Chronicle or a template.
+If you maintain controllers, duplicate data types in TypeScript, and fetch wrappers for each new feature, start with Arc's application boundary. Choose an [Arc backend](/arc/backend/) for your host and express new endpoints as commands and queries. Arc generates their typed proxies. Start with CQRS in [TypeScript](/cqrs/typescript/), [Kotlin or Java](/cqrs/kotlin/), [Elixir](/cqrs/elixir/), or [C#](/cqrs/dotnet/) for that backend's setup and limits.
 
-Arc's persistence meets your data where it already lives: its [MongoDB](/arc/backend/csharp/mongodb/) and [Entity Framework](/arc/backend/csharp/entity-framework/) integrations read and write the database you already use — EF Core even has a [direct-registration path](/arc/backend/csharp/entity-framework/getting-started/) designed for slotting into an existing application without taking over the whole framework. For controllers and MediatR handlers, the [MediatR, MVC, and Arc](/arc/backend/csharp/coming-from-mediatr-and-mvc/) bridge maps familiar concepts onto Arc's model.
+For an existing ASP.NET Core app, [set up a standalone Arc backend](/arc/backend/csharp/getting-started/) while existing controllers continue to serve their routes. That guide gives you the packages and proxy-generation settings without requiring Chronicle or a template.
+
+Arc's .NET persistence integrations meet your data where it already lives: its [MongoDB](/arc/backend/csharp/mongodb/) and [Entity Framework](/arc/backend/csharp/entity-framework/) integrations read and write the database you already use — EF Core even has a [direct-registration path](/arc/backend/csharp/entity-framework/getting-started/) designed for slotting into an existing application without taking over the whole framework. For controllers and MediatR handlers, the [MediatR, MVC, and Arc](/arc/backend/csharp/coming-from-mediatr-and-mvc/) bridge maps familiar concepts onto Arc's model.
 
 <span id="introduce-chronicle-into-an-existing-domain"></span>
 
@@ -88,7 +90,7 @@ Appending an event alongside an existing write is a dual write: the two can succ
 
 </Steps>
 
-Continue with [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/) to map tables and `SaveChanges` onto events and projections.
+Choose a [Chronicle client](/chronicle-clients/) to implement the first append and view in your language. If you are coming from EF Core, [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/) maps tables and `SaveChanges` onto events and projections.
 
 <Aside type="caution" title="Keep the boundary honest">
 Event sourcing is the default for information systems, not a mandate that every settings table needs a stream. Use Chronicle for the facts and processes that define the domain, and leave genuinely current-state-only corners on Arc-over-a-database. [When to use event sourcing](/chronicle/concepts/when-to-use-event-sourcing/) helps you decide which history the feature needs.

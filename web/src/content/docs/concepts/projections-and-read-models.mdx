@@ -40,13 +40,13 @@ The terms overlap, so here is how Chronicle uses them.
 | Projection | A declarative rule that maps events onto a read model |
 | Reducer | Code that folds each event into the current state, one event at a time |
 
-The examples below use three authoring styles. The interface names in this table are from the .NET client; the tabs show each example's client-specific form:
+The examples below use three authoring styles in C#, Kotlin, and Java. The choice is about where the transformation lives, not which application language you use. Other clients expose different APIs; [First projection](/learning-paths/#first-projection) shows a book view in TypeScript, Elixir, and C#.
 
 | Style | What it looks like | Use it when |
 | --- | --- | --- |
 | Model-bound projection | Attributes on the read model type | Direct field mappings describe the view |
-| Declarative projection | A fluent `IProjectionFor<T>` class | The mapping needs more explicit structure |
-| Reducer | An `IReducerFor<T>` class | State transitions are easier to write as code |
+| Declarative projection | A separate fluent mapping definition | The mapping needs more explicit structure |
+| Reducer | Code that folds the previous state and an event | State transitions are easier to write as code |
 
 Chronicle's [choose a read-model style](/chronicle/projections/choosing-a-read-model-style/) page compares these forms with other supported choices, including self-reducing models in .NET.
 

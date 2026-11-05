@@ -104,7 +104,7 @@ The call covers every event store in the namespace, because subscriptions can co
 
 Check the result by reading `person-42`'s events. They retain their sequence numbers. The names return as empty strings; the department retains its value. That check shows the behavior of these fields, not completion of erasure across your whole system.
 
-After erasure, appending a new `[PII]` value for `person-42` fails with `EncryptionKeyErased`. Chronicle does not silently create a key or blank a new value. If there is later a lawful basis to store the person's data again, .NET exposes `AllowNewEncryptionKeyFor` to authorize a fresh key on the next PII write. The new key cannot decrypt earlier ciphertext. Check your client's lifecycle API rather than assuming the same method is available everywhere.
+After erasure, appending a new value marked as personal data for `person-42` fails with `EncryptionKeyErased`. Chronicle does not silently create a key or blank a new value. If there is later a lawful basis to store the person's data again, .NET exposes `AllowNewEncryptionKeyFor` to authorize a fresh key on the next PII write. The new key cannot decrypt earlier ciphertext. Check your client's lifecycle API rather than assuming the same method is available everywhere.
 
 <Aside type="caution">
 The namespace is the boundary. In a multi-tenant deployment, the same person in two namespaces has two keys and counts as two subjects. Issue one erasure per namespace the person appears in.

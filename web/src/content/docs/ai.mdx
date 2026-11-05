@@ -1,6 +1,6 @@
 ---
 title: AI-native development
-description: Give your coding agent Cratis conventions through Cratis AI rules and skills, and let it inspect a running Chronicle store through the CLI and the Chronicle MCP server.
+description: Give coding agents Cratis conventions through rules and skills, then choose authorized access to a running Chronicle store through the CLI or MCP server.
 slug: ai
 ---
 
@@ -16,11 +16,11 @@ For the case behind this approach — why explicit events, commands and specific
 
 ## Why "AI-native"
 
-Start with the cart in [First projection](/learning-paths/#first-projection).
-Ask an agent to follow the same cart id from recorded item facts to the cart
-summary, and explain why the caller waits for processing before reading it.
-Check the explanation against the linked C# source. This is a console code
-walkthrough, not a request to connect to a store or build an API and UI.
+Start with the book in [First projection](/learning-paths/#first-projection).
+Ask an agent to follow the same book id from recorded facts to the read model,
+and explain why the caller waits for processing before reading it.
+Check the explanation against the linked TypeScript, Elixir, or C# source.
+This is a code walkthrough, not a request to connect to a store or build an API and UI.
 
 For code changes, Cratis AI supplies framework conventions; you still review
 the result against the feature and its specifications. For a running store,
@@ -31,9 +31,9 @@ data. Neither decides which actions you authorize.
 ## Build with AI: skills that know the Cratis way
 
 **Cratis AI** is a shared corpus of rules, skills, prompts, and subagents that
-teaches an assistant the conventions: vertical slices, `[Command]` with
-`Handle()` on the record, model-bound projections, and `ConceptAs<T>` instead of
-raw primitives. It is authored in [Cratis/AI](https://github.com/Cratis/AI) and
+teaches an assistant the conventions for the selected language and profile.
+These include vertical slices and, in C#, `[Command]` with `Handle()` on the
+record, model-bound projections, and `ConceptAs<T>` instead of raw primitives. It is authored in [Cratis/AI](https://github.com/Cratis/AI) and
 reaches you through one of three channels:
 
 | Channel | What you get | Versioning |

@@ -15,6 +15,8 @@ Use this page when connecting those parts. Follow the request from the edge to t
 Arc's release of encrypted values before a query response reaches the client. Tenant membership,
 access policies, and the handling of copies outside Chronicle remain application decisions.
 
+The integration and attribute examples below use Arc's .NET backend. They do not establish equivalent identity, tenancy, or PII-release behavior in every backend. For another host, check your [Arc backend's capabilities](/arc/backend/) and [Chronicle client](/chronicle-clients/) before applying this flow.
+
 ```mermaid
 flowchart LR
     Browser["Browser or API client"] --> Proxy["AuthProxy<br/>authenticate + resolve tenant"]

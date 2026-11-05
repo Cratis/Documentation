@@ -7,6 +7,8 @@ import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
 Cratis Specifications adds a behavior-driven development (BDD) structure to .NET tests while keeping the xUnit or NUnit runner. The `Cratis.Specifications` namespace supplies the Given/When/Then lifecycle: `Establish()` sets up the context, `Because()` performs the action, and `[Fact]` or `[Test]` methods assert outcomes. `Destroy()` releases resources afterward.
 
+For code-side specs outside .NET, [Testing with Cratis](/testing-with-cratis/) shows TypeScript, Kotlin, and Java command and read-model specs in their own test frameworks, alongside C#. The Given/When/Then approach does not require this .NET library.
+
 Use it when the test needs to explain a rule, not just detect a failure. For example, a developer investigating authentication should be able to find what happens for an admin user and which role the resulting token must contain. The class and folder names below make that behavior visible before the developer reads the setup.
 
 <CardGrid>

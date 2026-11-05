@@ -44,7 +44,7 @@ Three artifacts carry the contract in a Cratis application. Each is plain code i
 
 Given/When/Then maps one to one onto event sourcing. The given is the events that already happened, the when is the command or event under test, and the then is the events, read models or side effects that result. That is why a specification reads in the vocabulary of the event model, and why a domain expert can check it without reading the implementation. [Testing with Cratis](/testing-with-cratis/) shows the mapping in C#, Kotlin, Java and TypeScript, and [Specifications](/specifications/) documents the `Establish()`, `Because()` and `Destroy()` lifecycle.
 
-Here is a real specification from the [Decisions that hold](/decisions-that-hold-walkthrough/) walkthrough. It checks a rule that is easy to get wrong: two callers borrow the last copy of a book at the same time.
+Here is a C# specification from the [Decisions that hold](/decisions-that-hold-walkthrough/) walkthrough. It checks a rule that is easy to get wrong: two callers borrow the last copy of a book at the same time. This example uses the .NET command scenario's concurrency hook; it is not an API shared by every backend. For a first command-and-event spec in TypeScript, Kotlin, Java, or C#, use [Testing with Cratis](/testing-with-cratis/#spec-the-command).
 
 ```csharp
 public class when_the_last_copy_is_borrowed_concurrently : Specification
