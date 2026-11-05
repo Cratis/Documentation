@@ -7,7 +7,7 @@ import { Aside, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
 You run Cratis applications on your own infrastructure. You need to decide how users sign in, how invitations reach people, and how tools such as MCP clients authenticate.
 
-There are three profiles. All of them put [AuthProxy](/authproxy/) at the edge and use signed forwarded identity between AuthProxy and Arc. The profiles differ in where tokens come from.
+There are three profiles. All of them put [AuthProxy](/authproxy/) at the edge, and we recommend configuring signed forwarded identity between AuthProxy and Arc in every one of them. The profiles differ in where tokens come from.
 
 :::note[Available and planned]
 Some components ship today and others are planned. The tables below say which. Planned items are direction, not a delivery commitment; see the [roadmap](/roadmap/). This page is updated as each profile ships.
@@ -56,9 +56,9 @@ Signing in through your provider in a browser does not prove that the same provi
 | Cratis Identity realm that you operate | Consent screen, CLI sign-in, and remote MCP connectors. | **Planned** | |
 | Signed forwarded identity | AuthProxy vouches for identity to Arc. | Available, opt-in | [Signing](/authproxy/configuration/forwarded-identity-signing/) |
 
-## Every profile signs forwarded identity
+## Sign forwarded identity in every profile
 
-AuthProxy authenticates the caller and forwards identity to Arc. AuthProxy can sign that forwarded identity and Arc can verify it. With both sides configured, a backend accepts only identity that AuthProxy vouched for.
+AuthProxy authenticates the caller and forwards identity to Arc. AuthProxy can sign that forwarded identity and Arc can verify it. Signing is opt-in: when both sides are configured, Arc accepts forwarded identity only when its signature verifies.
 
 Signing needs AuthProxy 2.44.0 or later and Arc 22.168.0 or later. See [forwarded identity signing](/authproxy/configuration/forwarded-identity-signing/) in AuthProxy and [signed forwarded identity](/arc/backend/csharp/asp-net-core/signed-forwarded-identity/) in Arc. If you run AuthProxy under Aspire, the [Aspire guide](/authproxy/aspire/#signed-forwarded-identity) covers the pairing.
 
@@ -76,11 +76,11 @@ If you run no onboarding service, your application adds members through its own 
 
 ## Disconnected does not mean one process
 
-A disconnected install makes no call to Cratis cloud. It still runs AuthProxy, Ante, and, in the full profile, an identity host as separate containers on your own network.
+A disconnected install makes no call to Cratis cloud. It still runs AuthProxy, Ante if you use it, and, in the full profile, an identity host as separate containers on your own network.
 
 Packing those components into one process, or embedding identity in your application's host, would be a different, optional compact deployment. That is not what disconnected means, and it is not offered as a profile.
 
-The minimal profile is designed to need no outbound call: personal access tokens are validated locally (**Planned**).
+In the minimal profile, personal access token validation is planned to happen locally, with no outbound call (**Planned**). Browser sign-in still talks to the OIDC provider you configure.
 
 ## What to decide up front
 
