@@ -40,7 +40,7 @@ Add [AuthProxy](/authproxy/) when the application needs authentication, tenant r
 Studio, Screenplay, Stage, Scene, and Prologue support design before implementation. Studio is a paid collaborative workspace built on Chronicle. Arc, Chronicle, and Components do not depend on these modeling tools, so you can build directly in code. Generated output still needs review.
 </Aside>
 
-In .NET, the [`Cratis` package](/arc/backend/csharp/chronicle/cratis-package/)'s `AddCratis`/`UseCratis` calls configure and activate Arc and the Chronicle client in the application host. The Chronicle kernel runs separately; the client connects to it over gRPC. Kotlin, Java, and TypeScript backends wire Arc and Chronicle through their own hosts: `io.cratis:cratis` is the single dependency for a Spring Boot application, and [`@cratis/cratis`](/arc/backend/typescript/chronicle/cratis-package/) registers both with one builder call in Node.js (available from source, not published to npm). [Arc backends](/arc/backend/) compares the hosts.
+In .NET, the [`Cratis` package](/arc/backend/csharp/chronicle/cratis-package/)'s `AddCratis`/`UseCratis` calls configure and activate Arc and the Chronicle client in the application host. The Chronicle kernel runs separately; the client connects to it over gRPC. Kotlin, Java, and TypeScript backends wire Arc and Chronicle through their own hosts: `io.cratis:cratis` is the single dependency for a Spring Boot application, and [`@cratis/cratis`](/arc/backend/typescript/chronicle/cratis-package/) registers both with one builder call in Node.js (published on npm at 1.0.0). [Arc backends](/arc/backend/) compares the hosts.
 
 To connect Arc and Chronicle, follow the guide for your backend: [Integrate with Chronicle](/arc/backend/csharp/chronicle/) for C#, the [Chronicle guide for Kotlin and Java](/arc/backend/kotlin/guides/chronicle/), or the [Chronicle integration for TypeScript](/arc/backend/typescript/chronicle/). Each explains how a handler's return becomes an event, how the event source id selects its stream, and how a query serves the projected read model.
 
@@ -227,7 +227,7 @@ The .NET client ships with Chronicle itself. See [Chronicle in your language](/c
 
 <CardGrid>
   <SimpleCard title="Build a full-stack feature" icon="open-book" link="/build-a-full-app/">
-    Add one slice — command, event, projection, query, and React screen. C# and JVM paths start from a template; the TypeScript backend is available from source, not npm, and starts from a sample.
+    Add one slice — command, event, projection, query, and React screen. C# and JVM paths start from a template; the TypeScript backend is published on npm at 1.0.0 and starts from a sample.
   </SimpleCard>
   <SimpleCard title="Get started with Chronicle" icon="rocket" link="/chronicle/get-started/">
     Start a local kernel and watch one event flow through a projection and a reactor, in the client language you use.

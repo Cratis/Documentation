@@ -16,7 +16,7 @@ Compare the [day-to-day changes](#what-changes-day-to-day) with the work your ap
 </TopicHero>
 
 <Aside type="note" title="Choose the integration for your backend">
-Cratis Chronicle also has [TypeScript, Kotlin/Java, and Elixir clients](/chronicle-clients/). Cratis Arc backend capabilities differ by language. For Arc and Chronicle together, follow the [C# integration](/arc/backend/csharp/chronicle/), [Kotlin and Java integration](/arc/backend/kotlin/guides/chronicle/), or [TypeScript integration from source](/arc/backend/typescript/chronicle/). Check the [support matrix](/compatibility/#support-matrix) and each backend's capabilities before choosing a path.
+Cratis Chronicle also has [TypeScript, Kotlin/Java, and Elixir clients](/chronicle-clients/). Cratis Arc backend capabilities differ by language. For Arc and Chronicle together, follow the [C# integration](/arc/backend/csharp/chronicle/), [Kotlin and Java integration](/arc/backend/kotlin/guides/chronicle/), or [TypeScript integration](/arc/backend/typescript/chronicle/). Check the [support matrix](/compatibility/#support-matrix) and each backend's capabilities before choosing a path.
 </Aside>
 
 <span id="the-developer-payoff"></span>
@@ -213,7 +213,7 @@ For event sourcing, Cratis's default recommendation is yes for information syste
 
 For a throwaway prototype, decide what you need to demonstrate. Evaluate event history or a typed command/query boundary in a small slice if either is part of the question. If neither is, leave Cratis out of the prototype.
 
-When *neither* fits — a couple of static pages, say — Cratis is more than you need, and that's fine. Your backend language narrows the choice more than it rules Cratis out: Arc's released backends are C# and Kotlin/Java, with a TypeScript backend available from source, not npm, while Chronicle also has [TypeScript and Elixir clients](/chronicle-clients/), and any language with a gRPC implementation can [implement its contracts](/chronicle/building-a-client/).
+When *neither* fits — a couple of static pages, say — Cratis is more than you need, and that's fine. Your backend language narrows the choice more than it rules Cratis out: Arc's backends are C#, Kotlin/Java, and TypeScript (published on npm at 1.0.0, without full .NET parity), while Chronicle also has [TypeScript and Elixir clients](/chronicle-clients/), and any language with a gRPC implementation can [implement its contracts](/chronicle/building-a-client/).
 
 ## Try modeled behavior before generating an application
 

@@ -11,7 +11,7 @@ By the end of this Cratis Platform tutorial, you can register an author and see 
 
 You build that flow with [Cratis Arc](/arc/) handling the command, [Cratis Chronicle](/chronicle/) recording the event and deriving the author list as a read model, a view shaped for the screen, and [Cratis Components](/components/) supplying the command dialog. The screen calls the backend through generated TypeScript proxies rather than a hand-written API wrapper. Together, the command, event, read model, query, and screen form a vertical slice: the code for one behavior kept together.
 
-Choose C#, Kotlin, Java, or TypeScript for the backend. The TypeScript backend is source-only, with no published npm package or scaffold, so you start it from a sample. The table below explains the backend differences; do not assume the implementations have identical capabilities.
+Choose C#, Kotlin, Java, or TypeScript for the backend. The TypeScript backend is published on npm at 1.0.0 but has no scaffold yet, so you start it from a sample. The table below explains the backend differences; do not assume the implementations have identical capabilities.
 
 [First projection](/learning-paths/#first-projection) follows cart events into a read model in a C# console program. That journey stops before HTTP and React. Here, you build the later API/UI slice in a different domain: library authors. For the C# path, trace the command and event in step 3, the read model and query in step 4, and the dialog and screen in step 5.
 
@@ -53,9 +53,9 @@ For brevity, the C# slice keeps its four types (`AuthorId`, `RegisterAuthor`, `A
 
 Run `dotnet new cratis --language Kotlin -o Library` or `dotnet new cratis --language Java -o Library`. With JDK 17 active, run `docker compose up -d`, `./gradlew build`, then `./gradlew bootRun` from `Library/`. Start the Vite frontend separately, following the generated [Kotlin](https://github.com/Cratis/Templates/blob/main/Templates/Cratis.Kotlin/README.md) or [Java](https://github.com/Cratis/Templates/blob/main/Templates/Cratis.Java/README.md) README. The Gradle build generates the proxies under `build/generated/arc-proxies/`.
 
-### TypeScript from source
+### TypeScript from npm
 
-There is [no TypeScript scaffold yet](https://github.com/Cratis/Templates/issues/61). Start from the [Arc TypeScript Library sample](https://github.com/Cratis/Arc.TypeScript/tree/main/Samples/Library): from the Arc.TypeScript repository root run `yarn install`, `docker compose -f Samples/Library/docker-compose.yml up -d`, then `yarn workspace @cratis/arc.sample.library dev`.
+There is [no TypeScript scaffold yet](https://github.com/Cratis/Templates/issues/61). The Arc packages are published on npm at 1.0.0: install `@cratis/platform` to get Arc and Chronicle together, or add individual packages such as `@cratis/arc.core` and a host adapter (`@cratis/arc.express`, `@cratis/arc.fastify` or `@cratis/arc.hono`). Follow the [Arc TypeScript Library sample](https://github.com/Cratis/Arc.TypeScript/tree/main/Samples/Library) as the reference layout: from the Arc.TypeScript repository root run `yarn install`, `docker compose -f Samples/Library/docker-compose.yml up -d`, then `yarn workspace @cratis/arc.sample.library dev`. The Chronicle integration (`@cratis/arc.chronicle`) remains bounded and experimental.
 
 The TypeScript tabs mirror the sample's `Features/Authors/AuthorId.ts`, `AuthorName.ts`, `Registration/Registration.ts` and `Listing/Listing.ts`, without its `Librarian` role, unique-name constraint and `authorsPage` query; [`AuthorName.ts`](https://github.com/Cratis/Arc.TypeScript/blob/main/Samples/Library/Features/Authors/AuthorName.ts) adds the name validation. The sample builds its proxies beside each feature as `*.proxy.ts`; see its README for setup and the local-only development identity.
 
@@ -65,7 +65,7 @@ The scaffolded C# and JVM Compose configurations start a separate Chronicle serv
 
 Each backend follows the same feature flow, but its host registration, access defaults, and read-model implementation differ. Use this table when you reach the named step:
 
-| Behavior | C# | Kotlin and Java | TypeScript (source-only) |
+| Behavior | C# | Kotlin and Java | TypeScript |
 | --- | --- | --- | --- |
 | Host change (step 1) | None; the scaffold's `AddCratis` host | Add the author types to `KnownClientArtifacts` | None; the Library sample's host |
 | Author id in the generated proxy (step 2) | `Guid`, from `EventSourceId<Guid>` | `Guid`, from a UUID-backed concept | `Guid`, from `ConceptAs<Guid>` |

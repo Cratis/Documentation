@@ -5,7 +5,7 @@ description: Use Arc's useChangeStream() hook to react to new chat messages, mai
 
 Use Arc's `useChangeStream()` hook when a new chat message should trigger more than a list update: scroll to the bottom if the reader is already there, or show an unread count if they have scrolled up. The hook exposes a `ChangeSet` containing `added`, `replaced`, and `removed` items, while your component owns the displayed message list.
 
-Start from the [in-memory guide](/scenarios/chat/in-memory/) and replace only its React component. Keep its backend in your chosen language. Arc for TypeScript is available from source, not npm, and does not have full .NET parity.
+Start from the [in-memory guide](/scenarios/chat/in-memory/) and replace only its React component. Keep its backend in your chosen language. Arc for TypeScript is published on npm at 1.0.0 and does not have full .NET parity.
 
 ## When to use this pattern
 
