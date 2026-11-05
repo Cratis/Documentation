@@ -258,7 +258,10 @@ products:
         #   - migrate-to-fundamentals.md: a Kotlin/Java-client-only breaking-change migration
         #     guide for adopting io.cratis:fundamentals (concepts and correlation ids) — no
         #     shared or other per-client page covers this migration.
-        kotlin: 13
+        #   - compensation.md: documents the Kotlin/Java @CompensationFor annotation and
+        #     compensate append API. The shared events/compensation page covers the concept
+        #     and kernel rules only, with no multi-client snippet coverage.
+        kotlin: 14
         elixir: 0
         typescript: 0
 
