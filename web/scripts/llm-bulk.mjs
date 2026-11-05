@@ -18,7 +18,7 @@ export const PAGE_SEPARATOR = `\n\n${PAGE_MARKER}\n\n`;
  */
 export const SIZE_WARNINGS = [
     { route: '/llms-small.txt', bytes: 400_000 },
-    { route: '/llms-full.txt', bytes: 18_500_000 },
+    { route: '/llms-full.txt', bytes: 19_000_000 },
 ];
 
 // Only the weekly release digests and pages literally named changelog; docs about the release

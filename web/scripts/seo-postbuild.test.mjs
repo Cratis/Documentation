@@ -50,17 +50,17 @@ describe('SEO post-build', () => {
         await writeFile(full, '');
         // Sparse files exercise byte thresholds without generating documentation content.
         await truncate(small, 400_001);
-        await truncate(full, 18_500_001);
+        await truncate(full, 19_000_001);
         // Expected failures must not become GitHub Actions error annotations.
         const errors = t.mock.method(console, 'error', () => {});
         const result = await checkLlmBudgets(dist, { enforce: true });
         assert.equal(result.failed, true);
-        assert.deepEqual(result.exceeded.map(item => item.bytes), [18_500_001, 400_001]);
+        assert.deepEqual(result.exceeded.map(item => item.bytes), [19_000_001, 400_001]);
         // Non-boundary sizes prove reporting is the disk size, not a budget+1 sentinel.
         await truncate(small, 410_739);
-        await truncate(full, 18_623_456);
+        await truncate(full, 19_123_456);
         const measured = await checkLlmBudgets(dist, { enforce: true });
-        assert.deepEqual(measured.exceeded.map(item => item.bytes), [18_623_456, 410_739]);
+        assert.deepEqual(measured.exceeded.map(item => item.bytes), [19_123_456, 410_739]);
         assert.equal(errors.mock.calls.length, 4);
         errors.mock.restore();
         const run = (enforce) => {
@@ -79,9 +79,9 @@ describe('SEO post-build', () => {
         assert.equal(enforced.status, 1, enforced.stderr);
         assert.match(enforced.stderr, /::error title=LLM export size::/);
         assert.match(enforced.stderr, /llms-small\.txt is 410739 bytes/);
-        assert.match(enforced.stderr, /llms-full\.txt is 18623456 bytes/);
+        assert.match(enforced.stderr, /llms-full\.txt is 19123456 bytes/);
         await truncate(small, 400_000);
-        await truncate(full, 18_500_000);
+        await truncate(full, 19_000_000);
         const atBudget = run('1');
         assert.equal(atBudget.status, 0, atBudget.stderr);
         assert.doesNotMatch(atBudget.stderr, /LLM export size/);
