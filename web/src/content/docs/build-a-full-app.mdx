@@ -41,15 +41,17 @@ Frames 01–03 show the command pattern: intent → fact. Frames 03–05 show th
 
 Start the backend and frontend for one language before adding the author feature. Use the matching setup below; the steps that follow assume that host is in place.
 
+Before running `docker compose up`, check the generated `docker-compose.yml` (or `Samples/Library/docker-compose.yml` for TypeScript). The current templates and Library sample bind published ports to loopback, for example `"127.0.0.1:35000:35000"`. If your copy has mappings without a host IP, override them by replacing each mapping with a loopback-bound one: `"35000:35000"` becomes `"127.0.0.1:35000:35000"`. Keep the existing host and container port numbers for every service, including the database and dashboard; for example, `"4317:18889"` becomes `"127.0.0.1:4317:18889"`. Replace the original mappings rather than adding a second set. Run `docker compose config` (with `-f Samples/Library/docker-compose.yml` for TypeScript) and confirm every published port has `host_ip: 127.0.0.1` before starting containers.
+
 ### C#
 
-Install the [.NET 10 template](https://github.com/Cratis/Templates#how-to-use) and run `dotnet new cratis -o Library`. The [buildable Capstone sample](https://github.com/Cratis/Samples/tree/main/Capstone) contains this exact slice. From `Library/`, run `docker compose up -d`, `dotnet build`, then `dotnet run`. The development Compose file exposes its ports on all interfaces; bind them to `127.0.0.1` or use a trusted machine. Start the Vite frontend with the package manager selected by your scaffold (for example, `npm run dev`).
+Install the [.NET 10 template](https://github.com/Cratis/Templates#how-to-use) and run `dotnet new cratis -o Library`. The [buildable Capstone sample](https://github.com/Cratis/Samples/tree/main/Capstone) contains this exact slice. From `Library/`, run `docker compose up -d`, `dotnet build`, then `dotnet run`. Start the Vite frontend with the package manager selected by your scaffold (for example, `npm run dev`).
 
 For brevity, the C# slice keeps its four types (`AuthorId`, `RegisterAuthor`, `AuthorRegistered`, `Author`) in one `Authors/` folder at the project root; the generated proxies land beside them, which is why the screen below imports `./RegisterAuthor` and `./Author`.
 
 ### Kotlin or Java
 
-Run `dotnet new cratis --language Kotlin -o Library` or `dotnet new cratis --language Java -o Library`. With JDK 17 active, run `docker compose up -d`, `./gradlew build`, then `./gradlew bootRun` from `Library/`. As with C#, the development Compose file exposes its ports on all interfaces; bind them to `127.0.0.1` or use a trusted machine. Start the Vite frontend separately, following the generated [Kotlin](https://github.com/Cratis/Templates/blob/main/Templates/Cratis.Kotlin/README.md) or [Java](https://github.com/Cratis/Templates/blob/main/Templates/Cratis.Java/README.md) README. The Gradle build generates the proxies under `build/generated/arc-proxies/`.
+Run `dotnet new cratis --language Kotlin -o Library` or `dotnet new cratis --language Java -o Library`. With JDK 17 active, run `docker compose up -d`, `./gradlew build`, then `./gradlew bootRun` from `Library/`. Start the Vite frontend separately, following the generated [Kotlin](https://github.com/Cratis/Templates/blob/main/Templates/Cratis.Kotlin/README.md) or [Java](https://github.com/Cratis/Templates/blob/main/Templates/Cratis.Java/README.md) README. The Gradle build generates the proxies under `build/generated/arc-proxies/`.
 
 ### TypeScript from source
 
@@ -159,7 +161,11 @@ The screen below is the shared React flow from the [compiled C# Capstone sample]
    <Route path='/authors' element={<Authors />} />
    ```
 
-   Open `/authors` in the browser, choose **Add author**, and submit an author. Wait for projection processing, then check that the new name appears in the list without refreshing. If the command succeeds but the name does not appear, check the projection and the query before changing the screen.
+   Open `/authors` in the browser, choose **Add author**, and submit an author. Wait for projection processing, then check that the new name appears in the list without refreshing. If the command succeeds but the name does not appear:
+
+   - Confirm that `AuthorRegistered` was appended and that its `name` maps to the author read model, following [Chronicle's empty or out-of-date read model checks](/chronicle/troubleshooting/#my-read-model-is-empty-or-out-of-date). On Kotlin and Java, check the reducer's mapping instead of a projection.
+   - Check for observer failures in the Workbench or with `cratis chronicle diagnose`; [Chronicle diagnostics](/chronicle/operations/diagnostics/) explains how to inspect observers and failed partitions.
+   - In the browser's Network panel, inspect the author query's connection and incoming data for the submitted id and name. If the query receives the author but the list stays empty, inspect `authors.data` in React. If no data arrives, use [observable query diagnostics](/arc/frontend/react/queries/observable-query-diagnostics/) to check `subscribed` and `hasResult` before changing the screen.
 
 </Steps>
 

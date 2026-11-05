@@ -17,6 +17,13 @@ function staticText(expression) {
     return '';
 }
 
+function attributeText(node, name) {
+    const value = attribute(node, name);
+    if (typeof value === 'string') return value;
+    // A static string expression is text, not executable content.
+    return staticText(value?.data?.estree?.body?.[0]?.expression);
+}
+
 function labelOf(node) {
     for (const name of ['label', 'title', 'text']) {
         const value = attribute(node, name);
@@ -27,6 +34,15 @@ function labelOf(node) {
         if (text) return text;
     }
     return '';
+}
+
+function componentHeading(node) {
+    const label = labelOf(node);
+    if (!label) return '';
+    const href = attributeText(node, 'href') || attributeText(node, 'link');
+    const title = href ? `[${label}](${href})` : `**${label}**`;
+    const description = attributeText(node, 'description');
+    return description ? `${title} — ${description}` : title;
 }
 
 // Attribute expressions and quoted values may themselves contain > characters.
@@ -73,11 +89,9 @@ export function stripMdxSyntax(source) {
         }
         if (['mdxJsxFlowElement', 'mdxJsxTextElement'].includes(node.type) && (!node.name || /^[A-Z]/.test(node.name))) {
             const tagEnd = openingTagEnd(body, start);
-            const label = labelOf(node);
-            const href = attribute(node, 'href');
-            const title = label && (typeof href === 'string' ? `[${label}](${href})` : `**${label}**`);
+            const heading = componentHeading(node);
             const isFlow = node.type === 'mdxJsxFlowElement';
-            replace(start, tagEnd, title ? `${title}${isFlow ? '\n\n' : ''}` : '');
+            replace(start, tagEnd, heading ? `${heading}${isFlow ? '\n\n' : ''}` : '');
             if (tagEnd < end) replace(body.lastIndexOf('</', end - 1), end);
         }
         for (const child of node.children ?? []) visit(child);

@@ -75,6 +75,21 @@ var label = "<TabItem>";
         assert.doesNotMatch(output, /import |<Tabs>|<Badge>|<LinkCard/);
     });
 
+    it('preserves SimpleCard link props and LinkCard descriptions', () => {
+        const source = '<SimpleCard title="Commands" link="/arc/commands/#handlers" />\n\n<LinkCard title="Events" href="/chronicle/events/" description="Record what happened." />\n';
+        assert.equal(stripMdxSyntax(source), '[Commands](/arc/commands/#handlers)\n\n[Events](/chronicle/events/) — Record what happened.\n');
+    });
+
+    it('preserves static expression card props without evaluating dynamic props', () => {
+        const source = '<SimpleCard title={"Queries"} link={\`/arc/queries/\`} description={"Read the result."} />\n\n<LinkCard title="Dynamic" href={destination} description={summary} />\n';
+        assert.equal(stripMdxSyntax(source), '[Queries](/arc/queries/) — Read the result.\n\n**Dynamic**\n');
+    });
+
+    it('keeps card children after the linked title and description', () => {
+        const source = '<SimpleCard title="Commands" link="/arc/commands/" description="Run a command.">\n\nKeep this explanation.\n\n</SimpleCard>\n';
+        assert.equal(stripMdxSyntax(source), '[Commands](/arc/commands/) — Run a command.\n\nKeep this explanation.\n');
+    });
+
     it('removes expressions outside code but leaves code examples intact', () => {
         const source = 'export const value = 42;\n\nCount: {value}. Use `{value}`. <Badge>{"Preview"}</Badge>\n';
         assert.equal(stripMdxSyntax(source), 'Count: . Use `{value}`. Preview\n');
