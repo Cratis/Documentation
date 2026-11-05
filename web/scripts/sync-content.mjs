@@ -15,6 +15,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
+import { releaseDigestDescription, releaseDigestIndex } from './page-metadata.mjs';
 
 import { existsSync, statSync } from 'node:fs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
@@ -1535,9 +1536,9 @@ async function syncReleaseDigests() {
     const sidebarEntries = [];
     for (const digest of digests) {
         const raw = await fs.readFile(path.join(RELEASE_DIGESTS_SRC, digest.file), 'utf8');
-        const { shortRange, longRange, week, isoYear } = formatReleaseDigestRange(digest.start, digest.end);
+        const { shortRange, longRange, week } = formatReleaseDigestRange(digest.start, digest.end);
         const title = `Release digest: ${longRange} (Week ${week})`;
-        const description = `Cross-repository release digest for the week of ${longRange}, ISO week ${week} of ${isoYear}.`;
+        const description = releaseDigestDescription(longRange, raw);
         const body = stripLeadingH1(convertAlerts(raw));
         const editUrl = sourceEditUrl(path.join(RELEASE_DIGESTS_SRC, digest.file), reposRoot, docRepoRoot);
         const frontmatter = [
@@ -1552,8 +1553,9 @@ async function syncReleaseDigests() {
         sidebarEntries.push({ slug: digest.slug, label: `${shortRange} · Week ${week}` });
     }
 
+    await fs.writeFile(path.join(outDir, 'index.md'), releaseDigestIndex(sidebarEntries, RELEASE_DIGESTS_ROUTE));
     await fs.writeFile(genPath, JSON.stringify(sidebarEntries, null, 2) + '\n');
-    console.log(`[sync] release-digests: ${digests.length} pages -> ${path.relative(webRoot, outDir)}`);
+    console.log(`[sync] release-digests: ${digests.length} pages plus index -> ${path.relative(webRoot, outDir)}`);
 }
 
 // Emit one Diataxis-bucketed sidebar per product as a `starlight-sidebar-topics`

@@ -35,6 +35,83 @@ function proseText(node, includeLinks = true) {
     return '';
 }
 
+function wordLimitedGeneratedDescription(text) {
+    if (Array.from(text).length <= 160) return text;
+    const words = [];
+    let length = 0;
+    for (const word of text.split(' ')) {
+        const nextLength = length + (words.length ? 1 : 0) + Array.from(word).length;
+        if (nextLength > 159) break; // Leave room for the ellipsis.
+        words.push(word);
+        length = nextLength;
+    }
+    return words.join(' ').replace(/[.,:;]+$/, '') + '…';
+}
+
+/** Bound generator-owned descriptions without changing authored product metadata. */
+export function generatedDescription(subject, suffix) {
+    const description = wordLimitedGeneratedDescription(subject.replace(/\s+/g, ' ').trim());
+    return Array.from(description).length >= 120
+        ? description
+        : wordLimitedGeneratedDescription(`${description} ${suffix}`);
+}
+
+const DIGEST_SECTION_HEADINGS = /^(?:added|changed|fixed|removed|security|deprecated|week in numbers|version movement|summary|releases?|release notes)$/i;
+const DIGEST_DESCRIPTION_SUFFIX = 'Weekly changes across the Cratis repositories, with links to release notes and related pull requests.';
+export const RELEASE_DIGEST_INDEX_DESCRIPTION = 'Weekly Cratis release digests grouped by date, with product changes, published versions and links to the original release notes and pull requests.';
+
+function markdownText(node) {
+    return node.value ?? (node.children ?? []).map(markdownText).join('');
+}
+
+function releasedProducts(raw) {
+    const tree = fromMarkdown(raw);
+    const releases = new Set();
+    function visit(node) {
+        const match = node.type === 'link' && /^https:\/\/github\.com\/Cratis\/([^/]+)\/releases(?:\/|$)/i.exec(node.url);
+        if (match) releases.add(match[1]);
+        for (const child of node.children ?? []) visit(child);
+    }
+    visit(tree);
+
+    // Existing digests group release bullets by change type; also support
+    // product headings. Code samples and ordinary prose are not products.
+    const headings = tree.children
+        .filter((node) => node.type === 'heading' && node.depth > 1)
+        .map(markdownText)
+        .map((heading) => heading.replace(/\s+(?:[-–—:]\s*)?v?\d+\.\d+.*$/, '').trim())
+        .filter((heading) => !DIGEST_SECTION_HEADINGS.test(heading));
+    return [...new Set(releases.size ? releases : headings)]
+        .filter((product) => product && !/jasperfx/i.test(product));
+}
+
+export function releaseDigestDescription(longRange, raw) {
+    const products = releasedProducts(raw);
+    const subject = products.length ? `Cratis releases for ${longRange}: ${products.join(', ')}.` : `Cratis release digest for ${longRange}.`;
+    return generatedDescription(subject, DIGEST_DESCRIPTION_SUFFIX);
+}
+
+export function releaseDigestIndex(entries, route = 'release-digests') {
+    return [
+        '---',
+        'title: Release digests',
+        `description: ${JSON.stringify(RELEASE_DIGEST_INDEX_DESCRIPTION)}`,
+        'editUrl: false',
+        '---',
+        '',
+        'Weekly release notes across the Cratis repositories, newest first.',
+        '',
+        ...entries.map(({ slug, label }) => `- [${label}](/${route}/${slug}/)`),
+        '',
+    ].join('\n');
+}
+
+export function apiPageDescription(encodedName) {
+    const name = markdownText(fromMarkdown(encodedName));
+    const subject = /jasperfx/i.test(name) ? 'External dependency API reference.' : `API reference for ${name}.`;
+    return generatedDescription(subject, 'Types, members, signatures and related namespaces in the Cratis documentation, with reference details for integrating libraries into applications.');
+}
+
 export function shortenDescription(text) {
     const normalized = text.replace(/\s+/g, ' ').trim();
     if (normalized.length <= 155) return normalized;

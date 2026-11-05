@@ -23,10 +23,20 @@ describe('SEO post-build', () => {
         const html = '<html><head><title>Foo &amp; Bar | API</title></head></html>';
         const out = withCanonicalAndDescription(html, 'dotnet/Foo.html');
         assert.match(out, /rel="canonical" href="https:\/\/www.cratis.io\/api\/dotnet\/Foo.html"/);
-        assert.match(out, /name="description" content="Foo &amp; Bar — API reference/);
+        assert.match(out, /name="description" content="API reference for Foo &amp; Bar\./);
         const redirect = '<head><meta http-equiv="refresh" content="0;url=x"></head>';
         assert.equal(withCanonicalAndDescription(redirect, 'a.html'), redirect);
         assert.equal(apiPageUrl('dotnet/index.html'), 'https://www.cratis.io/api/dotnet/');
+    });
+
+    it('escapes generated API descriptions and preserves authored descriptions', () => {
+        const out = withCanonicalAndDescription('<head><title>Foo&lt;T&gt; &amp; &quot;Bar&quot; | API</title></head>', 'dotnet/Foo.html');
+        assert.match(out, /content="API reference for Foo&lt;T&gt; &amp; &quot;Bar&quot;\./);
+        assert.doesNotMatch(out, /&amp;amp;|&amp;lt;/);
+        const authored = '<head><meta name="description" content="Authored description"><title>Foo | API</title></head>';
+        const preserved = withCanonicalAndDescription(authored, 'dotnet/Foo.html');
+        assert.match(preserved, /content="Authored description"/);
+        assert.equal((preserved.match(/name="description"/g) ?? []).length, 1);
     });
 
     it('reads dateModified from JSON-LD', () => {
@@ -44,6 +54,7 @@ describe('SEO post-build', () => {
         await mkdir(dist);
         await copyFile(path.join(here, 'seo-postbuild.mjs'), path.join(scripts, 'seo-postbuild.mjs'));
         await symlink(path.join(here, 'llm-bulk.mjs'), path.join(scripts, 'llm-bulk.mjs'));
+        await symlink(path.join(here, 'page-metadata.mjs'), path.join(scripts, 'page-metadata.mjs'));
         const small = path.join(dist, 'llms-small.txt');
         const full = path.join(dist, 'llms-full.txt');
         await writeFile(small, '');

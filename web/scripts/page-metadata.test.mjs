@@ -3,9 +3,124 @@
 
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { contextualTitle, deriveDescription, glossaryTerms, hubTitle, markdownMirrorHref, pageLanguage, hasDuplicateTitle, normalizedPageKey, pageDescription, serializeStructuredData, shortenDescription, structuredData } from './page-metadata.mjs';
+import { RELEASE_DIGEST_INDEX_DESCRIPTION, apiPageDescription, contextualTitle, deriveDescription, glossaryTerms, hubTitle, markdownMirrorHref, pageLanguage, hasDuplicateTitle, normalizedPageKey, pageDescription, releaseDigestDescription, releaseDigestIndex, serializeStructuredData, shortenDescription, structuredData } from './page-metadata.mjs';
 
 const prose = 'Chronicle stores events and builds read models for your application.';
+
+function assertDescriptionLength(description) {
+    const length = Array.from(description).length;
+    assert.ok(length >= 120 && length <= 160, `Description length: ${length}`);
+}
+
+describe('generated release digest descriptions', () => {
+    it('includes product headings and the full date range', () => {
+        const range = 'December 28, 2026 - January 4, 2027';
+        const raw = '# Release digest\n\n## **Chronicle** v19.0.0\n\n### Added\n\n## Arc\n\n## Arc\n\n### Fixed\n';
+        const description = releaseDigestDescription(range, raw);
+        assert.ok(description.startsWith(`Cratis releases for ${range}: Chronicle, Arc.`));
+        assertDescriptionLength(description);
+    });
+
+    it('identifies released repositories, not incidental mentions or code examples', () => {
+        const raw = `## Added
+
+- **Chronicle** ([Release v19](https://github.com/Cratis/Chronicle/releases/tag/v19)): Added observers.
+- **Chronicle** ([Release v20](https://github.com/Cratis/Chronicle/releases/tag/v20)): Fixed observers.
+- **Arc** ([Release v22](https://github.com/Cratis/Arc/releases/tag/v22)): Updated commands.
+- [Unreleased](https://github.com/Cratis/Unreleased/issues/1)
+
+\`\`\`md
+## Example
+[Sample](https://github.com/Cratis/Sample/releases/tag/v1)
+\`\`\`
+`;
+        const description = releaseDigestDescription('May 18 - 25, 2026', raw);
+        assert.match(description, /: Chronicle, Arc\./);
+        assert.doesNotMatch(description, /Unreleased|Example|Sample|Added/);
+    });
+
+    it('pads short inputs and respects inclusive length boundaries', () => {
+        const range = 'May 18 - 25, 2026';
+        const prefix = `Cratis releases for ${range}: `;
+        for (const length of [119, 120, 159, 160, 161]) {
+            const product = 'X'.repeat(length - prefix.length - 1);
+            const description = releaseDigestDescription(range, `## ${product}`);
+            assertDescriptionLength(description);
+            if (length >= 120 && length <= 160) {
+                assert.equal(description, `${prefix}${product}.`);
+                assert.doesNotMatch(description, /Weekly changes/);
+            } else {
+                assert.match(description, /Weekly changes/);
+            }
+            if (length === 161) assert.doesNotMatch(description, /X/); // Never cut a product mid-word.
+        }
+    });
+
+    it('handles empty and very short content without invented products', () => {
+        for (const raw of ['', '## Added\n\nNothing released.', '## A', '## JasperFX\n\n## JasperFX.Tools']) {
+            const description = releaseDigestDescription('May 18 - 25, 2026', raw);
+            assertDescriptionLength(description);
+            assert.match(description, /Weekly changes/);
+            assert.doesNotMatch(description, /Added|Nothing|JasperFX|Learn how to|This page/i);
+            assert.equal(description, releaseDigestDescription('May 18 - 25, 2026', raw));
+        }
+    });
+
+    it('truncates long inputs at word boundaries and counts Unicode characters', () => {
+        const product = `Chronicle ${'extended '.repeat(40).trim()}`;
+        const description = releaseDigestDescription('May 18 - 25, 2026', `## ${product}`);
+        assertDescriptionLength(description);
+        assert.match(description, /Chronicle(?: extended)+…$/);
+        assert.doesNotMatch(description, /Weekly changes/);
+
+        const range = 'May 18 - 25, 2026';
+        const prefix = `Cratis releases for ${range}: `;
+        const unicodeProduct = '𐐀'.repeat(159 - prefix.length - 1);
+        assert.equal(releaseDigestDescription(range, `## ${unicodeProduct}`), `${prefix}${unicodeProduct}.`);
+    });
+
+    it('gives the generated index its own description and preserves the supplied week order', () => {
+        const index = releaseDigestIndex([
+            { slug: '2026-05-25-to-2026-06-01', label: 'May 25 - June 1, 2026 · Week 22' },
+            { slug: '2026-05-18-to-2026-05-25', label: 'May 18 - 25, 2026 · Week 21' },
+        ]);
+        assert.ok(index.startsWith(`---\ntitle: Release digests\ndescription: ${JSON.stringify(RELEASE_DIGEST_INDEX_DESCRIPTION)}\n`));
+        assert.match(index, /\[May 25 - June 1, 2026 · Week 22\]\(\/release-digests\/2026-05-25-to-2026-06-01\/\)/);
+        assert.ok(index.indexOf('Week 22') < index.indexOf('Week 21'));
+        assert.ok(index.endsWith('\n'));
+    });
+
+    it('stays unique across weeks, years and the index even with identical long content', () => {
+        const ranges = ['May 18 - 25, 2026', 'May 25 - June 1, 2026', 'May 18 - 25, 2027'];
+        const raw = `## Chronicle ${'extended '.repeat(40)}`;
+        const descriptions = ranges.map((range) => releaseDigestDescription(range, raw));
+        assert.equal(new Set(descriptions).size, ranges.length);
+        ranges.forEach((range, index) => assert.ok(descriptions[index].includes(range)));
+        assertDescriptionLength(RELEASE_DIGEST_INDEX_DESCRIPTION);
+        assert.ok(!descriptions.includes(RELEASE_DIGEST_INDEX_DESCRIPTION));
+    });
+});
+
+describe('generated API descriptions', () => {
+    it('bounds short, long, empty and Unicode names without splitting words', () => {
+        for (const name of ['', 'A', 'Chronicle.EventStore', '𐐀'.repeat(200), 'Long '.repeat(80)]) {
+            const description = apiPageDescription(name);
+            assertDescriptionLength(description);
+            assert.doesNotMatch(description, /Learn how to|This page/i);
+            assert.equal(description, apiPageDescription(name));
+        }
+        assert.match(apiPageDescription('Long '.repeat(80)), /(?:Long )+Long…$/);
+        assert.doesNotMatch(apiPageDescription('𐐀'.repeat(200)), /𐐀/);
+    });
+
+    it('keeps distinct type names and decodes HTML entities before measuring', () => {
+        const descriptions = ['Foo', 'Bar', 'Foo&lt;T&gt; &amp; Bar'].map(apiPageDescription);
+        descriptions.forEach(assertDescriptionLength);
+        assert.equal(new Set(descriptions).size, descriptions.length);
+        assert.match(descriptions[2], /^API reference for Foo<T> & Bar\./);
+        assert.doesNotMatch(apiPageDescription('JasperFX.Logging'), /jasperfx/i);
+    });
+});
 
 describe('page descriptions', () => {
     it('uses the first prose paragraph and collapses whitespace', () => {
