@@ -1,19 +1,19 @@
 ---
-title: Event sourcing in Elixir
-description: "Do event sourcing in Elixir with Cratis Chronicle: an open-source (MIT) event-sourcing database with an idiomatic Elixir client on Hex — OTP-native event types, read models, transactions, optimistic concurrency, and resilient reconnection."
+title: Event sourcing in Elixir with Cratis Chronicle
+description: "Use Cratis Chronicle from Elixir to store events and build read models. Start with the Hex package, a supervised client, and an account example."
 ---
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-Chronicle is an open-source (MIT) event-sourcing database and processing runtime, and `cratis_chronicle` is its idiomatic Elixir client. It exposes OTP-native constructs (`use Chronicle.Events.EventType`, `use Chronicle.ReadModels.ReadModel`, `use Chronicle.Reactors.Reactor`, `use Chronicle.Reducers.Reducer`, and `use Chronicle.Seeding.Seeder`) plus model-bound constraints, context-aware appends with process-scoped identity, correlation, and causation metadata, optimistic concurrency, transactions, jobs and webhooks, and automatic reconnection with exponential backoff. The client supervises a connection to the Chronicle kernel as part of your application's supervision tree.
+Cratis Chronicle stores event history for Elixir applications through the `cratis_chronicle` client. Use it when you need to record what happened and derive a read model, a view of those events shaped for your application. The client runs under your application's OTP supervision tree and connects to the Chronicle kernel, the server that stores and processes events.
 
-With event sourcing, every state change is captured as an immutable event instead of an update in place. Chronicle stores those events, and read models are derived from them: declared model-bound projections execute server-side, or you can fold events into read models in your own process with a reducer.
+In the account example below, opening an account records an immutable event rather than overwriting an account row. A projection runs in the kernel to turn that event into an account read model. Elixir reducers offer a different path: they fold events into read models in your own process.
 
-The event store is not BEAM-only. Chronicle's kernel exposes a language-agnostic gRPC/protobuf boundary, and the same store is reachable from the [.NET, TypeScript, and Kotlin/Java clients](/chronicle-clients/) as well. Storage is pluggable: MongoDB by default, with PostgreSQL, SQL Server, SQLite, and in-memory providers implemented in the kernel.
+If you are choosing a language before starting, the [Chronicle client selector](/chronicle-clients/) also covers .NET, TypeScript, and Kotlin/Java. Follow each client's setup and capability documentation for that language.
 
 ## Install
 
-Add `cratis_chronicle` to your dependencies in `mix.exs`, using the current version from [Hex](https://hex.pm/packages/cratis_chronicle):
+You need Elixir 1.18 or later. Add `cratis_chronicle` to your dependencies in `mix.exs`, replacing `<version>` with a version from [Hex](https://hex.pm/packages/cratis_chronicle). Use 3.5.1 or later; 3.5.0 has defects affecting read models, reducers, constraints, and seeding.
 
 ```elixir
 # mix.exs
@@ -28,7 +28,9 @@ end
 
 ## A taste
 
-An event type, a read model projected from it, a supervised client, and an append, from the client repository's quick example. It assumes the Chronicle development kernel on `localhost:35000`; [Get started with Chronicle](/chronicle/get-started/) shows how to run one locally, and the [Elixir client docs](/chronicle/clients/elixir/) cover connection settings, including the development kernel's TLS certificate.
+This example records an account being opened and reads the projected account. It assumes a supervised Mix application named `:my_app` and a Chronicle development kernel on `localhost:35000`. [Get started with Chronicle](/chronicle/get-started/) covers local hosting; follow the [Elixir client guide](/chronicle/clients/elixir/) for the complete Mix project and connection setup.
+
+The event type gives the account-opening fact a stable identity. The read model's `from` declaration tells the kernel how to project it; `otp_app: :my_app` lets the client discover these modules in your application.
 
 ```elixir
 defmodule MyApp.Events.AccountOpened do
@@ -65,7 +67,7 @@ defmodule MyApp.Application do
 end
 ```
 
-The connection string carries the development kernel's well-known credentials. Never use them outside local development.
+The connection string carries the development kernel's well-known credentials. Never use them outside local development. The Elixir client skips TLS certificate validation by default; set `skipTlsValidation=false` and configure trusted certificates for a deployed kernel.
 
 Then, with the application running (for example in `iex -S mix`), wait for the client to register and append:
 
@@ -87,10 +89,10 @@ The append's success does not mean the projection has caught up, so an immediate
 ## Where to go next
 
 <CardGrid>
-  <LinkCard title="Elixir client docs" description="Installation, connection setup, OTP integration, and the full Elixir API surface." href="/chronicle/clients/elixir/" />
+  <LinkCard title="Elixir client docs" description="Build the complete account example, then explore connection settings and OTP integration." href="/chronicle/clients/elixir/" />
   <LinkCard title="Get started with Chronicle" description="Run Chronicle locally and build your first event-sourced feature." href="/chronicle/get-started/" />
-  <LinkCard title="Chronicle.Elixir on GitHub" description="The Elixir client repository — open source, MIT licensed." href="https://github.com/Cratis/Chronicle.Elixir" />
+  <LinkCard title="Chronicle.Elixir on GitHub" description="Client source, examples, and contribution guidance." href="https://github.com/Cratis/Chronicle.Elixir" />
   <LinkCard title="cratis_chronicle on Hex" description="The Elixir client package for Chronicle." href="https://hex.pm/packages/cratis_chronicle" />
 </CardGrid>
 
-Looking for another language? See [Chronicle in your language](/chronicle-clients/) for the .NET, TypeScript, Kotlin/Java, and experimental Go clients.
+Looking for another language? See [Chronicle in your language](/chronicle-clients/) for the .NET, TypeScript, Kotlin/Java, and Go clients.

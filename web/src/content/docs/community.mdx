@@ -1,16 +1,16 @@
 ---
-title: Community and help
+title: Cratis community and help
 description: Join the Cratis Discord community, ask questions, report issues in the right repository, and find the right source for help.
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
-You do not need to be a customer, a contributor, or an event-sourcing expert to ask for help. Cratis is an open community, and we are glad to help people who are evaluating the stack, building their first slice, debugging a running store, or trying to understand the model.
+The [Cratis Discord community](https://discord.gg/kt4AMpV8WV) is the place to ask questions about evaluating, building with, or operating Cratis Platform components. You do not need to be a customer or contributor. Community help is best-effort, with no guaranteed response time; use GitHub issues for reproducible bugs and proposals that need a lasting record.
 
-The place to start a conversation is the [Cratis Discord community](https://discord.gg/kt4AMpV8WV). Bring the question you have, even if it is not polished yet. In the help forum and the dedicated ask channel, [Prompter](/prompter/), the community's documentation assistant, answers first on its own, from these docs and with citations, and hands you to a human when the docs do not cover it. Elsewhere on the server, mention it or use `/ask`. Community help from people is best-effort.
+For documentation questions, [Cratis Prompter](/prompter/) answers from the published docs with citations. It responds automatically in the help forum and dedicated ask channel. Elsewhere on the server, mention it or use `/ask`. Follow its source links to check the answer.
 
 <Aside type="caution" title="What you post to Prompter leaves Discord">
-To answer, Prompter sends your question text to external AI services (Anthropic and Voyage AI). It does not store the question, but do not paste secrets, credentials, customer data, or logs that contain personal data. See [Prompter privacy](/prompter/concepts/privacy/).
+Prompter sends your question to Anthropic to generate an answer and Voyage AI to find relevant documentation. It can also include recent messages from the same public channel or thread as context for Anthropic. Prompter does not keep a stored copy of question or answer text. Your posts and any maintainer hand-off messages remain in Discord. Do not paste secrets, credentials, customer data, or logs containing personal data. See [Prompter privacy](/prompter/concepts/privacy/).
 </Aside>
 
 <CardGrid>
@@ -39,7 +39,7 @@ To answer, Prompter sends your question text to external AI services (Anthropic 
 | A suspected vulnerability | [Security](/security/), never a public issue |
 | Contribution workflow, coding standards, or build setup | [Contributing](/contributing/) |
 
-If you are not sure which product owns the problem, ask in Discord first. We can help route it to the right repository.
+If you are not sure which product owns the problem, ask in Discord first. If Prompter cannot answer, ask a person in the same thread. Where the **Ask a human** button is available, the person who asked can use it to notify the configured maintainer role. This requests help; it does not promise a response time.
 
 ## GitHub issue trackers
 
@@ -55,7 +55,7 @@ Use issues when the work needs a durable record: reproducible bugs, feature requ
 | Arc for C#: commands, queries, proxy generation, validation, and backend/frontend integration | [Arc issues](https://github.com/Cratis/Arc/issues) |
 | Arc for Kotlin and Java | [Arc.Kotlin issues](https://github.com/Cratis/Arc.Kotlin/issues) |
 | React components, forms, dialogs, tables, styling, and Storybook | [Components issues](https://github.com/Cratis/Components/issues) |
-| Choreography jobs, workflows, state machines, workers, storage, and startup patching | [Choreography issues](https://github.com/Cratis/Choreography/issues) |
+| Cratis Choreography jobs, workflows, state machines, workers, storage, and startup patching | [Choreography issues](https://github.com/Cratis/Choreography/issues) |
 | AuthProxy | [AuthProxy issues](https://github.com/Cratis/AuthProxy/issues) |
 | CLI commands, diagnostics, `cratis ai`, and `cratis init` | [CLI issues](https://github.com/Cratis/cli/issues) |
 | `dotnet new` project templates | [Templates issues](https://github.com/Cratis/Templates/issues) |
@@ -68,7 +68,7 @@ Use issues when the work needs a durable record: reproducible bugs, feature requ
 You can ask early. When you have the details, include the parts that make the problem reproducible:
 
 - What you are trying to build or decide.
-- Which product you are using: Chronicle, Arc, Components, CLI, Fundamentals, or the full stack.
+- Which Cratis component or combination of components you are using.
 - The package or Docker image versions, if you know them.
 - The command, event, projection, query, component, or configuration involved.
 - The expected behavior and what happened instead.

@@ -1,32 +1,35 @@
 ---
-title: AI skills and plugins
-description: What the Cratis AI corpus contains (rules, skills, prompts, agents, and hooks) and which of them each Cratis plugin and install channel delivers.
+title: Cratis AI skills and plugins
+description: Cratis AI gives coding agents framework guidance. Choose a repository-managed install or a native plugin, and see what each channel delivers.
 ---
 
 import { CardGrid, Aside } from '@astrojs/starlight/components';
 import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
-<TopicHero icon="puzzle" eyebrow="The Cratis Stack" title="Teach your assistant the Cratis way">
-A general-purpose assistant knows C# and TypeScript. It does not know why a Cratis command returns its event from `Handle()`, why a projection consumes events instead of another read model, or why generated proxies are never hand-edited. Cratis AI supplies that framework context as reviewed guidance, so you do not have to repeat it in every prompt.
+<TopicHero icon="puzzle" eyebrow="The Cratis Stack" title="Give your coding agent Cratis context">
+Cratis AI gives coding agents framework guidance for tasks such as writing a command, defining a projection, or changing an existing event type. Install it when you want the agent to work from Cratis conventions without restating them in every prompt. Choose a repository-managed installation for a team, or a native plugin for one coding tool.
 </TopicHero>
 
 ## What the corpus contains
 
-Cratis authors everything in one place, [Cratis/AI](https://github.com/Cratis/AI),
-under `.cratis/ai`. It holds five kinds of content:
+The shared guidance lives in [Cratis/AI](https://github.com/Cratis/AI), under
+`.cratis/ai`. This collection, called the corpus, holds five kinds of content.
+The coding tool's integration, or harness, determines how each kind reaches
+the agent:
 
 | Kind | What it does | Example |
 | --- | --- | --- |
-| **Rules** | Standing guidance the harness loads without being asked; some apply to every file, some only to matching paths | C# and TypeScript conventions, the vertical-slice rules for applications |
-| **Skills** | A focused workflow the agent loads when a task matches | `cratis-chronicle-projection` |
-| **Prompts** | A slash command that starts a workflow | `new-vertical-slice` |
-| **Agents** | Subagent definitions a harness can delegate to | `spec-writer`, `security-reviewer` |
-| **Hooks** | Scripts that run the repository's quality gates at points in an agent session | The Cratis quality gate |
+| Rules | Standing guidance; some applies universally, some only to matching paths | C# and TypeScript conventions, the vertical-slice rules for applications |
+| Skills | A focused workflow the agent can load for a matching task | `cratis-chronicle-projection` |
+| Prompts | Reusable instructions that start a workflow | `new-vertical-slice` |
+| Agents | Subagent definitions a harness can delegate to | `spec-writer`, `security-reviewer` |
+| Hooks | Executable checks and guards connected to supported harness events or tools | The Cratis quality gate |
 
-Skills are Markdown instructions and references. They contain no executable
-code. Hooks run commands, so they only arrive through channels that install
-them into your repository or Pi.
+A skill starts with Markdown instructions and may include references, scripts,
+or other supporting files. Loading its instructions is not the same as running
+a script. Hooks provide executable checks, but their wiring differs by harness;
+an installed rule alone does not enforce a convention.
 
 <span id="one-behavior-several-native-packages"></span>
 
@@ -42,43 +45,51 @@ flowchart LR
 
 | Channel | Rules | Skills | Prompts | Agents | Hooks | Version |
 | --- | --- | --- | --- | --- | --- | --- |
-| `cratis ai install` | Yes, by profile and language | Yes, by profile | Yes | Yes | Yes | Current `main`, or a `--source` checkout |
+| `cratis ai install` | Yes, by profile and language | Yes, by profile | Yes | Yes | By harness | Current default branch, or a `--source` checkout |
 | Marketplace plugin (`cratis@cratis`) | No | All | No | No | No | Default branch, unpinned |
 | `@cratis/pi` | Yes | Yes, by `.cratis/ai.json` if present | Yes | Yes | Yes | npm version |
 
-Every channel reads the same skill files, so a projection skill teaches the
-same thing in Claude Code as in Copilot. The
-[agent harness guide](/ai/harnesses/) has the install command for each tool, and
-[Cratis AI distribution](/ai/trust-and-distribution/) explains the versioning.
+Use the managed CLI path when the repository should carry the team's guidance
+and selected harness adapters. The marketplace plugins for Claude Code, Codex,
+GitHub Copilot, and Cursor expose skills only. Pi's package includes the wider
+integration, without managing other coding tools.
+
+The channels share a source corpus, but the installed revision and harness
+behavior can differ. The [agent harness guide](/ai/harnesses/) gives each tool's
+install command and hook coverage.
+[Cratis AI distribution](/ai/trust-and-distribution/) explains how to update or
+return to an earlier revision.
 
 ## Skills guide complete workflows
 
-A skill is used when a request matches it; the agent then follows a Cratis
-workflow instead of improvising. The skill names start with `cratis-`:
+Choose skills for the work you need to finish. For example,
+`cratis-chronicle-projection` guides projection authoring; the migration skills
+address changes to an existing contract. Product skills use names beginning
+with `cratis-`, grouped here by task:
 
-- **Model before you build**: `cratis-chronicle-event-modeling`,
+- Model before you build: `cratis-chronicle-event-modeling`,
   `cratis-event-model-diagram`, and the `cratis-screenplay-*` skills for
   Screenplay models.
-- **Build one artifact by convention**: `cratis-arc-command`,
+- Build one artifact by convention: `cratis-arc-command`,
   `cratis-arc-command-validation`, `cratis-chronicle-read-model`,
   `cratis-chronicle-projection`, `cratis-chronicle-reducer`,
   `cratis-chronicle-reactor`, `cratis-chronicle-event-constraints`,
   `cratis-fundamentals-concept`, `cratis-arc-react-page`.
-- **Change what already exists**: `cratis-chronicle-event-type-migration`,
+- Change what already exists: `cratis-chronicle-event-type-migration`,
   `cratis-arc-ef-core-migration`.
-- **Compliance and tenancy**: `cratis-chronicle-compliance`,
+- Apply compliance and tenancy requirements: `cratis-chronicle-compliance`,
   `cratis-chronicle-multi-tenancy`,
   `cratis-arc-authentication-authorization-and-identity`.
-- **Specs**: `cratis-application-slice-specifications`,
+- Write behavior specs: `cratis-application-slice-specifications`,
   `cratis-chronicle-event-specifications`,
   `cratis-chronicle-read-model-specifications`, `cratis-specifications-csharp`,
   `cratis-specifications-typescript`.
-- **Review**: `cratis-code-review`, `cratis-security-review`,
+- Review a change: `cratis-code-review`, `cratis-security-review`,
   `cratis-performance-review`.
-- **Operate a running store**: `cratis-chronicle-cli-operations`,
+- Inspect or operate a running store: `cratis-chronicle-cli-operations`,
   `cratis-chronicle-mcp-inspection`, `cratis-cli-terminal-workbench`,
   `cratis-chronicle-web-workbench`.
-- **Client languages**: `cratis-chronicle-client-dotnet`,
+- Work with a specific client: `cratis-chronicle-client-dotnet`,
   `cratis-chronicle-client-typescript`, `cratis-chronicle-client-kotlin`,
   `cratis-chronicle-client-elixir`, and the Kotlin Arc skills.
 
@@ -88,9 +99,10 @@ Prompts start larger workflows: `new-vertical-slice`, `scaffold-feature`,
 `code-review`, and `review-pr`. They come with the managed install and
 `@cratis/pi`, not with the marketplace plugin.
 
-A Cratis framework repository selects an engineering profile instead of an
-application profile, so the application vertical-slice rules are not installed
-there. [Profiles](/ai/profiles/) explains the choice.
+A profile selects the guidance relevant to your repository. Choose an
+application profile when building on Cratis, or an engineering profile when
+working on Cratis itself. That keeps application vertical-slice rules out of a
+framework-only selection. [Profiles](/ai/profiles/) explains how to choose.
 
 <span id="public-packages-stay-passive"></span>
 
@@ -103,11 +115,12 @@ not carry their own way into your store.
 
 ## Do not copy configuration between repositories
 
-Do not copy `.cratis/ai`, `.claude`, `.github`, `.agents`, or `.pi` trees from one
-repository to another. A copy goes stale without anyone noticing, and a
-consuming repository must not become an accidental distributor of the corpus.
-Install through a channel instead, and keep only your project's own context in
-the repository.
+Install shared guidance through a supported channel instead of copying
+`.cratis/ai`, `.claude`, `.github`, `.agents`, or `.pi` trees from another
+repository. A copied tree can carry the other project's assumptions and has no
+managed update path. Keep your own project context separate from managed
+content; the [setup guide](/ai/getting-started/) explains where it belongs and
+which installed files to commit for the team.
 
 <span id="internal-engineering-behavior-is-separate"></span>
 
@@ -118,12 +131,15 @@ profile. See [Use AI as a Cratis maintainer](/ai/cratis-maintainers/).
 
 ## Get the skills and the operating tools today
 
-1. **Coding guidance**: run `cratis ai install` in the repository
-   ([Start using Cratis AI](/ai/getting-started/)), or install a
-   [plugin for one tool](/ai/harnesses/).
-2. **Operating tools**: run `cratis init` in your project to give the assistant
-   the CLI catalog, then connect [Chronicle MCP](/chronicle-mcp/) when your host
-   and authorization policy allow it.
+For coding guidance, follow [Start using Cratis AI](/ai/getting-started/) to
+install into a repository and check that your agent sees the selected skills.
+Use a [native plugin](/ai/harnesses/) if you only need one coding tool.
+
+If the task also needs live-store access, `cratis init` gives the assistant the
+CLI command catalog. Connect [Chronicle MCP](/chronicle-mcp/) separately when
+your host and authorization policy allow it. After an agent changes code, use
+[code analysis](/code-analysis/) to check the framework contracts covered by
+the compiler and lint rules.
 
 ## Where to go next
 

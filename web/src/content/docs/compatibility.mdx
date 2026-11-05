@@ -1,11 +1,13 @@
 ---
 title: Version compatibility
-description: Storage backends, client languages, frontend frameworks, .NET versions, and hosting options Cratis supports, with maturity, and which pairings are verified.
+description: Storage backends, client languages, frontend frameworks, .NET versions, and hosting options Cratis supports, their constraints, and which pairings are verified.
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
-Cratis spans .NET packages, TypeScript packages, JVM and Elixir clients, Docker images, storage engines, and React components. This page records the baseline the current product sources declare, and how the products constrain each other's versions. For exact released package versions, use the package manager and the repository release pages linked from [What's new](/whats-new/).
+Choosing a component and choosing compatible versions are separate decisions. Use the [Cratis Platform capability map](/cratis-stack/#capability-map) to choose components by responsibility. Use this page to check their language, runtime, storage, hosting, and package-version constraints.
+
+Start with the [current baseline](#current-baseline) for requirements and the [support matrix](#support-matrix) for options and constraints. Then check [which pairings are verified](#which-pairings-are-verified) for the combination you plan to use. For exact released package versions, use the package manager and the repository release pages linked from [What's new](/whats-new/).
 
 <CardGrid>
   <LinkCard title="Review releases" description="Use curated release digests and repository releases for exact published versions." href="/whats-new/" />
@@ -36,38 +38,42 @@ Cratis spans .NET packages, TypeScript packages, JVM and Elixir clients, Docker 
 
 ## Support matrix
 
-Chronicle runs on four storage backends, has clients for four languages, and runs in Docker or under .NET Aspire; the tables below give each option and its maturity. Released means the product publishes packages or images; the sources state no further maturity label. [The Cratis Stack](/cratis-stack/#capability-map) lists every product.
+Use this matrix to look up storage, clients, application backends, frontend frameworks, and hosting options. Keep Chronicle clients separate from Arc backends when choosing a language: a client connects to the event store; a backend provides the application's command and query boundary.
 
-| Area | Option | Maturity | Notes |
-|---|---|---|---|
-| Chronicle storage | MongoDB | Released, default | Run as a replica set, even with one node. |
-| Chronicle storage | PostgreSQL | Released | Documented storage choice. |
-| Chronicle storage | Microsoft SQL Server | Released | Documented storage choice. |
-| Chronicle storage | SQLite | Released | Documented storage choice. |
-| Chronicle storage | In-memory | Not durable | For tests, samples, and ephemeral environments only. |
-| Chronicle client | .NET | Released, first-class | `Cratis.Chronicle` on NuGet. |
-| Chronicle client | TypeScript and Node.js | Released | `@cratis/chronicle` on npm. |
-| Chronicle client | Kotlin and Java | Released | `io.cratis:chronicle` on Maven Central. |
-| Chronicle client | Elixir | Released | `cratis_chronicle` on Hex. |
-| Chronicle client | Go | Experimental | [v0.11.0](https://github.com/Cratis/Chronicle.Go/releases/tag/v0.11.0), a v0.x foundation: no observers or projections yet. Install with `go get github.com/cratis/chronicle.go@v0.11.0`. |
-| Chronicle client | Python | Pre-alpha | Not published. |
-| Arc backend | C# on ASP.NET Core | Released | |
-| Arc backend | Kotlin and Java on Spring Boot | Released | |
-| Arc backend | TypeScript on Node.js | Source preview | No package is published. |
-| Arc backend | Go | Early development | [v0.1.1](https://github.com/Cratis/Arc.Go/releases/tag/v0.1.1); the API remains experimental. Install with `go get github.com/cratis/arc.go@v0.1.1`. |
-| Frontend | React | Released | Arc React packages accept React 18 or 19; Components requires React 19. |
-| .NET | .NET 8, 9, and 10 | Released | Arc and Fundamentals package for all three; Chronicle's packaging targets the same. The CLI and the `dotnet new cratis` template target .NET 10. |
-| Hosting | Docker | Released | `cratis/chronicle` image; the `latest-development` image bundles MongoDB and is for development and CI only. |
-| Hosting | Docker Compose | Documented | See [Docker Compose hosting](/chronicle/hosting/docker-compose/). |
-| Hosting | .NET Aspire | Released | `Cratis.Chronicle.Aspire` package; a .NET hosting option only. |
+Publishing packages or images does not establish equal feature coverage across languages or verify a particular package combination. Follow the product's language-specific guide for supported behavior, and use [Which pairings are verified](#which-pairings-are-verified) for version constraints.
 
-Model-first tools (Screenplay, Stage, Prologue) are experimental and Studio is in Preview; see the [capability map](/cratis-stack/#capability-map). The kernel can also run wherever you operate containers, such as Kubernetes; the docs describe Docker, Compose, and Aspire topologies and give no Kubernetes deployment guide.
+| Area | Option | Notes |
+|---|---|---|
+| Chronicle storage | MongoDB | Default storage choice. Run as a replica set, even with one node. |
+| Chronicle storage | PostgreSQL | Documented storage choice. |
+| Chronicle storage | Microsoft SQL Server | Documented storage choice. |
+| Chronicle storage | SQLite | Documented storage choice. |
+| Chronicle storage | In-memory | Not durable; for tests, samples, and ephemeral environments only. |
+| Chronicle client | .NET | First-class client; `Cratis.Chronicle` on NuGet. |
+| Chronicle client | TypeScript and Node.js | `@cratis/chronicle` on npm. |
+| Chronicle client | Kotlin and Java | `io.cratis:chronicle` on Maven Central. |
+| Chronicle client | Elixir | `cratis_chronicle` on Hex. |
+| Chronicle client | Go | [v0.11.0](https://github.com/Cratis/Chronicle.Go/releases/tag/v0.11.0): no observers or projections yet. Install with `go get github.com/cratis/chronicle.go@v0.11.0`. |
+| Chronicle client | Python | Not published. |
+| Arc backend | C# on ASP.NET Core | See the [capability map](/cratis-stack/#capability-map). |
+| Arc backend | Kotlin and Java on Spring Boot | See the [capability map](/cratis-stack/#capability-map). |
+| Arc backend | TypeScript on Node.js | Source only; no package is published. |
+| Arc backend | Go | [v0.1.1](https://github.com/Cratis/Arc.Go/releases/tag/v0.1.1). Install with `go get github.com/cratis/arc.go@v0.1.1`. Check the [capability map](/cratis-stack/#capability-map) for supported behavior. |
+| Frontend | React | Arc React packages accept React 18 or 19; Components requires React 19. |
+| .NET | .NET 8, 9, and 10 | Arc and Fundamentals package for all three; Chronicle's packaging targets the same. The CLI and the `dotnet new cratis` template target .NET 10. |
+| Hosting | Docker | `cratis/chronicle` image; the `latest-development` image bundles MongoDB and is for development and CI only. |
+| Hosting | Docker Compose | See [Docker Compose hosting](/chronicle/hosting/docker-compose/). |
+| Hosting | .NET Aspire | `Cratis.Chronicle.Aspire` package; a .NET hosting option only. |
+
+For model-first tools (Screenplay, Stage, Prologue) and Studio, see the [capability map](/cratis-stack/#capability-map). The kernel can also run wherever you operate containers, such as Kubernetes; the docs describe Docker, Compose, and Aspire topologies and give no Kubernetes deployment guide.
 
 ## Product relationships
 
+This table shows how products connect. A dependency or integration is not by itself a verified version pairing; check the constraints in the next section before choosing versions.
+
 | Product | Common dependency relationship |
 |---|---|
-| Chronicle | Uses Fundamentals and Arc packages internally, exposes a first-class .NET client plus TypeScript, Kotlin/Java, and Elixir clients (and an experimental Go client) over gRPC/protobuf contracts, and can be inspected through the CLI and Workbench. |
+| Chronicle | Uses Fundamentals and Arc packages internally, exposes a first-class .NET client plus TypeScript, Kotlin/Java, and Elixir clients (and a Go client with a limited API surface) over gRPC/protobuf contracts, and can be inspected through the CLI and Workbench. |
 | Arc | Uses Fundamentals and can integrate with Chronicle, MongoDB, Entity Framework Core, ASP.NET Core, OpenAPI, Swagger, and generated TypeScript proxies. |
 | Components | Renders Arc's generated command and query proxies in React. Since Components 4 it owns its markup, types, and styling contract and uses React Aria internally; it no longer depends on PrimeReact. See [UI foundation](/components/ui-foundation/). |
 | CLI | Talks to Chronicle, installs managed AI guidance with `cratis ai`, and writes a CLI command catalog for AI assistants with `cratis init`. |
@@ -75,7 +81,7 @@ Model-first tools (Screenplay, Stage, Prologue) are experimental and Studio is i
 
 ## Which pairings are verified
 
-There is no single numbered matrix that says which Chronicle kernel, Chronicle client, Arc, and Components versions work together. These are the constraints the products state today:
+The constraints below cover different boundaries: Chronicle kernel/client wire compatibility, frontend peer dependencies, and the packages selected by templates. Check the rows that apply to your combination; a constraint at one boundary does not settle compatibility at the others.
 
 | Pairing | What is established |
 |---|---|

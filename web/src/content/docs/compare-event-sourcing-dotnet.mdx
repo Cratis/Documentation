@@ -1,6 +1,6 @@
 ---
-title: "Event sourcing in .NET: KurrentDB, Marten, and Cratis Chronicle"
-description: "Compare KurrentDB 26.0, Marten 9.30.0, and Cratis Chronicle 16.42.0 for .NET event sourcing, with versioned sources and architectural trade-offs."
+title: "C# and .NET event sourcing: KurrentDB, Marten, and Cratis Chronicle"
+description: "Compare KurrentDB, Marten, and Cratis Chronicle for C# and .NET event sourcing: server or library, transaction boundaries, projections, and dated sources."
 head:
   - tag: meta
     attrs:
@@ -10,13 +10,15 @@ head:
 
 import { Aside } from '@astrojs/starlight/components';
 
-KurrentDB, Marten, and Cratis Chronicle all support event-sourced systems, but they make different architectural choices. KurrentDB is a dedicated event database, Marten is an in-process .NET library built on PostgreSQL, and Chronicle is a separate event-sourcing server and processing runtime.
+Choosing an event store for a C# application starts with where you want it to run. KurrentDB is a dedicated event database. Marten runs inside your .NET application and stores events and documents in PostgreSQL. Cratis Chronicle is a separate event-sourcing server that also manages event processing.
 
-This page compares the capabilities where those products overlap. It does not rank them, and it does not compare the Critter Stack as a whole with the wider Cratis ecosystem. For a two-product view, see [Marten vs Chronicle](/compare/marten-vs-chronicle/) or [KurrentDB vs Chronicle](/compare/kurrentdb-vs-chronicle/); [How Cratis writes comparisons](/compare/) explains the method.
+Use this comparison to decide which boundary fits your application, then check the versions and sources for the capabilities you need. For a two-product view, see [Marten vs Chronicle](/compare/marten-vs-chronicle/) or [KurrentDB vs Chronicle](/compare/kurrentdb-vs-chronicle/). [How Cratis writes comparisons](/compare/) explains the method.
 
 ## Comparison layers
 
-These products do not occupy the same layer. KurrentDB and Chronicle are separate event-server runtimes; Marten is an in-process .NET library. The Critter Stack and Cratis ecosystem add adjacent products rather than changing the boundary of the compared product. The matrix compares overlapping concerns and names which product owns each concern; it is not a feature checklist between equivalent products.
+An append followed by a read is a useful starting point. With Marten, an inline projection can update a document in the transaction that captures the event. With KurrentDB, the documented approach for many application read models is a separate view fed by a subscription. Chronicle offers reducers and declarative projections to derive typed read models. These choices affect where your application code runs and when a reader sees the change.
+
+The matrix compares those overlapping concerns, not entire product families. The Critter Stack and the wider Cratis ecosystem add adjacent tools; their capabilities are not all features of Marten or Chronicle.
 
 ## What is being compared
 
@@ -33,7 +35,7 @@ The table records released, documented capabilities at named versions. Sources c
 </Aside>
 
 <Aside type="caution" title="This is a dated comparison">
-The rows below describe the named versions as documented on 2026-08-30. Chronicle and its clients have released since then: the .NET client and server are on the 19.x line, the TypeScript and Kotlin/Java clients on 6.x, and the Elixir client on 3.x. The other products may have moved too. This page has not been re-verified against those releases, so do not read a row as a statement about current capabilities or about which versions work together. For current Cratis pairings, see [Version compatibility](/compatibility/).
+The rows describe the named versions as documented on 2026-08-30, not current releases. Since that review, Chronicle's .NET client and server have reached 19.x, the TypeScript and Kotlin/Java clients 6.x, and the Elixir client 3.x. Other products may also have changed. Check the cited sources for your intended release and [Version compatibility](/compatibility/) for Cratis pairings; this table has not been re-verified against those later releases.
 </Aside>
 
 | Tool | Compared version | Version source |
@@ -57,19 +59,23 @@ The rows below describe the named versions as documented on 2026-08-30. Chronicl
 
 ## Where each option fits
 
-These are not quality rankings. They identify the architectural choice each product makes most explicit.
+Start with the boundary you need your team to own: the application process, the event server, or a wider application framework.
 
 ### KurrentDB
 
-Examine KurrentDB closely when you want the event store to be dedicated infrastructure, need official clients across several languages, or want server-managed persistent subscriptions and connectors while keeping the application architecture in your own code.
+KurrentDB fits when you want dedicated event infrastructure and intend to choose the application architecture separately. Its official clients, server-managed persistent subscriptions, and connectors let you consume events across several languages and systems without adopting a CQRS application framework. CQRS separates operations that change state from queries that read it.
 
 ### Marten and the Critter Stack
 
-Examine Marten closely when your application is .NET, PostgreSQL is already an accepted dependency, and you want document storage, event storage, and several projection modes in the same application and database transaction boundary. The broader Critter Stack is not limited to that Marten/PostgreSQL profile: Polecat targets SQL Server, Fisher targets SQLite, and Wolverine provides the family's messaging and web-development model. Evaluate those products together when database choice, durable messaging, HTTP handling, testing, schema management, or monitoring are part of the decision.
+Marten fits when your application is .NET, PostgreSQL is an accepted dependency, and you want events and documents in one database. Its inline projections are useful when a document must be updated in the transaction that captures the event; asynchronous and live projections cover different read needs.
+
+For a wider application model, evaluate the Critter Stack separately. Polecat targets SQL Server, Fisher targets SQLite, and Wolverine provides messaging and web-development features. Those are product choices beyond Marten itself.
 
 ### Cratis Chronicle and the Cratis ecosystem
 
-Examine Chronicle closely when you want event storage and event processing behind a separate runtime, need a choice among its documented storage providers, or want several language clients to use the same server contracts. The wider Cratis experience connects Chronicle to Arc's CQRS application model, generated TypeScript contracts, React components, CLI workflows, and Workbench. That coherence is a different product boundary, not evidence that the other approaches are incomplete.
+Chronicle fits when you want a separate runtime to manage event storage and processing, with documented storage-provider choices and several language clients using the same server contracts. You take on the operation of that server as well as its storage.
+
+If you also want an application framework, Arc adds commands, queries, and generated TypeScript contracts, while Components supplies React UI components. The CLI and Workbench support inspection and operations. You can evaluate those tools without treating them as requirements that every event store should meet.
 
 ## Questions to answer before choosing
 
@@ -95,12 +101,9 @@ Verify each dimension against the exact product versions and deployment profiles
 
 ## Limitations
 
-- This is a documentation comparison, not a benchmark or production evaluation.
-- The products do not have identical boundaries, so an empty cell would not prove that a wider product family lacks a capability.
-- Client availability does not establish client parity.
-- Storage-provider availability does not establish provider parity.
-- Product-family membership does not establish integration depth, common maturity, compatibility, support, or one commercial boundary.
-- Versions and documentation change independently; verify the cited sources against the release you plan to adopt.
+This is a documentation comparison, not a benchmark or production evaluation. Client and storage-provider availability do not establish parity. A capability absent from this table may belong to another product in the same family; family membership does not establish integration depth, compatibility, support, or shared commercial terms.
+
+For a closer look at the transaction and hosting trade-offs, continue to [Marten vs Chronicle](/compare/marten-vs-chronicle/). Verify the cited sources against the releases you plan to adopt.
 
 ## Sources
 

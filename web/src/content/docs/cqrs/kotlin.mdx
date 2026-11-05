@@ -1,32 +1,34 @@
 ---
 title: CQRS in Kotlin and Java with Arc on Spring Boot
-description: "Build CQRS in Kotlin and Java on Spring Boot with Cratis Arc: model-bound commands and queries, validation, authorization, live queries, and optional Chronicle event sourcing."
+description: "CQRS separates writes from reads. Use Cratis Arc in Kotlin and Java on Spring Boot to expose commands and queries, with optional Chronicle event sourcing."
 ---
 
 import { CardGrid, LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
 
-CQRS (Command Query Responsibility Segregation) means commands change state and queries read it, each with its own model. On the JVM, Cratis Arc is an open-source (MIT) CQRS framework for Spring Boot, published to Maven Central as `io.cratis:arc`. A command is an annotated class with a `handle` method, a query is a static method on a `@ReadModel`, and Arc generates the endpoints at compile time with KSP, plus typed TypeScript clients. Chronicle event sourcing is an optional layer on top.
+CQRS (Command Query Responsibility Segregation) gives state-changing operations and read operations separate models. Registering an author is a command with the inputs needed to register them; listing authors is a query that returns a view for the reader. You can keep both in one application over one database. Neither an event store nor separate services are required.
 
-This page is for Kotlin and Java developers who want CQRS without writing a controller per operation. If you are still deciding whether CQRS fits, read [CQRS explained](/concepts/cqrs/) first.
+Cratis Arc brings this model to Kotlin and Java on Spring Boot, published to Maven Central as `io.cratis:arc`. A command is an annotated class with a `handle` method, and a query is a static method on a `@ReadModel`. Kotlin Symbol Processing (KSP) generates HTTP endpoints and typed TypeScript clients at compile time, so you do not write a controller per operation. Cratis Chronicle adds event sourcing when you need a history of changes.
+
+The examples below register and list authors using MongoDB, then show the event-returning command. If you are weighing the design before choosing a framework, read [CQRS explained](/concepts/cqrs/).
 
 ## What you get on the JVM
 
-| Capability | How it looks in Arc | Maturity |
+| Capability | How it looks in Arc | Publication |
 | --- | --- | --- |
-| Commands | `@Command` class with `handle`; regular, `suspend` (Kotlin) or `CompletionStage` (Java) handlers | Released |
-| Queries and read models | `@ReadModel` with static or `@JvmStatic` companion query methods; GET and RFC QUERY | Released |
-| Live queries | Kotlin `Flow`, JDK `Flow.Publisher` or RxJava 3 return types; SSE and WebSocket | Released |
-| Validation | Jakarta Bean Validation, plus reusable Arc validators | Released |
-| Authorization | `@Authorize`, `@Roles` and `@AllowAnonymous` on commands and queries | Released |
-| Persistence | Spring Data JPA and MongoDB integrations | Released |
-| Typed frontend | TypeScript proxies generated at build time | Released |
-| Event sourcing | Chronicle through `io.cratis:cratis`; `handle` returns an event | Released, optional |
+| Commands | `@Command` class with `handle`; regular, `suspend` (Kotlin) or `CompletionStage` (Java) handlers | Artifacts published |
+| Queries and read models | `@ReadModel` with static or `@JvmStatic` companion query methods; GET and RFC QUERY | Artifacts published |
+| Live queries | Kotlin `Flow`, JDK `Flow.Publisher` or RxJava 3 return types; SSE and WebSocket | Artifacts published |
+| Validation | Jakarta Bean Validation, plus reusable Arc validators | Artifacts published |
+| Authorization | `@Authorize`, `@Roles` and `@AllowAnonymous` on commands and queries | Artifacts published |
+| Persistence | Spring Data JPA and MongoDB integrations | Artifacts published |
+| Typed frontend | TypeScript proxies generated at build time | Artifacts published |
+| Event sourcing | Chronicle through `io.cratis:cratis`; `handle` returns an event; optional | Artifacts published |
 
-"Released" means the artifacts are published. Arc on the JVM does not claim full parity with Arc on .NET. The shared [capability matrix](/arc/capabilities/) and the [JVM parity reference](/arc/backend/kotlin/reference/parity/) record each row, the evidence behind it, and what is not planned. One example: Arc on the JVM generates model-bound endpoints only, not controller-based ones.
+The artifacts listed above are published. Arc on the JVM does not claim full parity with Arc on .NET. The shared [capability matrix](/arc/capabilities/) and the [JVM parity reference](/arc/backend/kotlin/reference/parity/) record each row, the evidence behind it, and what is not planned. One example: Arc on the JVM generates model-bound endpoints only, not controller-based ones.
 
 ## A command and a query
 
-A library application registers authors and lists them. The command carries its input as properties and its decision in `handle`. This version stores the author with Spring Data MongoDB and needs no Chronicle:
+`RegisterAuthor` carries the author's identifier and name as properties. Its `handle` method receives `AuthorRepository` from Spring through `@FromServices` and inserts the author. This version uses Spring Data MongoDB, with no Chronicle dependency:
 
 <Tabs syncKey="cqrs-jvm-language">
   <TabItem label="Kotlin">
@@ -104,7 +106,7 @@ public record Author(UUID id, String name) {
   </TabItem>
 </Tabs>
 
-These are excerpts; a runnable project also needs the Gradle setup and Spring Boot application class from the [Kotlin](/arc/backend/kotlin/get-started/) and [Java](/arc/backend/kotlin/get-started/java/) getting started guides. The build runs KSP before compiling, so a model mistake surfaces as an `ARCKSP` compiler error rather than at startup. The command never returns the author list and the query never changes anything, so you can test, secure and change each on its own.
+The command inserts through `AuthorRepository`, and the query reads from it. Separating them does not mean duplicating the database: it gives the registration input and author list their own contracts. To run these excerpts, add the Gradle setup and Spring Boot application class from the [Kotlin](/arc/backend/kotlin/get-started/) or [Java](/arc/backend/kotlin/get-started/java/) getting started guide. KSP runs before compilation and reports invalid model declarations as `ARCKSP` compiler errors.
 
 ## Validation, authorization and live queries
 
@@ -174,13 +176,15 @@ public record AuthorRegistered(String name) { }
   </TabItem>
 </Tabs>
 
-An event-returning command needs a stable `@CommandKey`. Without one, Arc returns a validation error and does not guess the event source. A Chronicle projection or reducer then fills the read model, and the query keeps its shape. The [Chronicle integration guide](/arc/backend/kotlin/guides/chronicle/) covers the starter, a compatible kernel version, and the runnable samples. For the event store itself, see [event sourcing in Kotlin and Java](/event-sourcing/kotlin/).
+An event-returning command needs a stable `@CommandKey` so Arc knows whose event history to append to. Without one, Arc returns a validation error and does not guess the event source. A Chronicle projection or reducer builds the read model asynchronously. The query can keep its shape, but an immediate read after the command may still return the earlier state.
+
+Follow the [Chronicle integration guide](/arc/backend/kotlin/guides/chronicle/) to configure the starter and a compatible kernel, then run the samples. For the event store itself, see [event sourcing in Kotlin and Java](/event-sourcing/kotlin/).
 
 ## When CQRS on the JVM is worth it
 
 Use it when reads and writes have different shapes, load or rules, when a frontend needs typed and live data, or when you may want event sourcing later without changing the query contract.
 
-It is not worth it for a single form over a single table. Spring MVC with Spring Data is simpler there; [Coming from Spring MVC](/arc/backend/kotlin/coming-from-spring-mvc/) compares the two. Arc on the JVM is also a Spring Boot framework: it targets servlet hosting, so if you are not on Spring Boot it does not apply. Arc needs JDK 17 and, for Kotlin, a current Kotlin compiler as stated in the getting started guide.
+For a single form over a single table, Spring MVC with Spring Data may be enough. Separate command and query types become extra code to maintain if the two operations have no different requirements. [Coming from Spring MVC](/arc/backend/kotlin/coming-from-spring-mvc/) compares the approaches. Arc on the JVM targets Spring Boot servlet hosting and needs JDK 17; check the getting started guide for the Kotlin compiler version before adding its build tooling.
 
 ## Frequently asked questions
 

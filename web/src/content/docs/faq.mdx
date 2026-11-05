@@ -1,11 +1,11 @@
 ---
-title: FAQ
-description: Practical answers for teams evaluating Cratis, event sourcing, CQRS, adoption paths, production readiness, and support.
+title: "Cratis Platform FAQ: event sourcing and CQRS"
+description: Cratis Platform supports event sourcing with Chronicle, CQRS with Arc, and React UI with Components. Find answers on adoption, languages, costs, and GDPR.
 ---
 
 import { Aside, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-This FAQ answers the questions that usually come up before a team commits to Cratis. For deeper explanations, follow the linked pages.
+If your team needs to explain how a business record reached its current state, build a new view from its history, or find frontend usages affected by a backend contract change, the answers below explain how Cratis Platform supports those results and where its responsibilities stop. [Cratis Chronicle](/chronicle/) records events and derives read models, views shaped for particular questions. [Cratis Arc](/arc/) separates changes from reads through Command Query Responsibility Segregation (CQRS) and generates typed frontend clients; [Cratis Components](/components/) supplies React UI compositions for those contracts. Compare [product responsibilities](/cratis-stack/) or choose a [learning path](/learning-paths/) for a first task.
 
 <CardGrid>
   <LinkCard title="Choose a starting point" description="Greenfield, brownfield, Arc-only, Chronicle-only, or full stack." href="/adopting-cratis/" />
@@ -20,7 +20,7 @@ It depends on what you want to see working first:
 - **A full-stack .NET application:** follow [Build a full-stack feature](/build-a-full-app/). It scaffolds an app from the Cratis template and adds one slice from command to live React screen.
 - **Only the event store:** follow [Chronicle getting started](/chronicle/get-started/). It starts a local kernel and shows one event reaching a projection and a reactor in each client language.
 - **A reading order for your role:** pick a route from [Learning paths](/learning-paths/).
-- **A design before the code:** read [Event modeling](/event-modeling/). It shows the notation and how each block maps onto Cratis.
+- **A design before the code:** read [Event modeling](/event-modeling/). It shows the notation and how each block maps onto Cratis. For a shared modeling workspace, use the optional paid [Cratis Studio](/studio/).
 
 ## What do I need installed to try it?
 
@@ -42,11 +42,35 @@ No. Chronicle's kernel speaks gRPC, and it ships TypeScript, Kotlin/Java, and El
 
 The .NET SDK remains the first-class Chronicle client, and some pages document C# only.
 
+## How do event sourcing and CQRS connect to a React frontend?
+
+A user can submit a change and see its projected result in a live React view. Cratis Arc handles the command, Cratis Chronicle records the resulting event and projects it into a read model, and an Arc query exposes that view through a generated TypeScript client. React consumes the client; Cratis Components supplies compositions such as command dialogs and data pages. Projection processing is asynchronous, so command success does not mean the view is already updated. The [full-stack feature tutorial](/build-a-full-app/) follows this path from registering an author to displaying the author in a list.
+
+## Can I see how the current state came to be?
+
+Yes, where the changes and their context were recorded as events. Chronicle keeps sequence numbers and correlation, identity, and causation context alongside events, so you can trace the facts behind a view. Ordering is within an event sequence; context must be supplied and propagated. This does not reveal unrecorded human reasons or provide a read/access security audit. See [Event context](/chronicle/concepts/correlation-identity-causation/) and inspect the recorded events in [Workbench](/chronicle/workbench/).
+
+## Can I add a new view over existing history?
+
+Yes, if the facts it needs were recorded and remain available. Chronicle can derive multiple focused read models from the same events and rebuild a view through projection replay where supported. Views update asynchronously; a full replay makes its observer inactive until catch-up. Plan capacity, failures, and side effects rather than treating replay as a risk-free change. See [Projections](/chronicle/projections/) and [Observers and replay](/chronicle/concepts/observers/).
+
+## What frontend drift does generation catch?
+
+After you regenerate the clients and type-check the frontend, a backend field rename can reveal typed frontend usages that need changing. Arc generates TypeScript command/query clients and referenced types from backend declarations; Components consumes those contracts. Stale generated files or a skipped type-check defeat that check. It does not establish runtime serialization, routing, authorization, deployed-version compatibility, or business correctness; check the running integration separately. See [Understanding the proxy boundary](/arc/understanding-the-proxy-boundary/).
+
 ## Is Cratis only for event sourcing?
 
-No. Chronicle is the event-sourcing engine, but Arc can be used without Chronicle for CQRS over current-state storage. Components can be used with Arc-generated proxies, and Fundamentals provides shared .NET and TypeScript utilities.
+No. You can add typed commands, queries, and frontend contracts to a feature without moving its writes to an event log. Arc supports CQRS over current-state storage without Chronicle, the event-sourcing engine. Components can be used with Arc-generated proxies, and Fundamentals provides shared .NET and TypeScript utilities. Choose the part your feature needs; the whole platform is not a prerequisite.
 
 Start with [Adopting Cratis](/adopting-cratis/) and [CQRS without event sourcing](/arc/arc-without-event-sourcing/).
+
+## How does Cratis support event modeling?
+
+Your team can put expected behavior in one model to discuss before implementation. Event modeling maps how information moves from screens and commands to events and read models over time. Cratis Screenplay expresses that design in a text-based `.play` file; the optional paid Cratis Studio gives developers, domain experts, and product owners a shared visual workspace. Start with [event modeling](/event-modeling/), then choose [Screenplay](/screenplay/) or [Studio](/studio/) for authoring.
+
+## How does spec-driven development work with Cratis?
+
+You can check supported examples of expected behavior before implementing the feature. Spec-driven development with Cratis starts with an event model and Given/When/Then examples of the required behavior. Cratis Screenplay checks supported scenarios with its in-memory reference evaluator. Code-side specifications test the implementation separately; a passing model scenario does not verify application code. Follow [Spec-driven development](/spec-driven-development/) for the model-to-code workflow.
 
 ## Should every feature be event-sourced?
 
@@ -56,19 +80,23 @@ Read [When to use event sourcing](/chronicle/concepts/when-to-use-event-sourcing
 
 ## Can I use Chronicle without Arc?
 
-Yes. Chronicle has its own clients and hosting model. Arc gives you an application framework around commands, queries, and generated frontend proxies, but Chronicle can be used directly from services, workers, or APIs.
+Yes. You can record event history and derive views in a service, worker, or API without adopting an application framework. Chronicle has its own clients and hosting model. Arc adds commands, queries, and generated frontend proxies, but is not required.
 
 Start with [Chronicle getting started](/chronicle/get-started/) and [Chronicle architecture](/chronicle/architecture/).
 
 ## Which languages can talk to Chronicle?
 
-Chronicle is an event-sourcing database with a language-agnostic gRPC/protobuf boundary. The first-class client is the .NET SDK (`Cratis.Chronicle` on NuGet), and Chronicle also ships TypeScript (`@cratis/chronicle` on npm), Kotlin/Java (`io.cratis:chronicle` on Maven Central, including a Spring Boot starter), and Elixir (`cratis_chronicle` on Hex) clients, plus an experimental Go client (`github.com/cratis/chronicle.go`, v0.x, without observers and projections yet). A Python client is coming soon — it is pre-release and not yet published. Any language can implement the gRPC contracts directly.
+Chronicle is an event-sourcing database with a language-agnostic gRPC/protobuf boundary. The first-class client is the .NET SDK (`Cratis.Chronicle` on NuGet), and Chronicle also ships TypeScript (`@cratis/chronicle` on npm), Kotlin/Java (`io.cratis:chronicle` on Maven Central, including a Spring Boot starter), and Elixir (`cratis_chronicle` on Hex) clients, plus a Go client (`github.com/cratis/chronicle.go`, v0.x, without observers and projections yet). A Python client is not yet published. Any language can implement the gRPC contracts directly.
 
 See [Chronicle in your language](/chronicle-clients/) and the [client SDK docs](/chronicle/clients/).
 
+## Which languages can I use for CQRS?
+
+Cratis Arc provides CQRS backends for C# on ASP.NET Core and Kotlin or Java on Spring Boot, with generated TypeScript clients for the frontend. The TypeScript backend runs from source on Node.js and is not published to npm. Start with [CQRS in C#](/cqrs/dotnet/), [Kotlin and Java](/cqrs/kotlin/), or [TypeScript](/cqrs/typescript/); check [Arc.Go](/arc/go/) separately for Go capabilities. These implementations do not have identical feature coverage.
+
 ## Can I use Arc without Chronicle?
 
-Yes. Arc supports commands, queries, validation, generated TypeScript proxies, and integrations over current-state persistence. That is useful when you want typed full-stack CQRS before adopting event sourcing, or when a bounded slice does not need an event log.
+Yes. You can give a feature typed full-stack CQRS while keeping current-state persistence, whether or not you later adopt event sourcing. Arc supports commands, queries, validation, generated TypeScript proxies, and integrations over that persistence. Choose a supported store and configure hosting and generation; this is not a drop-in migration.
 
 Read [CQRS without event sourcing](/arc/arc-without-event-sourcing/), or see CQRS with Arc in [C# and .NET](/cqrs/dotnet/), [TypeScript and Node.js](/cqrs/typescript/), and [Kotlin and Java](/cqrs/kotlin/).
 
@@ -77,6 +105,18 @@ Read [CQRS without event sourcing](/arc/arc-without-event-sourcing/), or see CQR
 The products include production-oriented pieces such as TLS configuration, storage configuration, OpenTelemetry, deployment guidance, and operational CLI diagnostics. You still need to make deliberate choices about version tags, storage, backups, secrets, identity, replay, monitoring, and incident handling.
 
 Use [Production readiness](/production-readiness/) as the cross-stack checklist.
+
+## How can an immutable event log support GDPR erasure?
+
+You can make protected personal values unreadable while retaining the sequence of business events. Cratis Chronicle encrypts values marked as personally identifiable information (PII) with a key tied to the data subject. Erasing the subject deletes its key revisions and fences reprovisioning, preserving event order and non-PII fields. Mark values before appending: adding a marker later does not protect historical plaintext. Repeat erasure in each relevant namespace and resolve partial failures; your process must also handle stale read models, backups, and downstream copies. This mechanism is not a compliance certification. Read [Event sourcing and GDPR](/concepts/event-sourcing-gdpr/) and [Chronicle compliance](/chronicle/compliance/) for the mechanism and your remaining responsibilities.
+
+## Where do authentication and authorization belong?
+
+Cratis AuthProxy can authenticate requests and resolve tenant context at the edge. Cratis Arc authorizes commands and queries before they execute; Cratis Chronicle stores tenant events in namespaces and protects PII. Your application must still check that callers belong to the tenant they select. Follow [Auth and compliance end to end](/auth-and-compliance/) to assign these responsibilities, and [Security](/security/) for private vulnerability reporting.
+
+## How should I evaluate performance and scalability?
+
+Measure the workload you intend to run: event appends, projection lag, query latency, and replay on your chosen storage and deployment. A client language or database choice alone does not establish throughput. Use [Production readiness](/production-readiness/) to plan indexes, monitoring, replay, and recovery before deployment.
 
 ## Which storage engines are supported?
 
@@ -96,11 +136,25 @@ Wolverine appears in the .NET comparison as the Critter Stack's messaging and we
 
 ## What does Cratis cost, and what license is it under?
 
-Everything Cratis publishes today is MIT licensed and free to use — Chronicle, Arc, Components, the CLI, the clients, and the supporting libraries. There is no paid tier for the software itself. If you want dedicated, private help, see [Professional help](/professional-help/).
+Chronicle, Arc, Components, the Cratis CLI, and Fundamentals are open-source products licensed under MIT and free to use. That does not describe every Cratis offering: [Studio](/studio/) is a paid product with a [14-day free trial](https://lobby.cratis.studio/register), [per-seat pricing](https://cratis.studio/#pricing), and its own [service terms](https://cratis.studio/terms-and-conditions.html). [Direct](https://cratis.direct) is a separately offered product; its public site does not state service pricing. For dedicated, private help, see [Professional help](/professional-help/).
+
+## What is Cratis Studio?
+
+Your team can discuss and edit expected behavior together in one model with Cratis Studio, an optional paid workspace for [Screenplay](/screenplay/) event models, specifications, and screens. It is built on Chronicle, but you do not need Studio to use Chronicle, Arc, or Components. Sign-up is open with a [14-day free trial](https://lobby.cratis.studio/register); [open the app](https://app.cratis.studio) or read the [Studio overview](/studio/).
+
+## What is Cratis Direct?
+
+With Cratis Direct, your team can set how far agent work may progress and inspect the evidence behind each next step. It is the control plane for agentic engineering: a person sets the progression ceiling, and journeys, gates, and recorded evidence govern work across five loops: Deliver, Assure, Operate, Publish, and Steer. Effective governance depends on the rules you activate; an LLM judgment is not proof. Direct is GitHub-first, lets you bring your own model provider, and is event-sourced on Chronicle. See the [Direct product overview](https://cratis.direct).
+
+Cratis AI supplies assistant conventions and workflows; Direct coordinates and governs agent work. The [public Direct documentation](/direct/) currently covers the Direct Agent Runner, which runs scheduled workers locally in Docker and requires Direct access. A maintainer approves the runner under Settings → Runners in Direct. It is not a standalone replacement for Direct.
+
+## How do I get access to Direct?
+
+Direct runs Cratis's own engineering today. Access opens in stages to accounts Cratis has enabled. Enabled users [sign in with GitHub at app.cratis.direct](https://app.cratis.direct); a GitHub account alone does not grant access.
 
 ## Can I use AI coding agents with Cratis?
 
-Yes. Cratis AI gives an agent the conventions, the Chronicle MCP server and the CLI let it inspect a running store, and specifications check what it writes. The MCP server is read-only by default. [Agentic development with event sourcing](/agentic-development/) explains the model and what is still experimental; [AI-native development](/ai/) covers the setup.
+Yes. Cratis AI gives an agent the conventions, the Chronicle MCP server and the CLI let it inspect a running store, and specifications check what it writes. The MCP server is read-only by default. [Agentic development with event sourcing](/agentic-development/) explains the workflow and its limits; [AI-native development](/ai/) covers the setup.
 
 ## Where do I ask for help?
 

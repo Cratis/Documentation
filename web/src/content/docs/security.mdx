@@ -1,11 +1,11 @@
 ---
-title: Security
-description: How to report a suspected Cratis security vulnerability privately, what to put in the first message, and what the reporting route does and does not commit to.
+title: Report a Cratis security vulnerability
+description: Report suspected Cratis security vulnerabilities privately by email. Include the affected version and reproduction steps, but leave out sensitive data.
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
-Security reports need a private path. Do not report a suspected vulnerability in a public GitHub issue, pull request, discussion, or Discord thread.
+If you suspect a security vulnerability in a Cratis product, email [oss@cratis.io](mailto:oss@cratis.io?subject=Security%3A) privately with `Security:` at the start of the subject. Do not use a public GitHub issue, pull request, discussion, or Discord thread. The steps below explain what to include without exposing sensitive data.
 
 <CardGrid>
   <LinkCard title="Report a vulnerability" description="Email the maintainers with Security: at the start of the subject." href="mailto:oss@cratis.io?subject=Security%3A" />
@@ -15,7 +15,7 @@ Security reports need a private path. Do not report a suspected vulnerability in
 
 ## Report privately
 
-Email [oss@cratis.io](mailto:oss@cratis.io?subject=Security%3A) with `Security:` at the start of the subject. Include only what is needed to route and reproduce the report:
+Name the affected product and summarize what you observed. Include only what the maintainers need to route and reproduce the report:
 
 - The affected Cratis repository, package, or Docker image, and the exact version, tag, or commit.
 - The behavior you observed and the behavior you expected.
@@ -36,7 +36,9 @@ Ordinary defects and feature requests that contain no sensitive security informa
 
 ## What this route commits to
 
-This is a private reporting route. It does not create a response-time commitment, service-level agreement, support plan, disclosure deadline, or bug bounty, and it is not a statement about the security posture of any Cratis product. A public issue, build, release, or package does not establish that a product is secure, compliant, supported, or suitable for a particular environment.
+This address gives you a private way to reach the maintainers. It does not promise a response time, service-level agreement, support plan, disclosure deadline, or bug bounty.
+
+The reporting route also makes no claim about a product's security or compliance. An available build, release, package, or public issue is not evidence that a product is supported or suitable for your environment.
 
 <span id="supported-versions"></span>
 

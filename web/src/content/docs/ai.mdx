@@ -8,23 +8,25 @@ import { CardGrid, Aside } from '@astrojs/starlight/components';
 import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
-<TopicHero icon="rocket" eyebrow="The Cratis Stack" title="Build and operate with AI agents">
-Give your coding agent the same conventions, framework boundaries, and checks your team works to. Install the Cratis AI rules and skills into a repository with the Cratis CLI, or add the skills to one tool through its plugin. Then connect the agent to a running Chronicle store through the CLI and the Chronicle MCP server.
+<TopicHero icon="rocket" eyebrow="Cratis Platform" title="Build and operate with AI agents">
+Give your coding agent Cratis conventions through rules and skills. Install them into a repository with the Cratis CLI, or add skills to one tool through its plugin. Connecting an agent to a running Chronicle store is a separate choice: use the CLI or the Chronicle MCP server, with access and actions you explicitly authorize.
 </TopicHero>
 
 For the case behind this approach — why explicit events, commands and specifications make agent-written changes verifiable — read [Agentic development with event sourcing](/agentic-development/).
 
 ## Why "AI-native"
 
-An assistant is only as good as what it knows about your framework and your
-system. Drop a general-purpose agent into a Cratis codebase and it guesses: it
-invents handler classes, misses the vertical-slice conventions, and hand-writes
-the API client that proxy generation already produces. Point it at a running
-event store and it has no idea how to read the log or find a failed partition.
+Start with the cart in [First projection](/learning-paths/#first-projection).
+Ask an agent to follow the same cart id from recorded item facts to the cart
+summary, and explain why the caller waits for processing before reading it.
+Check the explanation against the linked C# source. This is a console code
+walkthrough, not a request to connect to a store or build an API and UI.
 
-Cratis addresses both halves. On the build side, Cratis AI gives the agent the
-conventions. On the operate side, the CLI and the Chronicle MCP server give it a
-documented way into the store.
+For code changes, Cratis AI supplies framework conventions; you still review
+the result against the feature and its specifications. For a running store,
+the CLI and the Chronicle MCP server provide inspection and operating tools.
+Guidance tells an agent how to work; a store connection gives it access to
+data. Neither decides which actions you authorize.
 
 ## Build with AI: skills that know the Cratis way
 
@@ -54,9 +56,8 @@ A few of what you get, by name:
   specs, and review the result against the project's standards.
 
 Prompts come with the managed install and `@cratis/pi`; the marketplace plugin
-has the skills only. Because the skills encode the conventions, an agent that
-uses them produces slices that look like the rest of your codebase instead of a
-layered approximation of it.
+has the skills only. Use the skills as a starting point for a change, then review the generated
+slice and its specifications against your project conventions.
 
 Start with [Start using Cratis AI](/ai/getting-started/). The
 [agent harness guide](/ai/harnesses/) has the command for each coding tool,
@@ -67,14 +68,16 @@ framework contracts during the build, whether or not an agent wrote the code.
 
 <Aside type="tip" title="Model first, then build">
 You can pair this with [Studio](/studio/) or [Screenplay](/screenplay/): model the
-feature, then let an agent build the slices around it. Studio is in Preview;
-review generated output from Stage, which remains experimental.
+feature, then let an agent build the slices around it. Review generated output
+from Stage against its supported capabilities; it does not execute every
+Screenplay construct.
 </Aside>
 
 ## Operate with AI: teach your assistant your store
 
-Building is half the loop. The other half is *operating* what you built. Cratis
-gives an assistant two ways into a running store.
+Choose the target store and the actions you authorize before connecting an
+assistant. The CLI and the Chronicle MCP server provide two ways to inspect
+and operate it; installing guidance is not permission to change production.
 
 ### `cratis init` — the CLI, made AI-aware
 
@@ -105,13 +108,16 @@ has a working configuration and [configuration](/chronicle-mcp/configuration/)
 covers connection strings and credentials.
 
 <Aside type="caution" title="Local defaults">
-Without configuration, the server uses Chronicle's development client
+Check the resolved connection before using the server: it can inherit an
+active CLI context, including one aimed at production. If no connection or
+credentials are configured, the fallback is Chronicle's development client
 credentials and `localhost:35000`. Those defaults are for a local development
 store only. Give it real credentials, or an API key, before you point it at
 anything shared.
 </Aside>
 
-Once connected, your assistant can:
+Within the access and actions you authorize, and the server's configured
+deployment profile, your assistant can:
 
 - **Explore**: list event stores, namespaces, event types, projections, and read
   models; read events and the tail sequence number; look at read model
@@ -130,8 +136,10 @@ the cause.
 
 <Aside type="note" title="Operate, not change history">
 The MCP server and the CLI inspect and operate the store: they read the log and
-manage observers and jobs. To change application state you still go through
-commands and events, so history stays honest.
+manage observers and jobs. Application state changes still belong to commands
+and events, not edits to history through these tools. Authorize the exact
+target and action before an observer or job change; connecting an agent does
+not authorize production writes.
 </Aside>
 
 ## The whole loop, AI-accelerated

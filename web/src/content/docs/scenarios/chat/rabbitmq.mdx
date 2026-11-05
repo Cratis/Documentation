@@ -1,20 +1,20 @@
 ---
 title: Real-time chat with RabbitMQ
-description: Load chat history from storage and deliver new messages to every server instance through a RabbitMQ fanout exchange, with the same observable query and React component.
+description: Deliver Arc chat messages across server instances with RabbitMQ, load room history from your storage, and keep the same observable query and React UI.
 ---
 
 import YouWillLearn from '@components/YouWillLearn.astro';
 import Recap from '@components/Recap.astro';
 
-This guide extends the chat pattern from the [in-memory guide](/scenarios/chat/in-memory/) by replacing the in-process state with two external systems: a **persistence layer** that loads message history on startup, and **RabbitMQ** that delivers new messages to all connected server instances in real time.
+Use RabbitMQ to deliver chat messages when browsers connect to different server instances. This guide extends the [in-memory chat](/scenarios/chat/in-memory/): each instance still keeps rooms in memory, but loads a room's history from your storage on first access and receives new messages through the broker.
 
-The observable query and the React component are unchanged from the in-memory version. All the differences are in how the backend fills the room's history and publishes new messages to it.
+Keep the previous guide's React component and observable query contract. You will change how rooms get their initial history and how the command reaches them. Have a RabbitMQ instance available and supply your own persistence implementation; no database implementation is included here.
 
-The backend is shown in C#, Kotlin, Java, and TypeScript; the RabbitMQ publisher and consumer are plain application code and are shown in C# only. Arc for TypeScript is a source preview: no package is published to npm, and it does not have full parity with Arc on .NET. [How the backends differ](/scenarios/chat/#how-the-backends-differ) summarizes the per-language differences.
+The backend is shown in C#, Kotlin, Java, and TypeScript; the RabbitMQ publisher and consumer are plain application code and are shown in C# only. No Arc for TypeScript backend package is published to npm, and it does not have full parity with Arc on .NET. [How the backends differ](/scenarios/chat/#how-the-backends-differ) summarizes the per-language differences.
 
 <YouWillLearn title="What you'll build">
 
-- A `ChatRoom` that loads its initial history from a persistence layer
+- A `ChatService` that loads initial history before creating each `ChatRoom`
 - A `SendMessage` command that publishes through a publishing contract rather than writing directly to the room
 - A RabbitMQ publisher and a consumer that routes each message to the appropriate room (shown for C#)
 - The same observable query and React component from the in-memory guide, unchanged
@@ -45,7 +45,7 @@ sequenceDiagram
     Server-->>Browser: ChangeSet push
 ```
 
-`SendMessage` publishes to RabbitMQ and returns. The consumer, running on every server instance, receives the message from the queue and routes it to the correct `ChatRoom`. The room publishes its updated history, and every subscriber of the room's query receives the new message.
+`SendMessage` publishes to RabbitMQ rather than updating the local room. Each server instance's consumer receives the envelope from its own bound queue and routes it to the named `ChatRoom`. The room appends the message and publishes its updated history to query subscribers. Command completion does not mean that every browser has received the message.
 
 ## Folder structure
 
@@ -64,18 +64,17 @@ This is the C# layout. Kotlin and TypeScript keep the same backend files as `.kt
 
 ## Step 1 — The backend
 
-The backend keeps the shape of the in-memory guide and changes where messages come from and go to:
+The persistence contract reads a room's history, oldest first. `ChatService` calls it when the room is first requested, whether by a query or the broker consumer, then keeps the room for later requests. `Receive` appends incoming messages to that local history.
 
-- **The persistence contract** loads a room's history, oldest first. The implementation depends on your storage choice (SQL, MongoDB, a Chronicle read model — any will do).
-- **The room** starts from that history and exposes `Receive`, which the broker consumer calls for every message that arrives.
-- **The chat service** is still one instance for the application. It loads a room's history the first time the room is asked for.
-- **The publishing contract** hides the broker from the command. The message's `Id` is created when it is sent and travels in the envelope, so every server instance stores the same message under the same `Id`.
-- **The read model and its query** are the same as in the in-memory guide, except in TypeScript, where the query awaits the room because its history loads asynchronously.
-- **The command** publishes an envelope instead of writing to the room. The room changes when the message comes back from the broker.
+The publishing contract separates `SendMessage` from the broker client. The command creates the message's `Id` once and includes it in the envelope, so each instance receives the same identity. The room changes only when its consumer receives that envelope.
+
+The read model and query keep their previous shape. In TypeScript, the query now awaits the room because its history loads asynchronously.
 
 <ArcBackendTabs snippet="scenarios/chat/rabbitmq/backend" />
 
-Per backend:
+The sample only reads persistence: neither the publisher nor the consumer saves new messages. Before relying on history after a restart, add a storage write path. Coordinate that write with broker delivery and the initial history load so an arriving message is not missed or included twice. `Receive` appends without deduplicating by `Id`; a stable identity alone does not make redelivery safe.
+
+History loading differs by backend:
 
 - **C#** blocks on the first load of a room's history and loads each room once, even when two requests ask for it at the same time. A `Lazy` keeps a failed load's exception, so the service removes a failed room and the next subscriber tries again. For production, consider warming the rooms when the application starts, with a hosted service.
 - **Kotlin and Java** load the history inside `computeIfAbsent`, so a room is loaded once. The persistence contract is a blocking call, as with JDBC.
@@ -110,9 +109,9 @@ public class RabbitMqChatPublisher(IChannel channel) : IChatPublisher
 }
 ```
 
-`ChatSubscriber` runs for the lifetime of the application. It declares a transient queue bound to the exchange, consumes every published message, and routes it to the correct `ChatRoom`.
+`ChatSubscriber` runs for the lifetime of the application. It declares an exclusive, auto-delete queue and binds it to the fanout exchange. Each instance needs its own queue: sharing one would distribute messages between consumers instead of delivering them to every instance.
 
-Using a fanout exchange with an exclusive, auto-delete queue means every server instance receives every message. A live chat system needs that, because clients may be connected to any instance.
+This queue receives messages while it is bound. It does not retain a disconnected instance's backlog, and the cached rooms do not reload history on reconnection. The durable exchange declaration does not provide durable chat storage. Start the consumer and establish its binding before sending messages; reconnect handling and missed-message recovery are not implemented in this sample.
 
 ```csharp
 // Chat/ChatSubscriber.cs
@@ -203,10 +202,7 @@ Build the backend to generate the proxies. They are the same `ForRoom.ts`, `Send
 
 ## Step 3 — Delta mode
 
-Delta mode works identically here. The room still publishes the full list on each message, but Arc only sends the difference to each client:
-
-- **First connection:** the client receives the full persisted history as the initial payload.
-- **Each new message:** Arc matches messages by `Id`, so the `ChangeSet` holds one item in `added` and nothing else.
+The room still publishes a complete history, so delta mode works as in the in-memory guide. A new subscription receives the room's current history: the loaded messages plus any messages it has received since. After that, Arc matches messages by `Id` and sends additions as a `ChangeSet` rather than sending the whole list again.
 
 The `use()` hook applies each `ChangeSet` transparently, so `messagesResult.data` always holds the complete current collection.
 
@@ -225,14 +221,14 @@ The React component is **identical** to the one in the [in-memory guide](/scenar
 | Initial history | Empty `[]` | Loaded from persistence layer |
 | New messages enter via | The room's `Send` | The broker consumer, through the room's `Receive` |
 | `SendMessage` handler | Sends to the room through the chat service | Publishes an envelope through the publishing contract |
-| Scales across instances | No, state is process-local | Yes, every instance consumes from the exchange |
+| Delivery across instances | No, state is process-local | Each instance receives messages through its bound queue |
 | Observable query | Unchanged | Unchanged |
 | React component | Unchanged | Unchanged |
 
-The observable query and the frontend are unaffected by the backend data source. The query returns an observable source of the room's messages (a subject in C# and TypeScript, a `Flow` in Kotlin, a `Flow.Publisher` in Java), and that return type is a contract between the query and Arc, not between the query and any specific storage or messaging technology.
+The query still returns an observable source of complete message histories: a subject in C# and TypeScript, a `Flow` in Kotlin, or a `Flow.Publisher` in Java. Its subscription lifecycle is unchanged. Leaving a room ends that query subscription, not the application's broker consumer or the cached room.
 
 <Recap>
 
-You replaced the in-process state with a persistence layer and a RabbitMQ fanout exchange, and the query and the React component stayed the same. Next, [manage the message list in the frontend](/scenarios/chat/change-stream/) with `useChangeStream()`.
+Connect a browser to each of two server instances, join the same room, and send a message. With both consumers bound, both browsers should receive it. Next, [react to individual message changes in the frontend](/scenarios/chat/change-stream/) with `useChangeStream()`; that guide uses the simpler in-memory backend.
 
 </Recap>

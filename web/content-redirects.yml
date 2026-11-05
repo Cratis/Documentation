@@ -425,3 +425,15 @@
   to: /arc/backend/kotlin/
 - from: /concepts/event-modeling/
   to: /event-modeling/
+- from: /screenplay/stage/guides/build-renderer-target/
+  to: /stage/guides/build-renderer-target/
+- from: /screenplay/stage/guides/customize-rendered-application/
+  to: /stage/guides/customize-rendered-application/
+- from: /screenplay/stage/guides/generated-values/
+  to: /stage/guides/generated-values/
+- from: /screenplay/stage/guides/sign-in-with-entra-id/
+  to: /stage/guides/sign-in-with-entra-id/
+- from: /screenplay/stage/guides/target-repository-model/
+  to: /stage/guides/target-repository-model/
+- from: /screenplay/stage/guides/template-kits/
+  to: /stage/guides/template-kits/

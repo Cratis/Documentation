@@ -1,21 +1,21 @@
 ---
-title: "Read this first: write-side consistency if you know DCB, KurrentDB, Marten or Axon"
-description: "How Chronicle's guards map onto the Dynamic Consistency Boundary and onto stream-version checks and aggregates you know from other event-sourcing tools, and where the model differs."
+title: "Cratis write-side consistency: map DCB and stream checks"
+description: "Map DCB conditions, stream-version checks and aggregate boundaries to Chronicle guards. Learn which reads are protected and where the models differ."
 ---
 
-Use this page when you already know how another event-sourcing tool keeps a decision correct and want to map it onto Cratis before you read the guides. It is a map, not a comparison of products. For product differences see [event sourcing in .NET](/compare-event-sourcing-dotnet/) and [on the JVM](/compare-event-sourcing-jvm/).
+Cratis Chronicle protects a decision with concurrency scopes: conditions checked atomically with an append. If you know Dynamic Consistency Boundary (DCB), stream-version checks or aggregates, use this page to translate those ideas before choosing an API. For product comparisons rather than this terminology map, see [event sourcing in .NET](/compare-event-sourcing-dotnet/) and [on the JVM](/compare-event-sourcing-jvm/).
 
 ## The one difference that matters
 
-Chronicle supports DCB-style decision models and append conditions within its own event model. It is not a DCB event store.
+Chronicle supports DCB-style decision models and append conditions within its own event-source model. It is not a DCB event store and does not implement the DCB specification's API. In particular, custom tags used to query events are not the predicates used to guard appends.
 
 | DCB | Chronicle |
 | --- | --- |
 | One event can carry tags for several entities | One event belongs to exactly one event source. A fact about two entities is one event for each, appended together in one atomic append |
-| Tags select the events a decision depends on | Event source id, event source type, event stream type and event stream id play the tag roles. Each has one value per event |
-| A query item combines event types and tags | A concurrency scope combines event types and those four values |
-| An append condition holds one or more query items and a position | An append carries one or more scopes. Any violation rejects the whole append |
-| Several items on the same entity stay separate | Chronicle merges them into one wider scope. This is safe and can cause extra conflicts |
+| Tags select the events a decision depends on | Guards select event types and routing metadata: event source id, event source type, event stream type and event stream id. Each routing dimension has one value per event |
+| A query item combines event types and tags | A concurrency scope combines optional event-type and routing filters |
+| An append condition holds one or more query items and a position | Each scope carries its own position and filter. Any violation rejects the whole append |
+| Several items on the same entity can stay separate | The .NET client retains separate predicates when the kernel supports them; otherwise it can merge read guards conservatively, causing extra conflicts |
 
 Custom tags on a Chronicle event are stored and filterable, but they do not take part in a consistency check.
 
@@ -25,10 +25,10 @@ Custom tags on a Chronicle event are stored and filterable, but they do not take
 | --- | --- |
 | An expected version or revision on append to one stream | An explicit [concurrency scope](/chronicle/events/concurrency/) with the sequence number you saw. In Arc, `EventsWithConcurrencyScopes` carries the revision from the client |
 | An aggregate that loads its events, decides and appends | An Arc [aggregate root](/arc/backend/csharp/chronicle/aggregates/). It guards the event types it handles on its event source |
-| A decision model built from the events a decision needs | A decision read: a flat projection that notes the log position before it folds. Under Arc read protection `On`, a plain read-model parameter is one |
-| Querying events across entities by tag | No equivalent. You read each entity's own history, one read per key |
+| A decision model built from the events a decision needs | A decision read: an admitted projection or reducer read with a position captured before it folds. Arc read protection `On` arranges this for admitted read-model parameters |
+| Guarding a decision across entities selected by tag | Read each entity by key and guard one atomic append. Custom-tag queries do not create append conditions |
 | A unique key or index | A [constraint](/chronicle/constraints/), enforced for every writer without a read |
-| Idempotency by a client token | A `[Unique]` constraint on the token |
+| Rejecting duplicate client tokens | A `[Unique]` constraint on the token. It rejects reuse; it does not return a cached response |
 
 Check your tool's own documentation for what it guards and what it does not. This page does not describe other products' consistency features.
 
@@ -36,7 +36,7 @@ Check your tool's own documentation for what it guards and what it does not. Thi
 
 | In DCB and other tools | In Cratis |
 | --- | --- |
-| Tag | Event source id, event source type, event stream type, event stream id |
+| Tag used in a condition | A routing filter: event source id, event source type, event stream type or event stream id. Not a Chronicle custom tag |
 | Decision model | Decision read, or a read-model parameter under read protection `On` |
 | Query item | One concurrency scope, or the guard one read produces |
 | Append condition | Guard |
@@ -44,25 +44,23 @@ Check your tool's own documentation for what it guards and what it does not. Thi
 
 ## What Chronicle adds
 
-- **Read protection.** Under Arc `On`, a read the command cannot guard is refused instead of running unguarded. You do not have to remember to use a decision read.
-- **Constraints.** Unique values and once-only facts are checked by the kernel for every writer.
-- **Event source definitions.** A typed declaration of an event source, its streams and the dimensions that guard an append.
-- **Per-stream read models.** A read model that folds one stream of an entity, so another month or period does not conflict.
-- **Closed streams.** A stream can be ended so no later append can invalidate a decision about it.
+With Arc read protection `On`, a command's admitted read-model parameters become protected reads. Unsupported reads are refused rather than silently running unguarded. This avoids having each command manually enroll its decision reads, but it does not protect other writers or external state.
+
+For uniqueness or once-only facts, use a kernel constraint instead of reading first. It is checked for every writer. For state-based rules, event source definitions declare routes and concurrency boundaries; per-stream read models let a rule read one selected period of an entity's history. Other enrolled reads or declared scopes can widen that guard.
+
+Closing a stream prevents later appends to that stream. It does not make earlier history immune to revision or redaction.
 
 ## What Chronicle cannot do
 
-- Give one event several tags, or query for events tagged with both X and Y.
+- Give one event several event source IDs. Custom tags can describe several entities, but are not consistency predicates.
 - Use custom tags in an append condition.
-- Keep several separate conditions on one event source.
-- Decide from a projection that joins entities or is keyed by something other than the event source. These reads are refused.
-- Guard a read across event sequences.
+- Derive a decision-read guard from a projection that joins entities or uses a key other than the event source. Such reads are refused.
+- Guard one decision across event sequences.
 
-Revising or redacting an earlier event does not advance the position a guard compares, so a decision made before the change can still commit. See the [contract](/chronicle/events/concurrency/#revisions-and-redactions-are-outside-append-conditions).
+A position-only scope detects appends, not revisions or redactions of earlier history. The .NET decision-read path additionally captures a history-mutation marker when supplied by the kernel, and a change to that marker invalidates the read's guard. Do not assume that protection for hand-built scopes or other clients. See the [concurrency contract](/chronicle/events/concurrency/#revisions-and-redactions-are-outside-append-conditions) for the distinction.
 
 ## Where to go next
 
-1. [Keeping decisions correct](/concepts/keeping-decisions-correct/) for the short version.
-2. [Dynamic Consistency Boundary in Chronicle](/chronicle/dynamic-consistency-boundary/chronicle/) for the full mapping and the answer to each canonical DCB example.
-3. [How guards are derived](/chronicle/dynamic-consistency-boundary/how-guards-are-derived/) for which events make an append fail.
-4. The [write-side consistency learning path](/learning-paths/#write-side-consistency).
+Start with [Keeping decisions correct](/concepts/keeping-decisions-correct/) to choose a mechanism for your rule. For DCB-specific modeling, continue to [Dynamic Consistency Boundary in Chronicle](/chronicle/dynamic-consistency-boundary/chronicle/).
+
+Before combining reads or writing explicit scopes, read [How guards are derived](/chronicle/dynamic-consistency-boundary/how-guards-are-derived/). The [write-side consistency learning path](/learning-paths/#write-side-consistency) then takes you through implementation.

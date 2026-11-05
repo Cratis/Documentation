@@ -1,97 +1,113 @@
 ---
-title: Adopting Cratis
-description: Where to start with Cratis — default to the full event-sourced stack for new information systems, or adopt one product at a time in existing systems.
+title: Adopting Cratis Platform
+description: Choose a Cratis Platform entry point for a new or existing system, from a typed Arc boundary to Chronicle event history and a React frontend.
 ---
 
-import { CardGrid, Aside } from '@astrojs/starlight/components';
-import SimpleCard from '@components/SimpleCard.astro';
+import { Aside, CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
 import TopicHero from '@components/TopicHero.astro';
 
-<TopicHero icon="rocket" eyebrow="Getting oriented" title="Where to start">
-Cratis products stand on their own and compose when you want them to. For a new information system, our default is the full loop: Chronicle for event sourcing, Arc for CQRS, Components for React, and AuthProxy at the edge. For an existing system or a bounded current-state slice, you can adopt one piece at a time without losing the path back to the full stack.
+Improve one feature without making a rewrite the starting point. With Cratis Platform, you can find typed frontend usages affected by a backend contract change, keep the history behind one business process, or build a new view from facts you already recorded. Choose the result you can check while the rest of the application keeps its existing path.
+
+<span id="where-to-start"></span>
+
+<TopicHero icon="rocket" eyebrow="Getting oriented" title="Start with the result your team needs">
+Choose one behavior you can implement and check on its own. Use the entry-point table to find the capability and product that deliver it, then follow the [new-project](#starting-from-scratch-greenfield) or [existing-system](#adding-to-an-existing-system-brownfield) path. Your backend language determines the setup guide and available capabilities.
 </TopicHero>
 
 ## Pick your entry point
 
-Three things decide where you start: **what you're building on** — a new codebase or an existing one — **which boundary you are changing first**, and **which language your services are written in**. Event sourcing is the default architecture we recommend for information systems; CQRS, generated contracts, and edge identity can still be adopted independently.
+To see which frontend code a contract change affects, use generated clients and a frontend type-check: Cratis Arc supplies the command/query boundary and generation. Commands request changes; queries request reads, the separation called Command Query Responsibility Segregation (CQRS). To explain state from recorded changes or derive new views, use event storage and projections: Cratis Chronicle supplies that history. Cratis Components brings Arc's contracts into React.
+
+For a new information system, Cratis recommends Chronicle, Arc, and Components together. Event sourcing is the default architecture we recommend for information systems; CQRS, generated contracts, and edge identity can still be adopted independently.
 
 ```mermaid
 flowchart TD
-    Q1{New information system<br/>or existing?}
-    Q1 -->|New| FULL["Default stack:<br/>Arc + Chronicle + Components"]
+    Q1{What does this feature<br/>need to make possible?}
+    Q1 -->|Find affected frontend usages| ADDARC["Arc: generated clients<br/>then frontend type-check"]
+    Q1 -->|Explain state from facts| ADDCHR["Chronicle: event history<br/>for one bounded context"]
+    Q1 -->|History and a typed screen| FULL["Default for new systems:<br/>Arc + Chronicle + Components"]
     FULL -.->|a corner where current<br/>state is genuinely enough| ARC["Arc + Components<br/>over MongoDB / EF Core"]
-    Q1 -->|Existing| Q3{What hurts<br/>most?}
-    Q3 -->|Frontend/backend glue| ADDARC["Add Arc to your app"]
-    Q3 -->|Audit & history| ADDCHR["Introduce Chronicle,<br/>one slice at a time"]
 ```
 
-| Your situation | Start with | Why |
+| Result your team needs | Start with | What this gives you and what to check |
 | --- | --- | --- |
-| New information system | **Arc + Chronicle + Components** | The default Cratis loop: CQRS at the boundary, event history underneath, React generated from C# — the [full-stack capstone](/build-a-full-app/) builds the shape. |
-| Bounded slice where current state is genuinely enough | **Arc + Components** over a database | Typed commands, queries, and a generated React client with CQRS but no event log — [CQRS without event sourcing](/arc/arc-without-event-sourcing/). |
-| Existing .NET API, frontend glue is the pain | **Arc**, added to your app | A typed TS client for new endpoints, without rewriting what you have. |
-| Existing system, you need history or audit | **Chronicle**, incrementally | Event-source one bounded context; leave the rest as it is. |
-| New full-stack app on Kotlin or Java | **Arc + Chronicle** on Spring Boot | The [Cratis Kotlin](/templates/cratis-kotlin/) and [Cratis Java](/templates/cratis-java/) templates scaffold the same full-stack shape with a React frontend. |
-| Services in TypeScript, Kotlin/Java, or Elixir that need an event store | **Chronicle** with your language's client | Chronicle's clients talk to the same kernel over gRPC — see [Chronicle in your language](/chronicle-clients/). |
-| Need to separate CQRS from event sourcing | Read first | [CQRS without event sourcing](/arc/arc-without-event-sourcing/), then [Why developers choose Cratis](/why-cratis/). |
+| Find frontend usages affected by changes to an existing .NET API | **Arc**, added to your app | Generate typed TypeScript clients for new commands and queries while existing endpoints keep running. Regenerate after a change and type-check the frontend; this does not replace runtime integration checks. |
+| Explain how one business area reached its current state | **Chronicle**, incrementally | Record that context's facts as events; leave the rest of the system as it is. Decide where history begins: existing rows do not become events automatically. |
+| Answer a new question from existing event history | **Chronicle projections** | Derive a focused [read model](/chronicle/projections/) from the recorded facts. Supported replay can rebuild a view, but cannot supply missing facts; projections update asynchronously. |
+| Keep history behind a typed React screen in a new information system | **Arc + Chronicle + Components** | The default Cratis loop: CQRS at the boundary, event history underneath, TypeScript clients generated from C#, consumed by React — the [full-stack capstone](/build-a-full-app/) builds the shape. |
+| Check frontend contract changes in a bounded slice that needs only current state | **Arc + Components** over a database | Typed commands, queries, and a generated React client with CQRS but no event log — [CQRS without event sourcing](/arc/arc-without-event-sourcing/). |
+| Keep history behind a new Kotlin or Java full-stack app | **Arc + Chronicle** on Spring Boot | The [Cratis Kotlin](/templates/cratis-kotlin/) and [Cratis Java](/templates/cratis-java/) templates scaffold the same full-stack shape with a React frontend. Check the backend's capabilities rather than assuming parity. |
+| Keep event history from a TypeScript, Kotlin/Java, or Elixir service | **Chronicle** with your language's client | Chronicle's clients talk to the same kernel over gRPC — see [Chronicle in your language](/chronicle-clients/). |
+| Keep a typed application boundary without choosing event sourcing | Read first | [CQRS without event sourcing](/arc/arc-without-event-sourcing/), then [Why developers choose Cratis](/why-cratis/). |
+| Agree on expected behavior before implementation | **Screenplay**, with **Cratis Studio** for shared editing | Keep commands, events, views, and specifications together. Studio is an optional paid workspace built on Chronicle for editing Screenplay event models together. [Sign-up is open with a 14-day free trial](https://lobby.cratis.studio/register) and [per-seat pricing](https://cratis.studio/#pricing). It is not required to use Arc, Chronicle, or Components; model checks do not replace implementation tests. |
+| Set how far agents can proceed and review why work advanced | **Direct** | [Cratis Direct](https://cratis.direct/) defines progression ceilings, journeys, gates, and recorded evidence for work across GitHub repositories. Governance depends on the rules activated, and people retain review and approval responsibilities. It runs Cratis's own engineering today; access opens in stages to enabled accounts, who [sign in with GitHub](https://app.cratis.direct/). A GitHub account alone does not grant access. [Public docs cover the Direct Agent Runner](/direct/). |
+
+<Aside type="tip" title="See a model run">
+Keep the feature's commands, events, and views together in Cratis Screenplay, then [send a command and see its resulting state in Stage](/stage/docker/). Stage runs the supported subset as a disposable sandbox, not a production host; bind published ports to `127.0.0.1`. This is optional model exploration, not a migration step.
+</Aside>
 
 ## Starting from scratch (greenfield)
 
-A new project is the easy case — nothing to migrate, no constraints. For an information system, start with the whole loop unless you have a clear reason not to:
+For a new information system, follow [Build a full-stack feature](/build-a-full-app/) to implement one behavior through the whole loop: command → event → projection → query → React. A projection turns recorded events into a read model shaped for the screen. The event log keeps the history behind that view.
 
-- **Default to the full experience.** Follow [Build a full-stack feature](/build-a-full-app/): it scaffolds the application from the [Cratis templates](/templates/getting-started/) and adds one slice by hand. You'll have the command → event → projection → query → React loop running, with history available from the event log. The template wires Arc and Chronicle into one host through the [Cratis package](/arc/backend/csharp/chronicle/cratis-package/)'s `AddCratis`/`UseCratis`.
-- **Use Arc-only for deliberate current-state slices.** If a bounded part of the app is just reference data, settings, or an adoption step, [Arc over a database](/arc/arc-without-event-sourcing/) still gives you CQRS, generated proxies, and live queries. Adopting Chronicle later is mostly a write-side change: the query contract and the React screens that use it can stay the same, though the query's implementation moves to the read model a projection builds.
+The C# and JVM paths start from the [Cratis templates](/templates/getting-started/). The TypeScript backend is available from source, not npm, and starts from a sample rather than a scaffold. In C#, the [Cratis package](/arc/backend/csharp/chronicle/cratis-package/)'s `AddCratis`/`UseCratis` calls register Arc and the Chronicle client in the application host. The Chronicle server runs separately; those calls do not embed it in your API.
+
+If a bounded part of the app needs only current state, such as reference data or settings, choose [Arc over a database](/arc/arc-without-event-sourcing/) for that part. You still get CQRS, generated proxies, and live queries. To add Chronicle later, change the write side to record events and build a read model with a projection. The query contract and React screen can stay the same, while the query implementation and storage wiring may need to change.
 
 <Aside type="tip" title="CQRS and event sourcing are independent">
-Arc gives you CQRS: commands for information entering the system, queries for information leaving it. Chronicle gives you event sourcing: facts as the durable source of truth. They fit together extremely well, but either one can stand without the other.
+Arc gives you CQRS: commands for changes and queries for reads. Chronicle gives you event sourcing: facts as the durable source of truth. You can use either without adopting the other.
 </Aside>
 
 ## Adding to an existing system (brownfield)
 
-You rarely get to start clean. Cratis is built to be adopted a slice at a time, alongside code that already works — you don't rewrite, you grow into it.
+Keep existing behavior running while you introduce a new boundary. Choose a feature with a clear owner and a result you can check independently; do not make a system-wide rewrite a prerequisite.
 
-### Add Arc to an existing ASP.NET Core app
+<span id="add-arc-to-an-existing-aspnet-core-app"></span>
 
-If your pain is the **frontend-to-backend boundary** — hand-written controllers, DTOs duplicated in TypeScript, fetch wrappers that drift out of sync — Arc slots into an app you already have. Register it on your existing host and start expressing *new* endpoints as commands and queries; Arc generates their typed proxies while your existing controllers keep running untouched. [Set up a standalone Arc backend](/arc/backend/csharp/getting-started/) shows the packages and the proxy-generation settings, with no Chronicle or template involved.
+### Find frontend usages affected by backend changes
+
+If you maintain controllers, duplicate data types in TypeScript, and fetch wrappers for each new feature, start with Arc's application boundary. Register Arc on your existing host and express new endpoints as commands and queries. Arc generates their typed proxies while existing controllers continue to serve their routes. [Set up a standalone Arc backend](/arc/backend/csharp/getting-started/) gives you the packages and proxy-generation settings without requiring Chronicle or a template.
 
 Arc's persistence meets your data where it already lives: its [MongoDB](/arc/backend/csharp/mongodb/) and [Entity Framework](/arc/backend/csharp/entity-framework/) integrations read and write the database you already use — EF Core even has a [direct-registration path](/arc/backend/csharp/entity-framework/getting-started/) designed for slotting into an existing application without taking over the whole framework. For controllers and MediatR handlers, the [MediatR, MVC, and Arc](/arc/backend/csharp/coming-from-mediatr-and-mvc/) bridge maps familiar concepts onto Arc's model.
 
-### Introduce Chronicle into an existing domain
+<span id="introduce-chronicle-into-an-existing-domain"></span>
 
-If your pain is **history** — you need an audit trail, a "how did this order get into this state?" view, or a new read model the current schema can't serve — you don't have to event-source the whole system in one move. Pick the bounded context where the model is clearest and event-source that first:
+### Explain how one business area reached its current state
 
-1. Model the facts for that area as [events](/chronicle/concepts/event/), and append them when the corresponding things happen — for new behavior, append the event; for existing writes, append alongside the current write. Existing rows do not become events on their own; decide whether you need historical events at all, and if so, write them deliberately.
-2. Build [projections](/chronicle/projections/) that fold those events into exactly the read models that context needs. They can sit right next to your existing tables.
-3. Let the rest of the system keep working as it is. Event sourcing earns its place one context at a time, not as a big-bang rewrite.
-
-The [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/) guide maps tables and `SaveChanges` onto events — that's the mental shift that makes this click.
+If you need to answer "how did this order get into this state?", start with the part of the domain whose facts and rules you can define clearly. That is your bounded context: an area with its own model and vocabulary. Decide where its event history begins before changing how it writes data.
 
 <Aside type="caution" title="Writing to two places">
 Appending an event alongside an existing write is a dual write: the two can succeed or fail independently. Decide which one is the source of truth for that context, make the other derived from it where you can, and plan how you detect and reconcile a mismatch. The [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/) guide maps the concepts.
 </Aside>
 
+<Steps>
+
+1. Model the facts for that area as [events](/chronicle/concepts/event/). For new behavior, append the event when it happens. If an existing write must remain, appending alongside it requires the dual-write plan above. Existing rows do not become events on their own; decide whether you need historical events and, if so, write them deliberately.
+2. Build [projections](/chronicle/projections/) that turn those events into the read models the context needs. They can sit alongside existing tables. Follow one event into its projected result before moving another feature.
+3. Keep the rest of the system on its existing path. Use the first context's events and read models to check the new behavior before expanding the adoption.
+
+</Steps>
+
+Continue with [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/) to map tables and `SaveChanges` onto events and projections.
+
 <Aside type="caution" title="Keep the boundary honest">
-Event sourcing is the default for information systems, not a mandate that every settings table needs a stream. Use Chronicle for the facts and processes that define the domain, and leave genuinely current-state-only corners on Arc-over-a-database. [When to use event sourcing](/chronicle/concepts/when-to-use-event-sourcing/) is the honest filter.
+Event sourcing is the default for information systems, not a mandate that every settings table needs a stream. Use Chronicle for the facts and processes that define the domain, and leave genuinely current-state-only corners on Arc-over-a-database. [When to use event sourcing](/chronicle/concepts/when-to-use-event-sourcing/) helps you decide which history the feature needs.
 </Aside>
 
-## Grow into the full stack
+<span id="grow-into-the-full-stack"></span>
 
-However you start, the pieces are designed to be *added*, not swapped out. The common growth paths:
+## Add history or a typed screen when the feature needs it
 
-- **Arc-over-a-database → add Chronicle.** Move a slice's write side from a direct insert to appending an event with a projection behind it. The query's contract and the React that calls it can stay the same, while the query now reads the projected read model; see the side-by-side in [CQRS without event sourcing](/arc/arc-without-event-sourcing/).
-- **Chronicle-only service → add Arc and a frontend.** Already event-sourcing from a worker or service? Put Arc in front to expose typed commands and queries, and Components to render them — without changing how your events are stored.
-- **Any backend → add Components.** The React library consumes Arc's generated proxies, so adding it is a frontend-only step.
+If you started with Arc over a database, add Chronicle by moving one slice's write side from a direct insert to an event append with a projection behind it. Keep the query contract where it still serves the same need, and update the implementation to read projected state. [CQRS without event sourcing](/arc/arc-without-event-sourcing/) shows the two versions side by side.
+
+If a worker or service already uses Chronicle, put Arc in front when you need typed commands and queries for a frontend. That does not require changing how the events are stored. Once Arc generates proxies, Components can use them in command forms and query-backed tables.
+
+Components is not a frontend-only integration for an arbitrary backend. If your backend does not expose Arc contracts, establish the [Arc command/query boundary and proxy generation](/arc/understanding-the-proxy-boundary/) first.
 
 ## Next steps
 
 <CardGrid>
-  <SimpleCard title="Why developers choose Cratis" icon="open-book" link="/why-cratis/">
-    How the three products stand alone and compose — the map this page navigates.
-  </SimpleCard>
-  <SimpleCard title="CQRS without event sourcing" icon="puzzle" link="/arc/arc-without-event-sourcing/">
-    The standalone Arc shape, and the write-side change that moves a slice to Chronicle.
-  </SimpleCard>
-  <SimpleCard title="Build the full loop" icon="rocket" link="/build-a-full-app/">
-    The full-stack capstone — command to event to live React screen, with history.
-  </SimpleCard>
+  <LinkCard title="Compare the outcomes and trade-offs" href="/why-cratis/" description="Compare event history, generated frontend contracts, and independent adoption." />
+  <LinkCard title="Keep typed contracts without an event log" href="/arc/arc-without-event-sourcing/" description="Use standalone Arc, then see the write-side change that adds Chronicle." />
+  <LinkCard title="Build a live React screen with event history" href="/build-a-full-app/" description="Follow one feature from command to event, read model, and screen." />
 </CardGrid>

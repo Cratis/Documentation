@@ -1,15 +1,15 @@
 ---
 title: Event sourcing in Kotlin and Java
-description: "Do event sourcing in Kotlin and Java with Cratis Chronicle: an open-source (MIT) event-sourcing database with an idiomatic JVM client on Maven Central — annotations, coroutines, a Spring Boot starter, and a testing library."
+description: "Event sourcing keeps business facts as events. Use Cratis Chronicle in Kotlin and Java to append them and derive read models with the JVM client."
 ---
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-Chronicle is an open-source (MIT) event-sourcing database and processing runtime, and `io.cratis:chronicle` is its idiomatic JVM client — one artifact, usable from both Kotlin and Java. Events are data classes or records annotated with `@EventType`, read models are classes annotated with `@ReadModel`, and reducers, reactors, projections, and constraints follow the same pattern. Artifacts on your classpath are found and registered with the kernel when you connect, so there is no schema file or registry to keep in sync. Kotlin gets suspending calls throughout; Java gets blocking bridges for the same surface. A Spring Boot starter reduces setup to a dependency, and `chronicle-testing` provides an in-process test library.
+Event sourcing keeps business facts as events and derives the state an application reads from them. For an employee record, that means retaining `EmployeeHired` instead of storing only the current employee details. Reprocessing the recorded history lets you rebuild a view or create another one, as long as the events contain the information it needs.
 
-With event sourcing, your application appends immutable facts, and every view of the world is derived from them rather than overwritten on top of them. Chronicle stores those events and enforces rules — uniqueness and other constraints are checked at append time, on the server. Nothing is updated in place, so every state your system has been in is reconstructible.
+Cratis Chronicle is an event-sourcing database and processing runtime. Its JVM client, `io.cratis:chronicle`, works from Kotlin and Java. Annotate an event data class or record with `@EventType` and a read model with `@ReadModel`; reducers turn events into that model. The client discovers artifacts on your classpath and registers them with the kernel, Chronicle's server, when you connect. Kotlin uses suspending calls for kernel access, and Java has blocking bridges. A Spring Boot starter handles the connection, while `chronicle-testing` provides an in-process test library.
 
-The event store is not JVM-only: Chronicle's kernel exposes a language-agnostic gRPC/protobuf boundary, and the same store is reachable from the [.NET, TypeScript, and Elixir clients](/chronicle-clients/) as well. Storage is pluggable — MongoDB by default, with PostgreSQL, SQL Server, SQLite, and in-memory providers implemented in the kernel.
+The server checks uniqueness and other configured constraints at append time. It also provides the shared event store for the [.NET, TypeScript, and Elixir clients](/chronicle-clients/) over a gRPC/protobuf boundary. Storage is pluggable: MongoDB is the default, with PostgreSQL, SQL Server, SQLite, and in-memory providers implemented in the kernel. Using the JVM client does not mean running the event store inside the JVM.
 
 ## Install
 
@@ -26,7 +26,7 @@ dependencies {
 
 ## A taste
 
-An annotated event, the read model it produces, and the reducer that folds one into the other — from the client repository's example:
+This excerpt follows one hiring fact into an employee view. `EmployeeStateReducer` copies the event's first name and title into `EmployeeState`, the read model; it leaves the hiring event unchanged:
 
 ```kotlin
 @EventType
@@ -52,7 +52,7 @@ class EmployeeStateReducer {
 }
 ```
 
-Connect, wait for the first registration pass, and append an event. Registration does not mean the reducer has processed the append: read models update asynchronously. This example keeps the client alive while it waits up to ten seconds for the model, then fails on timeout rather than printing a missing result. It assumes a Chronicle kernel running locally in development mode; [Get started with Chronicle](/chronicle/get-started/) shows how to start one.
+Start a local development kernel using [Get started with Chronicle](/chronicle/get-started/), then connect and wait for the first registration pass before appending. Registration prepares the artifacts; it does not wait for future events to be processed. The code below keeps the client alive while the reducer builds the model, waiting up to ten seconds before failing on timeout.
 
 ```kotlin
 import kotlinx.coroutines.delay
@@ -81,11 +81,17 @@ fun main() = runBlocking {
 }
 ```
 
-Use a fresh event store for this exercise so `employee-1` has no older read model. The ten-second limit is a demo timeout, not a processing-time guarantee. If it expires, inspect reducer registration and failed partitions instead of treating the append as a completed projection.
+The `employee-1` key connects the append to the read-model lookup. Use a fresh event store for this exercise so that key has no older model: otherwise the loop could return the old state before the new event is processed. The ten-second limit is a demo timeout, not a processing-time guarantee. If it expires, inspect reducer registration and failed partitions instead of treating the append as a completed projection.
 
 Chronicle imports are omitted; the [Kotlin/Java client docs](/chronicle/clients/kotlin/) show the full setup, including the Spring Boot starter, which connects for you.
 
-The same surface is available from Java, with events as records and blocking bridges in place of suspending calls.
+Java uses annotated records for events and blocking bridges in place of suspending calls; the client docs show that setup separately.
+
+## What the history gives you
+
+Event sourcing is useful when you need to explain how an employee record changed or build a new view from earlier facts. The reducer is replaceable processing logic; the recorded facts are the input it has to work with. Keeping that history means maintaining event contracts as the application changes.
+
+A current-state table is simpler if the application only needs today's employee details. With event sourcing, you also maintain read-model processing and account for its asynchronous updates. [When to use event sourcing](/chronicle/concepts/when-to-use-event-sourcing/) discusses that choice. To try the JVM path, continue with the [Kotlin/Java client docs](/chronicle/clients/kotlin/) for the full setup and Java examples.
 
 ## Where to go next
 
@@ -98,4 +104,4 @@ The same surface is available from Java, with events as records and blocking bri
 
 Want the command and query side too? See [CQRS in Kotlin and Java](/cqrs/kotlin/).
 
-Looking for another language? See [Chronicle in your language](/chronicle-clients/) for the .NET, TypeScript, Elixir, and experimental Go clients.
+Looking for another language? See [Chronicle in your language](/chronicle-clients/) for the .NET, TypeScript, Elixir, and Go clients.

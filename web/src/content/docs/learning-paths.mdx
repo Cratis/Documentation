@@ -1,38 +1,60 @@
 ---
-title: Learning paths
-description: Ordered routes through the Cratis documentation for event-sourcing beginners, full-stack builders, developers on other languages, evaluators, operators, frontend developers, and contributors.
+title: Cratis Platform learning paths
+description: Cratis Platform learning paths guide developers, evaluators, and operators from a first task to the next guide for event sourcing, CQRS, or React.
 ---
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-Cratis covers an event store, an application framework, a UI library, and the tools around them, so the documentation is wide. A path gives you an order to read it in. Each one says who it is for, what you can do when you finish, and which pages to read or build along the way.
+What do you need to accomplish: explain today's state from recorded events, build a view of that history, connect a React screen to backend contracts, or agree what a feature should do? Choose a Cratis Platform learning path by that result. Each route introduces the products as you need them; you do not need to learn the whole platform before starting.
 
-Paths share pages, and you can switch at any point. If none of them fits, [Adopting Cratis](/adopting-cratis/) helps you pick a starting product first.
+To see how events become a view, begin with [First projection](#first-projection), a C# source walkthrough of cart events becoming a read model, a view shaped for a particular question. To build a working API and UI, go straight to [Build a full-stack app](#build-a-full-stack-app). To assess one change without starting a rewrite, use [Evaluate Cratis](#evaluate-cratis) and [Adopting Cratis](/adopting-cratis/). Operators, React developers, and contributors have their own routes below.
 
 <CardGrid>
-  <LinkCard title="New to event sourcing" description="Understand facts, projections, and consistency before you commit to a design." href="#new-to-event-sourcing" />
-  <LinkCard title="Build a full-stack app" description="Scaffold an app and follow a command through an event and a read model to a live React screen." href="#build-a-full-stack-app" />
+  <LinkCard title="Derive a view from recorded facts" description="Follow cart events into a read model in a C# source walkthrough." href="#first-projection" />
+  <LinkCard title="Explain state through event history" description="New to event sourcing? Understand facts, projections, and consistency before choosing it." href="#new-to-event-sourcing" />
+  <LinkCard title="Build a feature with a live screen" description="Follow a command through an event and a read model to a React list." href="#build-a-full-stack-app" />
+  <LinkCard title="Discuss and check expected behavior" description="Model commands, events, views, and scenarios before implementing a feature." href="#discuss-and-check-expected-behavior" />
   <LinkCard title="Keep decisions correct" description="Make a rule that depends on state hold when two requests run at once, from the first protected command to the advanced scenarios." href="#write-side-consistency" />
   <LinkCard title="Use Chronicle from another language" description="Start from the TypeScript, Kotlin/Java, or Elixir client instead of .NET." href="#use-chronicle-from-another-language" />
-  <LinkCard title="Evaluate Cratis" description="Decide whether the stack, or one product from it, fits your system." href="#evaluate-cratis" />
+  <LinkCard title="Evaluate one bounded change" description="Decide whether one product, or a combination, addresses your system's needs." href="#evaluate-cratis" />
   <LinkCard title="Operate Chronicle" description="Run, inspect, diagnose, replay, and upgrade a Chronicle deployment." href="#operate-chronicle" />
-  <LinkCard title="Frontend developer" description="Work with generated proxies and Components on an existing Arc backend." href="#frontend-developer" />
+  <LinkCard title="Connect React to backend contracts" description="For frontend developers: use generated proxies and Components on an existing Arc backend." href="#frontend-developer" />
   <LinkCard title="Contributor" description="Change Cratis itself: code, documentation, or design proposals." href="#contributor" />
 </CardGrid>
 
+If you need to erase protected personal values while retaining event history, read [Event sourcing and GDPR](/concepts/event-sourcing-gdpr/) and [Chronicle compliance](/chronicle/compliance/) for the mechanism and the responsibilities it leaves with your team. To set a stopping point for agent work and inspect the evidence behind progression, read the [Cratis Direct overview](https://cratis.direct/); access opens in stages to enabled accounts, and the [public Direct docs](/direct/) cover the Direct Agent Runner. These are focused explanations, not prerequisites for the learning paths.
+
+## Discuss and check expected behavior
+
+Before implementing a feature, put the expected behavior where developers, domain experts, and product owners can discuss it. Commands, events, read models, and Given/When/Then scenarios can live together in a Screenplay model; supported scenarios run in its in-memory reference evaluator. Those checks do not verify the eventual application code.
+
+1. Read [Event modeling](/event-modeling/) to map the feature's information flow.
+2. Use [Cratis Screenplay](/screenplay/) to keep that model in a portable `.play` file. For collaborative editing, [Cratis Studio](/studio/) is an optional paid workspace, not a requirement for the other paths.
+3. Follow [Spec-driven development](/spec-driven-development/) to connect model scenarios to separate implementation specifications.
+
+## First projection
+
+A cart can record every item added or removed, but a caller usually wants a simpler answer: how many items are in it now? Open the [first-projection console example](https://github.com/Cratis/Samples/blob/9010673093b4498165a9f678429bb52b538c2c31/LearningPath/02-FirstProjection/Program.cs) and follow how Chronicle derives that answer. You can read this example without starting Chronicle; it is a C# console program, not an HTTP backend or a React application.
+
+Start with `cartId` in `Program.cs`. The program uses that id when it appends the [item-added and item-removed facts](https://github.com/Cratis/Samples/blob/9010673093b4498165a9f678429bb52b538c2c31/LearningPath/02-FirstProjection/Events.cs). Open [CartSummary.cs](https://github.com/Cratis/Samples/blob/9010673093b4498165a9f678429bb52b538c2c31/LearningPath/02-FirstProjection/CartSummary.cs) beside it: the projection is declared on the read model itself. Its attributes add or subtract each event's quantity from `ItemCount`, while the cart id identifies which model instance changes. The sequence is intended to leave six items in that cart.
+
+Back in `Program.cs`, notice what happens between appending and reading. The program checks whether the append succeeded, then calls `WaitForCompletion` and checks that result before `GetInstanceById<CartSummary>` reads the same cart. Recording a fact and making its projected state available are separate steps; the wait lets this caller read its own changes after background processing. If either check fails, the program stops before reading. That distinction matters when you adapt the example: a successful append alone does not mean the projected state is ready.
+
+Finally, follow `CartCheckedOut`. The model's `SetValue` attribute makes that fact set `CheckedOut` to `true`; the program appends it, waits again, and reads the cart again. Its intended before-and-after state keeps the six items while changing the checkout flag. If you want to run the example, continue with the sample's [setup and running instructions](https://github.com/Cratis/Samples/blob/9010673093b4498165a9f678429bb52b538c2c31/LearningPath/README.md#before-you-start) and [step README](https://github.com/Cratis/Samples/blob/9010673093b4498165a9f678429bb52b538c2c31/LearningPath/02-FirstProjection/README.md). Follow those prerequisites before running it; this section is a reading path through the code.
+
 ## New to event sourcing
 
-**For** developers who have built CRUD applications and want to know what changes when events become the source of truth. **When you finish**, you can model a small domain as facts, explain how read models are derived from them, and say where event sourcing is the wrong tool.
+If you have built applications that create, read, update, and delete records (CRUD), this path shows what changes when events become the source of truth. Work through a small domain, derive read models from its facts, and use the trade-off guides to decide where event sourcing is the wrong tool.
 
 1. Read [Why event sourcing](/chronicle/why-event-sourcing/) for the argument, then [CRUD, EF Core, and Chronicle](/chronicle/coming-from-crud/) to map tables and `SaveChanges` onto events.
 2. Read [Event modeling](/event-modeling/). It gives you the notation the rest of the docs use for commands, events, and read models.
 3. Build the [Chronicle tutorial](/chronicle/tutorial/). It adds one concept at a time to a small library domain.
 4. Read [Consistency](/chronicle/concepts/consistency/) and [When to use event sourcing](/chronicle/concepts/when-to-use-event-sourcing/).
-5. Bring your first real model to [Community and help](/community/). A modeling question with the business decision and the facts you already have usually gets a useful answer.
+5. Bring a modeling question to [Community and help](/community/). Include the business decision you need to support and the facts you already have so others can follow the problem.
 
 ## Build a full-stack app
 
-**For** .NET developers starting a new information system with Chronicle, Arc, and Components together. **When you finish**, you have a running application with one slice you wrote yourself, and you know where the command, event, projection, query, and screen for a feature live.
+Finish one feature that records a change and shows its projected result in a live React screen, then extend it with validation and specifications. This path builds a new .NET information system using Chronicle for history, Arc for commands, queries, and generated contracts, and Components for React. The first guide also offers Kotlin, Java, and source-only TypeScript alternatives; the later C# links below explain the .NET integration.
 
 1. Follow [Build a full-stack feature](/build-a-full-app/). It scaffolds an application from the Cratis template and adds one slice end to end.
 2. Read [Vertical slices](/arc/vertical-slices/) to see why the feature lives in one folder.
@@ -45,9 +67,9 @@ Building on Kotlin or Java instead? The [Cratis Kotlin](/templates/cratis-kotlin
 
 ## Write-side consistency
 
-**For** developers who write commands whose outcome depends on stored state: a stock level, a limit, a capacity, a document someone else may edit. **When you finish**, you can say why a plain read does not hold a rule, pick the mechanism that does, write a protected command, and test that it holds when two requests race. Arc read protection needs Arc 22.106.0 or later, which uses Chronicle 19.71.0 or later.
+When a command depends on a stock level, a limit, or a document someone else may edit, reading the state is only part of the problem. Another request can change it before yours writes. This path explains how to protect the decision and test two requests racing for the same result. Arc read protection needs Arc 22.106.0 or later, which uses Chronicle 19.71.0 or later.
 
-1. Read [Keeping decisions correct](/concepts/keeping-decisions-correct/). It is the five-minute introduction: why a read model can be stale at write time, what read protection does, and which mechanism holds which rule. If you know DCB, KurrentDB, Marten or Axon, read [Read this first](/concepts/read-this-first-write-side-consistency/) next.
+1. Read [Keeping decisions correct](/concepts/keeping-decisions-correct/). It explains why a read model can be stale at write time, what read protection does, and which mechanism holds which rule. If you know DCB, KurrentDB, Marten or Axon, read [Read this first](/concepts/read-this-first-write-side-consistency/) next.
 2. Follow [Getting started with read protection](/arc/backend/csharp/chronicle/consistency/getting-started/) to write your first protected command and see the error the losing request gets. Using Chronicle without Arc? Start from [Decision reads](/chronicle/read-models/decision-reads/) instead.
 3. Work through the scenarios from simple to advanced. Each has the rule, the code and the guard it produces.
    - [One entity](/arc/backend/csharp/chronicle/consistency/scenarios/single-entity/): stock on one book.
@@ -62,18 +84,18 @@ Building on Kotlin or Java instead? The [Cratis Kotlin](/templates/cratis-kotlin
 
 ## Use Chronicle from another language
 
-**For** developers whose services are not written in .NET. **When you finish**, your service appends events to Chronicle and a projection or reactor responds to them.
+If your service is not written in .NET, choose its Chronicle client before following the shared examples. This path takes TypeScript, Kotlin/Java, and Elixir services from connecting to the kernel to appending events and handling them in a projection or reactor. Check each guide's capability boundary rather than assuming every client implements the same features.
 
 1. Read [Chronicle in your language](/chronicle-clients/) to see which clients are published and where each is documented.
 2. Start a local kernel and follow the shared loop on [Chronicle getting started](/chronicle/get-started/). Its examples have a tab for each client that implements them.
 3. Follow your client's setup guide: [TypeScript](/chronicle/clients/typescript/getting-started/), [Kotlin and Java](/chronicle/clients/kotlin/get-started/), or [Elixir](/chronicle/clients/elixir/get-started/).
 4. Build the [Chronicle tutorial](/chronicle/tutorial/) and pick your client's tab where one exists.
 
-The Python client is pre-release and not published yet; [Event sourcing in Python](/event-sourcing/python/) tracks it.
+The Python client is not published yet; [Event sourcing in Python](/event-sourcing/python/) tracks it.
 
 ## Evaluate Cratis
 
-**For** architects and team leads deciding whether to adopt Cratis. **When you finish**, you can name the product you would start with, the first slice you would move, and the version and production questions you still need answered.
+Choose one feature where you need recorded history, another view of existing facts, or generated frontend contracts. Evaluate that bounded change before deciding whether to adopt more. This route gives architects and team leads the product boundaries, trade-offs, and operational questions to bring to that evaluation. Keep unanswered version and production questions alongside the slice you plan to try.
 
 1. Read [Why developers choose Cratis](/why-cratis/), including when it is not a good fit.
 2. Read [Adopting Cratis](/adopting-cratis/) to pick an entry point for a new or existing system.
@@ -84,7 +106,7 @@ The Python client is pre-release and not published yet; [Event sourcing in Pytho
 
 ## Operate Chronicle
 
-**For** people who deploy and run Chronicle. **When you finish**, you can host Chronicle with storage and TLS you chose deliberately, find a failed partition, and plan an upgrade.
+To deploy and run Chronicle, start with hosting and configuration before moving to diagnostics. This path covers storage and TLS choices, finding failed processing partitions, and planning an upgrade. Use the production checklist before treating a local setup as a deployment plan.
 
 1. Read [Chronicle hosting](/chronicle/hosting/) and [Production hosting](/chronicle/hosting/production/).
 2. Review [Chronicle configuration](/chronicle/hosting/configuration/), including [storage](/chronicle/hosting/configuration/storage/).
@@ -94,7 +116,7 @@ The Python client is pre-release and not published yet; [Event sourcing in Pytho
 
 ## Frontend developer
 
-**For** React developers joining a team that already has an Arc backend. **When you finish**, you can call commands and queries through generated proxies and build forms, dialogs, and live tables with Components.
+To build React forms and tables from backend contracts, or find typed usages affected by a contract change, start at the generated proxy boundary on your Arc-backed frontend. The backend must generate those contracts before Components can use them; this is not a frontend-only integration for an arbitrary API. Then build command forms, dialogs, and live tables without maintaining a second copy of the backend types.
 
 1. Read [Understanding the proxy boundary](/arc/understanding-the-proxy-boundary/) to see where the generated TypeScript comes from and why you never edit it.
 2. Read [Arc frontend](/arc/frontend/).
@@ -104,7 +126,7 @@ The Python client is pre-release and not published yet; [Event sourcing in Pytho
 
 ## Contributor
 
-**For** people changing Cratis itself. **When you finish**, you know where a change belongs and what a pull request needs before review.
+To change Cratis itself, first find the repository that owns the behavior and its contribution rules. The same applies to code, documentation, and design proposals. Follow this route before preparing a pull request so the change and its checks stay with the owning product.
 
 1. Read [Contributing](/contributing/) and [Governance](/governance/).
 2. Find the repository that owns the behavior. Product pages are written in each product repository's `Documentation/` folder; only site-level pages such as this one live in the Documentation repository.

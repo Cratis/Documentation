@@ -1,43 +1,47 @@
 ---
-title: Code analysis
-description: Cratis ships Roslyn analyzers and ESLint rules that turn framework conventions into build diagnostics, so a wrong projection shape, a missing [EventType], a Handle() in the wrong place, or a raw PrimeReact dialog import shows up before it ships.
+title: Cratis code analysis for framework contracts
+description: Cratis Roslyn analyzers and ESLint rules report framework contract violations during builds and linting, with diagnostics you can act on.
 ---
 
 import { CardGrid, Aside } from '@astrojs/starlight/components';
 import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
-<TopicHero icon="approve-check" eyebrow="The Cratis Stack" title="The build enforces the conventions">
-Cratis leans on conventions: model-bound commands, `[EventType]` events, declarative projections, generated proxies, vertical slices, and thin React views. Conventions only help if something catches you when you stray. Cratis does that with **Roslyn analyzers** in `dotnet build` and **ESLint rules** in the JavaScript build, so the feedback lands where you, or an AI agent, can act on it.
+<TopicHero icon="approve-check" eyebrow="The Cratis Stack" title="Catch framework mistakes while you build">
+Cratis code analysis reports framework contract violations during C# compilation and TypeScript or React linting. Roslyn analyzers check C# code in `dotnet build`; ESLint rules check frontend code when you run linting. Use these diagnostics to fix supported command, event, and UI contract mistakes before running the application, whether you or an AI agent wrote the code.
 </TopicHero>
 
 ## Why build gates, not docs alone
 
-If you can break a convention silently, it is a suggestion. Append a type that
-isn't marked `[EventType]`, or write a reactor method with the wrong signature,
-and the framework cannot discover it. The failure shows up at *runtime* as
-"nothing happened." The analyzers move that failure to build time: the build
-reports which rule you broke and how to fix it, and several rules ship an
-editor code fix.
+A declaration can compile as ordinary C# yet fail a framework contract. Arc
+reports a `Handle()` method on a type without `[Command]`, for example, while
+Chronicle reports reactor parameters that cannot be resolved. The diagnostic
+identifies the rule and affected code, so you can investigate before debugging
+runtime discovery. Several rules also offer an editor code fix.
 
-The frontend has the same kind of rules. Generated proxy files should not
-produce lint noise, view models should not call React hooks, and Components
-consumers should import from component subpaths and use the Cratis dialog
-wrappers. Those are architectural choices, so Cratis packages them as ESLint
-rules instead of leaving them as tribal knowledge.
+The frontend rules address different mistakes: React hooks inside view models,
+component imports from the wrong entry point, or command callbacks that discard
+their values. Arc's ESLint processor also excludes generated proxies, keeping
+lint feedback focused on code you can edit.
 
-This matters twice over in the [AI-native](/ai/) workflow. When an agent
-scaffolds a slice, a wrong shape fails the build, the agent reads the
-diagnostic, and it corrects itself. [Cratis AI](/plugins/) teaches the
-conventions; the build gates enforce them.
+In an [AI-native](/ai/) workflow, give the agent the diagnostic and ask it to
+correct the affected code, then rerun the check. [Cratis AI](/plugins/) supplies
+guidance before a change; configured build and lint gates check the contracts
+they cover afterward. A warning only stops a build if your configuration makes
+it an error.
 
 ## Roslyn analyzer packages
 
-The Arc analyzers come in as dependencies of the Arc packages they check:
-reference the package and the rules are active on your next build. The Chronicle
-analyzers arrive the same way with `Cratis.Chronicle` (and with
-`Cratis.Chronicle.AspNetCore`) from 19.4.8. Only the Architecture analyzers are a
-separate, opt-in package.
+Roslyn is the C# compiler platform; its analyzers add diagnostics to the
+compilation. Arc's analyzer packages are dependencies of the Arc packages they
+check. Chronicle's analyzers arrive with `Cratis.Chronicle`, including through
+`Cratis.Chronicle.AspNetCore`, from 19.4.8. Architecture's coding conventions
+are a separate, opt-in package.
+
+Upgrading Chronicle from an older version to 19.4.8 or later can expose
+violations that previously went unchecked. Error diagnostics fail compilation;
+warning diagnostics can also fail it when warnings are treated as errors. For
+older clients, add `Cratis.Chronicle.CodeAnalysis` at the client's version.
 
 <CardGrid>
   <SimpleCard title="Chronicle: CHR####" icon="seti:db" link="/chronicle/code-analysis/">
@@ -54,22 +58,30 @@ separate, opt-in package.
   </SimpleCard>
 </CardGrid>
 
-Each rule page lists the current rules and their default severity. The rule
-sets grow between releases, so check the page for the version you use instead
-of relying on a count.
+Open the relevant rule index for diagnostic IDs, default severities, and
+available fixes. The indexes describe current rules; older package versions
+may not contain every rule listed. These Roslyn packages analyze C#, not the
+other Cratis client languages.
 
 ## ESLint packages
 
-TypeScript and React projects get the same kind of feedback from a shared
-flat-config preset and two product plugins:
+For TypeScript and React, start with the shared ESLint configuration and add
+the plugins for the products you use. They compose as flat config: an array of
+configuration objects in `eslint.config.mjs`.
 
 | Package | Source | What it checks |
 |---|---|---|
-| `@cratis/eslint-config` | Fundamentals | The `consumer` preset: TypeScript and React hygiene, plus relaxations for `for_*` BDD spec files. (The `internal` preset adds the Cratis license-header rule for Cratis's own repositories.) |
-| `@cratis/eslint-plugin-arc` | Arc | Skips generated Arc proxies, forbids React hook calls inside MVVM view models, and forbids importing `mobx-react` directly. |
-| `@cratis/eslint-plugin-components` | Components | Requires component subpath imports instead of the `@cratis/components` root, forbids `Dialog` from `primereact/dialog` in favor of the Cratis wrappers, requires `onBeforeExecute` to return the command values, and forbids hooks in view models and hand-written CommandForm markers. |
+| `@cratis/eslint-config` | Fundamentals | The `consumer` preset provides TypeScript and React hygiene, with relaxations for `for_*` behavior-driven spec files. The `internal` preset also adds the Cratis license-header rule for Cratis-owned repositories. |
+| `@cratis/eslint-plugin-arc` | Arc | Excludes generated Arc proxies, forbids React hooks in view model classes, and forbids direct imports from `mobx-react` or `mobx-react-lite`. |
+| `@cratis/eslint-plugin-components` | Components | Requires component-family subpath imports while allowing root setup symbols; forbids `Dialog` from `primereact/dialog`; requires command values from supported `onBeforeExecute` callbacks; and forbids hooks in view models and hand-written CommandForm markers. |
 
-Install the ones you need as development dependencies, then compose them in
+Install the packages you need as development dependencies. The Components 4
+plugin's supported range is `>=4 <5`; keep it on the same major as
+`@cratis/components`. The
+[Components ESLint README](https://github.com/Cratis/Components/blob/main/ESLint/README.md)
+lists installation commands and rule options.
+
+For a project using both Arc and Components, compose the presets in
 `eslint.config.mjs`:
 
 ```javascript
@@ -84,27 +96,27 @@ export default [
 ];
 ```
 
-Keep `@cratis/eslint-plugin-components` on the same major version as the
-Components package you use; see its README for the supported range.
-
-Inside the Cratis product repositories, CI runs these as lint gates.
+Run ESLint through your project's lint command; adding the configuration does
+not make it part of `dotnet build`. The Components callback rule applies to
+command dialogs, steppers, and Arc's `CommandForm`. It does not require a return
+value from `CommandScope`, whose callback returns void.
 
 <Aside type="tip" title="Treat warnings as errors">
-These rules are most valuable when the build cannot go green around them. Cratis projects build with warnings as errors and quiet lint output. Do the same in your project, so a convention slip stops the build instead of scrolling past.
+If a warning should block a change, configure your build or lint gate to fail on it. Otherwise it remains feedback that a developer or agent can overlook.
 </Aside>
 
 ## The AI layer and the enforcement layer
 
-The architecture and coding guidance lives in [Cratis AI](/plugins/): C#,
-TypeScript, vertical slices, React components, BDD specs, Chronicle reactors,
-review agents, and task-specific skills. That layer tells an assistant what good
-Cratis code looks like.
+[Cratis AI](/plugins/) gives the assistant conventions and task workflows.
+Code analysis supplies repeatable checks for the supported patterns, independent
+of whether the author followed that guidance.
 
-Code analysis is the enforcement layer. Roslyn analyzers and ESLint rules run
-after the assistant writes code, catch what drifted, and produce concrete
-diagnostics it can fix in the same loop. Instructions reduce bad output; build
-gates make the remaining mistakes visible. Neither proves the code does the
-right thing. Specs do that.
+Those checks have limits. For example, Chronicle's event-marker analyzers accept
+certain explicit registrations visible in the same compilation, but cannot
+prove that those calls execute or that the actual store is configured correctly.
+The [Chronicle rule index](/chronicle/code-analysis/) explains that boundary.
+Use behavior specs to check expected outcomes, and runtime checks for behavior
+that static analysis cannot establish.
 
 ## Where to go next
 
@@ -113,6 +125,6 @@ right thing. Specs do that.
     The rules, skills, and prompts that teach the same conventions these gates enforce.
   </SimpleCard>
   <SimpleCard title="Vertical slices" icon="seti:folder" link="/arc/vertical-slices/">
-    The convention the analyzers guard: everything for a feature in one folder.
+    Organize feature code as a vertical slice, then use the relevant rule indexes to check its framework contracts.
   </SimpleCard>
 </CardGrid>

@@ -1,15 +1,15 @@
 ---
-title: Projections and read models
-description: "Projections turn events into read models, views shaped for one screen. Learn how they work, how they differ from reducers, and how to use them."
+title: Projections and read models explained
+description: "A projection builds a read model from events so screens and reports can query stored views. Learn the mapping, replay and consistency choices."
 ---
 
-A **read model** is a view of your data shaped for reading: one screen, one report or one API response. A **projection** is the rule that builds it. It watches events as they are appended and keeps the read model up to date.
+A read model is data shaped to answer a query, such as the books currently on loan. A projection defines how events build that view. Keeping the result in storage lets a screen read the answer without replaying the full history on every request.
 
-In an event-sourced system the events are the truth, but they are a poor thing to query. Showing a balance by replaying every deposit and withdrawal on each request would be slow and wasteful. Projections do that folding once, as events arrive, and store the result so reads are cheap. This page covers both terms together because they are two halves of the same job. It follows from [what is event sourcing?](/concepts/event-sourcing/) and is the read side of [CQRS](/concepts/cqrs/).
+For a balance, the projection applies deposits and withdrawals to a running total. Several projections can use the same events to answer different questions: the balance, a transaction list or a monthly summary. This is the read side of an event-sourced [CQRS](/concepts/cqrs/) design. Start with [what is event sourcing?](/concepts/event-sourcing/) if you need the storage model first.
 
 ## How projections and read models work
 
-A projection subscribes to one or more event types. For each event it receives, it changes the read model for the matching entity. The read model is stored in a database, and queries read from there.
+A projection selects the event types it needs and maps their facts into a read model. An event's key identifies which instance to update; for a book-status view, that can be the book id. A materialized projection stores the result for queries to read.
 
 ```mermaid
 flowchart LR
@@ -20,14 +20,11 @@ flowchart LR
     RM -->|query| UI[Screen or API]
 ```
 
-Four properties define the model:
+Treat the view as derived data. Business writes go to events, not directly to the projected fields: a direct edit can be overwritten by the next event or replay. If the mapping is wrong, correct it and rebuild the view from the retained facts.
 
-- **Specialised.** Build one read model per question. The same events can feed a balance, a transaction list and a monthly summary, each with its own shape.
-- **Derived.** You never write to a read model directly. If it is wrong, fix the projection and replay the events.
-- **Rebuildable.** Because the events are kept, you can create a new read model later by replaying the history into it.
-- **Eventually consistent.** A read model is usually updated shortly after the event is appended, not inside the same operation.
+A new view can use old events only if those events contain what it needs. Replay cannot recover a fact that was never recorded. Stored views also update after the append, so they can lag behind it; a failed observer may leave them stale until processing recovers.
 
-Projections join events, not other read models. A projection reads from the event log and writes to its own read model.
+Chronicle projections join events, not other read models. Keeping the inputs in the event history avoids making a rebuild depend on another view's current state.
 
 :::caution[A read model is not a lock]
 A read model describes the state at the moment you read it, and it can lag behind the event log. A rule that checks a read model and then appends can still be broken by a concurrent request. See [Keeping decisions correct under concurrency](/concepts/keeping-decisions-correct/) for what holds a rule.
@@ -43,15 +40,15 @@ The terms overlap, so here is how Chronicle uses them.
 | Projection | A declarative rule that maps events onto a read model |
 | Reducer | Code that folds each event into the current state, one event at a time |
 
-Chronicle offers three ways to define how events build a read model:
+The examples below use three authoring styles. The interface names in this table are from the .NET client; the tabs show each example's client-specific form:
 
 | Style | What it looks like | Use it when |
 | --- | --- | --- |
-| Model-bound projection | Attributes on the read model type | The default; most mappings fit |
-| Declarative projection | A fluent `IProjectionFor<T>` class | The mapping needs more explicit control |
+| Model-bound projection | Attributes on the read model type | Direct field mappings describe the view |
+| Declarative projection | A fluent `IProjectionFor<T>` class | The mapping needs more explicit structure |
 | Reducer | An `IReducerFor<T>` class | State transitions are easier to write as code |
 
-Chronicle's [choose a read-model style](/chronicle/projections/choosing-a-read-model-style/) page builds the same read model all three ways.
+Chronicle's [choose a read-model style](/chronicle/projections/choosing-a-read-model-style/) page compares these forms with other supported choices, including self-reducing models in .NET.
 
 ## A concrete example: a library book
 
@@ -63,52 +60,50 @@ The screen needs a small read model: the title, whether the book is on loan and 
 
 <ChronicleClientTabs snippet="site-concepts/projections-and-read-models/model-bound" variants="csharp,kotlin,java" />
 
-Chronicle finds the projection from the attributes. There is no registration code and no separate class. `Title` and `Isbn` map from the event property of the same name. `IsBorrowed` is set to a constant by each event. `BorrowedBy` is set from the borrow event and cleared by `[ClearWith<BookReturned>]` on the return event.
+The registered Chronicle client discovers the model-bound definition, so this form needs no separate projection class. The registration event fills the title and ISBN. Borrowing sets the borrowed flag and member name; returning clears both. In C#, `[ClearWith<BookReturned>]` expresses clearing the member name; the JVM examples use their mapping annotations.
 
-When the mapping needs more control, the same read model can be defined as a projection class. AutoMap, the default for declarative projections, fills `Title` and `Isbn` from the event properties of the same name, so only the other members are mapped explicitly:
+A separate projection class can express the same mapping. AutoMap fills matching title and ISBN properties, while the fluent definition explicitly maps the borrowed flag and member name:
 
 <ChronicleClientTabs snippet="site-concepts/projections-and-read-models/fluent-projection" variants="csharp,kotlin,java" />
 
-Use one style per read model, not both. Both examples above are excerpts and assume a registered Chronicle client.
+Use one style per read model, not both definitions together. These excerpts assume a registered Chronicle client; [Get started with Chronicle](/chronicle/get-started/) covers the host setup.
 
 When you want to fold state with ordinary code, a reducer receives the event, the current state and the event context, and returns the new state. A running balance is a good fit:
 
 <ChronicleClientTabs snippet="site-concepts/projections-and-read-models/reducer" variants="csharp,kotlin,java" />
 
-To read the result, ask for the instance by key:
+To read the book-status result, ask for its instance by key. With materialization enabled, this retrieves the stored view, which may not yet include the latest append:
 
 <ChronicleClientTabs snippet="site-concepts/projections-and-read-models/get-instance" variants="csharp,kotlin,java" />
 
-In an Arc application, the same read model carries a `[ReadModel]` attribute and a static query method, and the frontend gets a typed proxy. See [read models in Arc with Chronicle](/arc/backend/csharp/chronicle/read-models/).
+In an Arc .NET application, the same read model carries a `[ReadModel]` attribute and a static query method, and the frontend gets a typed proxy. See [read models in Arc with Chronicle](/arc/backend/csharp/chronicle/read-models/).
 
 ## Consistency: materialized or on demand
 
-By default, a projection is **materialized**: the read model is stored and updated after the append. Reads are cheap and scale well. Occasionally a workflow cannot tolerate a read model that is a moment behind. Chronicle then offers a **passive** read model, which is not stored but computed from its events each time you read it. It always includes the latest append, at the price of replaying that instance's history.
+A **materialized** read model is stored and updated after the append. This is the default: repeated queries read the saved result rather than calculating it again. When one caller needs its own write back, it can wait for the append's observers to finish before querying, and must handle failures or timeouts from that wait.
 
-Start with materialized. Switch to passive only where you must read your own write at once. Neither option enforces a rule such as uniqueness; use a [constraint](/chronicle/constraints/) for that. The details are in [read model consistency](/chronicle/read-models/consistency/).
+A **passive** read model is computed on demand from events instead of stored in a sink. Its cost grows with the history it replays. Ordinary passive by-id reads select one event source: they do not generally reconstruct a view that joins sources or uses a custom aggregation key. Keep those views materialized.
+
+Choose freshness separately from write correctness. Even a fresh on-demand result does not protect a later append from another writer. Use an append-time [constraint](/chronicle/constraints/) or a protected decision read for rules that must hold under concurrency. [Read model consistency](/chronicle/read-models/consistency/) explains the read options and their limits.
 
 ## Benefits
 
-- **Fast reads.** The work is done at write time, so queries read a ready-made view.
-- **Focused models.** Each screen gets exactly the fields it needs, with no joins at read time.
-- **Freedom to change.** You can add, change or drop a read model without touching the history.
-- **Rebuilds instead of migrations.** A new view is created by replay.
-- **Isolation.** A slow or broken projection does not block appends.
+A materialized view moves calculation out of the query path. The loan screen can read the title, borrower and status together without folding every loan event. A report can use a different shape over the same history.
+
+That separation lets you evolve a view without rewriting business facts. Rebuilds still cost time and need a rollout plan, but the events remain the input.
 
 ## Trade-offs and when not to use them
 
-- **Eventual consistency.** A read right after a write may show old data. Design screens for it, or use a passive read model where needed.
-- **More artefacts.** Every view is a projection to maintain.
-- **Replay cost.** Rebuilding a large history takes time.
-- **Not for decisions that must see the latest state.** Do not enforce rules by reading a read model and then appending. Two concurrent commands can both pass the check. Use a constraint or a concurrency check on the write side.
-- **Not needed for trivial reads.** A CRUD application with no history does not need projections at all.
+Every view adds a definition to maintain and data to rebuild. Large histories make replay an operational task, and an asynchronously updated screen needs a way to represent pending or stale data.
+
+Do not use an unprotected read-then-append check to enforce a business rule. Two commands can both pass the check, even with on-demand reads. Protect the decision on the write side. For a simple application that only needs current-state records, ordinary database queries may be enough without event projections.
 
 ## Common pitfalls
 
 - **One giant read model for every screen.** It brings back the coupling you set out to avoid. Build specialised models.
 - **Treating a read model as the source of truth.** It can be dropped and rebuilt. The events are the record.
 - **Putting business rules in a projection.** A projection mirrors facts. Decisions belong where commands are handled.
-- **Forgetting that a replay reruns side effects.** A projection only builds a read model, so replaying it is safe. A reactor that sends an email is different; see [event-driven architecture vs. event sourcing](/concepts/event-driven-architecture/).
+- **Mixing view rebuilds with external actions.** Keep projection logic focused on derived state so a rebuild does not send email. Reactors need a separate replay policy; see [event-driven architecture vs. event sourcing](/concepts/event-driven-architecture/).
 - **Unbounded child collections.** A read model that collects every event of a busy entity grows without limit. Keep child lists bounded or split the view.
 - **Querying the event log directly for screens.** Use a read model.
 
@@ -120,24 +115,22 @@ The read model is the result, and the projection is the rule that produces it. P
 
 ### Is a read model the same as a materialized view?
 
-They are close. Both store a precomputed result. A read model is built from events by an observer rather than from a SQL query, and it can live in a document or relational store.
+A materialized event-sourced read model is similar: it stores a precomputed result, built from events rather than a SQL view definition. The broader term read model describes the data's purpose, and can also include on-demand results or views over current-state tables.
 
 ### How do I rebuild a read model?
 
-Replay the events through the projection. Chronicle can replay an observer from the start of the event log. Because projections only build state, replay does not repeat side effects.
+Replay the retained events through the projection. Chronicle can rebuild a projection from the start of its history. Keep external actions out of projection logic so rebuilding a view does not send emails or charge payments.
 
 ### Can a projection use data from another read model?
 
-No. Projections join events. If a view needs data from two entities, join the events from both.
+Not in a Chronicle projection. Join the relevant events instead, so rebuilding the view does not depend on another read model's freshness or replay order.
 
 ### Where is a read model stored?
 
-In a sink, which is MongoDB by default. See [Chronicle's projections documentation](/chronicle/projections/) for what is configurable.
+A materialized read model is written to a storage destination called a sink. MongoDB is the default; a passive read model has no stored instance. See [Chronicle's projections documentation](/chronicle/projections/) for configuration.
 
 ## Next steps
 
-- Read [Chronicle projections](/chronicle/projections/) and [Chronicle read models](/chronicle/read-models/).
-- Pick a style with [choose a read-model style](/chronicle/projections/choosing-a-read-model-style/).
-- Serve a read model to React with an [Arc query](/arc/backend/csharp/queries/).
-- See where read models sit in [CQRS explained](/concepts/cqrs/).
-- Design them up front with [event modeling](/event-modeling/).
+For your first view, [choose a read-model style](/chronicle/projections/choosing-a-read-model-style/) and use [Chronicle projections](/chronicle/projections/) to define the mapping. [Chronicle read models](/chronicle/read-models/) covers retrieval; an [Arc query](/arc/backend/csharp/queries/) can expose the result to React.
+
+If you have not yet chosen the view's fields, use [event modeling](/event-modeling/) to work backwards from the screen to the facts it needs. [CQRS explained](/concepts/cqrs/) places that read model alongside the commands that record those facts.

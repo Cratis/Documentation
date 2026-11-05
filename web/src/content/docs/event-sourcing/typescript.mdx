@@ -1,41 +1,49 @@
 ---
 title: Event sourcing in TypeScript and Node.js
-description: "Do event sourcing in TypeScript and Node.js with Cratis Chronicle: an open-source (MIT) event-sourcing database with an idiomatic TypeScript client — decorators, typed event logs, projections, transactions, and OpenTelemetry."
+description: "Event sourcing records facts instead of overwriting state. Use the Cratis Chronicle TypeScript client for Node.js to append events and build read models."
 ---
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-Chronicle is an open-source (MIT) event-sourcing database and processing runtime, and `@cratis/chronicle` is its idiomatic TypeScript client for Node.js. It provides a type-safe API built on decorators — `@eventType`, `@readModel`, `@reactor`, `@reducer`, `@projection`, `@constraint`, and more — together with value objects and a fluent client that goes from `ChronicleClient` to an event store to an event log you append to. It supports transactions, jobs, webhooks, compliance/PII, and OpenTelemetry, and builds on the `@cratis/chronicle.contracts` gRPC contracts package.
+With event sourcing, a Node.js application records business facts as events instead of overwriting the state those facts produced. An `EmployeeHired` event preserves the hiring fact; a read model derives the employee details a screen needs. You can process the recorded events again to build a different view without replacing the original facts.
 
-With event sourcing, every state change in your application is captured as an immutable event rather than an update in place. Chronicle stores those events, and your read models, reactors, and projections are derived from them — so your TypeScript services get a full history to audit, replay, and build new views from.
+Cratis Chronicle stores and processes those events. `@cratis/chronicle` is its TypeScript client for Node.js, not an embedded event store: the client connects to the Chronicle kernel, a separate server. The [.NET, Kotlin/Java, and Elixir clients](/chronicle-clients/) can reach that kernel too, over its gRPC/protobuf boundary. Storage is pluggable, with MongoDB as the default and PostgreSQL, SQL Server, SQLite, and in-memory providers implemented in the kernel.
 
-The event store itself is not tied to Node.js: Chronicle's kernel exposes a language-agnostic gRPC/protobuf boundary, and the same store is reachable from the [.NET, Kotlin/Java, and Elixir clients](/chronicle-clients/) as well. Storage is pluggable — MongoDB by default, with PostgreSQL, SQL Server, SQLite, and in-memory providers implemented in the kernel.
+The client uses `@eventType` to identify events and `@reducer` and `@projection` to describe the state built from them. `@reactor` marks code that responds to events with side effects; `@constraint` describes rules enforced when appending. The client also covers transactions, jobs, webhooks, compliance and personally identifiable information (PII) handling, and OpenTelemetry. It builds on the `@cratis/chronicle.contracts` gRPC contracts package.
 
 ## Install
 
 ```bash
-npm install @cratis/chronicle reflect-metadata
+npm install @cratis/chronicle @cratis/fundamentals reflect-metadata
 ```
 
-The client relies on TypeScript decorators and runtime type metadata. Your project needs:
+The client supports standard decorators (TypeScript 5.2 or later) and legacy decorators. Your project needs:
 
 - `reflect-metadata`, imported once at the top of your entry point;
-- `"experimentalDecorators": true` and `"emitDecoratorMetadata": true` in `tsconfig.json`;
 - an ES module project (`"type": "module"` in `package.json`, a matching `module` setting), since the package is published as ESM and the example below uses top-level `await`.
+
+For standard decorators, leave `experimentalDecorators` and `emitDecoratorMetadata` unset in `tsconfig.json`. For the legacy option, set both to `true`.
 
 The [Console sample's `tsconfig.json`](https://github.com/Cratis/Chronicle.TypeScript/blob/main/Samples/Console/tsconfig.json) is a working reference.
 
 ## A taste
 
-Define an event with a decorator, connect, and append — from the client repository's quick example:
+This excerpt illustrates the append flow: define a hiring event, connect to the server, and append one fact to an employee's history. It assumes a local development kernel; [Get started with Chronicle](/chronicle/get-started/) covers starting one. For a complete project and the decorator setup for the current client, follow the [TypeScript client docs](/chronicle/clients/typescript/).
 
 ```typescript
 import 'reflect-metadata';
+import { field } from '@cratis/fundamentals';
 import { ChronicleClient, ChronicleOptions, eventType } from '@cratis/chronicle';
 
 @eventType()
 class EmployeeHired {
-    constructor(readonly firstName: string, readonly lastName: string) {}
+    @field(String) firstName!: string;
+    @field(String) lastName!: string;
+
+    constructor(firstName: string, lastName: string) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
 }
 
 const client = new ChronicleClient(ChronicleOptions.development());
@@ -45,9 +53,13 @@ console.log(`Appended at sequence number ${result.sequenceNumber.value}`);
 client.dispose();
 ```
 
-`ChronicleOptions.development()` connects to a local development kernel. [Get started with Chronicle](/chronicle/get-started/) shows how to run one, and the [TypeScript client docs](/chronicle/clients/typescript/) cover connection strings for anything else.
+`ChronicleOptions.development()` selects the local development connection. The event source identifier, `employee-123`, groups facts about this employee; use it again for later events about the same person. The printed sequence number identifies the appended event. It does not mean a reducer or projection has already updated a read model: that processing is asynchronous. The [TypeScript client docs](/chronicle/clients/typescript/) cover read-model processing and connection strings for other environments.
 
-Compare the options in [Event sourcing in TypeScript and Node.js](/compare/typescript-event-sourcing/): Chronicle with Arc.TypeScript, Emmett, and the KurrentDB Node client, including when an alternative is the better choice.
+## Is event sourcing a fit for this service?
+
+Keep events when the history is part of the problem: explaining a change or building another view from past facts. You still need to decide which facts to record and how to evolve their contracts. A new view can use only the information that history contains, and screens reading asynchronously built models must allow for a delay after a write.
+
+If the service only needs current values, a database update avoids that extra processing. Compare the options in [Event sourcing in TypeScript and Node.js](/compare/typescript-event-sourcing/): Chronicle with Arc.TypeScript, Emmett, and the KurrentDB Node client, including when an alternative is the better choice.
 
 ## Where to go next
 
@@ -60,4 +72,4 @@ Compare the options in [Event sourcing in TypeScript and Node.js](/compare/types
 
 Want the command and query side too? See [CQRS in TypeScript and Node.js](/cqrs/typescript/).
 
-Looking for another language? See [Chronicle in your language](/chronicle-clients/) for the .NET, Kotlin/Java, Elixir, and experimental Go clients.
+Looking for another language? See [Chronicle in your language](/chronicle-clients/) for the .NET, Kotlin/Java, Elixir, and Go clients.

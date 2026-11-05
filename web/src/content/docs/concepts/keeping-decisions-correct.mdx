@@ -1,9 +1,9 @@
 ---
-title: Keeping decisions correct under concurrency
-description: "A read model can be stale or already out of date when you append. Learn what read protection does about it, which mechanism holds which rule, and where to go next."
+title: "Cratis write-side consistency: keep decisions correct"
+description: "Cratis protects state-based decisions with guarded reads and enforces uniqueness with constraints. Choose the mechanism that holds your rule at append time."
 ---
 
-Use this page when a rule depends on state: "a book cannot be borrowed when no copy is left", "a member may hold three loans", "an email address is used once". It explains why the obvious code can break the rule, what Cratis does about it, and which mechanism to pick.
+Write-side consistency means checking a business rule when its events are appended, not just when a command first reads state. In Cratis, use a protected read for rules such as available stock or a loan limit. For uniqueness, use a kernel constraint: a rule enforced inside the event store. A plain read followed by an append leaves a gap in which another writer can change the answer.
 
 ## Why a read model can be stale at write time
 
@@ -21,21 +21,18 @@ sequenceDiagram
     Note over L: Two loans, one copy. Both requests were correct on what they saw.
 ```
 
-Two things make the plain read unsafe:
+A materialized read model is stored and updated after events are appended, so it can lag behind the log. A passive read model is built from events on demand, but freshness alone does not solve the race: another request can append after either kind of read returns.
 
-- A read model is built from events after they are appended, so it can lag behind the event log.
-- Even a read model that is fully up to date describes the state at the moment you read it, not at the moment you append.
-
-A rule holds under concurrency only if the append itself fails when the facts the decision depended on have changed.
+For this rule to hold, the append must reject the decision if another stock-changing event arrived after the position captured before the read. The check belongs at append time.
 
 ## What read protection does
 
-Read protection makes the state a command reads part of the append. Chronicle notes the position of the event log before it reads the state. When the command commits, Chronicle rejects the append if an event that the read depended on was written after that position.
+Read protection carries a description of the command's reads into its append. Cratis Chronicle records a log position before building fresh state from events. At commit, it rejects the append if a later event matches the read's guard: the event types the model uses, for the key it reads. Cratis Arc can arrange that protection for read-model parameters in commands and validators.
 
 | Mode | What an injected read model is | Use it when |
 | --- | --- | --- |
 | `Off` (default) | A plain read. It returns a snapshot and guards nothing | Nothing changes for existing commands |
-| `Measure` | A plain read. Arc records what `On` would do and changes nothing | You adopt it on an existing application |
+| `Measure` | A plain read. Arc measures reads without enforcing protection | You assess an existing application before changing its behavior |
 | `On` | Read fresh and guarded. A read that cannot be guarded is refused | New code, and migrated code |
 
 The mode is the Arc switch. Underneath it is the Chronicle API that refuses unguarded reads inside one unit of work, see [Read protection in Chronicle](/chronicle/read-models/read-protection/). The two layers have similar names: Chronicle gives you the mechanism, and the Arc mode turns it on for your commands.
@@ -44,17 +41,19 @@ What a guarded command does when it loses the race:
 
 | Outcome | What happens |
 | --- | --- |
-| The state the command read has not changed | The events are appended |
-| A relevant event arrived after the read (`ReadChanged`) | The command returns a `400` with the reason `concurrencyViolation` and asks the caller to submit again |
-| Either way | Nothing is written on a failure. There are no locks, and Arc does not retry for you |
+| No guard was violated | The append can proceed, subject to its other checks and constraints |
+| A protected read changed (`ReadChanged`) | The command returns a `400` with the reason `concurrencyViolation` and asks the caller to submit again |
+| The guarded append fails | None of its events are written. Arc does not retry the command for you |
 
-A concurrent event that does not matter to the rule does not conflict. The guard covers the event types the read model folds, for the key it reads. A rename of the same book does not conflict with a borrow, and neither does a borrow of another book.
+The guard matches events, not the final value of the model. A matching event can cause a conflict even if the resulting stock count happens to be unchanged. An unrelated event type or another book's key does not violate this guard; a rename is excluded only if the model does not fold renames.
+
+Position-only scopes do not detect edits to earlier history. The .NET decision-read path additionally captures a history-mutation marker when the kernel supplies one, so revisions or redactions can also invalidate a protected read. See [how guards are derived](/chronicle/dynamic-consistency-boundary/how-guards-are-derived/) before relying on a narrower boundary.
 
 Read protection guards the reads the command makes. It does not guard a writer that decides without a guard, state outside the event log such as another database or an HTTP call, or a read you mark as advisory. A rule holds fully only when every writer that decides on it is guarded, or when it is a constraint.
 
 ## An example
 
-Under `On`, the rule goes in a `CommandValidator<T>` that takes the read model as a constructor parameter. `Handle()` says only what happens.
+For a rule that should return validation feedback, put the check in a `CommandValidator<T>` and inject the read model into its constructor. Under `On`, the read is guarded as part of that command. Keep `Handle()` focused on the resulting events.
 
 A library lets a member borrow a book only while a copy is available. The read model `BookStock` counts available copies per book from `CopyAdded`, `BookBorrowed` and `BookReturned`. The command `BorrowBook` returns `BookBorrowed` from `Handle()`, and its `CommandValidator<BorrowBook>` takes `BookStock` as a constructor parameter and refuses when no copy is left. Under `On`, that read guards the command's append: if another member borrows the last copy first, this command writes nothing and the caller is asked to submit again.
 
@@ -72,12 +71,12 @@ With the mode `On`, the append is guarded by `CopyAdded`, `BookBorrowed` and `Bo
 
 ## Which mechanism holds which rule
 
-Pick the lightest tool that makes the rule hold.
+Choose by the shape of the rule. A fresh read is useful for stock; it is unnecessary work for a uniqueness rule that the kernel can check directly.
 
 | Mechanism | Use this when | Guards |
 | --- | --- | --- |
 | Protected read | A rule over state on one or more keys: stock, a count, a capacity | The event types the read model folds, on the key it reads |
-| Per-stream read model | The rule depends on one stream of an entity, such as one account's withdrawals in one month. The model is declared with `[EventStream<TSource>(stream)]` | That stream only. Another month does not conflict |
+| Per-stream read model | The rule depends on one stream of an entity, such as one account's withdrawals in one month. The model is declared with `[EventStream<TSource>(stream)]` | The declared stream when read with a specific stream ID. Other enrolled reads or scopes can widen the guard |
 | Stream decision | You decide on the raw events of one routed stream, with no model, such as "was this report already approved" | Any event in that stream |
 | Aggregate | Rich behaviour with many rules over one entity's lifecycle | The event types the aggregate handles, on its event source |
 | Constraint | A value must be unique, or something may happen once | Every writer, checked inside the append. It cannot count |
@@ -85,16 +84,13 @@ Pick the lightest tool that makes the rule hold.
 
 Two more shapes are covered in the guides: an explicit scope when the caller sends the revision it saw (editing conflicts), and a plain read when a hint is enough.
 
-A few cautions:
+Protected reads build state from history on every command. Keep histories small enough to read on demand, and use ordinary reads for display or advisory feedback when no append depends on them. A stream decision likewise reads its whole selected stream.
 
-- A constraint is cheaper than a protected read for uniqueness. Use it.
-- A stream decision reads the whole stream, so keep streams short.
-- Do not ask for protection where a hint is enough. A protected read costs a fresh fold of the key's history on every command.
-- Under `On`, a read that cannot be guarded is refused with an error that names the fix. A join or a child collection in a read model is an example. Flat, event-source-keyed models work best.
+Under `On`, Chronicle refuses a read it cannot guard rather than silently running it unprotected. Joins and child collections are examples of unsupported projection shapes. Start with a flat, event-source-keyed model; the linked guides explain admission rules for projections and reducers.
 
 ## The Dynamic Consistency Boundary idea
 
-Read protection is Chronicle's take on the Dynamic Consistency Boundary (DCB): the boundary is the set of events one decision read, not a whole stream or aggregate. [The Dynamic Consistency Boundary](/concepts/dynamic-consistency-boundary/) explains the idea and where Chronicle sits. If you know DCB from another store, start with [Read this first](/concepts/read-this-first-write-side-consistency/). For exactly which events make an append fail, see [how guards are derived](/chronicle/dynamic-consistency-boundary/how-guards-are-derived/).
+Read protection applies the Dynamic Consistency Boundary (DCB) idea: select the events a decision depends on rather than always checking a whole stream. Chronicle uses its own event-source model, not the DCB specification's API; events cannot carry several event source IDs, and custom tags do not participate in concurrency checks. [The Dynamic Consistency Boundary](/concepts/dynamic-consistency-boundary/) explains the idea and where Chronicle sits. If you know DCB from another store, start with [Read this first](/concepts/read-this-first-write-side-consistency/). For exactly which events make an append fail, see [how guards are derived](/chronicle/dynamic-consistency-boundary/how-guards-are-derived/).
 
 ## Where to go next
 

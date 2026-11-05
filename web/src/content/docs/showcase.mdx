@@ -1,32 +1,38 @@
 ---
-title: Showcase and architectures
-description: Runnable samples and reference architecture shapes for adopting Chronicle, Arc, Components, AuthProxy, CLI, and the full Cratis stack.
+title: Choose a Cratis application architecture
+description: Match your application needs to Cratis architecture guides and local samples, from typed React screens to event history and processing diagnosis.
 ---
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-The best way to understand Cratis is to follow a working shape. This page collects runnable samples and architecture patterns that show how the pieces fit together.
+The Cratis showcase helps you choose an application architecture by the result you need: a typed React screen, recorded business history, or a way to inspect processing failures. Use the reference shapes to decide where to start, then follow a guide or run a sample to explore that choice.
 
 <CardGrid>
-  <LinkCard title="Run the samples" description="Clone runnable examples from minimal Chronicle quickstarts to a full-stack library app." href="/samples/" />
-  <LinkCard title="Build the full-stack feature" description="Walk through command, event, projection, query, and React screen in one feature." href="/build-a-full-app/" />
-  <LinkCard title="Choose your adoption path" description="Use the adoption guide to decide whether to start full stack, Arc-only, Chronicle-only, or one bounded slice." href="/adopting-cratis/" />
+  <LinkCard title="Run the samples" description="Choose a local example by the result you want and check its prerequisites." href="/samples/" />
+  <LinkCard title="Build the full-stack feature" description="Register an author and see the React list update from the recorded event." href="/build-a-full-app/" />
+  <LinkCard title="Choose your adoption path" description="Find one feature you can introduce without making a rewrite the starting point." href="/adopting-cratis/" />
 </CardGrid>
 
 ## Reference shapes
 
-| Shape | Use when | Start with |
-|---|---|---|
-| Full-stack Cratis | You are building a new information system and want the full command, event, read model, and React loop. | [Build a full-stack feature](/build-a-full-app/) |
-| Chronicle-first service | You need a durable event history before you need a frontend. | [Chronicle getting started](/chronicle/get-started/) |
-| Arc over current-state storage | You want typed commands, queries, and generated React proxies without event sourcing yet. | [CQRS without event sourcing](/arc/arc-without-event-sourcing/) |
-| Components frontend | You already have Arc proxies and want forms, dialogs, tables, and styling conventions. | [Components getting started](/components/getting-started/) |
-| Existing system adoption | You want to introduce Cratis one bounded context or frontend/backend boundary at a time. | [Adopting Cratis](/adopting-cratis/) |
-| Operational inspection | You need to inspect events, observers, failed partitions, projections, and jobs. | [CLI](/cli/) |
+These are architecture patterns, not separate downloadable applications. For a new information system, Cratis recommends Chronicle, Arc, and Components together. You can also adopt a boundary independently. Arc separates commands, which request changes, from queries, which read data: Command Query Responsibility Segregation (CQRS). Chronicle records facts as events and derives read models, views shaped for queries. Components uses Arc's generated TypeScript clients to connect React forms and views to the backend.
+
+| Shape | Result you need | Start with |
+| --- | --- | --- |
+| Full-stack Cratis | Keep the facts behind a feature and show the resulting view in React. | [Build a full-stack feature](/build-a-full-app/) walks through author registration; the [Capstone sample](https://github.com/Cratis/Samples/tree/main/Capstone) contains the runnable C# version. |
+| Chronicle-first service | Record what happened and read the history before adding a frontend. | [Chronicle getting started](/chronicle/get-started/) covers setup; [Chronicle Backend](https://github.com/Cratis/Samples/tree/main/Chronicle/Backend) provides a small HTTP example. |
+| Arc over current-state storage | Keep a typed command/query boundary where current state is enough and you do not need event history. | [CQRS without event sourcing](/arc/arc-without-event-sourcing/) explains the choice; [Idea Loom](https://github.com/Cratis/Samples/tree/main/Arc/React) demonstrates it with an in-memory store. |
+| Components frontend | Build command forms and query-backed views against an existing Arc backend. | [Components getting started](/components/getting-started/) assumes generated Arc clients, called proxies, and a running backend; it does not supply that backend. |
+| Existing system adoption | Introduce one feature while the rest of your application keeps its existing path. | [Adopting Cratis](/adopting-cratis/) helps you choose a boundary, such as one business area with its own model and vocabulary. |
+| Operational inspection | Find the event and processing failure behind a missing result before attempting repair. | [Operations Diagnosis](https://github.com/Cratis/Samples/tree/main/Chronicle/OperationsDiagnosis) creates a known local failure for read-only inspection; the [command-line interface (CLI) guide](/cli/) covers the commands. |
 
 ## Sample applications
 
-Use the [Samples roster](/samples/) to choose by learning goal, frontend experience, Cratis products, runtime shape, and local prerequisites. Each entry links to the sample-owned README and source.
+Start with [Capstone](https://github.com/Cratis/Samples/tree/main/Capstone) when you want to trace one feature: register an author, record the event, and see the projected author list update in React. It contains that slice, not a complete library system. Move to [Library](https://github.com/Cratis/Samples/tree/main/Library) to explore separate lending and membership applications started together locally by Aspire. Some Library backend flows have no dedicated screen.
+
+These examples are C# backends with React frontends. Both need the .NET 10 SDK, Node.js 23 or newer, and Docker. Capstone uses npm and Docker Compose; Library uses the repository's Yarn toolchain and a Bash launch script. Follow each README's startup order and use its local credentials only for development. The samples are learning projects, not production templates.
+
+For a smaller backend-only example or a different learning goal, use the [Samples roster](/samples/). The roster lists prerequisites and links to each sample's source and README. Read the README for its limits before choosing a starting point.
 
 ## Add your example
 

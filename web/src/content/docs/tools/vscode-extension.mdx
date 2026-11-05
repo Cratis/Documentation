@@ -1,15 +1,11 @@
 ---
-title: VS Code extension (Narrator)
-description: Narrator is the Cratis VS Code extension, a read-only Chronicle Explorer in your editor's activity bar. Browse event stores, namespaces, and observers, page through an event sequence, and open event and read-model schemas without leaving your code.
+title: Cratis Narrator — inspect Chronicle in VS Code
+description: Cratis Narrator is a VS Code extension for browsing Chronicle event stores, paging through recorded events, and inspecting schemas beside your code.
 ---
 
-import { Aside, Card, CardGrid, Steps } from '@astrojs/starlight/components';
-import SimpleCard from '@components/SimpleCard.astro';
-import TopicHero from '@components/TopicHero.astro';
+import { Aside, Steps } from '@astrojs/starlight/components';
 
-<TopicHero icon="laptop" eyebrow="Tools" title="Explore Chronicle from your editor">
-When you're deep in a slice and something looks wrong, the question is usually "what's actually *in* the event log?" **Narrator** answers it without a context switch: it adds a Chronicle Explorer to the VS Code activity bar, so you can browse your event store, page through a sequence, and inspect event and read-model schemas right next to the code you're writing.
-</TopicHero>
+Cratis Narrator is a VS Code extension for inspecting Cratis Chronicle event stores beside your code. When an app shows unexpected data, use its Chronicle Explorer to read the recorded events and inspect schemas before changing the app. Narrator reads Chronicle data; it does not execute application commands.
 
 ## Install it
 
@@ -21,7 +17,7 @@ Narrator is published on the Visual Studio Marketplace as **[Cratis Narrator - C
 
 2. Search for **Narrator** and install **Cratis Narrator - Chronicle Explorer**, or install it from the [Marketplace listing](https://marketplace.visualstudio.com/items?itemName=cratis.narrator).
 
-3. Open the **Narrator** icon in the activity bar. It connects to your active Chronicle context on startup. If no context is configured, run **Narrator: Connect to Chronicle** from the Command Palette and enter a server URL.
+3. Open the **Narrator** icon in the activity bar. If you already have an active Chronicle context, Narrator connects to it on startup. Otherwise, choose **Add Context** in the explorer and enter a context name and server URL. To retry a disconnected context, run **Connect to Chronicle** from the Command Palette.
 
 </Steps>
 
@@ -29,7 +25,7 @@ The source lives at [github.com/Cratis/Narrator](https://github.com/Cratis/Narra
 
 ## How it connects
 
-Narrator reads the **same configuration file the [CLI](/cli/getting-started/) uses**, `~/.cratis/config.json`, so if you've already pointed the CLI at a store, the extension picks it up. A minimal config looks like this:
+A context is a named Chronicle connection. Narrator reads the [CLI's configuration file](/cli/getting-started/), `~/.cratis/config.json`, so you can reuse an existing CLI context rather than enter the server again. A minimal config looks like this:
 
 ```json
 {
@@ -42,42 +38,58 @@ Narrator reads the **same configuration file the [CLI](/cli/getting-started/) us
 }
 ```
 
-A context can also name an `eventStore` and a `namespace`. It connects to the active context on startup and watches the file, reloading when it changes. To use a config in a non-standard location, set the `narrator.configPath` setting; leave it empty to use `~/.cratis/config.json`.
+Narrator connects to the active context on startup and watches the file for
+changes. To use a file elsewhere, set `narrator.configPath`; leave it empty to
+use `~/.cratis/config.json`. Adding, editing, deleting, or switching contexts in
+Narrator writes to this file, so it also changes the configuration the CLI reads
+when both use the same path.
+
+A context can name an `eventStore` and a `namespace`, but those values do not
+restrict the explorer to that store or namespace. Expand the connected context,
+choose an event store, then choose its namespace before opening a sequence.
+Narrator is separate from Lens: it connects directly to Chronicle and does not
+use the development user or tenant selected in your browser.
 
 <Aside type="caution" title="The config file can hold secrets">
-A context can carry client credentials (`clientId` and `clientSecret`) and an access token, stored in plain text. Keep `~/.cratis/config.json` out of source control and out of shared folders, and use per-developer credentials you can rotate.
+A context can carry client credentials (`clientId` and `clientSecret`) and an
+access token in plain text. Narrator can use those credentials or a cached CLI
+login token. Keep the configuration file and `~/.cratis/tokens/` out of source
+control and shared folders, and use per-developer credentials you can rotate.
+
+When TLS is enabled, Narrator's gRPC client skips server certificate-chain
+validation. Use only servers and networks you trust.
 </Aside>
+
+If the context stays disconnected, check the server URL and credentials, then
+open the **Chronicle** output channel in VS Code for connection errors. Narrator
+uses Chronicle's gRPC endpoint, not an Arc application's HTTP address.
 
 ## What you can do
 
-<CardGrid>
-  <Card title="Browse the store" icon="seti:db">
-    Navigate event stores and namespaces down to their event types, read models, observers, and projections in the Chronicle Explorer tree.
-  </Card>
-  <Card title="Page through events" icon="list-format">
-    Open an event sequence into a paged viewer showing sequence number, event type, event source, when it occurred, and the payload.
-  </Card>
-  <Card title="Inspect schemas" icon="seti:json">
-    Open an event type's or read model's JSON schema, and open a projection's declaration.
-  </Card>
-  <Card title="Switch contexts" icon="right-arrow">
-    Add, edit, delete, and switch between Chronicle server contexts without editing JSON by hand.
-  </Card>
-</CardGrid>
+Expand an event store and namespace in **Chronicle Explorer** to find event
+sequences, event types, read models, observers, and projections. Select a node
+to see its metadata in the **Details** pane below the explorer. A read-model
+node describes the model and its schema; it is not a viewer for the model's
+stored rows.
 
-A **Details** pane sits below the explorer and shows the selected node's context and content as key/value tables, so selecting an event or read model shows its data inline.
+To investigate a recorded change, open an event sequence with **Browse Events**.
+The paged viewer shows each event's sequence number, type, event source, and
+occurrence time. Select an event to inspect its content and context.
+
+Use **Open Schema** on an event type or read model to read its JSON schema in
+an editor tab. **Open Declaration** opens a projection's declarative source
+when one is available; a model-bound projection has no declaration to open.
 
 <Aside type="note" title="Read only">
-Narrator only reads: the log, observers, and schemas. It has no commands that replay observers, manage jobs, or change application state. For operational actions, use the [CLI](/cli/) or the Workbench; the [Chronicle MCP server](/chronicle-mcp/) can also stop, resume, and delete jobs. Application state still changes only through commands and events.
+Narrator does not append events, replay observers, or manage jobs. Its context
+commands change local connection configuration, not Chronicle data. For
+operational actions, use the [CLI](/cli/) or the Workbench; the
+[Chronicle MCP server](/chronicle-mcp/) also provides job operations.
 </Aside>
 
 ## Where to go next
 
-<CardGrid>
-  <SimpleCard title="CLI getting started" icon="rocket" link="/cli/getting-started/">
-    Set up the `~/.cratis/config.json` contexts Narrator reads, and operate the store from the terminal.
-  </SimpleCard>
-  <SimpleCard title="Lens browser extension" icon="seti:html" link="/tools/lens/">
-    The in-browser companion: browse and run an Arc app's commands and queries from your browser.
-  </SimpleCard>
-</CardGrid>
+Follow [CLI getting started](/cli/getting-started/) to configure a Chronicle
+connection or perform store operations from the terminal. To send commands or
+queries to a running Arc app instead of inspecting its stored events, use
+[the Lens browser extension](/tools/lens/).

@@ -1,13 +1,13 @@
 ---
-title: Real-time chat
-description: Four guides that build a live multi-room chat with Arc's observable queries, from an in-memory backend to RabbitMQ, frontend-managed state, and incremental pushes.
+title: Real-time chat with Arc observable queries
+description: Build real-time chat with Arc observable queries, then add RabbitMQ delivery, react to message changes, or send history once with incremental pushes.
 ---
 
-These guides build a real-time multi-room chat application using Arc's [observable queries](/arc/backend/csharp/queries/). They share a common shape, a `ChatMessage` read model with a `ForRoom` observable query, a `SendMessage` command, and a React page component, but each one explores a different dimension of the pattern.
+Build a multi-room chat with Arc's [observable queries](/arc/backend/csharp/queries/): the browser subscribes to a room's messages and receives updates without polling. Start with in-memory history, then choose the next guide for the problem you need to solve: delivery across servers, reacting to individual changes, or avoiding a full-history copy on every send.
 
-The backends are shown in C#, Kotlin, Java, and TypeScript where Arc's APIs differ. Pieces that are plain application code, such as the RabbitMQ consumer, are shown in C#, and the Incremental Pushes backend is shown in C# only, to keep that guide short. The React frontend is the same for every backend.
+Each guide keeps a `ChatMessage` read model, a `ForRoom` query, a `SendMessage` command, and a React component. The first two show backends in C#, Kotlin, Java, and TypeScript; their React code works with each backend. RabbitMQ integration code and the incremental-push backend are shown in C# only.
 
-:::caution[Arc for TypeScript is a source preview]
+:::caution[Arc for TypeScript distribution and parity]
 No Arc for TypeScript package is published to npm, it does not have full parity with Arc on .NET, and its package names and APIs can still change.
 :::
 
@@ -15,51 +15,33 @@ No Arc for TypeScript package is published to npm, it does not have full parity 
 
 ### [In memory](/scenarios/chat/in-memory/)
 
-The simplest starting point. Each room holds its message history in an observable source with a current value, inside a single, application-wide `ChatService`. No external dependencies required.
+Start here to join a room and see messages arrive in another browser. Each room keeps its history in the server process, so there is no database or broker to configure. Restarting the server loses that history.
 
-Covers:
-
-- A source with a current value as the backing store for live chat state
-- Returning that source from an observable query, and the per-subscriber relay C# uses
-- How Arc's **delta mode** works: the first emission delivers the full history; subsequent emissions deliver only the `ChangeSet` of new messages
+You will return the room's current history from an observable query and render it with `use()`. The guide explains delta mode: Arc sends the initial history, then a `ChangeSet` describing additions, replacements, and removals. The hook applies those changes for you.
 
 ### [With RabbitMQ](/scenarios/chat/rabbitmq/)
 
-Replaces the in-process state with two external systems: a persistence layer that loads message history on startup, and a RabbitMQ fanout exchange that delivers new messages to every server instance. The observable query and the React component are identical to the in-memory version.
+Take this path when browsers connect to different server instances. A RabbitMQ fanout exchange delivers messages to each instance's bound queue, and its consumer updates the local room. Each room still holds history in memory, loaded from your storage when the room is first requested.
 
-Covers:
-
-- Loading initial history from a persistence layer
-- A broker consumer that routes messages to the correct `ChatRoom`
-- Publishing from `SendMessage` through a publishing contract rather than writing directly to the room
-- Scaling across multiple server instances
+The query and React component stay the same. You supply the persistence implementation; the sample loads history but does not save new messages or recover messages missed while an instance is disconnected.
 
 ### [Frontend-managed state](/scenarios/chat/change-stream/)
 
-The backend is unchanged from the in-memory guide. The React component switches from `ForRoom.use()` to `ForRoom.useChangeStream()` to receive the raw `ChangeSet` (`{ added, replaced, removed }`) and manages its own `useState` accumulator.
+Use this when rendering the current list is not enough: you want to scroll for new messages or count unread arrivals. Keep the in-memory backend and switch to `ForRoom.useChangeStream()` to receive `{ added, replaced, removed }`.
 
-Covers:
-
-- When to use `useChangeStream()` instead of `use()`
-- Appending `ChangeSet.added` items to local state
-- Deriving secondary state from the delta: scroll-to-bottom logic and an unread message counter
+The component appends `added` items to local state and uses them to update scrolling and an unread counter. The guide also explains the limits of this append-only approach.
 
 ### [Incremental pushes](/scenarios/chat/incremental-pushes/)
 
-The backend changes fundamentally. `ChatRoom` becomes a pure pub/sub channel with no history that fires only new messages. `ChatService` owns the history. The `ForRoom` query emits the full history once as the initial payload, then forwards each new message individually, so the backend's work per message stays constant regardless of conversation length. It does not shrink the delta-mode payload; the guide explains what Arc sends.
+Read this when copying the growing history on every send is the work you want to avoid. `ChatService` owns the history, and `ChatRoom` only forwards new messages. Each subscriber receives history once, then one message per delivery; React accumulates those payloads locally.
 
-Covers:
-
-- Separating pub/sub (`ChatRoom`) from history (`ChatService`)
-- Sending the history and subscribing to the room in one step, so a joining subscriber neither misses nor repeats a message
-- Why `use()`, not `useChangeStream()`, is correct when the backend sends incremental payloads
-- A `useEffect` accumulator that appends both the initial history and each new arrival
+This changes what each query result means. Arc still compares consecutive results in delta mode, so the first live message can send the previous history as `removed`. The guide explains that trade-off, subscription cleanup, and why its component uses `use()` rather than applying removals to the conversation.
 
 ## How the backends differ
 
-The pattern is the same in every backend. These are the places where the code differs; the guides explain each one where it first appears.
+Choose the tab for your backend rather than translating the C# code directly. These are the contracts used by the examples.
 
-| | C# | Kotlin | Java | TypeScript (preview) |
+| | C# | Kotlin | Java | TypeScript |
 | - | -- | ------ | ---- | -------------------- |
 | Source with a current value | System.Reactive `BehaviorSubject<IEnumerable<ChatMessage>>` | `MutableStateFlow<List<ChatMessage>>` | Arc's `ObservableState<List<ChatMessage>>` | RxJS `BehaviorSubject<ChatMessage[]>` |
 | `ForRoom` returns | `ISubject<IEnumerable<ChatMessage>>`, a relay per subscriber | `Flow<List<ChatMessage>>`, the room's source | `Flow.Publisher<List<ChatMessage>>`, the room's source | The room's RxJS subject |
@@ -67,20 +49,18 @@ The pattern is the same in every backend. These are the places where the code di
 | One `ChatService` instance | `builder.Services.AddSingleton<ChatService>()` | `@Component` | `@Component` | `@singleton()` |
 | Authorization on the query and command | None | `@AllowAnonymous`, because Arc on the JVM requires an authenticated caller by default | `@AllowAnonymous`, for the same reason | None |
 | RabbitMQ publisher and consumer | Shown; the consumer is a `BackgroundService` | Use your platform's AMQP client | Use your platform's AMQP client | Use your platform's AMQP client |
-| Incremental Pushes backend | Shown, with a System.Reactive `Subject` and `Observable.Create` | Same building block: a `Flow` built per subscriber, such as `callbackFlow` | Not shown | Same building block: an RxJS `Observable` built per subscriber |
-
-Choosing C# for the Incremental Pushes backend is a scope choice, not a limit of the other backends.
+| Incremental Pushes backend | Shown, with a System.Reactive `Subject` and `Observable.Create` | Not shown | Not shown | Not shown |
 
 ## What all four share
 
-`ForRoom` returns an observable source of the room's messages. That return type is the contract between the query and Arc. It does not change regardless of how the backend sources or stages its data, and the generated TypeScript proxy is identical across all four guides.
+The query exposes a stream of message collections to Arc, independently of storage or broker choice. The frontend must still understand what each collection means: a complete history in the first three guides, but a delivery to append in the fourth.
 
 | | In memory | RabbitMQ | Frontend state | Incremental pushes |
 | - | --------- | -------- | -------------- | ------------------ |
 | Backend emits | Full history | Full history | Full history | History once, then single messages |
 | History lives in | `ChatRoom` | `ChatRoom` | `ChatRoom` | `ChatService` |
 | C# relay type | `BehaviorSubject` | `BehaviorSubject` | `BehaviorSubject` | `Observable.Create`, one stream per subscriber |
-| Backend work per message | Grows | Grows | Grows | Constant |
+| History copied on each send | Yes | Yes | Yes | No; copied when a subscriber joins |
 | Delta-mode payload per message | New message | New message | New message | New message + previous emission as `removed` |
 | React hook | `use()` | `use()` | `useChangeStream()` | `use()` |
 | Component accumulates | No | No | Yes, via `added` | Yes, via `data` |

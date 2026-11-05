@@ -1,22 +1,15 @@
 ---
 title: Real-time chat with incremental pushes
-description: Emit the chat history once and then only new messages from a C# backend, keep backend work per message constant, and accumulate the messages in React.
+description: Send chat history once per subscriber from a C# Arc backend, then emit new messages only. Accumulate deliveries in React and understand the delta trade-off.
 ---
 
-The three previous guides all publish the **full message history** on every message. Arc's delta mode reduces that to a `ChangeSet` over the wire, but the backend still copies the growing list into every emission and Arc compares it with the previous one.
+Send chat history once per subscriber, then emit only new messages when you want to avoid copying the growing history on every send. This C# Arc backend changes the meaning of each query result: the first is the conversation so far; later results are deliveries that React appends to its own list.
 
-This guide changes the model: the backend emits only what is **new** on each push. The first emission is the full history (initial payload); every subsequent emission contains only the newly arrived message. The frontend accumulates them into its own local state.
+Start from the [in-memory guide](/scenarios/chat/in-memory/) and replace its backend and React component with the code below. The history still lives in one server process and is lost on restart. This is an alternative to the full-history pattern, not a further extension of the RabbitMQ sample.
 
-The result is constant backend work per message once a subscriber has received the history, however long the conversation has been running. It does not make the delta-mode network payload smaller: the previous guides already send only the new message, and this one sends a little more (see [Step 3](#step-3--what-the-frontend-receives)).
+The earlier guides already send only additions over the network in delta mode. Incremental emissions do not reduce that payload: Arc compares consecutive query results, so the first live message after joining sends the old history as `removed`. Later comparisons involve single-message results. [Step 3](#step-3--what-the-frontend-receives) explains this cost and the full-mode alternative.
 
-The backend is shown in C# only, with System.Reactive's `Observable.Create` building a stream for each subscriber. That keeps the guide short; it is not a limit of the other backends, which have the same building block, such as an RxJS `Observable` built per subscriber in TypeScript and a `Flow` built per subscriber, such as `callbackFlow`, in Kotlin. The [in-memory guide](/scenarios/chat/in-memory/) shows the shared roles for Kotlin, Java and TypeScript, and [how the backends differ](/scenarios/chat/#how-the-backends-differ) summarizes them.
-
-By the end you will have:
-
-- A `ChatRoom` with a plain `Subject`: no history, no accumulated state, only a pub/sub channel
-- A `ChatService` that tracks history separately, exposes a `Send()` method, and hands each subscriber the history and the new messages without a gap between them
-- A `ForRoom` query that emits history once, then forwards only new messages, through a stream built for each subscriber
-- A React component that uses `use()` and a `useEffect` accumulator, **not** `useChangeStream()`
+The backend below uses System.Reactive's `Observable.Create` to build a stream for each subscriber. Only C# is shown; this guide does not provide equivalent implementations for the other backends.
 
 ## How this differs from the other guides
 
@@ -25,7 +18,7 @@ By the end you will have:
 | Each emission holds | Full history list | Full history list | New message only |
 | History lives in | `ChatRoom` | `ChatRoom` | `ChatService` |
 | C# relay type | `BehaviorSubject` | `BehaviorSubject` | `Observable.Create`, one stream per subscriber |
-| Backend work per message | Grows with history | Grows with history | Constant |
+| History copied on each send | Yes | Yes | No; copied when a subscriber joins |
 | Delta-mode payload per message | The new message | The new message | The new message plus the previous emission as `removed` |
 | Frontend hook | `use()` | `useChangeStream()` | `use()` |
 | Component accumulates | No, renders `data` directly | Yes, appends `added` | Yes, appends `data` |
@@ -43,7 +36,7 @@ Chat/
 
 `ChatRoom` is now a pure pub/sub channel. It holds no state and tracks no history. A plain `Subject<IEnumerable<ChatMessage>>` emits only when `Deliver()` is called.
 
-History tracking moves to `ChatService`, which also becomes the entry point for sending messages and for subscribing to a room, so that recording a message, delivering it, and handing the history to a new subscriber all happen under one lock.
+History tracking moves to `ChatService`. Both sending and subscribing go through this service under the same lock, so another sender cannot slip a message between the initial history read and the live subscription. This sample retains rooms and histories for the process lifetime; it does not evict them when subscribers leave.
 
 ```csharp
 // Chat/ChatRoom.cs
@@ -143,13 +136,13 @@ public class ChatService
 
 ### What is happening here?
 
-**Plain `Subject<IEnumerable<ChatMessage>>`** only delivers values to subscribers that are currently active. Unlike a `BehaviorSubject`, it holds no current value and emits nothing to late subscribers. That is deliberate: history is the responsibility of `ChatService`, not the room. The room exposes the subject as an `IObservable`, so nothing outside `ChatService` can publish a message that skips the history.
+A plain `Subject<IEnumerable<ChatMessage>>` only delivers to active subscribers. Unlike a `BehaviorSubject`, it holds no current value for late subscribers. History is now the service's responsibility, and the room exposes only the observable side of its subject.
 
-**`ChatService.Send()`** records the message in `_history` and delivers it to the room inside the same lock. The lock protects the per-room `List<ChatMessage>` from concurrent appends, and it is held only while a message is appended and handed to each subscriber, which in a chat room is rarely contested. Delivering inside the lock also means each subscriber receives messages one at a time, in the order they were recorded.
+`ChatService.Send()` records a message and calls `Deliver()` under `_lock`, so concurrent sends cannot interleave those operations.
 
-**`ChatService.Subscribe()`** takes the same lock, sends the observer a copy of the history, and subscribes it to the room before releasing the lock. A `Send()` therefore happens either before the subscription, so the message is in that subscriber's history, or after it, so the message arrives live. A joining subscriber never misses a message sent while it joins and never receives one twice.
+`ChatService.Subscribe()` takes the same lock, sends a copy of the history, and attaches the live room subscription before releasing it. For sends through this service on other threads, the message is either in that copy or delivered through the live subscription, with no gap between the two.
 
-**`ChatService.GetHistory()`** returns a copy made under the lock, not a view of the list. Arc serializes the history after the query has returned, and a later `Send()` appending to the list it enumerates would make that enumeration throw.
+`GetHistory()` returns a copy rather than the mutable list. A later send can then append to the stored history without changing the collection Arc is serializing.
 
 Because every delivery runs while the lock is held, a slow observer delays every sender. Arc's own observers start the write asynchronously and return, so keep any other observer of a room equally quick.
 
@@ -240,13 +233,13 @@ public record SendMessage(string RoomName, string User, string Message)
 
 ### What is happening here?
 
-**`Observable.Create`** builds a separate stream for each subscription, and nothing in it runs when `ForRoom` returns. Arc subscribes to the returned subject *after* the method returns; only then does `chatService.Subscribe` send that subscriber the history and subscribe it to the room, in one step under the `ChatService` lock. The history is therefore always the subscriber's first emission, whatever was sent in the meantime. A relay filled with the history before Arc subscribes would have to replay it, and a message delivered before Arc subscribed could take the history's place in the replay.
+`Observable.Create` defers setup until Arc subscribes. At that point, `chatService.Subscribe` sends the history and attaches the live subscription under the service lock. Seeding an ordinary subject before Arc subscribes would lose the initial history because that subject does not replay earlier values.
 
-**Returning an `ISubject`:** Arc for C# recognizes an observable query by its `ISubject<T>` return type, not by `IObservable<T>`. `Subject.Create` pairs the per-subscriber stream with `relay`, a `Subject` that acts as the observer side. With direct mode (`queryDirectMode` on `<Arc>`), when Arc for C# fails to deliver to a subscriber, it calls `OnError` on the subject the query returned; the relay passes that error to the subscriber's stream, which ends it. The default multiplexed connection reports a failed subscription to the client instead.
+For this C# query, return `ISubject<T>`, not just `IObservable<T>`. `Subject.Create` pairs the per-subscriber stream with `relay`, which supplies the observer side of that contract. In direct mode (`queryDirectMode` on `<Arc>`), a delivery failure can call `OnError` on the returned subject. The relay passes that error into this subscriber's stream without ending the shared room. The default multiplexed connection reports a failed subscription to the client instead.
 
-**Unsubscribing:** the `CompositeDisposable` returned from `Observable.Create` holds the relay subscription and the room subscription. Arc disposes its subscription when the client unsubscribes or disconnects, which disposes both, so a subscriber that leaves stops receiving the room's messages instead of staying attached to the room for the life of the process.
+The `CompositeDisposable` holds both the relay subscription and the room subscription. When Arc disposes its subscription after an unsubscribe or disconnect, both are released. That detaches the departing subscriber; it does not remove the room or its stored history.
 
-**Two emissions, two sources:**
+The stream has two sources of data:
 
 | Emission | Source | Content |
 | -------- | ------ | ------- |
@@ -281,7 +274,7 @@ The payload is one message per push only in full transfer mode (`observableQuery
 
 `messagesResult.data` from `use()` accurately reflects what the backend emitted: the history on the first push, and only the new message on every subsequent push.
 
-This is why the frontend must **not** use `useChangeStream()` here. `useChangeStream()` would expose the `removed` side of the ChangeSet, making it appear that history was deleted on every new message. `use()` abstracts that away and gives the component the clean per-emission `data`.
+Use `use()` for this component so `data` represents each backend delivery. `useChangeStream()` would expose removals between consecutive query results; those removals mean the previous delivery is no longer the current result, not that messages were deleted from the conversation. Applying them to the displayed history would be wrong for this backend.
 
 ## Step 4 — The React component
 
@@ -412,11 +405,11 @@ export const ChatRoomPage = () => {
 
 ### What is happening here?
 
-**`useEffect` on `messagesResult.data`:** each time the server pushes a new value, `messagesResult.data` is a new array reference, triggering the effect. On the first push it contains the full history; on each subsequent push it contains one new message. Appending via `setMessages(prev => [...prev, ...data])` works correctly in both cases.
+The effect watches `messagesResult.data` and appends its contents. The first result fills the list with history; later results extend it with new messages. `setMessages([])` clears local state before the initial join. There is no room-switch control in this component.
 
-**`setMessages([])` on join** clears local state before changing rooms. Without this, the previous room's messages would remain visible for a moment after joining.
+This accumulator illustrates a single uninterrupted subscription. It does not reconcile a replayed history after reconnection or deduplicate by `id`, and React effects are not a durable event queue. If every delivery must be retained through rapid updates or reconnects, add explicit reconciliation or keep the full-history query, where `use()` always reconstructs the current conversation.
 
-**`use()`, not `useChangeStream()`:** as explained in [Step 3](#step-3--what-the-frontend-receives), `useChangeStream()` would expose the Arc-internal ChangeSet where previous messages appear as `removed` on each new push, which is the wrong mental model for this pattern.
+Try joining after another browser has sent several messages, then send one more. The list should retain the history and append the new arrival. To compare this with a component that reacts to additions in full-history results, return to [frontend-managed state](/scenarios/chat/change-stream/).
 
 ## Summary
 
@@ -426,7 +419,7 @@ export const ChatRoomPage = () => {
 | `ChatService` | Owns history per room; `Send()` records and delivers under one lock; `Subscribe()` sends a copy of the history and subscribes under the same lock |
 | `ChatMessage.ForRoom()` | `Observable.Create` per subscriber: emits history once, then forwards single-message deliveries; Arc's unsubscribe ends the room subscription |
 | `SendMessage.Handle()` | Delegates to `chatService.Send()` |
-| Backend work per message | Constant: one `ChatMessage` per emission after the initial history |
+| History copying | Once per subscription; each later emission contains one `ChatMessage` |
 | Delta-mode payload per message | The new message plus the previous emission as `removed`; one message in full mode |
 | Frontend hook | `use()`: `data` reflects each backend emission directly |
 | Component state | Accumulated via `useEffect`; never replaced, only appended |

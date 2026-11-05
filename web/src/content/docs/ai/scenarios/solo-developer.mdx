@@ -1,15 +1,18 @@
 ---
-title: "Scenario: solo developer"
-description: One person, one coding tool. Install the Cratis AI plugin for your harness and start; nothing to add to your repository.
+title: Cratis AI setup for a solo developer
+description: Install a Cratis AI native plugin for one coding tool, without a managed guidance tree in your repository. Choose skills only or the Pi package.
 ---
 
-You work alone, in one coding tool, building on Cratis.
+Use a Cratis AI native plugin when you work alone and want Cratis guidance in
+one coding tool without maintaining a shared guidance tree in your repository.
+For Claude Code, the plugin makes Cratis skills available without a managed
+install.
 
 ## What you do
 
-Install the plugin for your harness. The
-[agent harness guide](/ai/harnesses/) has the exact command for each one. For
-Claude Code:
+Install the plugin for your harness, the tool that runs your coding agent. The
+[agent harness guide](/ai/harnesses/) lists the native plugin options and their
+commands. For Claude Code:
 
 ```text
 /plugin marketplace add Cratis/AI
@@ -21,16 +24,17 @@ configuration file to commit.
 
 ## What you get
 
-Your assistant loads Cratis skills when a task matches one: writing a command,
-modeling an event flow, adding a projection, debugging a stale read model. The
-skills are Markdown instructions and references. The marketplace plugin adds no
-hooks, scripts, MCP server, or files in your project.
+The skills give your assistant Markdown instructions and references for tasks
+such as writing a command, modeling an event flow, or adding a projection. The
+marketplace plugin adds no hooks, scripts, Model Context Protocol (MCP) server,
+or files in your project.
 
 The plugin carries skills only. It does not install the always-on Cratis rules,
 the slash-command prompts such as `new-vertical-slice`, or the subagents. If you
 want those, run `cratis ai install` in the repository (see
-[Start using Cratis AI](/ai/getting-started/)); in Pi, `@cratis/pi` includes
-rules and prompts.
+[Start using Cratis AI](/ai/getting-started/)). For Pi, `@cratis/pi` includes
+rules, prompts, agents, and quality hooks as well as skills; it is not a
+skills-only plugin.
 
 Your own configuration stays yours. Keep whatever you already have in
 `.claude/` (or your harness's equivalent). The plugin does not touch it.
@@ -39,11 +43,12 @@ Your own configuration stays yours. Keep whatever you already have in
 
 ## Keeping current
 
-The marketplace plugin reads the current default branch of `Cratis/AI`. There
-is no version to pin; updating means updating the plugin in your harness, and
-going back means uninstalling it. `@cratis/pi` is the exception: it is published
-to npm with version numbers. See
-[updates and rollback](/ai/scenarios/updates-and-rollback/).
+The marketplace install above follows the default branch of `Cratis/AI`; it
+does not pin a guidance revision. Update the plugin through your harness, or
+uninstall it to remove its guidance. For Pi, `@cratis/pi` has numbered npm
+releases that you can pin. Follow
+[updates and rollback](/ai/scenarios/updates-and-rollback/) when you need to
+control which revision your assistant receives.
 
 <span id="when-you-dont-need-this-page"></span>
 

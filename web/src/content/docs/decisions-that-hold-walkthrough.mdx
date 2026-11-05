@@ -1,6 +1,6 @@
 ---
-title: "Decisions that hold, from model to frontend"
-description: Follow one rule, a library book can be borrowed only while a copy is available, from a Screenplay model to an Arc command under read protection, a Chronicle read model, a spec for the race, and a frontend that handles the refusal.
+title: "Cratis read protection: from model to frontend"
+description: Use Arc and Chronicle read protection to refuse a book loan when availability changes before append, then handle the conflict in the frontend.
 ---
 
 import Recap from '@components/Recap.astro';
@@ -8,11 +8,11 @@ import YouWillLearn from '@components/YouWillLearn.astro';
 
 A library has one copy of a book left, and two members press Borrow at the same moment. Each request reads the availability, sees one copy, decides the loan is fine and appends `BookBorrowed`. Each request was right about what it saw, and the library now has two loans for one copy.
 
-Cratis lets the command say what it decided on, and the event log refuses the append if that changed. This tutorial builds that rule once, from the model to the screen. It follows the [Dynamic Consistency Boundary](/concepts/dynamic-consistency-boundary/) idea in Chronicle and Arc.
+Cratis Arc can protect the read used to make that decision. Cratis Chronicle refuses the command's append if matching events arrive after the read, so the caller must reconsider against fresh state. This walkthrough follows the borrowing rule from model to screen using a [Dynamic Consistency Boundary](/concepts/dynamic-consistency-boundary/): the events and keys that must remain unchanged for the decision to commit.
 
 <YouWillLearn>
 
-- how to state a rule that depends on state in a Screenplay model, and what that declaration does not do yet
+- how to state a rule that depends on state in a Screenplay model, separately from the implementation's read protection
 - how to turn read protection `On` and write the rule as a `CommandValidator<T>` that takes a read model
 - how the read model behind the rule is folded, and which events guard the append
 - how to write a spec that makes the race happen and proves the loser writes nothing
@@ -95,7 +95,7 @@ screenplay lending.play --warnaserror
 1 file(s) compiled - 0 error(s), 0 warning(s)
 ```
 
-The `reads` line is a declaration only. It records what the command consulted, so the model shows the read-model-to-command arrow of event modeling. It does not make the append conditional. What guards the append is Arc's read protection, which you turn on in the next step in the code. The `command reads protected` preamble that would carry the guard through Screenplay is not part of a released Screenplay yet, so this page does not use it.
+The `reads` line records what the command consults, giving the model its read-model-to-command arrow. On its own, it does not request protection. Screenplay also defines an application-root `command reads protected` preamble; this example does not use it. Here, you enable the implementation's guard separately through Arc's read protection in the next step.
 
 ## 2. Write the Arc command and validator
 
@@ -177,7 +177,9 @@ A read model Arc cannot guard is refused under `On` with an error that names the
 
 ## 4. Test the race
 
-A spec for the rule alone checks the validator. The race needs a second writer between the command's read and its append. `CommandScenario.AppendConcurrently` is that writer:
+For application specs, give the command available or unavailable state and assert its outcome. Arc and Chronicle's framework specs verify the guard's concurrency handling; your application does not need to re-prove it for each command.
+
+The sample below illustrates that mechanism by placing a second writer between the command's read and append. `CommandScenario.AppendConcurrently` is an advanced, hidden hook for this purpose, not the recommended application testing surface. See [Arc's application specification guidance](/arc/backend/csharp/chronicle/consistency/scenarios/testing/) for ordinary rule specs.
 
 ```csharp title="Lending/Lending/Borrowing/for_BorrowBook/when_the_last_copy_is_borrowed_concurrently.cs"
 public class when_the_last_copy_is_borrowed_concurrently : Specification
@@ -204,7 +206,7 @@ public class when_the_last_copy_is_borrowed_concurrently : Specification
 
 The scenario seeds one copy, so the validator sees availability 1 and passes. The competing `BookBorrowed` is appended after the command's read and before its commit. The command is refused with a `concurrencyViolation` and appends nothing. The competing event stays in the log, and `AppendedEvents` counts only the command's own appends.
 
-`CommandScenario` turns the decision reads on for you. The spec shows the race from the command's side only: what the caller sees is in the next step.
+`CommandScenario` uses the command's declared read protection to select its in-process log; creating a scenario does not turn an `Off` command into an `On` command. This sample enables `On` in the project file. The spec shows the race from the command's side only; the next step follows the refusal to the caller.
 
 The rule itself has its own spec, [`when_no_copy_is_available`](https://github.com/Cratis/Samples/blob/main/Library/Lending/Lending/Borrowing/for_BorrowBook/when_no_copy_is_available.cs), and a second one proves that a caller cannot switch the rule off. A caller that sends `X-Allowed-Severity` at `Error` asks Arc to drop validation results at that severity. Because `BorrowBook` runs under `On`, Arc keeps the validator's result anyway. The spec sends that severity through the command pipeline:
 
@@ -309,23 +311,19 @@ Before the user submits again, re-read what they are deciding on. If you resubmi
 
 ## 6. What is outside the guard
 
-The rule holds for this command under `On`. These are outside it:
+Read protection guards this command's decision under `On`, not every writer in the application. A matching event from another writer can invalidate this command's read, but that writer's own unprotected decision can still be wrong. Protect every writer that makes the availability decision, or use a [constraint](/chronicle/constraints/) when one expresses the rule.
 
-- **A writer without a guard.** Another command, service or import that decides on availability without a protected read can still append a `BookBorrowed`. The rule holds fully only when every writer that decides on it is guarded, or when it is a [constraint](/chronicle/constraints/).
-- **Reads marked `[Unprotected]`.** Arc accepts an `[Unprotected("reason")]` read as an explicit exception. It guards nothing.
-- **Revisions and redactions.** Revising or redacting an earlier event does not move the position that a condition compares, so a decision made before the change can still commit.
-- **State outside the event log.** A call to another service, or a value read from another database, is not part of the condition.
-- **Other event sequences.** A read across event sequences is not guarded.
-- **`Off` and `Measure`.** Both give plain reads. `Measure` reports what `On` would do, and changes no result.
-- **The conflicting event.** The result names the read model and the key, not the event that moved the state.
+An `[Unprotected("reason")]` read is an explicit exception and adds no guard. Neither does state read from another service or database, or across event sequences. Revising or redacting an earlier event does not move the position checked by the condition, so a decision made before that change can still commit.
+
+`Off` and `Measure` give plain reads. `Measure` reports what `On` would do without changing the result. When `On` refuses an append, the diagnostic identifies the read model and key, not the event that changed the state.
 
 The [Arc read protection pitfalls](/arc/backend/csharp/chronicle/consistency/pitfalls/) page lists more cases. If the rule is only that something is unique or may happen once, a constraint is cheaper than a protected read.
 
 <Recap>
 
-- You declared a rule that depends on state with `reads` in Screenplay, a declaration only until the protected-reads preamble ships.
+- You declared the decision's dependency with `reads` in Screenplay, separately from enabling the Arc implementation's guard.
 - You turned read protection `On` and put the rule in a `CommandValidator<BorrowBook>` that takes `BookAvailability`. Arc reads it fresh and guards the append with the events the model folds, for that ISBN.
-- You wrote the race as a spec with `AppendConcurrently`, and a second spec showing that a caller cannot lower the validation threshold under `On`.
+- You followed a simulated race through the advanced `AppendConcurrently` hook, and a second spec showing that a caller cannot lower the validation threshold under `On`. Application specs normally supply state and assert outcomes instead.
 - The frontend tells `ReadChanged` from a failed rule, keeps the user's input, refreshes and offers to submit again.
 - The guard does not cover unguarded writers, `[Unprotected]` reads, revisions and redactions, state outside the log, other event sequences, or `Off` and `Measure`.
 

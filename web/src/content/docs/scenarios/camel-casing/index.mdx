@@ -1,31 +1,31 @@
 ---
-title: Configure camel casing for Chronicle and MongoDB
-description: How to get camelCase field names consistently in Chronicle projections and Arc MongoDB documents, for each Arc backend.
+title: Configure camel casing for Chronicle and Arc MongoDB
+description: Configure Chronicle projections and Arc MongoDB access to use matching camelCase fields and collection names, then check the stored documents.
 ---
 
-This how-to shows how to get camelCase field names in your read-model documents, the same for the documents Chronicle projections write and the documents Arc reads and writes in MongoDB.
+Configure Chronicle's projection naming and Arc's MongoDB naming together so Arc can read the documents Chronicle writes. This guide shows how each backend stores camelCase fields and keeps collection names aligned.
 
 ## Goal
 
 Store read-model data with camelCase field names, and keep Chronicle and Arc's MongoDB integration agreeing on every field and collection name.
 
-Two things decide the stored names:
+The stored field names start with the names declared in your read model. C# properties use PascalCase by convention; Kotlin properties, Java record components and TypeScript fields usually use camelCase.
 
-- **The declared member names.** C# properties are PascalCase by convention; Kotlin properties, Java record components and TypeScript fields are already camelCase.
-- **The naming policy.** A naming policy can rename members and collections on the way to MongoDB. Chronicle's projections and Arc's MongoDB integration each apply one, and both must agree, or Arc reads fields and collections that Chronicle never writes.
+A naming policy translates those declared names into storage names. Chronicle's projections and Arc's MongoDB integration must agree on both fields and collections. Otherwise, Arc can query a different collection or read documents whose fields do not match its model.
 
 ## Prerequisites
 
-- An application using Arc with its MongoDB integration, and Chronicle for projections.
+- An application using Arc with its MongoDB integration, and Chronicle for projections. If you need the initial setup, choose your backend from [Arc backends](/arc/backend/).
 - For C#, the Cratis meta package setup (`AddCratis()` and `UseCratis()`).
+- Access to the MongoDB database where Chronicle stores the projected read models, so you can check the result.
 
-:::caution[Arc for TypeScript is a source preview]
+:::caution[Arc for TypeScript distribution and parity]
 The TypeScript tab uses Arc for TypeScript. No package is published to npm, it does not have full parity with Arc on .NET, and its package names and APIs can still change.
 :::
 
 ## 1. Configure the naming
 
-Each backend does what its conventions call for:
+Choose your backend in the example below. Apply the naming configuration at startup, before writing data: changing a policy does not rename existing fields or move existing documents to a new collection.
 
 <ArcBackendTabs snippet="scenarios/camel-casing/setup" />
 
@@ -35,15 +35,15 @@ Turn on the camel case naming policy in both places: in Arc's MongoDB integratio
 
 ### Kotlin and Java
 
-**Field names** need no configuration. Documents store each property under its declared name, which is already camelCase, and the Chronicle JVM client has no camel case option.
+For idiomatic camelCase properties, field names need no configuration. Documents store each property under its declared name, and the Chronicle JVM client has no camel case option.
 
-**Collection names** need no configuration either. With Arc's MongoDB integration and the Chronicle starter both on the classpath, Arc's naming policy also names the collection Chronicle projects each read model into, so a projected `User` lands in `Users`, the collection Arc reads. This needs Chronicle.Kotlin 6.10.0 or later, which adds the read-model naming policy Arc supplies. To choose other names, declare your own Arc `NamingPolicy` bean (it flows through the same way), or a Chronicle `ReadModelNamingPolicy` bean to name Chronicle's collections alone. An application that declares its own `ChronicleOptions` bean sets the policy itself with `withReadModelNamingPolicy`.
+Collection names need no configuration either. With Arc's MongoDB integration and the Chronicle starter both on the classpath, Arc's naming policy also names the collection Chronicle projects each read model into, so a projected `User` lands in `Users`, the collection Arc reads. This needs Chronicle.Kotlin 6.10.0 or later, which adds the read-model naming policy Arc supplies. To choose other names, declare your own Arc `NamingPolicy` bean (it flows through the same way), or a Chronicle `ReadModelNamingPolicy` bean to name Chronicle's collections alone. An application that declares its own `ChronicleOptions` bean sets the policy itself with `withReadModelNamingPolicy`.
 
 ### TypeScript
 
-**Field names** are already camelCase, and Chronicle's TypeScript client writes them as declared. Set `camelCaseMongoNamingPolicy` on `withMongoDB` when your read models must match a C# service that uses camel case: it also camel-cases collection names (`User` becomes `users`).
+For idiomatic camelCase fields, Chronicle's TypeScript client writes the names as declared. Set `camelCaseMongoNamingPolicy` on `withMongoDB` when your read models must match a C# service that uses camel case: it also camel-cases collection names (`User` becomes `users`).
 
-**Collection names** follow Arc. When `withMongoDB` is configured, the Chronicle client Arc creates stores each projected read model listed in `readModels` in the collection Arc reads it from (`users` with `camelCaseMongoNamingPolicy`), so no `collectionName` override is needed. This needs `@cratis/chronicle` 6.29.0 or later, which adds the read-model naming policy Arc supplies. A read model Arc does not read keeps its identifier as the collection name. If you pass your own `client` to `withChronicle`, Arc leaves it alone: set `readModelNamingPolicy` on its `ChronicleOptions` yourself.
+Collection names follow Arc. When `withMongoDB` is configured, the Chronicle client Arc creates stores each projected read model listed in `readModels` in the collection Arc reads it from (`users` with `camelCaseMongoNamingPolicy`), so no `collectionName` override is needed. This needs `@cratis/chronicle` 6.29.0 or later, which adds the read-model naming policy Arc supplies. A read model Arc does not read keeps its identifier as the collection name. If you pass your own `client` to `withChronicle`, Arc leaves it alone: set `readModelNamingPolicy` on its `ChronicleOptions` yourself.
 
 `withMongoDB`'s `database` must match the event store name, because Chronicle writes the default namespace's read models to a database named after the event store.
 
@@ -57,7 +57,9 @@ With this setup:
 
 ## 3. Verify in MongoDB
 
-After your app runs and projections update read models, inspect the stored documents. You should see camelCase fields. If a query returns empty or half-filled read models, compare the stored collection and field names with the names your backend expects; a naming mismatch produces no error.
+Run a command that produces an event for your read model, then wait for the projection to update it. Inspect the resulting MongoDB document and check that `EmailAddress` in C#, or `emailAddress` in the other backends, is stored as `emailAddress`.
+
+Query the same read model through Arc and check that the value is populated. If the query returns no documents or leaves fields unset, compare the stored collection and field names with the names your backend expects. A naming mismatch can produce those results without an error; also check whether existing documents still use the previous naming policy.
 
 ## Related reference pages
 

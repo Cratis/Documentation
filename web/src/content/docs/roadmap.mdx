@@ -1,11 +1,11 @@
 ---
 title: Roadmap
-description: "Directional roadmap for Cratis: what is stable, what is being hardened, what is experimental or being explored, and where feedback helps."
+description: "Directional roadmap for Cratis: current capabilities, documentation work, model-first tools, ideas being explored, and where feedback helps."
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
-The roadmap is directional, not a delivery contract. Cratis is open source, and priorities move when real adoption uncovers sharper needs. Treat this page as a map of intent: what you can rely on, what is being strengthened, what is experimental, and where feedback will shape the work.
+The roadmap is directional, not a delivery contract. Priorities move when real adoption uncovers sharper needs. Treat this page as a map of intent: current capabilities, work being strengthened, ideas being explored, and where feedback will shape the work.
 
 <CardGrid>
   <LinkCard title="Share roadmap feedback" description="Tell us what would unblock adoption, production use, training, or contribution." href="/feedback/" />
@@ -13,7 +13,9 @@ The roadmap is directional, not a delivery contract. Cratis is open source, and 
   <LinkCard title="Ask before depending on a future item" description="Use Discord when a planned or exploratory item matters to your project." href="/community/" />
 </CardGrid>
 
-## Stable foundations
+<span id="stable-foundations" />
+
+## Core capabilities
 
 These are the core areas the documentation treats as the current Cratis foundation:
 
@@ -25,7 +27,9 @@ These are the core areas the documentation treats as the current Cratis foundati
 | Fundamentals | Concepts, serialization, type discovery, diagnostics helpers, and TypeScript utilities |
 | Documentation | Product docs, full-stack guides, samples, API reference, Storybook, community routes, and AI-readable exports |
 
-## Being hardened
+<span id="being-hardened" />
+
+## Coverage and documentation
 
 These ship today and are in use, but their coverage, documentation, or guarantees are still being filled in:
 
@@ -40,17 +44,19 @@ These ship today and are in use, but their coverage, documentation, or guarantee
 ## Model-first tools
 
 - [Screenplay](/screenplay/) is the declarative event-modeling language.
-- [Studio](/studio/) is a paid Preview product. Public sign-up is not open yet; contact Cratis through [cratis.studio](https://cratis.studio) about access.
+- [Studio](/studio/) is a paid collaborative modeling workspace. Sign up for a trial and see pricing at [cratis.studio](https://cratis.studio).
 
-## Experimental
+<span id="experimental" />
 
-- **Model-first rendering and capture:** Stage, Scene, and [Prologue](/prologue/) remain experimental and in early development; formats and behavior can change between releases.
-- **Developer tools in early releases:** [Lens](/tools/lens/), the browser extension for Arc apps.
+## Rendering, capture, and developer tools
+
+- **Model-first rendering and capture:** Stage, Scene, and [Prologue](/prologue/) have formats and behavior that can change between releases. Review each tool's supported capabilities before depending on it.
+- **Browser tooling:** [Lens](/tools/lens/), the browser extension for Arc apps.
 
 ## Being explored
 
-- A Python Chronicle client. It is pre-alpha and not published.
-- Ensemble, deterministic expert workflows for AI agents building with the Cratis stack. It is pre-release, and free and MIT licensed like the rest of Cratis.
+- A Python Chronicle client. It is not published.
+- Ensemble, deterministic expert workflows for AI agents building with the Cratis stack. Ensemble is free and MIT licensed.
 - Richer visual operations around a running system.
 - More reference architectures and runnable sample applications.
 - More workshop and training material around Cratis and event sourcing. [Professional help](/professional-help/) is available today.
@@ -67,5 +73,5 @@ The most useful roadmap feedback is concrete:
 - Which integration would make Cratis easier to introduce in an existing system?
 
 <Aside type="tip" title="Roadmap items need context">
-If a future item matters to your project, start a conversation before depending on it. We can clarify whether it is stable, experimental, or only an idea.
+If a future item matters to your project, start a conversation before depending on it. We can clarify what exists, what its limits are, and what is only an idea.
 </Aside>

@@ -64,7 +64,7 @@ You do not need every product. What happens when one is missing:
 | `Chronicle`, `Arc`, `Components` | Their product sections, plus Chronicle's shared client docs | Sync skips them. Unless an earlier sync left a copy behind, the post-build step then fails with "Missing required product in build". Required for `npm run build`. |
 | `Chronicle.Kotlin`, `Chronicle.Elixir`, `Chronicle.TypeScript`, `Arc.Kotlin` | Language tabs and language-specific pages configured in `variant-docs.yml` | Sync warns and leaves those tabs and pages out. |
 | `.github` | `/contributing/` and release digests | Skipped. |
-| `AuthProxy`, `cli`, `Fundamentals`, `Templates`, `Choreography`, `DirectDocumentation`, `Chronicle.Mcp`, `Architecture`, `Prompter`, `Prologue`, `Screenplay`, `Stage`, `Screenplay.Generation`, `Screenplay.CritterStack`, `Eventmodelers-Build-Kit-CSharp`, `Eventmodelers-Build-Kit-Kotlin`, `Eventmodelers-Build-Kit-Java` | Their product sections | Skipped with a `[sync] SKIP ... source not found` warning. |
+| `AuthProxy`, `cli`, `Fundamentals`, `Templates`, `Choreography`, `DirectDocumentation`, `Chronicle.Mcp`, `Architecture`, `Prompter`, `Prologue`, `Showrunner`, `Screenplay`, `Stage`, `Screenplay.Generation`, `Screenplay.CritterStack`, `Eventmodelers-Build-Kit-CSharp`, `Eventmodelers-Build-Kit-Kotlin`, `Eventmodelers-Build-Kit-Java` | Their product sections | Skipped with a `[sync] SKIP ... source not found` warning. |
 
 Two things about a skipped product can mislead you:
 
@@ -124,13 +124,13 @@ Astro's build-completion hook writes slugged `/path.md` mirrors for page actions
 
 The postbuild step also trims `llms-full.txt` without dropping any page: outside fenced code it removes the plugin's `[Section titled “…”](#…)` line under every heading and collapses the column padding of Markdown tables (`compactFullText` in `scripts/llm-bulk.mjs`). Together these cut about 2.8 MB (17.57 MB to about 14.81 MB when measured on the published export). `llms.txt`, the per-area sets and the Markdown mirrors are unchanged.
 
-The build prints each bulk export's size and emits a `::warning` annotation when `llms-small.txt` exceeds 400,000 bytes or `llms-full.txt` exceeds 18,000,000 bytes (`SIZE_WARNINGS` in `scripts/llm-bulk.mjs`). The warning never fails the build; trim or split an area before raising a threshold.
+The build prints each bulk export's size and emits a `::warning` annotation when `llms-small.txt` exceeds 400,000 bytes or `llms-full.txt` exceeds 18,500,000 bytes (`SIZE_WARNINGS` in `scripts/llm-bulk.mjs`). The warning alone does not fail the build; budget enforcement can fail it as described below. Trim or split an area before raising a threshold.
 
-`npm run lint:seo` warns about pages without a real description. `scripts/seo-baseline.json` holds the current count: a higher count is annotated on the pull request and a lower one asks you to lower the baseline (`npm run lint:seo -- --update-baseline`), so the count can only go down. It also counts pages whose browser titles are still identical within a section after the language is added; above the `duplicateTitle` baseline this fails a pull request (`SEO_LINT_ENFORCE=1`) and only warns on scheduled and main builds. `npm run postbuild` checks `llms-small.txt` (400,000 bytes) and `llms-full.txt` (18,000,000 bytes) against their budgets in the same way: an exceeded budget fails a pull request (`LLM_BUDGET_ENFORCE=1`) and warns elsewhere.
+`npm run lint:seo` warns about pages without a real description. `scripts/seo-baseline.json` holds the current count: a higher count is annotated on the pull request and a lower one asks you to lower the baseline (`npm run lint:seo -- --update-baseline`). It also counts pages whose browser titles are still identical within a section after the language is added; above the `duplicateTitle` baseline this fails a pull request (`SEO_LINT_ENFORCE=1`) and only warns on scheduled and main builds. `npm run postbuild` checks `llms-small.txt` (400,000 bytes) and `llms-full.txt` (18,500,000 bytes) against their budgets in the same way: an exceeded budget fails a pull request (`LLM_BUDGET_ENFORCE=1`) and warns elsewhere.
 
 ### What CI runs
 
-`.github/workflows/docs-site.yml` builds on pull requests to `main`, pushes to `main` and `docs-overhaul`, manual runs, and the nightly slow-check schedule. An hourly probe resolves the current SHAs of every build checkout (including this repository) using the checkout token and compares them with `/build-info.json` from the last successful deployment. It builds only when sources changed or the comparison fails. Product `build-docs` notifications remain accepted during migration but start no jobs. After checking out every product and building both Storybooks, a build runs:
+`.github/workflows/docs-site.yml` builds on pull requests to `main`, pushes to `main` and `docs-overhaul`, manual runs, and the nightly slow-check schedule. Product `build-docs` notifications and an hourly schedule run a probe that resolves the current SHAs of every build checkout (including this repository) using the checkout token and compares them with `/build-info.json` from the last successful deployment. These runs build only when sources changed or the comparison fails. After checking out every product and building both Storybooks, a build runs:
 
 1. `node --test ../.github/scripts/*.test.mjs scripts/*.test.mjs`
 2. `npm run build:api`
@@ -155,9 +155,27 @@ Several checks depend on tools that are not npm dependencies. When a tool is mis
 
 `npm run build:api` has no skip path. It throws when the .NET SDK, DocFX, compiled assemblies or TypeScript inputs are missing.
 
+## Writing and maintaining Platform documentation
+
+Lead with one reader task and an observable first success, rather than a tour of every product. Show the prerequisites, where the code enters the application and how to recognize the result. A Chronicle tutorial should distinguish an event being stored from an observer completing and a read model becoming available. Introduce the next concept when it explains what the reader just observed or helps them take the next step.
+
+Edit product explanations, configuration, migrations and snippets in their owning source repository. This site owns platform selection and cross-product journeys: explain how the pieces connect, then link to the product-owned steps instead of copying them. Pages written by `scripts/sync-content.mjs`, generated sidebars, generated API reference, Markdown mirrors and LLM exports are outputs, not authoring sources.
+
+Keep product names, repository names, package IDs and published routes distinct; renaming one does not rename the others. State the implementation, client/package version, prerequisites and feature, execution, or publishing limits relevant to the task. A C# example is not evidence that another client supports the same operation.
+
+Keep a coherent example in Samples or the owning implementation/client repository, and link to its files and entry points. Explain the expected output and local persistence or external-service boundaries. In review, distinguish source inspection and compilation from behavior actually exercised at runtime; do not present expected output as a recorded result.
+
+Ask product maintainers to review behavior and examples, and site maintainers to review navigation, metadata, accessibility and exports. Cross-product guides need review at each boundary they cross. When behavior or a package changes, update the affected explanation, sample, support claim and upgrade guidance in the same review, or explain why no documentation change is needed. Revisit version and maturity claims when preparing a release.
+
+When adding a documentation source, coordinate its `PRODUCTS` entry in `scripts/sync-content.mjs`, source edit links, navigation, CI checkouts and source fingerprint, and LLM indexes. Include `variant-docs.yml` and generated reference inputs where applicable. A public repository alone does not establish a site import, supported client feature or available release; check each against the owning source.
+
+Keep published URLs and useful anchors stable. For an approved route move, update links and add a permanent entry to `content-redirects.yml`; preserve existing entries and avoid redirect chains. A product rename alone is not a reason to move its documentation.
+
+Prefer Markdown. Use supported MDX components when they help explain a task, but keep required setup, results and limitations readable without an interactive tab or diagram. Give diagrams a prose explanation and images useful alternative text. Use precise titles, descriptions and canonical links so readers and assistants can find the same source through the site, Markdown mirrors and selective LLM exports.
+
 ## Add or change a page
 
-**Product page.** Edit the Markdown in the product repository's `Documentation/` folder and add new pages to that folder's `toc.yml`. Re-sync and check the page locally. Commit in the product repository. Product changes on `main` are batched by the hourly probe and appear within about an hour plus runner queue and build time. The change is live once that build has deployed, not when the merge lands. For an immediate refresh, run the central Documentation site workflow manually on `main`.
+**Product page.** Edit the Markdown in the product repository's `Documentation/` folder and add new pages to that folder's `toc.yml`. Re-sync and check the page locally. Commit in the product repository. Product `build-docs` notifications trigger the probe for changes on `main`, with the hourly schedule as a backstop. Publication also depends on runner queue, build and deployment time. The change is live once that build has deployed, not when the merge lands. For an immediate refresh, run the central Documentation site workflow manually on `main`.
 
 **Site-level page.** Edit or add the file under `src/content/docs/` and give it a `title` in frontmatter. Adding it to the site-level navigation in `astro.config.mjs`, or reorganizing navigation, is a separate decision. Make it only when that is what you set out to do.
 
