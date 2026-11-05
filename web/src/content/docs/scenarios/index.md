@@ -8,7 +8,7 @@ Cratis scenarios help you build a specific application behavior or solve a confi
 The Library tutorials connect [Chronicle](/chronicle/) events to [Arc](/arc/) commands and queries and a React interface built with [Components](/components/). The chat guides focus on Arc's observable queries, which push changed results to the frontend. You do not need every Cratis product for every scenario.
 
 :::caution[Arc for TypeScript distribution and parity]
-The backend tabs include Arc for TypeScript. No package is published to npm, it does not have full parity with Arc on .NET, and its package names and APIs can still change.
+The backend tabs include Arc for TypeScript. It is published on npm at 1.0.0 and does not have full parity with Arc on .NET. Its Chronicle integration (`@cratis/arc.chronicle`) remains bounded and experimental.
 :::
 
 ## What you will find here

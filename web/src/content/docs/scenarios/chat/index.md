@@ -8,7 +8,7 @@ Build a multi-room chat with Arc's [observable queries](/arc/backend/csharp/quer
 Each guide keeps a `ChatMessage` read model, a `ForRoom` query, a `SendMessage` command, and a React component. The first two show backends in C#, Kotlin, Java, and TypeScript; their React code works with each backend. RabbitMQ integration code and the incremental-push backend are shown in C# only.
 
 :::caution[Arc for TypeScript distribution and parity]
-No Arc for TypeScript package is published to npm, it does not have full parity with Arc on .NET, and its package names and APIs can still change.
+Arc for TypeScript is published on npm at 1.0.0 and does not have full parity with Arc on .NET. Its Chronicle integration (`@cratis/arc.chronicle`) remains bounded and experimental.
 :::
 
 ## The four guides

@@ -5,7 +5,7 @@ description: Build Library workflows with Cratis Arc, Chronicle and Components, 
 
 A vertical slice keeps one business behavior together, from the action that starts it to the result a user needs. In this series, you build a Library with [Cratis Arc](/arc/), [Cratis Chronicle](/chronicle/) and [Cratis Components](/components/): register an author, show a live author list, expire uncollected reservations and import members from HR. Each tutorial follows one of the four slice patterns from [Event Modeling](https://novanet.no/stop-guessing-start-modeling/).
 
-Follow the backend examples for C#, Kotlin, Java or TypeScript, then connect the shared React UI where the workflow needs one. The TypeScript backend is available from source, not npm. The [backend comparison](#how-the-backends-differ) explains the setup and behavior that differ between languages.
+Follow the backend examples for C#, Kotlin, Java or TypeScript, then connect the shared React UI where the workflow needs one. The TypeScript backend is published on npm at 1.0.0. The [backend comparison](#how-the-backends-differ) explains the setup and behavior that differ between languages.
 
 ## Why Event Modeling?
 
