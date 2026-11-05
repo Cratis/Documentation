@@ -51,7 +51,7 @@ describe('root full-text exclusions', () => {
             'eventmodelers-ai/csharp/decisions/kit-directory-name',
             'arc/go/releases', 'chronicle/go/releases', 'fundamentals/go/releases', 'whats-new',
             'chronicle/building-a-client', 'chronicle/building-a-client/checklist',
-            'chronicle/workbench/development', 'ai/cratis-maintainers', 'ai/scenarios/cratis-maintainer']) {
+            'ai/cratis-maintainers', 'ai/scenarios/cratis-maintainer']) {
             assert.equal(isRootFullTextExcluded(slug), true, slug);
         }
     });
@@ -62,7 +62,8 @@ describe('root full-text exclusions', () => {
             'arc/backend/kotlin/reference/parity', 'chronicle/go/integrations/authentication-evidence',
             'screenplay/screens-capability-matrix', 'screenplay/semantic-conformance',
             'screenplay/contributions', 'cli/reference/release-notes', 'components/migration/3-to-4',
-            'arc/backend/csharp/development/generating-principal', 'chronicle/contributing-guide']) {
+            'arc/backend/csharp/development/generating-principal', 'chronicle/contributing-guide',
+            'chronicle/workbench/development']) {
             assert.equal(isRootFullTextExcluded(slug), false, slug);
         }
     });

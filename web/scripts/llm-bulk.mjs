@@ -35,7 +35,7 @@ const rootOnlyLedgers = new Set([
     'screenplay/screens-release-acceptance',
     'stage/reference/corpus-conformance',
 ]);
-const rootOnlyContributorPages = /^(?:chronicle\/building-a-client(?:\/|$)|chronicle\/workbench\/development$|ai\/cratis-maintainers$|ai\/scenarios\/cratis-maintainer$)/;
+const rootOnlyContributorPages = /^(?:chronicle\/building-a-client(?:\/|$)|ai\/cratis-maintainers$|ai\/scenarios\/cratis-maintainer$)/;
 
 export const isRootFullTextExcluded = (slug) => isLogPage(slug) ||
     /(^|\/)(?:contributing|decisions)(\/|$)/.test(slug) || /^(arc|chronicle)\/go\/parity$/.test(slug) || /^api(?:\/|$)/.test(slug) ||
