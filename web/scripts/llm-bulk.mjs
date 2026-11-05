@@ -28,6 +28,11 @@ const logPage = /^release-digests(\/|$)|(^|\/)changelogs?$/i;
 /** Slugs (lowercase, no extension) of pages that are logs rather than documentation. */
 export const isLogPage = (slug) => logPage.test(slug);
 
+// Keep contributor workflows and detailed Go parity/evidence ledgers in their product
+// downloads and page mirrors, rather than repeating them in the site-wide full text.
+export const isRootFullTextExcluded = (slug) => isLogPage(slug) ||
+    /(^|\/)contributing(\/|$)/.test(slug) || /^(arc|chronicle)\/go\/parity$/.test(slug) || /^api(?:\/|$)/.test(slug);
+
 /** Segments of an export that start with `# Title`, dropped when the title only names excluded pages. */
 export function withoutExcludedPages(content, pages) {
     const keptTitles = new Set(pages.filter(page => !page.excluded).map(page => page.title));

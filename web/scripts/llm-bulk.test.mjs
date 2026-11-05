@@ -3,7 +3,7 @@
 
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { PAGE_MARKER, PAGE_SEPARATOR, SIZE_WARNINGS, budgetResult, compactFullText, isCuratedPage, isLogPage, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
+import { PAGE_MARKER, PAGE_SEPARATOR, SIZE_WARNINGS, budgetResult, compactFullText, isCuratedPage, isLogPage, isRootFullTextExcluded, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
 
 describe('LLM export budgets', () => {
     it('allows missing exports and exports at or below each byte budget even when enforced', () => {
@@ -38,6 +38,24 @@ describe('log page detection', () => {
         for (const slug of ['fundamentals/go/releases', 'arc/backend/typescript/contributing/releases', 'contributing/consuming-pre-releases',
             'screenplay/screens-release-acceptance', 'chronicle/release-process', 'chronicle/changelog-format'])
             assert.ok(!isLogPage(slug), slug);
+    });
+});
+
+describe('root full-text exclusions', () => {
+    it('omits logs, generated API pages, contributor workflows and Go parity ledgers', () => {
+        for (const slug of ['release-digests/2026-10-20', 'chronicle/changelog', 'api', 'api/dotnet/type',
+            'contributing', 'contributing/building', 'chronicle/contributing/clients/api',
+            'arc/backend/elixir/contributing/build-and-release', 'arc/go/parity', 'chronicle/go/parity']) {
+            assert.equal(isRootFullTextExcluded(slug), true, slug);
+        }
+    });
+
+    it('keeps feature guides, capability limits and release-policy documentation', () => {
+        for (const slug of ['api-reference', 'chronicle/go', 'chronicle/go/releases',
+            'chronicle/go/read-models/decision-reads', 'arc/backend/elixir/limits-and-gaps',
+            'screenplay/screens-release-acceptance', 'chronicle/contributing-guide']) {
+            assert.equal(isRootFullTextExcluded(slug), false, slug);
+        }
     });
 });
 

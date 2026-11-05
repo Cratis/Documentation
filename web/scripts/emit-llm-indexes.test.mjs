@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import path from 'node:path';
 import { afterEach, beforeEach, it } from 'node:test';
 import { emitLlmIndexes } from './emit-llm-indexes.mjs';
+import { PAGE_SEPARATOR } from './llm-bulk.mjs';
 
 const scratch = path.resolve(import.meta.dirname, '../../.ai-work/llm-index-tests');
 const products = [{ key: 'chronicle', label: 'Chronicle' }];
@@ -164,6 +165,33 @@ it('curates the small download but retains detailed pages in described product f
     assert.doesNotMatch(root, /dapr|wolverine/i);
 });
 
+
+it('keeps contributor workflows and parity ledgers discoverable outside root full text', async () => {
+    const pages = [
+        ['chronicle/contributing/building', 'Building Chronicle'],
+        ['chronicle/go/parity', 'Chronicle.Go parity'],
+        ['api/dotnet/type', 'Generated type'],
+        ['release-digests/2026-10-20', 'Weekly digest'],
+    ];
+    for (const [slug, title] of pages) {
+        const content = `---\ntitle: ${title}\n---\nDetailed evidence.\n`;
+        source(`${slug}.md`, content);
+        file(`${slug}.md`, content);
+        file(`${slug}/index.html`, `<h1>${title}</h1>`);
+    }
+    file('llms-full.txt', ['# Events\n\nFeature guide.', ...pages.map(([, title]) => `# ${title}\n\nDetailed evidence.`)].join(PAGE_SEPARATOR));
+    await emitLlmIndexes(dist, products, sets, docsRoot);
+    const root = readFileSync(path.join(dist, 'llms-full.txt'), 'utf8');
+    assert.match(root, /Feature guide/);
+    for (const [, title] of pages) assert.ok(!root.includes(title), title);
+    for (const name of ['chronicle/llms.txt', 'chronicle/llms-full.txt']) {
+        const content = readFileSync(path.join(dist, name), 'utf8');
+        assert.match(content, /Building Chronicle/);
+        assert.match(content, /Chronicle.Go parity/);
+        assert.doesNotMatch(content, /Generated type|Weekly digest/);
+    }
+    assert.ok(existsSync(path.join(dist, 'chronicle/go/parity.md')));
+});
 
 it('excludes logs and generated API references from curated and product downloads', async () => {
     for (const slug of ['chronicle/changelog', 'release-digests/2026-10-20', 'api/dotnet/type']) {
