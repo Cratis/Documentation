@@ -28,10 +28,19 @@ const logPage = /^release-digests(\/|$)|(^|\/)changelogs?$/i;
 /** Slugs (lowercase, no extension) of pages that are logs rather than documentation. */
 export const isLogPage = (slug) => logPage.test(slug);
 
-// Keep contributor workflows and detailed Go parity/evidence ledgers in their product
-// downloads and page mirrors, rather than repeating them in the site-wide full text.
+// Keep contributor workflows, decision records, release history and verification
+// ledgers in product downloads and page mirrors, not the site-wide full text.
+const rootOnlyLedgers = new Set([
+    'fundamentals/go/parity',
+    'screenplay/screens-release-acceptance',
+    'stage/reference/corpus-conformance',
+]);
+const rootOnlyContributorPages = /^(?:chronicle\/building-a-client(?:\/|$)|chronicle\/workbench\/development$|ai\/cratis-maintainers$|ai\/scenarios\/cratis-maintainer$)/;
+
 export const isRootFullTextExcluded = (slug) => isLogPage(slug) ||
-    /(^|\/)contributing(\/|$)/.test(slug) || /^(arc|chronicle)\/go\/parity$/.test(slug) || /^api(?:\/|$)/.test(slug);
+    /(^|\/)(?:contributing|decisions)(\/|$)/.test(slug) || /^(arc|chronicle)\/go\/parity$/.test(slug) || /^api(?:\/|$)/.test(slug) ||
+    /^(?:arc|chronicle|fundamentals)\/go\/releases$/.test(slug) || slug === 'whats-new' ||
+    rootOnlyLedgers.has(slug) || rootOnlyContributorPages.test(slug);
 
 /** Segments of an export that start with `# Title`, dropped when the title only names excluded pages. */
 export function withoutExcludedPages(content, pages) {

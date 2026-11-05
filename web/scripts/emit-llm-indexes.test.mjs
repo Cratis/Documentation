@@ -166,10 +166,13 @@ it('curates the small download but retains detailed pages in described product f
 });
 
 
-it('keeps contributor workflows and parity ledgers discoverable outside root full text', async () => {
+it('keeps root-only exclusions discoverable in product downloads and the root index', async () => {
     const pages = [
         ['chronicle/contributing/building', 'Building Chronicle'],
         ['chronicle/go/parity', 'Chronicle.Go parity'],
+        ['chronicle/go/releases', 'Go releases'],
+        ['chronicle/decisions/0001-contract', 'Contract decision'],
+        ['chronicle/building-a-client/checklist', 'Client implementation checklist'],
         ['api/dotnet/type', 'Generated type'],
         ['release-digests/2026-10-20', 'Weekly digest'],
     ];
@@ -184,10 +187,14 @@ it('keeps contributor workflows and parity ledgers discoverable outside root ful
     const root = readFileSync(path.join(dist, 'llms-full.txt'), 'utf8');
     assert.match(root, /Feature guide/);
     for (const [, title] of pages) assert.ok(!root.includes(title), title);
+    assert.match(readFileSync(path.join(dist, 'llms.txt'), 'utf8'), /https:\/\/www\.cratis\.io\/chronicle\/llms-full\.txt/);
     for (const name of ['chronicle/llms.txt', 'chronicle/llms-full.txt']) {
         const content = readFileSync(path.join(dist, name), 'utf8');
         assert.match(content, /Building Chronicle/);
-        assert.match(content, /Chronicle.Go parity/);
+        assert.match(content, name.endsWith('llms-full.txt') ? /Chronicle.Go parity/ : /chronicle\/go\/llms\.txt/);
+        assert.match(content, name.endsWith('llms-full.txt') ? /Go releases/ : /Go pages \(2\)/);
+        assert.match(content, /Contract decision/);
+        assert.match(content, /Client implementation checklist/);
         assert.doesNotMatch(content, /Generated type|Weekly digest/);
     }
     assert.ok(existsSync(path.join(dist, 'chronicle/go/parity.md')));
