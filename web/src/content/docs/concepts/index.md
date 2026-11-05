@@ -23,6 +23,7 @@ Use these explanations to decide what one feature needs before choosing its impl
 | [Projections and read models](/concepts/projections-and-read-models/) | How do events become queryable views? |
 | [Event-driven architecture vs. event sourcing](/concepts/event-driven-architecture/) | How do messaging between services and event storage relate? |
 | [Event sourcing and GDPR](/concepts/event-sourcing-gdpr/) | How do you erase personal data from an immutable event log? |
+| [Organization, workspace and namespace](/concepts/organization-workspace-namespace/) | Which word names the customer, the place people work, and where that work is stored, and who owns each? |
 
 ## Choose a starting point
 

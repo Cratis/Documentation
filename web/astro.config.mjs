@@ -125,6 +125,7 @@ const overviewTopic = {
                 { label: 'Projections and read models', slug: 'concepts/projections-and-read-models' },
                 { label: 'Event-driven architecture vs. event sourcing', slug: 'concepts/event-driven-architecture' },
                 { label: 'Event sourcing and GDPR', slug: 'concepts/event-sourcing-gdpr' },
+                { label: 'Organization, workspace and namespace', slug: 'concepts/organization-workspace-namespace' },
             ],
         },
         {
