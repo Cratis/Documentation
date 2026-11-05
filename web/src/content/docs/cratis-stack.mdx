@@ -30,7 +30,7 @@ Compare responsibilities in the [capability map](#capability-map), or [choose an
 
 Start with the question your feature must answer. If it needs to explain how it reached its current state, [Chronicle](/chronicle/) keeps the event history and derives read models from it. [Arc](/arc/) supplies the application boundary, separating changes from reads through CQRS. You can [use either independently](/why-cratis/), including Arc over current-state storage without Chronicle.
 
-For a C# backend, Arc's proxy generator produces the [typed TypeScript client](/arc/understanding-the-proxy-boundary/) your frontend calls. [Components](/components/) consumes that contract in React forms, dialogs, and tables. Configure generation in the backend before connecting the screen; you still implement the feature's behavior and check its runtime integration.
+Arc generates the [typed TypeScript client](/arc/understanding-the-proxy-boundary/) your frontend calls from commands and queries declared in a supported backend. Choose among [TypeScript, Kotlin/Java, Elixir, and C#](/arc/backend/) and configure that backend's generation step. [Components](/components/) consumes that contract in React forms, dialogs, and tables. Configure generation in the backend before connecting the screen; you still implement the feature's behavior and check its runtime integration.
 
 Before writing code, an [event model](/event-modeling/) lets you name the commands, events, and views together. [Cratis Screenplay](/screenplay/) keeps that model in a `.play` file, and [Studio](/studio/) provides a collaborative workspace for editing it. The same model can feed [source generation](/cli/reference/screenplay/) for review and further implementation. Check the renderer's supported constructs and languages before choosing that route. For an existing system, [Prologue](/prologue/) offers a separate capture-and-model path.
 
@@ -42,7 +42,7 @@ Studio, Screenplay, Stage, Scene, and Prologue support design before implementat
 
 In .NET, the [`Cratis` package](/arc/backend/csharp/chronicle/cratis-package/)'s `AddCratis`/`UseCratis` calls configure and activate Arc and the Chronicle client in the application host. The Chronicle kernel runs separately; the client connects to it over gRPC. Kotlin, Java, and TypeScript backends wire Arc and Chronicle through their own hosts: `io.cratis:cratis` is the single dependency for a Spring Boot application, and [`@cratis/cratis`](/arc/backend/typescript/chronicle/cratis-package/) registers both with one builder call in Node.js (published on npm at 1.0.0). [Arc backends](/arc/backend/) compares the hosts.
 
-To connect Arc and Chronicle, follow the guide for your backend: [Integrate with Chronicle](/arc/backend/csharp/chronicle/) for C#, the [Chronicle guide for Kotlin and Java](/arc/backend/kotlin/guides/chronicle/), or the [Chronicle integration for TypeScript](/arc/backend/typescript/chronicle/). Each explains how a handler's return becomes an event, how the event source id selects its stream, and how a query serves the projected read model.
+To connect Arc and Chronicle, follow the guide for your backend: [TypeScript](/arc/backend/typescript/chronicle/), [Kotlin and Java](/arc/backend/kotlin/guides/chronicle/), [Elixir](/cqrs/elixir/), or [C#](/arc/backend/csharp/chronicle/). Each explains how a handler's return becomes an event, how the event source id selects its stream, and how a query serves the projected read model.
 
 Follow only the handoffs your application needs. The map below connects modeling to application behavior, identity, event storage, React UI, and operations; each component's guide owns its setup.
 
@@ -56,7 +56,9 @@ Follow only the handoffs your application needs. The map below connects modeling
 
 [Run the Screenplay in Stage](/stage/docker/), send a command, and see the resulting state before implementing the feature. Stage runs the supported subset as a disposable sandbox, not a production host; bind published ports to `127.0.0.1`. To produce application code instead, [render source you own](/cli/reference/screenplay/) for review, customization, and building. Sandbox execution and rendering have separate capability limits; neither supports every model construct or language.
 
-## Run the whole stack from one AppHost
+<span id="run-the-whole-stack-from-one-apphost" />
+
+## .NET hosting example: one Aspire AppHost
 
 For the Chronicle-backed .NET path shown here, the application connects to a separately running Chronicle kernel. The .NET Aspire resource lets your AppHost manage that kernel alongside the API; it does not move the kernel into the API process. Add the `Cratis.Chronicle.Aspire` package to the AppHost project, then register the resource and pass its reference to the API:
 
@@ -130,7 +132,7 @@ Kotlin, Java, and TypeScript backends also run the command through the real Arc 
 
 Cratis gives an AI assistant documented conventions for development and tools for inspecting a running Chronicle store. The guidance covers feature shape, naming, generated contracts, Chronicle diagnostics, and the CLI command catalog. You remain responsible for reviewing changes and checking behavior.
 
-For development guidance, install Cratis AI skills into a repository with `cratis ai install`, or add them to one coding tool through its plugin. The rules cover vertical slices, `Handle()` on the command record, and model-bound projections. Projects from the `dotnet new` templates ship a `.cratis/ai.json`, so run `cratis ai update` once; `cratis new` does that for you.
+For development guidance, install Cratis AI skills into a repository with `cratis ai install`, or add them to one coding tool through its plugin. The rules cover vertical slices and the conventions of your selected language and profile, such as `Handle()` on a C# command record and model-bound projections. Projects from the `dotnet new` templates ship a `.cratis/ai.json`, so run `cratis ai update` once; `cratis new` does that for you.
 
 For runtime inspection, `cratis init` writes the CLI's command catalog and assistant instruction files into your project. An agent can then find the commands for browsing events, watching observers, and diagnosing a stuck partition. The Chronicle Model Context Protocol (MCP) server offers a separate connection to a running store for inspecting events, observers, and read models and managing jobs.
 
@@ -189,7 +191,7 @@ The .NET client ships with Chronicle itself. See [Chronicle in your language](/c
     Point it at an existing system — no Cratis constructs required — and it captures selected HTTP, database, and telemetry signals, then proposes an event model and a Screenplay for you to review.
   </SimpleCard>
   <SimpleCard title="Chronicle — events" icon="seti:db" link="/chronicle/">
-    The event-sourcing database and runtime: gRPC/protobuf boundary, .NET-first client, TypeScript, Kotlin/Java, and Elixir clients (and a Go client without observers and projections), MongoDB/PostgreSQL/SQL Server/SQLite storage, Orleans inside.
+    The event-sourcing database and runtime: gRPC/protobuf boundary, TypeScript, Kotlin/Java, Elixir, and .NET clients (and a Go client without observers and projections), MongoDB/PostgreSQL/SQL Server/SQLite storage, Orleans inside.
   </SimpleCard>
   <SimpleCard title="AuthProxy — edge" icon="seti:lock" link="/authproxy/">
     Authentication, tenant resolution, identity enrichment, routing, and invite-based onboarding in front of your services.
@@ -198,7 +200,7 @@ The .NET client ships with Chronicle itself. See [Chronicle in your language](/c
     How authenticated tenant-aware requests become authorized operations, protected events, and released read models.
   </SimpleCard>
   <SimpleCard title="Arc — CQRS + proxies" icon="puzzle" link="/arc/">
-    Full-stack CQRS with typed TypeScript proxies generated from a C#, Kotlin, Java, or TypeScript backend. It pairs naturally with Chronicle, and can also run over MongoDB or a relational database: EF Core in C#, Spring Data JPA on the JVM, or Drizzle in TypeScript.
+    Full-stack CQRS with typed TypeScript proxies generated from a TypeScript, Kotlin, Java, Elixir, or C# backend. It pairs naturally with Chronicle, and can also run over MongoDB or a relational database: EF Core in C#, Spring Data JPA on the JVM, or Drizzle in TypeScript.
   </SimpleCard>
   <SimpleCard title="Cratis Choreography — durable processes" icon="list-format" link="/choreography/">
     Jobs, workflows and state machines on Orleans that survive restarts, with pluggable storage and startup patching.

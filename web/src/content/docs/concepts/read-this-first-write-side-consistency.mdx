@@ -24,7 +24,7 @@ Custom tags on a Chronicle event are stored and filterable, but they do not take
 | You know | In Cratis |
 | --- | --- |
 | An expected version or revision on append to one stream | An explicit [concurrency scope](/chronicle/events/concurrency/) with the sequence number you saw. In Arc, `EventsWithConcurrencyScopes` carries the revision from the client |
-| An aggregate that loads its events, decides and appends | An Arc [aggregate root](/arc/backend/csharp/chronicle/aggregates/). It guards the event types it handles on its event source |
+| An aggregate that loads its events, decides and appends | A .NET Arc [aggregate root](/arc/backend/csharp/chronicle/aggregates/). It guards the event types it handles on its event source |
 | A decision model built from the events a decision needs | A decision read: an admitted projection or reducer read with a position captured before it folds. Arc read protection `On` arranges this for admitted read-model parameters |
 | Guarding a decision across entities selected by tag | Read each entity by key and guard one atomic append. Custom-tag queries do not create append conditions |
 | A unique key or index | A [constraint](/chronicle/constraints/), enforced for every writer without a read |

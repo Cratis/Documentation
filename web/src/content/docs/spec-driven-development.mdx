@@ -26,16 +26,16 @@ Each step produces something the next step reads. You can enter the chain at any
 | 2. Screenplay specifications | `specification` blocks inside a slice in a `.play` file, compiled and run by the Screenplay tool for supported scenarios | [Screenplay](/screenplay/) |
 | 3. Stage | Compiles `.play` folders, checks supported declared specifications, and renders reviewable Arc and Chronicle code for supported slice shapes | [Stage](/screenplay/faq/#what-are-stage-and-studio) |
 | 4. Arc and Chronicle code | The command, event and projection of the slice | [Build a full app](/build-a-full-app/), [capability map](/cratis-stack/) |
-| 5. Specifications and replay | Executable behavior-driven development (BDD) specs on the code, plus Chronicle replay of read models | [Specifications](/specifications/), [Testing with Cratis](/testing-with-cratis/) |
+| 5. Code-side specs and replay | Executable behavior-driven development (BDD) specs in your backend's test framework, plus Chronicle replay of read models | [Testing with Cratis](/testing-with-cratis/); [Specifications](/specifications/) for the .NET lifecycle |
 | Alternative start | Prologue captures signals from an existing system and proposes a model for you to review | [Prologue](/prologue/) |
 
-The specifications appear twice on purpose. The Screenplay specification checks the model: given these events, when this command, the model says these events follow. The Specifications test checks the code: the implementation really appends them. Keeping both lets you check the modeled behavior separately from its implementation. A passing model scenario does not establish that the business rule itself is correct.
+The specifications appear twice on purpose. The Screenplay specification checks the model: given these events, when this command, the model says these events follow. The code-side test checks the code: the implementation really appends them. Keeping both lets you check the modeled behavior separately from its implementation. A passing model scenario does not establish that the business rule itself is correct.
 
 ## One slice, written as spec and as test
 
 Take the column from the [testing guide](/testing-with-cratis/): a screen registers an author, the `RegisterAuthor` command appends `AuthorRegistered`, and the `Author` read model feeds the authors screen.
 
-In Screenplay, the specification lives inside the slice next to the command and the event. This follows the shape of the examples in the [Screenplay specifications](https://github.com/Cratis/Screenplay/blob/main/Documentation/screenplay/specifications.md) page, reduced to an author identifier and a `name` property. The identifier tells Screenplay which event source the event belongs to, the same role `AuthorId` plays in the C# command below:
+In Screenplay, the specification lives inside the slice next to the command and the event. This follows the shape of the examples in the [Screenplay specifications](https://github.com/Cratis/Screenplay/blob/main/Documentation/screenplay/specifications.md) page, reduced to an author identifier and a `name` property. The identifier tells Screenplay which event source the event belongs to, the same role the author id plays in the commands below:
 
 ```screenplay
 module Authors
@@ -63,43 +63,20 @@ Run it with the Screenplay tool, which evaluates the model in memory without ren
 screenplay test path/to/screenplays
 ```
 
-The same behavior on the code side is a Specifications test. The command handler returns the event, and Arc appends it:
+The same behavior on the code side is a command spec. With the Arc backend's Chronicle integration configured, the handler returns the event and Arc appends it for the author id. These excerpts show the command and event, not the application's host setup:
 
-```csharp
-[Command]
-public record RegisterAuthor(EventSourceId AuthorId, string Name)
-{
-    public AuthorRegistered Handle() => new(Name);
-}
+<ArcBackendTabs snippet="testing-with-cratis/register-author" />
 
-[EventType]
-public record AuthorRegistered(string Name);
-```
+The spec executes that command through Arc's command pipeline and checks the recorded fact. Choose the same backend as above:
 
-```csharp
-public class when_registering_a_new_author : Specification
-{
-    readonly EventSourceId _authorId = EventSourceId.New();
-    readonly CommandScenario<RegisterAuthor> _scenario = new();
-    CommandResult _result = default!;
+<ArcBackendTabs snippet="testing-with-cratis/register-author-spec" />
 
-    async Task Because() => _result = await _scenario.Execute(new RegisterAuthor(_authorId, "Jane Austen"));
+No HTTP or Chronicle server starts in these tests: each backend's test support captures appended events in memory. The model-level and code-side specifications describe the same intended behavior at different levels; passing either one does not prove they agree.
 
-    [Fact] void should_accept_the_command() => _result.ShouldBeSuccessful();
-
-    [Fact] Task should_record_the_fact() =>
-        _scenario.ShouldHaveAppendedEvent<RegisterAuthor, AuthorRegistered>(
-            _authorId,
-            e => e.Name == "Jane Austen");
-
-    void Destroy() => _scenario.Dispose();
-}
-```
-
-The two specifications describe one behavior at two levels. `Establish()` is the given (nothing here, because registration needs no prior facts), `Because()` is the when, and each `[Fact]` is a then. The Arc scenario runs the command through the real command pipeline and captures the appended events in memory, so there is no HTTP server and no Chronicle server in the test. [Testing with Cratis](/testing-with-cratis/) adds the read-model spec and the other backends, and [Specifications](/specifications/) explains the lifecycle methods and folder naming.
+In C#, `Because()` is the when and each `[Fact]` is a then; there is no `Establish()` because this registration needs no prior facts. TypeScript uses Vitest setup and assertions, while Kotlin and Java use JUnit. The JVM appended-event helper expects exactly one matching event; C# and TypeScript accept one or more. TypeScript's scenario does not enforce constraints. [Testing with Cratis](/testing-with-cratis/#spec-the-command) explains these limits and adds the read-model spec; [Specifications](/specifications/) covers the .NET lifecycle methods and folder naming.
 
 <Aside type="note" title="The two snippets are not generated from each other">
-Today you write the Screenplay specification and the Specifications test separately, or have Stage render code for the narrow slice shapes it supports. Nothing in the chain proves the two say the same thing. Treat the Screenplay specification as the agreed intent and review the test against it.
+Today you write the Screenplay specification and the code-side test separately, or have Stage render code for the narrow slice shapes it supports. Nothing in the chain proves the two say the same thing. Treat the Screenplay specification as the agreed intent and review the test against it.
 </Aside>
 
 ## How agents use the specs as the contract
@@ -120,7 +97,7 @@ Check the [capability map](/cratis-stack/) before choosing tools. Stage's specif
 
 Stage renders a subset of slice shapes, and generated output needs review. Ordinary Given/When/Then examples also do not prove concurrency handling. [Decisions that hold](/decisions-that-hold-walkthrough/) explains the read protection that guards an append when decision state changes.
 
-If your next task is to test application code, start at step 5. [Specifications](/specifications/) and the Arc and Chronicle scenarios work without the model-first tools.
+If your next task is to test application code, start at step 5. The [Arc and Chronicle testing scenarios](/testing-with-cratis/) work without the model-first tools.
 
 ## Frequently asked questions
 
@@ -130,11 +107,11 @@ Spec-driven development is a way of building software where the specification is
 
 ### Is this the same as test-driven development?
 
-They overlap. Test-driven development writes a failing test before the code, usually in the language of the implementation. Here the spec is written one level earlier, in the event model and in Screenplay, in terms a domain expert can read. The executable [Specifications](/specifications/) are then the test-first part on the code side.
+They overlap. Test-driven development writes a failing test before the code, usually in the language of the implementation. Here the spec is written one level earlier, in the event model and in Screenplay, in terms a domain expert can read. The executable [code-side specs](/testing-with-cratis/) are then the test-first part.
 
 ### Do I need Screenplay and Stage to do it?
 
-No. The code side works alone: the [Specifications](/specifications/) library, Arc command scenarios and Chronicle in-process scenarios need none of the model-first tools. Screenplay and Stage add a model-level spec and, for supported shapes, generated code.
+No. The code side works alone: [Arc command scenarios and supported Chronicle in-process scenarios](/testing-with-cratis/) need none of the model-first tools. Screenplay and Stage add a model-level spec and, for supported shapes, generated code.
 
 ### Which languages can run the specifications?
 

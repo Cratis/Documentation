@@ -53,6 +53,8 @@ Read protection guards the reads the command makes. It does not guard a writer t
 
 ## An example
 
+The configuration, validator, and mode APIs in this example use Arc's .NET backend. For another host, check your [Arc backend](/arc/backend/) and [Chronicle client](/chronicle-clients/) for their supported guards; the kernel's append conditions do not imply identical client APIs.
+
 For a rule that should return validation feedback, put the check in a `CommandValidator<T>` and inject the read model into its constructor. Under `On`, the read is guarded as part of that command. Keep `Handle()` focused on the resulting events.
 
 A library lets a member borrow a book only while a copy is available. The read model `BookStock` counts available copies per book from `CopyAdded`, `BookBorrowed` and `BookReturned`. The command `BorrowBook` returns `BookBorrowed` from `Handle()`, and its `CommandValidator<BorrowBook>` takes `BookStock` as a constructor parameter and refuses when no copy is left. Under `On`, that read guards the command's append: if another member borrows the last copy first, this command writes nothing and the caller is asked to submit again.
@@ -76,7 +78,7 @@ Choose by the shape of the rule. A fresh read is useful for stock; it is unneces
 | Mechanism | Use this when | Guards |
 | --- | --- | --- |
 | Protected read | A rule over state on one or more keys: stock, a count, a capacity | The event types the read model folds, on the key it reads |
-| Per-stream read model | The rule depends on one stream of an entity, such as one account's withdrawals in one month. The model is declared with `[EventStream<TSource>(stream)]` | The declared stream when read with a specific stream ID. Other enrolled reads or scopes can widen the guard |
+| Per-stream read model | The rule depends on one stream of an entity, such as one account's withdrawals in one month. In .NET the model is declared with `[EventStream<TSource>(stream)]` | The declared stream when read with a specific stream ID. Other enrolled reads or scopes can widen the guard |
 | Stream decision | You decide on the raw events of one routed stream, with no model, such as "was this report already approved" | Any event in that stream |
 | Aggregate | Rich behaviour with many rules over one entity's lifecycle | The event types the aggregate handles, on its event source |
 | Constraint | A value must be unique, or something may happen once | Every writer, checked inside the append. It cannot count |
@@ -99,9 +101,9 @@ Follow the [write-side consistency learning path](/learning-paths/#write-side-co
 | You are using | Go to |
 | --- | --- |
 | The whole stack, in order | [Decisions that hold, from model to frontend](/decisions-that-hold-walkthrough/) |
-| Arc commands | [Consistency in Arc](/arc/backend/csharp/chronicle/consistency/) |
+| Arc commands in .NET | [Consistency in Arc](/arc/backend/csharp/chronicle/consistency/) |
 | The Chronicle client directly | [Choosing how a rule holds in Chronicle](/chronicle/dynamic-consistency-boundary/choosing/) |
 | Screenplay models | [What `reads` guarantees](/screenplay/commands/#what-reads-guarantees) |
-| Event source definitions and streams | [Event sources](/chronicle/event-sources/) and, for Arc commands, [event source definitions](/arc/backend/csharp/chronicle/commands/event-source-definitions/) |
+| Event source definitions and streams | [Event sources](/chronicle/event-sources/) and, for .NET Arc commands, [event source definitions](/arc/backend/csharp/chronicle/commands/event-source-definitions/) |
 
 For the ideas underneath, see [what is event sourcing?](/concepts/event-sourcing/) and [event modeling](/event-modeling/).

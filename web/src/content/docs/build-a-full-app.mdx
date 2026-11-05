@@ -13,7 +13,7 @@ You build that flow with [Cratis Arc](/arc/) handling the command, [Cratis Chron
 
 Choose C#, Kotlin, Java, or TypeScript for the backend. The TypeScript backend is published on npm at 1.0.0 but has no scaffold yet, so you start it from a sample. The table below explains the backend differences; do not assume the implementations have identical capabilities.
 
-[First projection](/learning-paths/#first-projection) follows cart events into a read model in a C# console program. That journey stops before HTTP and React. Here, you build the later API/UI slice in a different domain: library authors. For the C# path, trace the command and event in step 3, the read model and query in step 4, and the dialog and screen in step 5.
+[First projection](/learning-paths/#first-projection) follows book events into a read model with TypeScript, Elixir, and C# examples. That journey stops before HTTP and React. Here, you build the later API/UI slice in a different domain: library authors. For the C# path, trace the command and event in step 3, the read model and query in step 4, and the dialog and screen in step 5.
 
 <YouWillLearn>
 
@@ -51,7 +51,7 @@ For brevity, the C# slice keeps its four types (`AuthorId`, `RegisterAuthor`, `A
 
 ### Kotlin or Java
 
-Run `dotnet new cratis --language Kotlin -o Library` or `dotnet new cratis --language Java -o Library`. With JDK 17 active, run `docker compose up -d`, `./gradlew build`, then `./gradlew bootRun` from `Library/`. Start the Vite frontend separately, following the generated [Kotlin](https://github.com/Cratis/Templates/blob/main/Templates/Cratis.Kotlin/README.md) or [Java](https://github.com/Cratis/Templates/blob/main/Templates/Cratis.Java/README.md) README. The Gradle build generates the proxies under `build/generated/arc-proxies/`.
+Use the [Cratis CLI](/cli/new/) to run `cratis new cratis --language kotlin -o Library` or `cratis new cratis --language java -o Library`. Its native macOS and Linux binaries do not require the .NET SDK; the Windows global-tool installation does. If you already have the .NET SDK and templates installed, `dotnet new cratis --language Kotlin -o Library` or `dotnet new cratis --language Java -o Library` is another route. With JDK 17 active, run `docker compose up -d`, `./gradlew build`, then `./gradlew bootRun` from `Library/`. Start the Vite frontend separately, following the generated [Kotlin](https://github.com/Cratis/Templates/blob/main/Templates/Cratis.Kotlin/README.md) or [Java](https://github.com/Cratis/Templates/blob/main/Templates/Cratis.Java/README.md) README. The Gradle build generates the proxies under `build/generated/arc-proxies/`.
 
 ### TypeScript from npm
 

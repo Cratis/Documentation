@@ -49,7 +49,7 @@ Publishing packages or images does not establish equal feature coverage across l
 | Chronicle storage | Microsoft SQL Server | Documented storage choice. |
 | Chronicle storage | SQLite | Documented storage choice. |
 | Chronicle storage | In-memory | Not durable; for tests, samples, and ephemeral environments only. |
-| Chronicle client | .NET | First-class client; `Cratis.Chronicle` on NuGet. |
+| Chronicle client | .NET | `Cratis.Chronicle` on NuGet; the kernel's .NET runtime does not require applications to use this client. |
 | Chronicle client | TypeScript and Node.js | `@cratis/chronicle` on npm. |
 | Chronicle client | Kotlin and Java | `io.cratis:chronicle` on Maven Central. |
 | Chronicle client | Elixir | `cratis_chronicle` on Hex. |
@@ -73,7 +73,7 @@ This table shows how products connect. A dependency or integration is not by its
 
 | Product | Common dependency relationship |
 |---|---|
-| Chronicle | Uses Fundamentals and Arc packages internally, exposes a first-class .NET client plus TypeScript, Kotlin/Java, and Elixir clients (and a Go client with a limited API surface) over gRPC/protobuf contracts, and can be inspected through the CLI and Workbench. |
+| Chronicle | Uses Fundamentals and Arc packages internally, exposes TypeScript, Kotlin/Java, Elixir, and .NET clients (and a Go client with a limited API surface) over gRPC/protobuf contracts, and can be inspected through the CLI and Workbench. |
 | Arc | Uses Fundamentals and can integrate with Chronicle, MongoDB, Entity Framework Core, ASP.NET Core, OpenAPI, Swagger, and generated TypeScript proxies. |
 | Components | Renders Arc's generated command and query proxies in React. Since Components 4 it owns its markup, types, and styling contract and uses React Aria internally; it no longer depends on PrimeReact. See [UI foundation](/components/ui-foundation/). |
 | CLI | Talks to Chronicle, installs managed AI guidance with `cratis ai`, and writes a CLI command catalog for AI assistants with `cratis init`. |

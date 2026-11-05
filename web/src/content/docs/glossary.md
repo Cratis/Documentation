@@ -37,14 +37,14 @@ explains how they fit together.
 | Concurrency scope | The condition on one append: a position in the event log and a filter (event types, event source, stream). The kernel rejects the append if a matching event was written after the position. See [concurrency](/chronicle/events/concurrency/). |
 | Append condition | What Chronicle checks together with an append: one or more concurrency scopes. Also called a **guard** when it comes from a read. See [how guards are derived](/chronicle/dynamic-consistency-boundary/how-guards-are-derived/). |
 | [Decision read](/chronicle/read-models/decision-reads/) | A read of a read model that notes the log position before it folds, so the state you decide on becomes an append condition. |
-| [Read protection](/chronicle/read-models/read-protection/) | Refusing reads that cannot guard a decision. In Chronicle it is the API that enforces this inside one unit of work. In Arc it is a mode, `Off`, `Measure` or `On`, that turns the API on for your commands. See [keeping decisions correct](/concepts/keeping-decisions-correct/). |
+| [Read protection](/chronicle/read-models/read-protection/) | Refusing reads that cannot guard a decision. In Chronicle it is the API that enforces this inside one unit of work. In Arc's .NET backend it is a mode, `Off`, `Measure` or `On`, that turns the API on for your commands. See [keeping decisions correct](/concepts/keeping-decisions-correct/). |
 | **Protected read** | A read under read protection `On` that is read fresh and guarded, such as a read-model parameter on a command. |
-| **Advisory read** | A read that is allowed but guards nothing, because a stale value is acceptable. In Arc it is marked `[Unprotected("why")]`. |
-| **Measure** | The Arc read protection mode between `Off` and `On`. Nothing changes for callers, and Arc records what `On` would do, so you can fix refused reads before turning it on. |
-| [Per-stream read model](/chronicle/read-models/per-stream/) | A read model declared with `[EventStream<TSource>(stream)]` that folds one stream of an event source, such as one account's withdrawals in one month. |
-| [Stream decision](/arc/backend/csharp/chronicle/commands/stream-decisions/) | A command reads the raw events of one stream through `IStreamReads` and returns `StreamDecision.Append(...)`, which guards that stream at the tail it read. |
+| **Advisory read** | A read that is allowed but guards nothing, because a stale value is acceptable. In Arc's .NET backend it is marked `[Unprotected("why")]`. |
+| **Measure** | The .NET Arc read protection mode between `Off` and `On`. Nothing changes for callers, and Arc records what `On` would do, so you can fix refused reads before turning it on. |
+| [Per-stream read model](/chronicle/read-models/per-stream/) | A read model that folds one stream of an event source, such as one account's withdrawals in one month. The .NET declaration uses `[EventStream<TSource>(stream)]`. |
+| [Stream decision](/arc/backend/csharp/chronicle/commands/stream-decisions/) | In Arc's .NET backend, a command reads the raw events of one stream through `IStreamReads` and returns `StreamDecision.Append(...)`, which guards that stream at the tail it read. |
 | [Subject](/chronicle/concepts/subject/) | The person or entity whose personal data an event contains. PII is encrypted under a key per subject, which defaults to the event source id. |
-| [PII](/chronicle/compliance/pii/) | Personal data marked with `[PII]`, encrypted at append time so it can be erased by deleting the subject's key. See [event sourcing and GDPR](/concepts/event-sourcing-gdpr/). |
+| [PII](/chronicle/compliance/pii/) | Personal data marked for encryption at append time so it can be erased by deleting the subject's key. Marking syntax varies by client; .NET uses `[PII]`. See [event sourcing and GDPR](/concepts/event-sourcing-gdpr/). |
 
 ## Turning events into state
 
@@ -56,7 +56,7 @@ How events become the things you read and the actions you take.
 | [Projection](/chronicle/projections/) | Builds a read model by mapping events declaratively. |
 | [Reducer](/chronicle/reducers/) | Builds a read model by folding events imperatively. |
 | [Reactor](/chronicle/reactors/) | Produces side effects (notifications, calls to other systems) in response to events. An event can be delivered to a reactor more than once, so side effects should be safe to repeat. |
-| [Replay](/chronicle/reactors/replay/) | Running an observer over events it has already processed, for example to rebuild a read model. Replay re-delivers events to reactors unless the handler is marked `[OnceOnly]`. |
+| [Replay](/chronicle/reactors/replay/) | Running an observer over events it has already processed, for example to rebuild a read model. Replay can re-deliver events to reactors. Where supported, a once-only handler skips replay; .NET marks it with `[OnceOnly]`. |
 | [Read model](/chronicle/read-models/) | A queryable view shaped for one screen or question, built from events. |
 | **Changeset** | The set of changes an observer applies for a single event. |
 | [Eventual consistency](/chronicle/concepts/consistency/) | A read model that catches up shortly after an event is appended — the default. |
@@ -68,11 +68,11 @@ The terms [Arc](/arc/) and [Components](/components/) add on top of Chronicle.
 
 | Term | Definition |
 | --- | --- |
-| [Command](/arc/backend/csharp/commands/) | An intent to change state — a record with a `Handle()` method. With Arc and Chronicle, events returned from `Handle()` are appended; a command can also return a response or nothing. |
-| [Query](/arc/backend/csharp/queries/) | A read of data, exposed to the frontend as a typed proxy. |
+| [Command](/concepts/cqrs/) | An intent to change state. Arc's command declarations and handler APIs vary by backend. With Chronicle integration, a handler can return events for Arc to append; it can also return a response or nothing where supported. |
+| [Query](/concepts/cqrs/) | A read of data, exposed to the frontend as a typed proxy. |
 | **Observable query** | A query that holds a live connection and pushes new results when the data changes. |
 | [CQRS](/concepts/cqrs/) | Command Query Responsibility Segregation — separating the write side (commands) from the read side (queries). See it in [C#](/cqrs/dotnet/), [TypeScript](/cqrs/typescript/), [Kotlin and Java](/cqrs/kotlin/), and [Elixir](/cqrs/elixir/). |
-| [Proxy generation](/arc/backend/csharp/proxy-generation/) | Arc emitting a typed TypeScript client from your C# commands and queries at build time. |
+| [Proxy generation](/arc/understanding-the-proxy-boundary/) | Arc emitting a typed TypeScript client from backend commands and queries. Configure generation for your chosen backend. |
 | [Concept](/fundamentals/csharp/concepts/) | A strongly-typed wrapper around a primitive (`AccountId` over `Guid`) so the compiler catches mix-ups. |
 | [Agentic development](/agentic-development/) | Letting AI coding agents design, change and operate a system whose state is an event log and whose behavior is checked by executable specifications. |
 | [Vertical slice](/arc/vertical-slices/) | Everything for one behavior — command, events, projection, UI, specs — kept together in one folder. |

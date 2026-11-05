@@ -10,6 +10,8 @@ A library has one copy of a book left, and two members press Borrow at the same 
 
 Cratis Arc can protect the read used to make that decision. Cratis Chronicle refuses the command's append if matching events arrive after the read, so the caller must reconsider against fresh state. This walkthrough follows the borrowing rule from model to screen using a [Dynamic Consistency Boundary](/concepts/dynamic-consistency-boundary/): the events and keys that must remain unchanged for the decision to commit.
 
+The runnable sample and the validator, configuration, and test APIs below use Arc's .NET backend. The concurrency problem is language-neutral; these APIs are not. For another host, start with [Keeping decisions correct](/concepts/keeping-decisions-correct/) and check your [Chronicle client's](/chronicle-clients/) guard support rather than translating the attributes or test hook.
+
 <YouWillLearn>
 
 - how to state a rule that depends on state in a Screenplay model, separately from the implementation's read protection

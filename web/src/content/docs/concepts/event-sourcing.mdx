@@ -98,12 +98,14 @@ Not inherently. A materialized read model lets a query read stored values instea
 
 Yes, one slice at a time. Existing rows do not become events by themselves, so you need to decide how to import initial facts or start the new model from a cut-over point. Arc's guide to [adding event sourcing to a slice](/arc/backend/csharp/chronicle/add-event-sourcing/) walks through it.
 
-### What do I need to run event sourcing in .NET?
+<span id="what-do-i-need-to-run-event-sourcing-in-net" />
 
-You need a durable event log, a way to protect decisions during concurrent writes, and a way to derive state for reads. Chronicle supplies event storage and processing with a .NET client. See [event sourcing in .NET](/event-sourcing/dotnet/) for a starting point.
+### What do I need to run event sourcing?
+
+You need a durable event log, a way to protect decisions during concurrent writes, and a way to derive state for reads. Chronicle supplies event storage and processing through [language-specific clients](/chronicle-clients/). Choose your client and check its support for the read-model and consistency features you need; those APIs are not identical.
 
 ## Next steps
 
 Before implementing a feature, use [event modeling](/event-modeling/) to identify its decisions, facts and views. Then read [projections and read models](/concepts/projections-and-read-models/) to see how the recorded history becomes queryable state.
 
-To build the first slice, follow [Get started with Chronicle](/chronicle/get-started/) or the [Chronicle tutorial](/chronicle/tutorial/). If you are still evaluating the approach, [Why event sourcing](/chronicle/why-event-sourcing/) gives the Cratis rationale, and [event sourcing for .NET](/compare-event-sourcing-dotnet/) compares implementation options.
+To build the first slice, choose a [Chronicle client](/chronicle-clients/) and follow [First event](/learning-paths/#append-a-fact-with-the-book-id) and [First projection](/learning-paths/#first-projection), with TypeScript, Elixir, and C# examples. The [Chronicle tutorial](/chronicle/tutorial/) extends that slice. If you are still evaluating the approach, [Why event sourcing](/chronicle/why-event-sourcing/) gives the Cratis rationale; compare implementation options for [.NET](/compare-event-sourcing-dotnet/), [the JVM](/compare-event-sourcing-jvm/), or [TypeScript](/compare/typescript-event-sourcing/).
