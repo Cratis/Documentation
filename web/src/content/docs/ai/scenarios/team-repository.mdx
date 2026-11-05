@@ -1,26 +1,31 @@
 ---
-title: "Scenario: team repository"
-description: Commit one managed Cratis AI corpus and selection so everyone on the team, in every supported harness, sees the same guidance.
+title: Share Cratis AI guidance in a team repository
+description: Commit Cratis AI guidance and its configuration with your code so the team can share a selection, review updates, and detect edits to managed files.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-Several people work in one repository, and you want every one of them, and CI,
-to get the same Cratis guidance. Commit it with the code.
+Use the Cratis AI managed install to keep your team's guidance with the code.
+Committing the installed files and configuration gives developers and CI the
+same source guidance, with updates they can review as repository changes.
 
 ## What you do
 
-Run `cratis ai install` in the repository root, select the harnesses, profiles,
-and languages the repository needs, then review and commit the result.
+Install the [Cratis CLI](/cli/getting-started/) first. Run `cratis ai install`
+in the repository root and select the harnesses (coding tools), profiles
+(guidance sets), and languages the repository needs. Review and commit the
+result. The [setup guide](/ai/getting-started/) walks through the selection and
+how to check that your tool can find the installed skills.
 
 | Path | What it carries |
 | --- | --- |
 | `.cratis/ai.json` | The selected harnesses, profiles, and languages. |
 | `.cratis/ai/` | Cratis-managed rules, skills, prompts, agents, and hooks, plus anything you add. |
-| `.cratis/ai.manifest.json` | The source commit, and each managed file's source identity and installed hash. |
-| Harness adapters | Symbolic links or configuration entries pointing to `.cratis/ai`. |
+| `.cratis/ai.manifest.json` | The source revision, managed file identities and hashes, and owned integrations. |
+| Harness adapters | Native links and configuration that connect each tool to the shared guidance. |
 
-A configuration can select more than one harness and profile:
+A configuration can select more than one harness and profile. This example
+selects C# application guidance and documentation guidance for three tools:
 
 ```json
 {
@@ -33,21 +38,32 @@ A configuration can select more than one harness and profile:
 
 ## What you get
 
-- **One source.** Harness integrations point to `.cratis/ai`; they do not carry
-  diverging skill folders.
-- **Reviewable updates.** An update is a diff in a pull request. Run
-  `cratis ai update --dry-run` first to see what will change.
-- **Protected edits.** The manifest hashes every managed file. Update and
-  uninstall stop before changing anything if one was edited locally.
-- **Your own extensions.** Local rules and skills under `.cratis/ai` are never
-  claimed, deleted, or overwritten by Cratis.
+Harness integrations use the shared `.cratis/ai` corpus instead of separately
+maintained skill folders. Each tool still loads guidance through its own
+integration; sharing the files does not make agent behavior identical.
+
+Before updating, run `cratis ai update --dry-run` and review the proposed
+changes. Commit the configuration, manifest, corpus, and adapters together so
+the next checkout carries a consistent installation. The manifest records the
+installed revision but does not pin future updates; use
+[updates and rollback](/ai/scenarios/updates-and-rollback/) to choose a fixed
+source or return to an earlier revision.
+
+Keep repository-specific guidance in `.cratis/ai/rules/project.md` and its
+concern files, and add your own skills under `.cratis/ai/skills/` with names
+that do not start with `cratis-`. These remain yours. Editing a managed file
+instead blocks update and uninstall until you resolve the conflict.
 
 To catch hand edits to managed guidance in CI, run `cratis ai status`; it exits
-non-zero when a managed file was modified.
+non-zero when a managed file was modified. By default, status and update fetch
+the source corpus, including for a dry run. For offline use or a fixed source,
+pass `--source <path>` to a local `Cratis/AI` checkout at the intended revision.
 
 <Aside type="note" title="Resolving a modified managed file">
-Run `cratis ai status` to see which paths changed. Restore the file, or use
-`cratis ai update --force` or `cratis ai uninstall --force` only when you
-deliberately want to replace or remove that edited managed content. If the edit
-is an improvement others would want, propose it to `Cratis/AI`.
+Run `cratis ai status` to see which paths changed. Keep a local adaptation in
+a project-owned file, or propose a reusable improvement to `Cratis/AI`. Restore
+the managed file before updating, or use `cratis ai update --force` or
+`cratis ai uninstall --force` only when you deliberately want to replace or
+remove its edited content. Force does not bypass ownership checks or resolve a
+changed Model Context Protocol (MCP) server registration.
 </Aside>

@@ -1,13 +1,19 @@
 ---
-title: "Scenario: multiple harnesses"
-description: Configure several AI coding tools from one managed Cratis AI corpus and one repository-owned selection.
+title: Configure Cratis AI for multiple coding tools
+description: Configure multiple AI coding tools from one managed Cratis AI corpus, with shared profile and language selections and reviewable repository updates.
 ---
 
-Your team uses more than one coding tool in the same repository: some people in
-Claude Code, some in Cursor, CI in Codex. You want all of them to follow the same
-Cratis guidance. Use the managed install.
+Use the Cratis AI managed install when a repository needs guidance for several
+coding tools, such as Claude Code, Cursor, and Codex. One installed corpus, the
+shared set of guidance files, supplies the selected harnesses without separate
+copies for each tool.
 
 ## Configure the repository
+
+Install the [Cratis CLI](/cli/getting-started/) first. From the repository root,
+select the harnesses (coding tools) that need adapters and the profiles
+(guidance sets) that fit your work. This example configures all six harnesses
+for a C# application with TypeScript:
 
 ```bash
 cratis ai install \
@@ -16,29 +22,36 @@ cratis ai install \
   --languages csharp,typescript
 ```
 
-Selecting a harness nobody uses only adds an unused adapter, so most
-repositories select all of them.
+Keep the harnesses your team uses. Profiles and languages select the guidance;
+harnesses select how the tools receive it. The
+[agent harness guide](/ai/harnesses/) explains what each integration loads.
 
-Commit `.cratis/ai.json`, `.cratis/ai.manifest.json`, the managed `.cratis/ai`
-content, and the harness adapters.
+Run `cratis ai status` to check the installed selection and any locally changed
+managed files. Commit `.cratis/ai.json`, `.cratis/ai.manifest.json`, the managed
+`.cratis/ai` content, and the harness adapters together.
 
 ## What you get
 
-- **One corpus.** Every adapter points into `.cratis/ai`; no harness gets a
-  separately maintained copy.
-- **One selection.** Profiles and languages are resolved once for all selected
-  harnesses.
-- **Native folders.** Each tool still reads `.claude`, `.cursor`, `.opencode`,
-  `.pi`, or whichever folders it expects.
-- **Protected edits.** `cratis ai update` stops before overwriting a locally
-  edited managed file, and never touches files Cratis did not install.
+Profiles and languages are resolved once for the selected harnesses. Each tool
+still reads its native integration, such as `.claude`, `.cursor`, `.opencode`,
+or `.pi`, connected to `.cratis/ai`. The files share a source; how an agent uses
+them still depends on its harness and the task.
 
-Run `cratis ai status` before an update and `cratis ai uninstall` when you
-remove the managed integration.
+Updates preserve user-owned content and stop before overwriting a locally
+edited managed file. Run `cratis ai status` and `cratis ai update --dry-run`
+before applying an update. These commands download the source corpus by
+default, even for status and dry runs. For offline use or a fixed revision,
+point them at a local checkout with `--source <path>`. Follow
+[updates and rollback](/ai/scenarios/updates-and-rollback/) to review a change
+or return to an earlier installation.
+
+When you no longer need the integration, inspect `cratis ai uninstall --dry-run`
+before running `cratis ai uninstall`.
 
 ## Native plugins remain optional
 
-A developer can still install a marketplace plugin or `@cratis/pi` on their own
-machine without the CLI. That path covers one harness, and the marketplace
-plugins carry skills only. It does not configure the other harnesses or protect
-local edits.
+For guidance in just one tool without a managed install, a developer can use a
+marketplace plugin or `@cratis/pi`. Marketplace plugins carry skills only; the
+Pi package also contributes rules, prompts, agents, and quality hooks. Neither
+configures other harnesses or provides the CLI's ownership checks. The Pi
+package yields to an existing managed installation to avoid duplicate resources.

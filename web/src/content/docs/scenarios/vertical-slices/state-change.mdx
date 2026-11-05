@@ -1,12 +1,14 @@
 ---
 title: State Change — register an author
-description: Build the Library's author registration as an Event Modeling State Change, with an Arc command, a Chronicle event, a uniqueness constraint and a CommandDialog form.
+description: Register a Library author with Cratis Arc and Chronicle, reject duplicate names and return the new identity through a Components CommandDialog.
 ---
 
 import YouWillLearn from '@components/YouWillLearn.astro';
 import Recap from '@components/Recap.astro';
 
-A librarian types an author's first and last name into a dialog and presses **Register**. Arc validates the names, Chronicle records that the author was registered, and the dialog closes with the new author's ID. A second registration of exactly the same name is rejected. Registering an author is the Library's first **State Change**, shown with a C#, Kotlin, Java or TypeScript (source preview) backend.
+A State Change records the result of an accepted command. Here, a librarian registers an author by entering a first and last name. Cratis Arc validates the input, Cratis Chronicle records `AuthorRegistered`, and a Cratis Components dialog returns the author's new identity. The Library rejects a second registration with exactly the same name.
+
+Follow the C#, Kotlin, Java or TypeScript backend examples. The TypeScript backend is available from source, not npm; each language's identity handling and command-spec behavior are explained at the step where you need them.
 
 This series uses Arc with its optional Chronicle integration; Arc also supports commands and queries without event sourcing.
 
@@ -25,7 +27,7 @@ Start with an application configured for Arc with its Chronicle integration, pro
 
 In Event Modeling terms, a **State Change** slice is the answer to the question: *"What can a user do that will permanently change the system?"*
 
-The shape is always the same:
+For this registration, the sequence is:
 
 1. A user provides input
 2. That input is turned into a **Command** — an explicit statement of intent
@@ -77,15 +79,15 @@ The uniqueness rule belongs to the same file:
 
 ### What is happening here?
 
-**The event declaration** marks `AuthorRegistered` as a [Chronicle](/chronicle/) [event](/chronicle/events/). The framework uses the type name as the event identifier, so the declaration takes neither a GUID nor a string argument. Each property records part of the fact, and none of them is nullable: the validators enforce the required names before this command constructs the event.
+`AuthorRegistered` is a [Chronicle event](/chronicle/events/), identified here by its type name rather than an explicit GUID or string. Its properties capture the names accepted at registration. The command's validators check that those names are present before the handler constructs the event.
 
-**The command validator** runs automatically before the handler is ever called. If any rule fails, the command pipeline short-circuits and returns validation errors to the caller; the validator reports a failed rule without throwing an exception. C# builds it on FluentValidation (a [`CommandValidator<T>`](/arc/backend/csharp/commands/command-validation/)); TypeScript uses Arc's `CommandValidator` with `ruleFor`; Kotlin and Java implement Arc's command-validator interface and return validation results.
+Arc runs the discovered command validator before the handler. A failed rule returns validation errors to the caller without throwing an exception or constructing a registration event. C# uses FluentValidation through [`CommandValidator<T>`](/arc/backend/csharp/commands/command-validation/). TypeScript uses Arc's `CommandValidator` with `ruleFor`; Kotlin and Java implement Arc's command-validator interface and return validation results.
 
-**The [constraint](/chronicle/constraints/)** guards the combination of `FirstName` and `LastName` across authors in the event store namespace. `On` selects the two properties themselves, and the constraint computes no concatenated string from them. This tutorial keeps the Library's rule that an exact name combination may be registered only once; it does not treat names as a universal way to identify people. Kotlin and Java name the same two properties and need Chronicle.Kotlin 6.9.0 or later; earlier versions cannot express a constraint over more than one property.
+The [uniqueness constraint](/chronicle/constraints/) guards the combination of `FirstName` and `LastName` across authors in the event store namespace. It selects both properties, not a concatenated name string. This is the Library's rule for the tutorial, not a general claim that names identify people. Kotlin and Java select the same two properties and need Chronicle.Kotlin 6.9.0 or later to express this multi-property constraint.
 
 Chronicle checks uniqueness **when the returned event is committed, after the handler has run**. A duplicate produces a constraint violation in the command result and the attempted registration is not appended. That is different from input validation, which short-circuits before the handler.
 
-**The model-bound command** returns two things: the new author's identity, which becomes the response value the frontend receives, and the `AuthorRegistered` event to append. The backends differ in where that identity comes from:
+The model-bound command returns the author's identity to the caller and an `AuthorRegistered` event for Chronicle to append. That identity connects the response to the recorded fact. Each backend supplies it differently:
 
 - **C#**: `Provide()` creates the `AuthorId` before `Handle()`, which returns the tuple `(AuthorId, AuthorRegistered)`. Because `AuthorId` derives from `EventSourceId<Guid>`, the integration uses it for the append as well as the response; a `ConceptAs<Guid>` alone would only be an ordinary response. See [model-bound commands](/arc/backend/csharp/commands/model-bound/).
 - **TypeScript**: `provide()` creates the `AuthorId`, and `handle()` returns `tuple(eventSourceIdResponse(authorId.value.toString()), event)`: the event is appended to that ID, and the ID's string is the response.
@@ -141,15 +143,9 @@ export const AddAuthor = () => {
 
 The dialog component uses `useDialogContext` from [`@cratis/arc.react/dialogs`](/arc/frontend/react/) to get the `closeDialog` function. It does not receive props for visibility — all dialog lifecycle is managed by the framework. A parent component uses the [`useDialog`](/arc/frontend/react/) hook to show and await this dialog.
 
-[`CommandDialog`](/components/commanddialog/) from `@cratis/components` does the heavy lifting:
+[`CommandDialog`](/components/commanddialog/) creates the `RegisterAuthor` proxy and executes it when the user confirms. Each [`InputTextField`](/components/commandform/) binds to a command property; validation defined in the generated proxy can run before the request reaches Arc. The backend still validates the command and enforces the uniqueness constraint.
 
-- It creates and executes the `RegisterAuthor` proxy
-- [`InputTextField`](/components/commandform/) renders typed form fields bound to command properties
-- It runs the frontend-side validation defined in the proxy
-- It calls the Arc command pipeline when the user confirms
-- `onSuccess` receives the response payload only after command execution succeeds
-- It surfaces any backend validation errors directly in the form
-- It gives the user a success or error response without you writing any `fetch` calls
+On success, `onSuccess` receives the author ID and closes the dialog. A failed command leaves the dialog open so the user can correct the input or inspect the error. The generated proxy handles the request, so the form needs no handwritten `fetch` call.
 
 A parent can await the returned identity and display a confirmation:
 
@@ -185,7 +181,7 @@ export const RegisterAuthorButton = () => {
 
 ## Step 4 — Command specs
 
-Use an in-process command scenario to prove that the response identity and appended event agree. It runs the command through the real Arc pipeline — validation, the handler and the Chronicle append — without an HTTP host.
+Use a command scenario to check that a successful registration appends exactly one event, with the requested names, under the identity returned to the caller. The scenario exercises Arc's validation, handler and Chronicle integration without an HTTP host. Its event-log implementation differs by backend, so the success spec and duplicate-name spec establish different things.
 
 ```text
 Library.Specs/Authors/Registration/when_registering/
@@ -203,7 +199,7 @@ What each scenario needs:
 - **Kotlin and Java**: `io.cratis:arc-testing` in the test configuration alongside the Chronicle integration, which gives `CommandScenario` an in-memory event log. The test supplies the identity, because it is the command key.
 - **TypeScript**: `ChronicleCommandScenario` from `@cratis/arc.chronicle/testing`, which records appended events in memory.
 
-Then establish the same name under an existing author and check the precise rejection. This spec is C#-only: it needs Chronicle to enforce the constraint, and only the C# scenario runs an in-process kernel. The Kotlin, Java and TypeScript in-memory scenarios do not enforce constraints (see the [backend table](/scenarios/vertical-slices/#how-the-backends-differ)).
+The success spec does not show that duplicate names are rejected. Seed an existing author with the same name, then check both the constraint violation and the unchanged event log. The C# spec below uses an in-process Chronicle kernel to enforce that rule. The Kotlin, Java and TypeScript in-memory command scenarios do not enforce constraints; check duplicate rejection against a running Chronicle kernel for those backends (see the [backend table](/scenarios/vertical-slices/#how-the-backends-differ)).
 
 ```csharp
 // when_registering/and_author_name_already_exists.cs

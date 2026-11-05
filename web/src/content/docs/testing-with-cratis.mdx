@@ -1,6 +1,6 @@
 ---
 title: Testing with Cratis
-description: Turn an event-model column into in-process given/when/then specs for a command and its read model, in C#, Kotlin, Java, or TypeScript.
+description: Test Cratis commands and read models in process with Given/When/Then specs in C#, Kotlin, Java or TypeScript, without starting a Chronicle server.
 ---
 
 import { CardGrid, Aside } from '@astrojs/starlight/components';
@@ -8,23 +8,23 @@ import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
 <TopicHero icon="approve-check" eyebrow="Testing" title="Turn the model into executable examples">
-Cratis applications already describe behavior as a timeline: a screen sends a command, the command records an event, projections build read models, and reactors act on facts. The testing story follows the same shape. You write a small specification for the behavior, seed the facts that already happened, perform the command or event, and assert the new facts, read models, or side effects.
+When a user registers an author, two things need checking: the command records the author's name, and the authors screen can read it. Cratis scenarios let you test those behaviors in process, without starting a Chronicle server. Supply earlier events as the context, execute the command or feed an event to a read model, then assert the outcome.
 </TopicHero>
 
-<Aside type="caution" title="Arc for TypeScript is a source preview">
+<Aside type="caution" title="Arc for TypeScript distribution and parity">
 No Arc for TypeScript package is published to npm, and it does not have full parity with Arc on .NET. Its package names and APIs can still change. The TypeScript tabs on this page use it.
 </Aside>
 
 ## Test packages by backend
 
-Each backend tests a command through the real Arc command pipeline and a read model without a Chronicle server. The packages differ:
+Choose the packages for your application language. The command examples use Arc's command pipeline; read-model examples use a scenario or call a reducer directly, as listed below. Neither requires a Chronicle server, but application services used by your handler still need test implementations or configured dependencies.
 
 | Backend | Command specs | Read-model specs |
 |---|---|---|
 | C# | `Cratis.Arc.Testing` (`CommandScenario<TCommand>`), with `Cratis.Arc.Chronicle.Testing` for the events a command appends | `Cratis.Chronicle.Testing` (`ReadModelScenario<TReadModel>`) |
 | Kotlin | `io.cratis:arc-testing` (`CommandScenario`), with `io.cratis:arc-chronicle-spring-boot-starter` for the events a command appends | `io.cratis:chronicle-testing` (`ReadModelScenario`) |
 | Java | `io.cratis:arc-testing`, driven through `BlockingCommandScenario`, with the same Chronicle starter | The examples call the reducer directly |
-| TypeScript (preview) | `@cratis/arc.testing` (`CommandScenario`), with `@cratis/arc.chronicle/testing` (`ChronicleCommandScenario`) for the events a command appends | `@cratis/chronicle/testing` (`ReadModelScenario`) |
+| TypeScript | `@cratis/arc.testing` (`CommandScenario`), with `@cratis/arc.chronicle/testing` (`ChronicleCommandScenario`) for the events a command appends | `@cratis/chronicle/testing` (`ReadModelScenario`) |
 
 The [Arc for Kotlin and Java testing guide](/arc/backend/kotlin/guides/testing/) and the [Arc for TypeScript testing guide](/arc/backend/typescript/testing/) cover the JVM and TypeScript harnesses in depth. The rest of this section lists the .NET packages.
 
@@ -34,7 +34,7 @@ For .NET, the packages are layered the same way the runtime is layered:
 
 | Package | Use it for |
 |---|---|
-| `Cratis.Specifications.XUnit` | BDD-style specifications on top of xUnit: `Establish()` for given, `Because()` for when, `[Fact]` methods for then, plus `Should*` assertions and `Catch.Exception`. |
+| `Cratis.Specifications.XUnit` | Behavior-driven development (BDD) specifications on top of xUnit: `Establish()` for given, `Because()` for when, `[Fact]` methods for then, plus `Should*` assertions and `Catch.Exception`. |
 | `Cratis.Specifications.NUnit` | The same specification style for NUnit projects. |
 | `Cratis.Arc.Testing` | `CommandScenario<TCommand>` for running Arc commands through the real command pipeline without HTTP. |
 | `Cratis.Chronicle.Testing` | `EventScenario`, `ReadModelScenario<TReadModel>`, and `ReactorScenario<TReactor>` for in-process Chronicle tests without a server or database. |
@@ -52,7 +52,7 @@ Use `Cratis.Chronicle.Testing` directly for Chronicle-only libraries, and `Crati
 
 ## Why BDD fits event sourcing
 
-Given/when/then maps one to one onto event sourcing: the given is the facts that already happened, the when is the command or event under test, and the then is the facts, read models, or side effects that result. The .NET specification APIs line up like this:
+Behavior-driven development (BDD) describes a test as given/when/then. For an event-sourced feature, the given is the facts that already happened, the when is the command or event under test, and the then is the facts, read models, or side effects that result. The .NET specification APIs line up like this:
 
 | Specification word | Event-sourced meaning | Cratis test API |
 |---|---|---|
@@ -63,7 +63,7 @@ Given/when/then maps one to one onto event sourcing: the given is the facts that
 That makes specs readable in the same language as the event model. A domain expert can read "given an author already exists, when registering the same name, then it should not append another event" and understand the rule without knowing the implementation.
 
 <Aside type="tip" title="One act, many facts">
-In .NET, `Specification` runs `Establish()` and `Because()` before each `[Fact]`. Put the behavior under test in `Because()` once, store the result in fields, and let each fact assert one thing about the same behavior.
+With the default xUnit lifecycle, each `[Fact]` gets a fresh specification instance, and `Establish()` and `Because()` run before that fact. Put the action in `Because()`, store its result in fields, and let each fact assert one outcome. The action runs again for each fact; the facts do not share a single execution.
 </Aside>
 
 ## The event model becomes the spec
@@ -120,7 +120,7 @@ In .NET, use `Validate()` when you want validation and authorization without run
 
 ## How to test Chronicle
 
-In .NET, Chronicle tests are fastest when you test the part of the event pipeline you own:
+For .NET tests, choose the scenario for the part of the event pipeline your code owns:
 
 | You need to prove | Use |
 |---|---|
@@ -143,6 +143,8 @@ A full .NET slice usually has three useful spec levels:
 Start with command and read-side specs for every meaningful event-model column. Add workflow specs around the edges where the wiring matters: AuthProxy headers, tenant isolation, a real Chronicle server, or browser-visible behavior.
 
 ## Where to go next
+
+For a first spec, keep the author-registration example's boundary: assert the command's event, then check the state built from that event. Follow the Arc or Chronicle testing guide below when you need service setup, constraints or reactor assertions.
 
 <CardGrid>
   <SimpleCard title="Specifications" icon="approve-check" link="/specifications/">

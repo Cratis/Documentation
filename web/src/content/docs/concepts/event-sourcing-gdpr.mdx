@@ -1,6 +1,6 @@
 ---
 title: "Event sourcing and GDPR: erasing personal data"
-description: "How event-sourced systems meet the right to erasure with crypto-shredding, key lifecycle and read-model cleanup, with worked client examples."
+description: "Event sourcing can support erasure by destroying personal-data keys. Learn Chronicle's namespace boundary and the copies you must handle separately."
 head:
   - tag: meta
     attrs:
@@ -10,47 +10,39 @@ head:
 
 import { Aside } from '@astrojs/starlight/components';
 
-Yes, an event-sourced system can meet the GDPR right to erasure without rewriting its event log. You keep personal data out of the log in readable form: either you encrypt each person's values under a key that belongs to that person (crypto-shredding), or you store the personal data outside the log and keep only a reference in the events. When a person asks for erasure, you delete the key or the external record. The events, their order and every non-personal field stay intact, and the personal data can no longer be read. Cratis Chronicle implements the crypto-shredding route as a built-in feature: you mark a value `[PII]` and delete the subject's key with one call.
+Event sourcing can support the GDPR right to erasure without deleting the event log: encrypt personal values under a key for their subject, then destroy that key. Cratis Chronicle uses this approach, called crypto-shredding, for values marked `[PII]` (personally identifiable information). It makes those encrypted values unreadable while leaving the events in place. It does not erase plaintext copies, other namespaces or backups.
 
-This page explains why immutability seems to conflict with the regulation, compares the three common approaches, and walks through erasing a person in Chronicle. It is not legal advice; the last section says what a lawyer still has to decide.
-
-*Applies to Chronicle 19.64.1. Last reviewed October 19, 2026 by the Cratis documentation team.*
+Use this page to plan what an erasure request must reach, then follow the worked client examples. Whether that plan satisfies your legal duties depends on the data and its use, not just the event store.
 
 ## Why immutability seems to conflict with GDPR
 
-An [event store](/concepts/event-store/) is append-only. [Event sourcing](/concepts/event-sourcing/) depends on that: the history is the source of truth, and you rebuild state by replaying it. Nothing is updated and nothing is deleted.
+An [event store](/concepts/event-store/) records changes as an append-only history. [Event sourcing](/concepts/event-sourcing/) uses that history to rebuild state by replaying events. Removing recorded facts can change what a replay produces, even when the store supports redaction.
 
-[Article 17 of the GDPR](https://eur-lex.europa.eu/eli/reg/2016/679/oj) gives a person the right to have their personal data erased "without undue delay" when, for example, the data is no longer needed for the purpose it was collected for, or they withdraw consent and no other legal ground applies. Article 17(3) lists exceptions, such as a legal obligation to keep the data. Under Article 12(3) you normally have one month to act on the request.
+[Article 17 of the GDPR](https://eur-lex.europa.eu/eli/reg/2016/679/oj) sets out the right to erasure and its exceptions. A name, address or diagnosis left readable in the log must be part of your erasure assessment; calling the log immutable does not resolve that obligation.
 
-The conflict is real if the log holds a name, an address or a diagnosis in plain text. You cannot delete one event without breaking sequence numbers, replays and audit guarantees, and rewriting history defeats the reason you chose the pattern.
-
-The way out is to change what "erase" means for an immutable log. You do not remove the event. You remove the ability to read the personal data inside it.
+Encrypting personal values separately lets you remove access to them without removing the event. Another option is to keep personal data outside the log and record only an opaque reference. In either design, assess whether the remaining identifiers or other fields can still identify the person.
 
 ## Three approaches
 
-Event sourcing teams use three patterns. They can be combined.
+Choose how personal data will be stored before relying on an erasure procedure. These approaches can be combined, but archiving data alone does not erase it.
 
 | | Crypto-shredding | Data segregation | Retention and archival |
 |---|---|---|---|
 | **Idea** | Encrypt personal values per person; delete the key to erase | Keep personal data in a separate mutable store; events hold only a reference | Delete or archive whole streams or events after a fixed period |
-| **Erase on request** | Delete one key; all of that person's values become unreadable | Delete the external record; events keep a dangling reference | Not on request: only when the period ends, unless you also delete early |
-| **Log stays intact** | Yes | Yes | No: events are removed, so replays and audits lose them |
-| **Design cost** | Low if the platform does it; high if you build key management yourself | You must decide at modeling time what is personal, and keep two stores consistent | Low to build, but you need a retention rule for every event type |
+| **Erase on request** | Destroy all usable copies of the subject's key; values encrypted under it become unreadable | Delete the external record and its copies; events retain the reference | A schedule alone does not answer an earlier request; archived readable data remains data to assess |
+| **Log stays intact** | Yes | Yes | Deletion removes history; archival moves it but may preserve readable copies |
+| **Operational work** | Manage keys, revisions, caches and backups | Keep personal values out of events and coordinate the two stores | Define retention rules and manage archive access and deletion |
 | **Main risk** | Key backups, copies and anything already decrypted can keep the data alive; keys must be managed correctly | Personal data leaks back into events through careless modeling; joins across two stores | Deleting history you still need; may not meet a request that arrives before the period ends |
-| **Reads of erased data** | Empty value, event still present | Lookup fails or returns nothing | Event no longer exists |
+| **Reads of erased data** | Depends on the read API; Chronicle normally releases type-appropriate empty values | Lookup fails or returns nothing | Deleted events are absent; archived events may still be readable |
 | **Fits when** | Personal data is embedded in events and you want one mechanism | You can model personal data as a lookup from the start | A legal retention period applies anyway |
 
-None of these is free. Crypto-shredding moves the problem to key management, so it is only as good as your key handling and your backups. Data segregation is the simplest to reason about, but it relies on discipline: one name in an event description and the segregation is gone. Retention is blunt, because it deletes history rather than only the personal data in it.
+Crypto-shredding depends on key handling: a usable key in a backup can restore access. Segregation depends on keeping personal values out of events, including free-text descriptions. Deleting whole events removes non-personal history too, which may affect later replays.
 
 The [event-driven.io article on GDPR in event-driven architecture](https://event-driven.io/en/gdpr_in_event_driven_architecture/) covers segregation and retention in depth from a vendor-neutral view. This page concentrates on crypto-shredding because Chronicle ships it.
 
 ## How crypto-shredding works
 
-<Aside type="note" title="Definition">
-**Crypto-shredding** erases data by destroying the encryption key instead of the data. Ciphertext that nobody can decrypt is, for practical purposes, gone.
-</Aside>
-
-Each person whose data you store gets their own key. When an event with a personal value is appended, the value is encrypted under that person's key and the ciphertext is stored in the event. Reading reverses the step.
+Crypto-shredding destroys the key rather than the ciphertext. In Chronicle, a subject identifies the person whose PII values share a key. When an event is appended, its marked values are encrypted under that subject's key; reads use the key to decrypt them. After erasure, new PII writes for that subject are refused unless a new key has been explicitly authorized.
 
 ```mermaid
 flowchart LR
@@ -64,10 +56,9 @@ flowchart LR
     H -.->|decryption now fails| F
 ```
 
-Two design points decide whether this works in practice:
+Choose the subject carefully. It defaults to the event source id, but can be set explicitly when the event source is not the person. If one person's values are stored under several subject identifiers, erasing only one identifier cannot reach the others.
 
-- **One key per person, not per event or per system.** Deleting one key must erase everything about that person and nothing about anyone else. Chronicle calls the person the *subject*. It defaults to the event source id and can be set explicitly when the event source is not the person.
-- **Only the personal values are encrypted.** The event type, sequence number, timestamp and non-personal fields stay readable, so the log still works for audit, replay and analytics. The event source id itself is stored in clear text, so it must not be a name or an email address. Use an opaque id.
+The event type, sequence number and unmarked fields remain readable. Use an opaque event source id, not a name or email address: the id itself is stored in clear text. Review the remaining fields too, because encryption of selected properties does not make the rest anonymous.
 
 ## Projections, read models and caches after erasure
 
@@ -79,39 +70,41 @@ For read model properties that are marked, Chronicle stores the value encrypted 
 
 What the application still has to do: mark every read model property that holds personal data, remove ciphertext from the read model store if your policy requires it, and clean up any copies Chronicle does not manage.
 
-Three consequences are worth knowing before you rely on this:
+Existing read model documents keep their ciphertext after key deletion. Projection and reducer replay can rebuild marked properties for an erased subject as empty markers without creating a key or removing the erasure fence. A rebuild is not a scrub of existing storage: stale documents or values copied under the wrong subject may remain. Use a clean destination or an audited migration when those copies must be removed.
 
-- **Existing read model documents keep their ciphertext.** Nothing can decrypt it once the key is gone, which crypto-shredding relies on. Rebuilding a stored read model asks for the subject's key again, and Chronicle refuses it for an erased subject. If your policy requires the ciphertext removed from the read model store, that is a deliberate operation on the store.
-- **Erased values look like empty values.** An erased `0` or `false` cannot be told apart from a value that was recorded as `0` or `false`. Chronicle tracks whether to make them distinguishable in [issue 4620](https://github.com/Cratis/Chronicle/issues/4620).
-- **Copies you made yourself are yours.** A search index, an export, a cache or a data warehouse that received the decrypted value is outside Chronicle's reach.
+Ordinary reads cannot distinguish an erased `0` or `false` from a genuine value. An explicit .NET sequence read, `GetFromSequenceNumberWithErasedProperties`, can report confirmed erased paths in the returned current event content when the server supports it. An empty path list is not proof that nothing was erased, and this opt-in does not add erasure metadata to projection or observer reads. Broader read surfaces remain tracked in [issue 4620](https://github.com/Cratis/Chronicle/issues/4620).
+
+A search index, export, cache or warehouse that received decrypted values is outside this key-deletion mechanism. Include those copies in the erasure procedure.
 
 The details, including how joined values keep the subject of the event they came from, are in [Read models and PII](/chronicle/compliance/read-models/).
 
 ## Erasing a subject in Chronicle: worked example
 
-The tabs show the C#, Kotlin, Java, TypeScript and Elixir clients. Each has a PII marker and exposes subject-key deletion, but they differ in detail. For example, only the .NET and TypeScript clients expose the call that authorizes a new key after erasure. See [Marking data as PII](/chronicle/compliance/pii/) and [where the clients differ](/chronicle/clients/where-the-clients-differ/).
+The tabs show the C#, Kotlin, Java, TypeScript and Elixir clients. Use your client's tab for the marking and erasure syntax; marker placement and lifecycle APIs differ. See [Marking data as PII](/chronicle/compliance/pii/) and [where the clients differ](/chronicle/clients/where-the-clients-differ/) before translating an example between clients.
 
-**1. Mark the personal values.** Chronicle encrypts only what you mark. Use your client's PII marker on the event properties that hold personal data; unmarked values are stored in plain text and erasure does not cover them. The department is not personal in this example, so it stays plain:
+Start by marking the personal values. Chronicle's subject-key erasure covers PII-marked values, not unmarked plaintext or values encrypted separately for confidentiality. In this example the names are personal; the department is left unmarked:
 
 <ChronicleClientTabs snippet="compliance/pii/property-level" />
 
 When this event is appended, the first and last names are encrypted under the subject's key. The department is stored as it is. If the same personal value appears in many events, declaring PII once on a concept type is less error-prone; see [Declaring PII on a concept](/chronicle/compliance/pii-with-concepts/).
 
-**2. Append as usual.** Nothing in the append call changes for PII-marked events. These tabs show the ordinary append API using an order:
+Next, append the event through the ordinary API. Marking its values as PII does not change the append call. These tabs illustrate that API with an order:
 
 <ChronicleClientTabs snippet="events/appending/example" />
 
-For the employee example, append a `PiiAttrEmployeeRegistered` event instead, using `person-42` as the event source id. The event source id is the subject by default. If no key exists for `person-42`, Chronicle creates one before encrypting the marked names.
+For the employee example, append a `PiiAttrEmployeeRegistered` event instead, using `person-42` as the event source id. The event source id is the subject by default. On the first PII write for this subject, Chronicle creates a key before encrypting the marked names. An erased subject cannot get a replacement key without explicit authorization.
 
-**3. Erase on request.** One call deletes the key:
+When an erasure is required, call the subject-key deletion API:
 
 <ChronicleClientTabs snippet="compliance/erasure/delete-key" />
 
-Deleting the subject's key removes every revision of the key, evicts it from every silo's cache, and records the erasure so that nothing puts the key back. The erasure covers every event store in the namespace you call it in, because an event store subscription can copy a subject's key into another store. It runs in two phases, fencing every store before destroying any key, and reports failures together as `EncryptionKeyErasureIncomplete`. A partial erasure is not an erasure: if the call throws, repeat it once the failing store is reachable.
+Deletion records the erasure, removes every revision of the subject's key and evicts cached keys across the cluster. The recorded erasure prevents normal provisioning or forwarding from recreating the key; it cannot prevent a storage restore from bringing back an older key store.
 
-**4. Check the result.** Read `person-42`'s events: they are still there with the same sequence numbers. The first and last names come back as empty strings and the department still holds its value.
+The call covers every event store in the namespace, because subscriptions can copy the subject's key between stores in that namespace. It first records an erasure fence in every store, then destroys the keys. Failures are reported together as `EncryptionKeyErasureIncomplete`. Treat that as incomplete work: repeat the call after the failures have been resolved.
 
-After the erasure, the subject is fenced, not banned. Appending a new `[PII]` value for `person-42` fails with `EncryptionKeyErased`. Chronicle does not silently create a new key or silently blank the value. If the person later has a lawful basis to be protected again, you authorize that deliberately with `AllowNewEncryptionKeyFor`. The new key protects data written from then on and decrypts nothing from before.
+Check the result by reading `person-42`'s events. They retain their sequence numbers. The names return as empty strings; the department retains its value. That check shows the behavior of these fields, not completion of erasure across your whole system.
+
+After erasure, appending a new `[PII]` value for `person-42` fails with `EncryptionKeyErased`. Chronicle does not silently create a key or blank a new value. If there is later a lawful basis to store the person's data again, .NET exposes `AllowNewEncryptionKeyFor` to authorize a fresh key on the next PII write. The new key cannot decrypt earlier ciphertext. Check your client's lifecycle API rather than assuming the same method is available everywhere.
 
 <Aside type="caution">
 The namespace is the boundary. In a multi-tenant deployment, the same person in two namespaces has two keys and counts as two subjects. Issue one erasure per namespace the person appears in.
@@ -121,7 +114,7 @@ For the mechanism behind the fence and what it cannot stop, read [The encryption
 
 ## Proving erasure happened
 
-A regulator or a customer can ask you to show that the erasure took place. Chronicle logs the completion of each erasure and of each new-key authorization at information level: the namespace, the event stores it reached, and the subject as a one-way binding rather than by name. That way a log aggregator, whose retention sits outside your deployment, does not end up holding the name of the person who asked to be forgotten. No key material is ever logged. An incomplete erasure produces a different message at error level, so it cannot be mistaken for a finished one.
+Keep evidence of both the key operation and the request it answered. Chronicle logs completed erasures and new-key authorizations at information level, including the namespace, the event stores reached and a one-way subject binding. Those messages do not include the subject identifier or key material. An incomplete erasure has a separate error-level message; do not treat it as completion.
 
 The binding is a pseudonym, not an anonymization. A small or guessable id space can be worked backwards.
 
@@ -131,14 +124,14 @@ Chronicle does not record who asked for the erasure or on what legal basis, beca
 
 This is not legal advice. Chronicle gives you a mechanism. Whether your use of it satisfies Article 17 depends on your data, your retention duties and your supervisory authority.
 
-Know what the mechanism does not do:
+Before closing a request, account for what key deletion does not reach:
 
-- **Restoring a backup** from before the erasure brings the key back and removes the fence. You need a restore procedure that re-applies erasures made since the backup.
-- **Unmarked values and unmarked read model properties** are stored in plain text and erasure does not touch them. Existing read model ciphertext stays in the store until you remove it.
-- **Copies outside Chronicle** are not reached: exported keys, application caches, database dumps, anything already decrypted or displayed.
-- **Values stored before you added `[PII]`** stay readable. Adding `[PII]` to an existing property encrypts new appends only. Redact earlier events if their plaintext must go.
-- **Causation properties are not encrypted** under the subject's key. Chronicle can omit new ones through configuration, but values already stored need separate handling.
-- **The event source id remains in clear text**, and so does every non-PII field. Whether what is left is still personal data is a legal question about your model.
+- A key-store backup from before erasure can restore the key and remove the fence. Reapply erasures made since the backup as part of the restore procedure.
+- Unmarked event and read model properties are not protected by PII key deletion. Existing read model ciphertext also remains until you remove it.
+- Exported keys and decrypted copies in application caches, search indexes, database dumps or other systems need separate handling.
+- Adding `[PII]` to an existing property encrypts subsequent appends, not earlier plaintext. Redact earlier events if that plaintext must go.
+- Causation property values are not encrypted under the subject's key. Configuration can omit new values, but does not remove those already stored.
+- Event source IDs and other unmarked metadata remain readable. Review whether they still identify the person.
 
 Open legal questions for your own review include whether deleting a key counts as erasure for your regulator, which Article 17(3) exceptions apply to your data, and how long backups may keep a key. For Cratis's own data handling, see the [trust page](https://cratis.no/trust/).
 
@@ -146,11 +139,11 @@ Open legal questions for your own review include whether deleting a key counts a
 
 ### Can event sourcing comply with GDPR?
 
-Yes, if you design for it. The log does not need to be rewritten if personal data is encrypted per person or kept outside the log. Compliance depends on the whole system, including read models, backups and copies, not on the event store alone.
+It can support a compliant design when personal data is encrypted per subject or kept outside the log. Compliance still depends on the whole system, including remaining identifiers, read models, backups and copies. An append-only log is neither a compliance guarantee nor an exemption from erasure.
 
 ### Is crypto-shredding GDPR compliant?
 
-There is no certification for a technique. Crypto-shredding makes personal data unreadable by destroying the key, which many teams treat as erasure. Whether a supervisory authority accepts that for your data is a question for your data protection officer or legal counsel.
+Crypto-shredding makes encrypted values unreadable by destroying all usable copies of their key. The technique alone does not establish GDPR compliance. Ask your data protection officer or legal counsel whether it meets the erasure requirement for your data and retention duties.
 
 ### What about events I wrote before I added encryption?
 
@@ -158,14 +151,12 @@ They stay as they were. Adding `[PII]` to an existing property applies to later 
 
 ### Do I have to delete projections too?
 
-Not by hand, if you marked them. Marking an event property `[PII]` does not mark the read model property it projects into, so mark that property too. Marked properties are stored encrypted and release as empty after erasure. Unmarked properties are stored in plain text and stay readable. Existing ciphertext remains in the read model store until you remove it, and a rebuild is refused for an erased subject.
+PII-marked read model properties release as empty values after key deletion; marking only the event property is not enough. Unmarked plaintext copies need separate cleanup. Projection and reducer replay can rebuild erased subjects without creating keys, but replaying over existing storage does not guarantee removal of stale documents or wrong-subject copies. Use a clean destination or an audited migration when those must be removed.
 
 ### Does this work outside .NET?
 
-The kernel does the encryption. The C#, Kotlin, Java, TypeScript and Elixir clients each have a PII marker and expose subject-key deletion. They differ elsewhere: Kotlin, Java and Elixir do not expose the call that authorizes a new key, and marker placement coverage varies. The [PII page](/chronicle/compliance/pii/) and [where the clients differ](/chronicle/clients/where-the-clients-differ/) have the details. The tabs above show each client's marking, append and erasure APIs.
+The C#, Kotlin, Java, TypeScript and Elixir clients expose PII marking and subject-key deletion; the kernel performs encryption. That does not imply matching marker placement, lifecycle calls or erasure metadata across clients. For example, Elixir exposes new-key authorization, while Kotlin and Java do not. The [PII page](/chronicle/compliance/pii/) and [where the clients differ](/chronicle/clients/where-the-clients-differ/) explain the differences; use your client's tab above for marking, append and erasure syntax.
 
 ## Next steps
 
-- Read [Compliance in Chronicle](/chronicle/compliance/) for the overview.
-- See where compliance sits across the stack in [Auth and compliance end to end](/auth-and-compliance/).
-- Follow the [Chronicle tutorial](/chronicle/tutorial/) if you have not appended an event yet.
+Continue with [Compliance in Chronicle](/chronicle/compliance/) to plan the implementation, or [Auth and compliance end to end](/auth-and-compliance/) to trace responsibilities across the stack. If you have not appended an event yet, start with the [Chronicle tutorial](/chronicle/tutorial/).

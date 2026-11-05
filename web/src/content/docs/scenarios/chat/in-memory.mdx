@@ -1,14 +1,16 @@
 ---
 title: Real-time chat with an in-memory backend
-description: Build a live multi-room chat backed by an in-memory service, with an Arc observable query, a command, and a React component.
+description: Build a real-time chat with Arc observable queries and React. Keep room history in memory, send messages with a command, and let use() apply deltas.
 ---
 
 import YouWillLearn from '@components/YouWillLearn.astro';
 import Recap from '@components/Recap.astro';
 
-This guide builds a real-time chat room backed entirely by an in-memory service. It demonstrates the core observable query pattern: the frontend subscribes once and receives updates as they arrive, with no polling and no manual WebSocket setup.
+Use an Arc observable query to keep a React chat room up to date without polling. This guide stores messages in the server process: joining a room delivers its current history, and sending a message updates the browsers subscribed to it.
 
-The backend is shown in C#, Kotlin, Java, and TypeScript. Arc for TypeScript is a source preview: no package is published to npm, and it does not have full parity with Arc on .NET. [How the backends differ](/scenarios/chat/#how-the-backends-differ) summarizes the per-language differences this guide explains.
+Start with an Arc backend and a React app using the `<Arc>` provider. The room history is shared within one server process, not across instances, and disappears when that process restarts. Rooms and their histories stay in memory after the last browser leaves; this sample has no eviction policy.
+
+The backend is shown in C#, Kotlin, Java, and TypeScript. No Arc for TypeScript backend package is published to npm, and it does not have full parity with Arc on .NET. [How the backends differ](/scenarios/chat/#how-the-backends-differ) summarizes the per-language differences this guide explains.
 
 <YouWillLearn title="What you'll build">
 
@@ -33,42 +35,39 @@ This is the C# layout. Kotlin and TypeScript keep the same two backend files as 
 
 ## Step 1 — The backend
 
-The backend has four pieces:
+A `ChatRoom` keeps its message history in a source that subscribers can observe. That source also holds the current value, so joining mid-conversation does not need a separate history request. `ChatService` creates rooms by name and returns the same room on later requests.
 
-- **The room** keeps its history in an observable source that always has a current value. A new subscriber receives that value first, which is how a client joining mid-conversation gets the history without a separate call.
-- **The chat service** is one instance for the whole application. It creates a room the first time its name is used and returns the same room afterwards.
-- **The read model and its query** describe a chat message and expose the room's source as an observable query. Arc calls the query once per subscriber, passes the room name from the request and supplies the chat service from the application's services.
-- **The command** sends a message to a room. The room appends it and publishes the new history, and every subscriber of that room receives it.
+`ChatMessage` is the read model, the data the frontend displays. Its `ForRoom` query exposes the room's history to Arc. The `SendMessage` command changes that history: its handler appends a message, and the room publishes a new list to its subscribers.
 
 <ArcBackendTabs snippet="scenarios/chat/in-memory/backend" />
 
 ### What is happening here?
 
-**The source with a current value** is the only part that differs by backend:
+Each backend uses a source that supplies the current history to a new subscriber:
 
-- **C#**: a `BehaviorSubject<IEnumerable<ChatMessage>>` from System.Reactive.
-- **Kotlin**: a `MutableStateFlow<List<ChatMessage>>`, returned from the query as a `Flow`.
-- **Java**: Arc's `ObservableState<List<ChatMessage>>`, returned as a `Flow.Publisher`.
-- **TypeScript**: an RxJS `BehaviorSubject<ChatMessage[]>`.
+- C#: a `BehaviorSubject<IEnumerable<ChatMessage>>` from System.Reactive.
+- Kotlin: a `MutableStateFlow<List<ChatMessage>>`, returned from the query as a `Flow`.
+- Java: Arc's `ObservableState<List<ChatMessage>>`, returned as a `Flow.Publisher`.
+- TypeScript: an RxJS `BehaviorSubject<ChatMessage[]>`.
 
 Because the source has a current value, every new subscription starts from the room's history. Arc for Kotlin, Java and TypeScript also answers a one-off `GET` of the query from that value instead of reporting that no result is ready yet.
 
-**`Send`** appends the message and publishes a copy of the complete list. Sending the whole list keeps the backend straightforward; Arc sends each subscriber only what changed (see [Step 2](#step-2--delta-mode)). The C#, Kotlin and Java rooms serialize concurrent sends, so two messages sent at once both end up in the history. TypeScript runs one handler at a time on its event loop.
+`Send` appends the message and publishes a copy of the complete list. Sending the whole list keeps the backend straightforward; Arc sends each subscriber only what changed (see [Step 2](#step-2--delta-mode)). The C#, Kotlin and Java rooms serialize concurrent sends, so two messages sent at once both end up in the history. TypeScript runs one handler at a time on its event loop.
 
-**The query** returns the room's source:
+The query's return contract differs by backend:
 
 - **C#** creates a relay `BehaviorSubject` for each subscriber, seeded with the room's current history. `Observable.Using` subscribes the relay to the room when Arc subscribes to the query and disposes that subscription when the client leaves, so relays do not pile up on the room. With direct mode (`queryDirectMode` on `<Arc>`), when Arc for C# fails to deliver to a WebSocket subscriber, it calls `OnError` on the subject the query returned, so the relay keeps one subscriber's failure away from the shared room. The default multiplexed connection reports a failed subscription to the client instead.
 - **Kotlin, Java and TypeScript** return the room's source directly. Arc subscribes to it and unsubscribes when the client leaves; it never publishes into it.
 
-**The query parameters** are told apart the way each backend binds them. `roomName` is a query argument; `ChatService` comes from the application's services. C# resolves a parameter from dependency injection when its type is a registered service, so `ChatService` must be registered. Kotlin and Java mark the service parameter `@FromServices`, and TypeScript lists `argument('roomName', String)` and `service(ChatService)` in `@query`.
+The query has two kinds of parameters. `roomName` is a query argument; `ChatService` comes from the application's services. C# resolves a parameter from dependency injection when its type is a registered service, so `ChatService` must be registered. Kotlin and Java mark the service parameter `@FromServices`, and TypeScript lists `argument('roomName', String)` and `service(ChatService)` in `@query`.
 
-**The chat service** must be a single instance, or each request would see its own rooms:
+Register the chat service as a single instance, or each request would see its own rooms:
 
 - **C#**: register it with `builder.Services.AddSingleton<ChatService>();` in `Program.cs`.
 - **Kotlin and Java**: `@Component` makes it a Spring singleton.
 - **TypeScript**: `@singleton()` registers it when the application discovers the module.
 
-**`ChatMessageId`** gives every message an `Id`. Arc uses a property named `Id` (in any case) to compute what changed between two emissions, as the next step explains.
+`ChatMessageId` gives every message an `Id`. Arc uses a property named `Id` (in any case) to compute what changed between two emissions, as the next step explains.
 
 The Kotlin and Java query and command are marked `@AllowAnonymous` because Arc on the JVM requires an authenticated caller by default; the C# and TypeScript versions have no authorization rules.
 
@@ -84,9 +83,7 @@ The message `id` is a `Guid` in every backend's proxy. The frontend below only t
 
 ## Step 2 — Delta mode
 
-Arc observable queries use **delta mode by default**. Knowing what it sends helps you reason about what crosses the network.
-
-**What happens on each emission:**
+Arc observable queries use delta mode by default. An emission is a value published by the room; here, each value is a complete history. Arc compares those values so it can send a smaller update over the network.
 
 | Emission | What is sent |
 | -------- | ------------ |
@@ -95,11 +92,11 @@ Arc observable queries use **delta mode by default**. Knowing what it sends help
 
 The `use()` hook applies each `ChangeSet` transparently. `messagesResult.data` always holds the full current collection — the React component never sees raw deltas.
 
-**How Arc computes the ChangeSet.** The server compares each emission with the previous one it sent to that subscriber, matching items by their `Id`. An item with a new `Id` is added, a missing `Id` is removed, and an `Id` whose content changed is replaced. Because `ChatMessage` has an `Id` and messages never change, each new message arrives as one item in `added`, however long the history is.
+The server compares each emission with the previous one it sent to that subscriber, matching items by their `Id`. A new `Id` is added, a missing `Id` is removed, and an `Id` whose content changed is replaced. In this append-only sample, a single new message produces one item in `added`. If a subscriber observes several new messages in one update, they appear together in `added`.
 
 The `Id` matters. Without an `Id` property, Arc for C# sends the full collection on every emission and logs a warning, and Arc for Kotlin, Java and TypeScript compare items by their JSON instead, which cannot report a replaced item.
 
-The server still builds and compares the whole list on every message. That is cheap for a chat room; the [Incremental Pushes](/scenarios/chat/incremental-pushes/) guide shows a backend that emits only new messages.
+The server still copies and compares the growing list. The [incremental pushes guide](/scenarios/chat/incremental-pushes/) explores a backend that emits only new messages after the initial history, including the trade-off that creates in delta mode.
 
 :::note[Full mode]
 To send the complete collection on every emission (useful during debugging), set `observableQueryTransferMode={ObservableQueryTransferMode.Full}` on the `<Arc>` provider. Delta mode is the default and is recommended for production.
@@ -230,11 +227,11 @@ export const ChatRoomPage = () => {
 
 ### What is happening here?
 
-**`ForRoom.when(joinedRoom.length > 0).use({ roomName: joinedRoom })`** — `.when(condition)` prevents the subscription from opening until the user has joined a room. Once `joinedRoom` is set, Arc opens the subscription. The component immediately receives the room's full history as the first push. Every subsequent `SendMessage` command — from any user in that room — triggers a new push, and `messagesResult.data` updates automatically.
+`ForRoom.when(joinedRoom.length > 0)` keeps the query disabled until the user joins. Then `use({ roomName: joinedRoom })` subscribes, receives the history, and updates `messagesResult.data` as messages arrive. The hook handles subscription cleanup when the component unmounts; the shared room and its history remain in `ChatService`.
 
-**`setSendValues` then `execute()`** — `setSendValues` updates the command object with the room name, user name, and message text. `sendCommand.execute()` sends the HTTP POST. On the server, the command's handler sends the message to the room, the room publishes the new history, and every subscriber receives it — including this browser.
+`setSendValues` puts the room, user, and message text on the command object. `sendCommand.execute()` sends the HTTP POST. The handler updates the room, so this browser receives its own message through the same subscription as everyone else.
 
-**Messages are keyed by `id`**, which stays stable as messages arrive, so React keeps each rendered message in place. `String(msg.id)` works whether the proxy types the `id` as a `Guid` or a string.
+React keys each rendered message by its stable `id`. `String(msg.id)` supplies the string key without depending on how the generated proxy represents the identifier.
 
 ## Summary
 
@@ -252,6 +249,6 @@ export const ChatRoomPage = () => {
 
 <Recap>
 
-You built a chat room whose history lives in memory and reaches every subscriber through an observable query, with Arc sending only what changed. Next, [load the history from storage and fan messages out over RabbitMQ](/scenarios/chat/rabbitmq/).
+Join the same room in two browser windows and send a message from each. Both should show the current conversation. To deliver messages between server instances, continue with [storage-backed history and RabbitMQ](/scenarios/chat/rabbitmq/).
 
 </Recap>

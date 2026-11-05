@@ -1,37 +1,35 @@
 ---
-title: Studio
-description: Cratis Studio is a collaborative environment for designing, visualizing, and editing Screenplay event models. It is a paid Preview product; public sign-up is not open yet.
+title: "Cratis Studio: collaborative event modeling"
+description: Cratis Studio is a paid workspace for collaborative event modeling with Screenplay. Design commands, events, read models, specifications, and screens.
 tableOfContents: false
 ---
 
 import TopicHero from '@components/TopicHero.astro';
-import StackDiagram from '@components/StackDiagram.astro';
 import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
 
-<TopicHero icon="pencil" eyebrow="Studio · Preview" title="Model your domain before you build it">
-Studio is a shared place to design, visualize, and edit [Screenplay](/screenplay/) event models: the commands people issue, the events they produce, and the read models people look at. Studio is a paid Preview product at [app.cratis.studio](https://app.cratis.studio). Public sign-up is not open yet. Contact Cratis through [cratis.studio](https://cratis.studio) with questions about access.
-</TopicHero>
+Cratis Studio is a collaborative workspace for developers, domain experts, and product owners to design an application's behavior before implementing it. Teams edit [Cratis Screenplay](/screenplay/) event models together: commands describe what people want to do, events record what happened, and read models describe the views people need. Studio is a paid product built on Cratis Chronicle and an optional part of Cratis Platform.
 
-<Aside type="caution" title="Experimental application generation">
-Stage, Scene, and Prologue remain experimental and in early development.
-The stable path for building applications today is [Arc](/arc/) and
-[Chronicle](/chronicle/) directly.
-</Aside>
+<TopicHero icon="pencil" eyebrow="Studio" title="Model your domain before you build it">
+[Start a 14-day free trial](https://lobby.cratis.studio/register) to work on a shared model, or [open Studio](https://app.cratis.studio) if you already have an account. Sign-up is open; [pricing is per seat](https://cratis.studio/#pricing).
+</TopicHero>
 
 ## Design before you build
 
-Teams often write the code first and discover the domain afterwards. By the
-time everyone agrees on what "an order" is, half of it has been built around a
-different idea. Event modeling turns that around: you map out *what happens* in
-the system as a shared picture before anyone commits to an implementation.
+Before implementing a feature, agree on what happens, who asks for it, and
+what they need to see afterwards. An event model puts those decisions in a
+shared picture. For an order, that means distinguishing the request to place
+it from the fact that it was placed and the view that shows its status.
 
-Studio is meant to be the canvas for that conversation, where developers, domain
-experts, and product owners work on the same model instead of trading
-diagrams.
+Studio keeps that conversation in a shared canvas with live editing, presence,
+and cursors. Organize commands, events, and read models into slices, then keep
+their specifications and screen designs beside them. The model remains a
+Screenplay model rather than a separate diagram to translate later.
 
 <span id="what-studio-will-do"></span>
 
-## What Studio works with
+<span id="what-studio-works-with"></span>
+
+## What can you model in Cratis Studio?
 
 <CardGrid>
     <Card icon="random" title="Event brainstorming">
@@ -45,39 +43,66 @@ diagrams.
     <Card icon="puzzle" title="Projections">
         Which events feed which read model, visible in the model itself.
     </Card>
+    <Card icon="pencil" title="Screens">
+        Design slice screens with UI profiles, templates, application menus,
+        and desktop and mobile views.
+    </Card>
+    <Card icon="list-format" title="Specifications">
+        Keep Given/When/Then specifications beside slices, including successful
+        and rejected outcomes and query scenarios.
+    </Card>
     <Card icon="comment-alt" title="Agents over MCP">
         An organization's agents can read and change its event models through
-        Studio's own MCP server.
+        Studio's own Model Context Protocol (MCP) server.
     </Card>
 </CardGrid>
 
-Rendering a model into a running application is [Stage](/screenplay/faq/#what-are-stage-and-studio)'s
-job. Stage remains experimental, so treat generated output as
-something to review, not as finished production code.
+<Aside type="tip" title="Use the model in Play">
+Press Play to send a modeled command and inspect the resulting state in an
+application powered by [Stage](/stage/). The isolated session runs supported
+model behavior and executable specifications, with a rendered frontend, backend
+OpenAPI reference, read-model browser, and Chronicle Workbench. Its event store
+is in memory: this is a disposable sandbox, not a production deployment or a
+production operations console. To run a Screenplay locally, follow the
+[Stage Docker walkthrough](/stage/docker/) and bind published ports to `127.0.0.1`.
+</Aside>
+
+## Generate implementation code
+
+When you are ready to implement a slice or feature, inspect its planned code
+before starting a generation job. Then follow the job's progress and results.
+This path produces code you can review and develop, separately from the sandbox
+session. Local Git operation does not require a GitHub connection.
+
+To use AI features, your organization must configure a reachable model provider
+and an agent. Studio supplies no AI model of its own, and AI features stay off
+until that setup is complete. The Static + AI mode adds implementation to models
+that already render statically; it cannot fill required implementation gaps.
+Review and test the generated output, then complete the integrations and
+deployment your application needs.
 
 ## Where it fits
 
-Studio is an **independent top layer**. You can use it to model an event-driven
-system without adopting the rest of the stack. With the Cratis Stack, the model
-describes the commands, events, and projections you build with
-[Arc](/arc/) and [Chronicle](/chronicle/).
+Studio is built on [Chronicle](/chronicle/) and adds a shared modeling workspace
+to Cratis Platform. Adopting Studio is not required to build with Chronicle,
+[Arc](/arc/), or [Components](/components/). You can also use Studio to model an
+event-driven system without adopting those tools for your application.
 
-<StackDiagram current="studio" />
-
-Studio sits at the *front* of development: design and agree on the model there,
-then build. To *inspect and operate* a system that is already running, use the
-[CLI](/cli/) and the Chronicle Workbench.
+For application code, continue with [Build a full-stack feature](/build-a-full-app/)
+to see how a command, event, read model, query, and React screen connect. To
+inspect and operate a deployed Chronicle system, use the [CLI](/cli/) and the
+Chronicle Workbench.
 
 <span id="until-then"></span>
 
 ## What you can use today
 
-- Studio is a paid Preview product at [app.cratis.studio](https://app.cratis.studio).
-  Public sign-up is not open yet; contact Cratis through
-  [cratis.studio](https://cratis.studio) about access.
+- [Start a 14-day free trial](https://lobby.cratis.studio/register), then use
+  [Studio](https://app.cratis.studio). See [per-seat pricing](https://cratis.studio/#pricing)
+  and the [service terms](https://cratis.studio/terms-and-conditions.html).
 - Write a model as text with [Screenplay](/screenplay/getting-started/), which
   Studio edits.
-- New to event modeling? Read [Event modeling](/event-modeling/) and work
-  through the [Chronicle tutorial](/chronicle/tutorial/).
+- New to event modeling? Read [Event modeling](/event-modeling/) for the notation.
+  To implement events and projections, continue with the [Chronicle tutorial](/chronicle/tutorial/).
 - Model the Cratis way by hand with [vertical slices](/arc/vertical-slices/) and
   [modeling events](/chronicle/concepts/modeling-events/).

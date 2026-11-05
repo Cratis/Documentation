@@ -1,15 +1,13 @@
 ---
-title: Work with us
-description: Work directly with the people who build Cratis — event modeling, adoption, architecture review, implementation help, AI-ready foundations, and training.
+title: Work with Cratis maintainers
+description: Contact Cratis maintainers for a scoped model workshop, architecture review, first slice, or training, with deliverables and availability agreed up front.
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
-The way software gets built is changing. Assistants now write, refactor, and review a growing share of the code, and teams ship faster than their architecture was designed to absorb. What survives that pressure is an explicit model: facts the system actually recorded, intent the code states out loud, and conventions a new developer and an AI agent can both follow without guessing.
+You can work directly with Cratis maintainers to review an architecture, model a business workflow, or build a first slice alongside your team. Dedicated work is scoped and paid, with deliverables and availability agreed before it starts. Use [community help](/community/) for questions you can discuss publicly without a response deadline.
 
-That is what Cratis is built for, and it is what we help teams build.
-
-We maintain Chronicle, Arc, Components, and the rest of the stack. If you are evaluating event sourcing, adopting Cratis, or trying to get an existing system into a shape you can move quickly in, you can work with us directly.
+An engagement should resolve a specific decision or leave your team with something it can use: a reviewed model, an adoption plan, or a bounded implementation. Describe the decision you face and the result you need; you do not need a finished design to start a conversation.
 
 <CardGrid>
   <LinkCard title="Contact us" description="Email the Cratis maintainers with your context, the kind of help you need, and the timeframe." href="mailto:oss@cratis.io?subject=Working%20with%20Cratis" />
@@ -19,42 +17,36 @@ We maintain Chronicle, Arc, Components, and the rest of the stack. If you are ev
 
 ## If you need help
 
-You do not need a finished design or an approved budget to start a conversation. These are the moments teams usually reach out:
+You might be deciding whether event sourcing fits your system or choosing the first Cratis feature to adopt. A review can also help when your read models, the views built from recorded events, no longer answer the business's questions.
 
-- **You are evaluating event sourcing** and want an honest answer about whether it fits your system — including the cases where it does not.
-- **You are adopting Cratis** and want the first slices modeled right, because the early ones set the pattern everything after them copies.
-- **Your model has drifted** — projections that no longer answer the questions the business asks, or events that record mechanics instead of facts.
-- **You want a codebase agents are productive in**, with conventions and analyzers that keep generated code on the rails instead of quietly off them.
-- **You need a second opinion before you commit** to consistency boundaries, tenancy, storage, or a migration path.
-- **Your team knows the framework but not the modeling.** The syntax is learnable in a week. The modeling is the part worth teaching.
+If the team needs to learn together, a workshop can use your domain to work through commands, events, and the views people need. For implementation help, identify one slice: a bounded business feature that the team can build and use as a pattern for later work.
 
 ## What we can help with
 
-| Need | What it looks like | What you end up with |
+| Need | Work to discuss | Possible agreed deliverable |
 |---|---|---|
-| Event modeling | A working session over your domain — commands, events, read models, and boundaries on a shared canvas | An event model your team agrees on, and the slices to build first |
-| Cratis adoption | Slice selection, product choice, and a path from the system you run today | A sequenced adoption plan with the first slice specified |
-| Architecture review | A read of your model, consistency boundaries, tenancy, storage, and failure modes | A written review with the risks ranked and the fixes named |
-| Implementation help | Pairing, pull-request guidance, or focused development on a bounded slice | Working slices in your codebase, built the way the stack intends |
-| AI-ready foundations | Conventions, analyzers, and Cratis AI guidance set up so assistants build to your standards | A repository where developers and agents follow the same rails |
-| Teaching event sourcing | Domain events, consistency, projections, replay, versioning, and the operational trade-offs | A team that can model without us in the room |
-| Teaching the stack | Chronicle, Arc, Components, and the CLI, taught through the full-stack loop | A team productive in the stack without shadowing someone |
-| Production readiness | A review of TLS, storage, secrets, deployment, observability, replay, and backup plans | A checked list of what must be true before you go live |
+| Event modeling | A working session over your domain: commands, events, read models, and boundaries | A reviewed event model and candidate slices to build first |
+| Cratis adoption | Slice selection, component choice, and a path from the system you run today | A sequenced adoption plan with the first slice specified |
+| Architecture review | A review of selected system boundaries and failure modes | A written review with risks ranked and recommended changes |
+| Implementation help | Pairing or focused development on a bounded slice alongside your team | A first slice in your codebase with the pattern explained |
+| AI-ready foundations | Repository conventions, analyzers, and Cratis AI guidance | Repository instructions and checks for developers and assistants |
+| Teaching event sourcing | Domain events, consistency, projections, replay, versioning, and operational trade-offs | A workshop applying those concepts to your domain |
+| Teaching the stack | Relevant Cratis components taught through a feature | A guided implementation your team can study and extend |
+| Production readiness | A scoped review of deployment, security, observability, replay, and recovery plans | Findings and follow-up actions, not a certification or guarantee |
 
 ## Building for the AI age
 
-There is a reason we lead with the model rather than the tooling. An assistant is only as good as the structure it works inside: give it a vague codebase and it produces vague code, faster. Give it recorded facts, typed contracts that span the stack, and conventions a compiler or analyzer can check, and its output starts landing inside the lines.
+If your team uses coding assistants, make the repository's expectations explicit. Cratis AI rules and skills provide instructions for assistants; analyzers check specific code patterns. Cratis Arc generates TypeScript clients from recognized backend contracts, so the frontend does not need a separately handwritten copy of those contracts.
 
-Cratis ships that structure. Generated proxies break the build when a contract drifts, analyzers catch the shapes that are wrong before review does, and the Cratis AI rules and skills are written to be read by assistants directly. A large part of any engagement is putting those rails in place, so that moving faster does not quietly cost you the model.
+An AI-ready foundations engagement can focus on the instructions and checks your repository needs. These tools do not establish that generated code is correct: your team still owns review, tests, and the decision to ship.
 
 For what this looks like in the products themselves, see [AI-native development](/ai/), [Cratis AI skills and plugins](/plugins/), and [code analysis](/code-analysis/).
 
 ## How we work
 
-- **Start with a conversation.** Describe the context and what you need. We will tell you whether we are the right fit, and say so plainly when we are not.
-- **Scoped and time-boxed.** A workshop, a review, or a bounded piece of development with an agreed outcome — not an open-ended retainer.
-- **Private when it needs to be.** Your domain, your code, and your roadmap stay yours.
-- **Open when it does not.** If the answer would help everyone, it belongs in the documentation or in Discord, and that is where we would rather put it.
+Start with a conversation about fit. Before work begins, agree the scope, deliverable, price, and timeframe in writing. For dedicated support, the signed agreement defines availability, response targets, points of contact, and escalation; an inquiry alone does not establish those commitments.
+
+Agree confidentiality and access arrangements before sharing private code or domain material. Questions that can be answered publicly can stay in Discord or become documentation improvements without a paid engagement.
 
 ## What to include when you contact us
 
@@ -68,11 +60,9 @@ Enough context for us to tell you honestly whether we can help:
 
 ## When we are not the right fit
 
-Being direct about the limits saves everyone a meeting:
+For questions you can discuss publicly, start with [Community and help](/community/). For a suspected vulnerability, use the private reporting route in [Security](/security/), not an engagement inquiry or a public thread.
 
-- **The question can be answered in public.** [Community and help](/community/) is free and open.
-- **You found a vulnerability.** Use [Security](/security/) for responsible disclosure instead.
-- **You want a general .NET or React consultancy.** We work on the model, the stack, and the architecture around them.
+Dedicated work focuses on the model, Cratis components, and the architecture around them. It is not a general .NET or React consultancy or a replacement for your development team. Implementation help is bounded work alongside your team, not a commitment to build and maintain the whole product.
 
 <Aside type="note" title="Availability is finite">
 We build and maintain Cratis, so engagements depend on availability, fit, and the relevant consultancy, employer, and conflict-of-interest arrangements. Community support on Discord stays open and best-effort regardless.
@@ -80,6 +70,6 @@ We build and maintain Cratis, so engagements depend on availability, fit, and th
 
 ## Contact us
 
-Email [oss@cratis.io](mailto:oss@cratis.io?subject=Working%20with%20Cratis) with a subject that starts with `Working with Cratis`, and include the context above. We will come back to you on whether we can help, what shape the work would take, and when we could start.
+Email [oss@cratis.io](mailto:oss@cratis.io?subject=Working%20with%20Cratis) with a subject that starts with `Working with Cratis`, and include the context above. Keep the first message to a summary without credentials, personal data, or confidential attachments. The conversation can then establish fit, scope, and possible start dates.
 
 If you are still deciding where to begin, [Adopting Cratis](/adopting-cratis/) lays out the paths from an existing system, and [Learning paths](/learning-paths/) routes you through the documentation by role.

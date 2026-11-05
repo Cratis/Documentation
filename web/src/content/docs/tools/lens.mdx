@@ -1,15 +1,11 @@
 ---
-title: Lens (browser extension)
-description: Cratis Lens is a browser extension for developing Arc apps. It detects a running Arc app, browses and executes its commands and queries, shows observable-query diagnostics, and switches the active user and tenant from a popup.
+title: Cratis Lens — inspect and exercise Arc apps
+description: Cratis Lens runs Arc commands and queries from your browser, inspects query diagnostics, and selects development users and tenants for requests.
 ---
 
-import { Aside, Card, CardGrid, Steps } from '@astrojs/starlight/components';
-import SimpleCard from '@components/SimpleCard.astro';
-import TopicHero from '@components/TopicHero.astro';
+import { Aside, Steps } from '@astrojs/starlight/components';
 
-<TopicHero icon="seti:html" eyebrow="Tools" title="Your Arc app, inspectable in the browser">
-You're testing an Arc app in the browser and you want to fire a command with a specific payload, or check what a query returns for a different tenant, without writing a throwaway page. **Cratis Lens** is a browser extension for exactly that: it detects the running Arc app in your current tab, lets you browse its commands and queries by namespace, run them with a structured form, and switch the active user and tenant on the fly.
-</TopicHero>
+Cratis Lens is a browser extension for exercising a running Cratis Arc app's commands and queries with development users and tenants. Use it when you need to send a specific payload or compare query results between tenants without building a throwaway page. Commands run against the connected backend and can change its data, so choose an app and test identities you intend to use for development.
 
 ## What it does
 
@@ -17,51 +13,61 @@ Lens opens as a popup with five tabs. When the current tab is a running Arc
 application, Lens detects it and enables the command, query, and diagnostics
 tabs; on any other page only Context and Settings are available.
 
-<CardGrid>
-  <Card title="Context" icon="seti:lock">
-    Choose the active user and tenant for this browser profile. Lens adds them as request headers when the app calls its backend.
-  </Card>
-  <Card title="Commands" icon="rocket">
-    Browse the app's commands by namespace and execute them with a schema-driven form; see the formatted result or validation errors.
-  </Card>
-  <Card title="Queries" icon="list-format">
-    Browse queries by namespace and perform them, with results shown in a table.
-  </Card>
-  <Card title="Query Diagnostics" icon="analytics">
-    Watch live observable-query health: transport, multiplexer, and cache state.
-  </Card>
-  <Card title="Settings" icon="setting">
-    Manage users and tenants by hand, or sync them from the connected Arc app.
-  </Card>
-</CardGrid>
+Choose a user and tenant in **Context**, then open **Commands** or **Queries**.
+Both group the app's operations by namespace. Commands use a form built from
+the command's schema and show the result or validation errors. Queries accept
+parameters and show returned data in a table. Lens discovers these operations
+through `/.cratis/commands` and `/.cratis/queries` on the detected backend.
 
-Lens is a Manifest V3 extension built with React, Vite, and PrimeReact. It
-discovers the command and query catalog through the Arc backend's
-`/.cratis/commands` and `/.cratis/queries` endpoints.
+If an observable query stops updating, open **Query Diagnostics** to inspect
+its connection health, transport, shared connection (the multiplexer), and
+cache state. Use **Settings** to add development identities or refresh the
+users and tenants supplied by the app.
+
+Lens detects the backend address from the running page's Arc context and saves
+it with the page origin. Open the popup on the intended app before running an
+operation; if detection fails, the command, query, and diagnostics tabs stay
+disabled. Lens does not read Chronicle CLI connection contexts.
 
 When you switch user or tenant, Lens clears Arc's `.cratis-identity` cookie for
-the configured origins and reloads the matching tabs, so the next request is
-authenticated as the person you picked. The tenant goes in the
-`x-cratis-tenant-id` header, which is Arc's default tenant header.
+the detected backend and page origins and reloads matching tabs. This lets the
+next request establish a new identity instead of reusing the previous cookie.
+Lens sends the tenant in `x-cratis-tenant-id` by default and the selected user's
+identity in `x-ms-client-principal`, `x-ms-client-principal-id`, and
+`x-ms-client-principal-name` headers.
+
+<Aside type="caution" title="A selection is shared across the browser profile">
+Lens stores one active user and tenant for the browser profile, not one per tab.
+Its header rules match XMLHttpRequest/fetch traffic initiated by the detected
+page's hostname; without a page origin, they match the backend host. Closing
+the popup does not remove those rules. Clear both selections in Context or
+disable the extension when you finish.
+
+These are simulated request headers, not a login or an authorization bypass.
+The backend must accept the identity format and resolve the tenant header.
+Arc's .NET host ignores unsigned forwarded identity headers by default. Do not
+enable trust in client-supplied headers on a publicly reachable backend to make
+Lens impersonation work; follow the development setup linked below.
+</Aside>
 
 ## Where the tenant and user roster comes from
 
-The **Settings** tab's "sync from the connected Arc app" roster is not
-configuration Lens invents on its own. It reads two endpoints every Arc
-application exposes: `GET /.cratis/tenants` and `GET /.cratis/users`. A backend
-answers them by implementing `ICanProvideTenants` and `ICanProvideUsers` in C#,
-or the equivalent `TenantsProvider`/`UsersProvider` in Kotlin and Java. Multiple
-providers can be registered at once; Arc merges their results. Without a
-provider registered, both endpoints return an empty array, and Lens shows no
-`Arc`-tagged entries until you add one or create a custom entry of your own.
+Lens requests `GET /.cratis/tenants` and `GET /.cratis/users` from the detected
+backend. In C#, supply their data through `ICanProvideTenants` and
+`ICanProvideUsers`. The Kotlin/Java Spring Boot integration uses
+`TenantsProvider` and `UsersProvider`, including adapters for asynchronous Java
+providers. Each host can combine multiple providers. A successful response
+with no registered providers is an empty array, so there are no backend-supplied
+entries to select.
 
-<Aside type="caution" title="These endpoints are anonymous in every environment">
-Arc maps `/.cratis/users` and `/.cratis/tenants` without authentication, and it
-does not check whether the app runs in development. Anything your providers
-return is readable by anyone who can reach the app. Keep them to development
-data, and make sure they return nothing in production, for example by not
-shipping them in production builds or by checking the environment inside the
-provider.
+<Aside type="caution" title="Discovery access depends on the host">
+In Arc's .NET host, discovery endpoints are anonymous in Development by default
+and require authentication elsewhere. Outside Development, they are not mapped
+if the host cannot enforce authentication. Explicit introspection settings can
+change access or disable discovery, so an unavailable roster does not necessarily
+mean there are no users. Keep provider data limited to development scenarios
+and check your host's access policy before exposing it. The Kotlin/Java guide
+below describes that integration's setup separately.
 </Aside>
 
 When you open the Lens popup on a page it recognizes as a running Arc
@@ -70,20 +76,17 @@ roster (each entry tagged `Arc`). You can also add entries by hand from Lens
 itself. Those are tagged `Custom` and survive even when the backend's own list
 changes or is temporarily unreachable.
 
-The screenshots below are the real extension, popped open against demo data:
-three users and two tenants, sourced from an Arc backend's providers exactly
-as `/.cratis/users` and `/.cratis/tenants` returned them.
+The screenshots show a roster with three demo users and two demo tenants.
 
 ### Context — the active user and tenant
 
 ![Lens Context tab showing the active user, Alice Developer, and the active tenant, ACME Corporation](lens-context.png)
 
-The **Context** tab is what you land on. It shows the currently active user
-and tenant for this browser profile, and lets you switch either one from a
-dropdown built from the merged roster. A switch takes effect immediately:
-every later request the inspected page makes carries the matching tenant
-header and identity headers, so the backend's tenant resolution and identity
-provider see the switch as they would from a real caller.
+The **Context** tab shows the active user and tenant for this browser profile.
+Choose either from the merged roster, or clear a selection to stop Lens adding
+its headers. Switching reloads matching tabs, so save any unfinished work in
+the app first. The backend still decides how to authenticate the request and
+which tenant's data it can access; a roster entry alone grants no access.
 
 ### Settings — the roster, tagged by source
 
@@ -106,11 +109,11 @@ time.
 
 ## Install from the Chrome Web Store
 
-The easiest way to install Lens is from the [Chrome Web Store](https://chromewebstore.google.com/detail/cratis-lens/hfdpoljbaknodcgejjohafbfjejijklj). Click **Add to Chrome** and the extension is ready to use.
+Open the [Chrome Web Store listing](https://chromewebstore.google.com/detail/cratis-lens/hfdpoljbaknodcgejjohafbfjejijklj) and choose **Add to Chrome**. Then navigate to your running Arc app and open the Lens popup so it can detect the backend and load its development roster. Check the active user and tenant in **Context** before executing a command.
 
 ## Install it (side-load)
 
-You can also build Lens from source and load it unpacked, which is useful for development or for trying unreleased changes. The source is at [github.com/Cratis/Lens](https://github.com/Cratis/Lens).
+To work on Lens itself or use a source change, build and load it as an unpacked Chrome extension. You need Node.js 20 or later, Yarn, and Chrome. The source is at [github.com/Cratis/Lens](https://github.com/Cratis/Lens).
 
 <Steps>
 
@@ -134,20 +137,11 @@ For an active edit loop, run `yarn dev` to rebuild on change, and reload the ext
 
 ## Where to go next
 
-<CardGrid>
-  <SimpleCard title="Queries in Arc" icon="puzzle" link="/arc/backend/csharp/queries/">
-    What Lens is browsing: how Arc exposes queries and observable queries over your read models.
-  </SimpleCard>
-  <SimpleCard title="Provide tenants & users (C#)" icon="seti:c-sharp" link="/arc/backend/csharp/identity/development-and-topologies/">
-    Implement `ICanProvideTenants` and `ICanProvideUsers` so Lens can discover and switch between them on your running app.
-  </SimpleCard>
-  <SimpleCard title="Provide tenants & users (Kotlin/Java)" icon="seti:kotlin" link="/arc/backend/kotlin/guides/development-users-and-tenants/">
-    Implement `TenantsProvider`/`UsersProvider`, or the async Java variants, for the same discovery contract.
-  </SimpleCard>
-  <SimpleCard title="Tenancy in Arc" icon="seti:lock" link="/arc/backend/csharp/tenancy/">
-    How this discovery seam relates to actual tenant resolution and isolation at request time.
-  </SimpleCard>
-  <SimpleCard title="VS Code extension (Narrator)" icon="laptop" link="/tools/vscode-extension/">
-    The editor-side companion: explore the Chronicle event store from VS Code.
-  </SimpleCard>
-</CardGrid>
+To populate the roster, follow [Provide tenants and users (C#)](/arc/backend/csharp/identity/development-and-topologies/)
+or [Provide tenants and users (Kotlin/Java)](/arc/backend/kotlin/guides/development-users-and-tenants/).
+Then use [Tenancy in Arc](/arc/backend/csharp/tenancy/) to connect the selected
+tenant to your backend's resolution and isolation rules.
+
+For the operations Lens discovers, read [Queries in Arc](/arc/backend/csharp/queries/).
+If you need to inspect the events recorded in Cratis Chronicle instead, use
+[the Narrator VS Code extension](/tools/vscode-extension/).

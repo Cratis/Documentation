@@ -2,14 +2,15 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 // Search-result quality checks over the synced documentation. Missing descriptions remain
-// warnings; duplicate browser titles within a top-level route section above the baseline fail
+// warnings; description lengths and duplicates warn unless SEO_STRICT_DESCRIPTIONS=1.
+// Duplicate browser titles within a top-level route section above the baseline fail
 // pull requests (SEO_LINT_ENFORCE=1) and warn elsewhere, so a deployment is never blocked.
 // Run with --update-baseline to record the current counts in seo-baseline.json.
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
-import { contextualTitle, hasDuplicateTitle, hubTitle, normalizedPageKey } from './page-metadata.mjs';
+import { contextualTitle, hasDuplicateTitle, hubTitle, normalizedPageKey, pageDescription } from './page-metadata.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const docsRoot = path.resolve(here, '../src/content/docs');
@@ -56,13 +57,52 @@ export function duplicateBrowserTitles(pages) {
     return [...groups.values()].filter(({ files }) => files.length > 1);
 }
 
-/** @param {{ file: string, data: object }[]} pages */
+function descriptionRows(pages) {
+    return pages.filter(({ file, data }) => data.draft !== true && normalizedPageKey({ id: data.slug ?? file }) !== '404')
+        .map(({ file, data, body }) => {
+            const id = normalizedPageKey({ id: data.slug ?? file });
+            const description = String(pageDescription(data, body, undefined, id)).trim();
+            return { file, description, length: Array.from(description).length, product: file.includes('/') ? file.split('/')[0] : 'site' };
+        });
+}
+
+function descriptionSummary(rows, duplicates) {
+    const duplicateFiles = new Set(duplicates.flatMap(([, group]) => group.map(({ file }) => file)));
+    const summary = new Map();
+    for (const row of rows) {
+        const count = summary.get(row.product) ?? { pages: 0, short: 0, long: 0, duplicates: 0 };
+        count.pages++;
+        count.short += Number(row.length < 120);
+        count.long += Number(row.length > 160);
+        count.duplicates += Number(duplicateFiles.has(row.file));
+        summary.set(row.product, count);
+    }
+    return Object.fromEntries([...summary].sort(([a], [b]) => a.localeCompare(b)));
+}
+
+function descriptionQuality(pages) {
+    const rows = descriptionRows(pages);
+    const groups = new Map();
+    for (const row of rows) {
+        const group = groups.get(row.description) ?? [];
+        group.push(row);
+        groups.set(row.description, group);
+    }
+    const duplicates = [...groups.entries()].filter(([, group]) => group.length > 1);
+    return {
+        invalidDescriptionLength: rows.filter(({ length }) => length < 120 || length > 160).map(({ file, length }) => ({ file, length })),
+        duplicateDescription: duplicates.map(([description, group]) => ({ description, files: group.map(({ file }) => file) })),
+        descriptionSummary: descriptionSummary(rows, duplicates),
+    };
+}
+
+/** @param {{ file: string, data: object, body?: string }[]} pages */
 export function analyse(pages) {
     const missingDescription = pages
         .filter(({ file, data }) => data.draft !== true && file !== '404.md'
             && (!data.description || fallbackDescription.test(String(data.description))))
         .map(({ file }) => file);
-    return { missingDescription, duplicateTitle: duplicateBrowserTitles(pages) };
+    return { missingDescription, duplicateTitle: duplicateBrowserTitles(pages), ...descriptionQuality(pages) };
 }
 
 function compareDuplicateTitles(count, baseline, enforce) {
@@ -77,8 +117,17 @@ function compareDuplicateTitles(count, baseline, enforce) {
     return count > 0 ? [{ level: 'warning', text: `${text}, at the baseline of ${baseline}.` }] : [];
 }
 
-export function compare(counts, baseline, enforce = process.env.SEO_LINT_ENFORCE === '1') {
-    return [...compareDescriptions(counts, baseline), ...compareDuplicateTitles(counts.duplicateTitle, baseline.duplicateTitle, enforce)];
+export function compare(counts, baseline, enforce = process.env.SEO_LINT_ENFORCE === '1', strictDescriptions = process.env.SEO_STRICT_DESCRIPTIONS === '1') {
+    return [...compareDescriptions(counts, baseline), ...compareDuplicateTitles(counts.duplicateTitle, baseline.duplicateTitle, enforce),
+        ...descriptionMessages(counts, strictDescriptions)];
+}
+
+function descriptionMessages(counts, strict) {
+    const level = strict ? 'error' : 'warning';
+    const messages = [];
+    if (counts.invalidDescriptionLength > 0) messages.push({ level, text: `${counts.invalidDescriptionLength} published pages have descriptions outside 120-160 characters.` });
+    if (counts.duplicateDescription > 0) messages.push({ level, text: `${counts.duplicateDescription} published pages share a description with another page.` });
+    return messages;
 }
 
 function compareDescriptions(counts, baseline) {
@@ -96,14 +145,22 @@ function compareDescriptions(counts, baseline) {
 async function main() {
     const pages = [];
     for await (const file of markdownFiles(docsRoot)) {
-        pages.push({ file: path.relative(docsRoot, file).replace(/\\/g, '/'), data: frontmatterOf(await fs.readFile(file, 'utf8')) });
+        const content = await fs.readFile(file, 'utf8');
+        pages.push({ file: path.relative(docsRoot, file).replace(/\\/g, '/'), data: frontmatterOf(content), body: content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '') });
     }
-    const { missingDescription, duplicateTitle } = analyse(pages);
+    const { missingDescription, duplicateTitle, invalidDescriptionLength, duplicateDescription, descriptionSummary } = analyse(pages);
     const counts = { missingDescription: missingDescription.length, duplicateTitle: duplicateTitle.reduce((count, { files }) => count + files.length, 0) };
     if (process.argv.includes('--update-baseline')) {
         await fs.writeFile(baselineFile, `${JSON.stringify(counts, null, 4)}\n`);
         console.log(`Wrote ${path.relative(process.cwd(), baselineFile)}: ${JSON.stringify(counts)}`);
         return;
+    }
+    counts.invalidDescriptionLength = invalidDescriptionLength.length;
+    counts.duplicateDescription = duplicateDescription.reduce((count, { files }) => count + files.length, 0);
+    for (const { file, length } of invalidDescriptionLength) console.warn(`  [description-length] ${file}  ${length} characters (expected 120-160)`);
+    for (const { description, files } of duplicateDescription) console.warn(`  [duplicate-description] ${JSON.stringify(description)}  ${files.join(', ')}`);
+    for (const [product, { pages: total, short, long, duplicates }] of Object.entries(descriptionSummary)) {
+        console.log(`SEO descriptions: ${product}: pages=${total} short=${short} long=${long} duplicates=${duplicates}`);
     }
     for (const file of missingDescription) console.warn(`  [description] ${file}  no authored or derivable description`);
     for (const { section, title, files } of duplicateTitle) console.warn(`  [title] ${section}: ${title}  ${files.join(', ')}`);

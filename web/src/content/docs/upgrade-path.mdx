@@ -1,36 +1,42 @@
 ---
-title: Plan an upgrade
-description: Pick the Chronicle version you are on and the one you are going to, and see every major boundary in between. Links to the migration guides for the other products.
+title: Plan a Cratis Chronicle upgrade
+description: Choose your current and target Chronicle versions to find API, stored-state, and wire changes, then follow the linked upgrade guides.
 ---
 
 import UpgradePath from '@components/UpgradePath.astro';
 
-Upgrading across one major is usually small. Upgrading across several is the union of every
-boundary between them, and the part you cannot defer is the boundaries that touch data you
-have already written.
+Before upgrading Cratis Chronicle, find out whether the change affects application code, stored data,
+or communication between the server and its clients. A version bump and rebuild may be enough for
+one boundary; another may require a stored-state migration. When crossing several majors, you need
+the instructions for every boundary between your current and target versions.
 
-The planner below covers **Chronicle**, which is the product with a major-version guide the site
-can read. Pick where you are and where you are going.
+Choose those versions below. This planner reads Chronicle's major-version guide; links for the other
+Cratis products follow it.
 
 <UpgradePath />
 
 ## How to read this
 
-**Compile-time** boundaries accumulate without interacting. However many you cross, you fix
-them once against the version you land on.
+A compile-time boundary changes an API your code uses. Fix the accumulated compile errors against
+the version you plan to run, rather than rebuilding your application at each intermediate version.
 
-**Stored state** boundaries are ordered. They concern data already written, and skipping past
-one does not skip its consequence. Where your path crosses one, take a backup you have
-restored from at least once before, and rehearse against a copy.
+A stored-state boundary concerns data already written. Follow these instructions in order: skipping
+an intermediate release does not skip its data changes. Before crossing one, take a backup, verify
+you can restore it, and rehearse the upgrade against a copy.
 
-**Wire** boundaries mean the kernel and the .NET client must move together. Chronicle verifies
-compatibility across every released minor of a major; that guarantee stops at a major
-boundary, which is what a major means. The TypeScript, Kotlin/Java, and Elixir clients have
-their own version numbers and check wire compatibility with the kernel when they connect; see
-[Version compatibility](/compatibility/#which-pairings-are-verified).
+A wire boundary changes the protocol between the Chronicle kernel (the server) and its clients.
+The kernel and .NET client must move together across these boundaries. For example, a 16-to-18
+upgrade crosses wire changes at both 16-to-17 and 17-to-18; read both entries before choosing a
+client version.
+
+Chronicle verifies compatibility across released minors within one major; crossing a major permits
+a protocol change. The TypeScript, Kotlin/Java, and Elixir clients have their own version numbers
+and check wire compatibility with the kernel when they connect. Check the pairings in
+[Version compatibility](/compatibility/#which-pairings-are-verified), not just matching version numbers.
 
 Each entry links to the full account in Chronicle's own upgrade guide, which is where this
-list comes from. Nothing here is maintained separately from the prose it summarizes.
+list comes from. Read that entry before changing a deployment; the planner summarizes it rather
+than replacing the instructions.
 
 ## Other products
 

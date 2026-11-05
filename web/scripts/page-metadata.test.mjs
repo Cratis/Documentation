@@ -108,7 +108,7 @@ describe('page metadata', () => {
         assert.equal(contextualTitle('Glossary', 'arc/glossary'), 'Glossary – Arc | Cratis');
         assert.equal(contextualTitle('Getting started', 'fundamentals/go/getting-started'), 'Getting started (Go) – Fundamentals | Cratis');
         assert.equal(contextualTitle('Overview', 'cli'), 'Overview – CLI | Cratis');
-        assert.equal(contextualTitle('Glossary', 'glossary'), 'Glossary – Cratis Stack | Cratis');
+        assert.equal(contextualTitle('Glossary', 'glossary'), 'Glossary – Cratis Platform | Cratis');
         assert.equal(contextualTitle('Store events', 'chronicle/events'), undefined);
         assert.equal(contextualTitle('Projections', 'chronicle/projections'), 'Projections – Chronicle | Cratis');
         assert.equal(contextualTitle('Observers', 'arc/observers'), 'Observers – Arc | Cratis');
@@ -129,15 +129,16 @@ describe('page metadata', () => {
     });
 
     it('gives the home page and product hubs descriptive titles', () => {
-        assert.equal(hubTitle(''), 'Cratis: open-source platform for event-sourced applications');
+        assert.equal(hubTitle(''), 'Cratis Platform: event sourcing and CQRS');
         assert.equal(hubTitle('/chronicle/'), 'Chronicle: event store with multi-language clients | Cratis');
         assert.equal(contextualTitle('Overview', 'cli'), 'Overview – CLI | Cratis');
-        assert.match(hubTitle('screenplay'), /^Screenplay: /);
+        assert.match(hubTitle('screenplay'), /^Cratis Screenplay /);
+        assert.match(hubTitle('stage'), /^Cratis Stage: /);
         assert.equal(hubTitle('chronicle/events'), undefined);
     });
 
     it('keeps every hub title within 60 characters', () => {
-        for (const id of ['chronicle', 'arc', 'components', 'cli', 'authproxy', 'chronicle-mcp', 'prompter', 'templates', 'direct', 'choreography', 'screenplay', 'fundamentals', 'prologue', 'architecture', 'ai', '']) {
+        for (const id of ['chronicle', 'arc', 'components', 'cli', 'authproxy', 'chronicle-mcp', 'prompter', 'templates', 'direct', 'choreography', 'screenplay', 'stage', 'fundamentals', 'prologue', 'architecture', 'ai', '']) {
             assert.ok(hubTitle(id).length <= 60, hubTitle(id));
         }
     });

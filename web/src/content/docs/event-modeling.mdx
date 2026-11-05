@@ -8,12 +8,12 @@ import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 
 <TopicHero icon="list-format" eyebrow="The Cratis Stack" title="Design the flow before you write the code">
-The hard part of an event-sourced system is not the plumbing. It is deciding *what the events are*, where commands come from, and which read model each screen needs. Get that wrong and you find out late, in code. **Event modeling** lays the whole flow out on one timeline first, and because the timeline's pieces map onto Cratis's building blocks, the model you draw becomes the blueprint for your slices.
+A library catalog shows available copies, but which facts supply that number after a reservation? Event modeling puts the screen, the request and the recorded facts on one timeline so you can find missing information before writing code. With Cratis, those parts become commands, events and read models: the state your screens display.
 </TopicHero>
 
 ## What event modeling is
 
-Event modeling is a method for designing an information system by drawing how information flows through it over time. You lay out a timeline from left to right: the screens people use, the commands they issue, the events those commands record and the read models the next screens display. The result is one picture that a domain expert, a designer and a developer read the same way.
+Event modeling is a method for designing an information system by drawing how information flows through it over time. You lay out a timeline from left to right: the screens people use, the commands they issue, the events those commands record and the read models the next screens display. The result gives domain experts, designers and developers a shared picture to question and refine.
 
 It is for teams that build event-sourced or otherwise event-driven systems and want the domain expert in the design, not only in the requirements. [Adam Dymitruk](https://eventmodeling.org/) created the method, and [eventmodeling.org](https://eventmodeling.org/) (read 2026-10-19) is its primary source. This page describes the method in short and shows how Cratis supports it end to end. The notation and the seven steps are Dymitruk's; the mapping to Cratis is Cratis's own.
 
@@ -36,7 +36,7 @@ tf 08 evt Inventory.StockDecreased
 
 Read it as a story. A reader reserves a book on a **screen** (`ui`); that fires the `ReserveBook` **command** (`cmd`), which records the `BookReserved` **event** (`evt`), an immutable fact. That fact is projected into an `Availability` **read model** (`rmo`) that the catalog screen reads. A **processor** (`pcr`) watching reservations issues a follow-up command to decrease stock. The rows are **swimlanes**, one per bounded context (`Reservations`, `Inventory`).
 
-A command is never stored. An event is the record of the fact. A read model is derived from events. Those rules give the diagram its discipline: every screen reads something a read model provides, every read model is fed by events, and every event comes from a command or from another system.
+In this model, a command requests a change; the event records what happened. A read model derives the state a screen needs from those events. Those rules give the diagram its discipline: every screen reads something a read model provides, every read model is fed by events, and every event comes from a command or from another system.
 
 <Aside type="tip" title="Why past tense matters">
 Events are named in the **past tense** — `BookReserved`, not `ReserveBook` — because they are facts that already happened and can never be un-happened. If you catch yourself wanting a nullable field on an event ("reserved-or-maybe-cancelled"), the model is usually telling you it is really *two* events. Chronicle's analyzers warn about nullable event properties for the same reason.
@@ -53,7 +53,7 @@ The connections in a model repeat one of four patterns. Once you can see them, a
 | **Automation** | `evt ➜ pcr ➜ cmd` | A processor reacts to a fact and issues a command on its own. |
 | **Translation** | external `evt ➜ pcr ➜ cmd` | A fact from another context is adapted into this one's commands. |
 
-The first two are the everyday CQRS loop. The last two are how work flows *between* contexts without direct coupling: a processor watches for a fact and acts. A translation begins on a **reset frame** (`rf`) because its triggering event comes from somewhere else:
+The first two separate the write side from the read side, the approach called Command Query Responsibility Segregation (CQRS). The last two are how work flows *between* contexts without direct coupling: a processor watches for a fact and acts. A translation begins on a **reset frame** (`rf`) because its triggering event comes from somewhere else:
 
 ```mermaid
 eventmodeling
@@ -98,7 +98,7 @@ The model tells you which processors you need as well. If a separate inventory s
 
 ## Why it fits Cratis almost one-to-one
 
-This is what makes event modeling more than a whiteboard exercise for Cratis: **each block has a Cratis primitive,** and the four patterns match the four kinds of [vertical slice](/arc/vertical-slices/) Cratis organizes code around. You still write the code, but you do not have to invent its shape.
+Each block maps to a Cratis building block, and the four patterns map to the [vertical slice](/arc/vertical-slices/) types used to organize features. This gives you a starting structure for the code, not an implementation of the rules.
 
 | Event-model block | What it means | In Cratis |
 |---|---|---|
@@ -130,7 +130,7 @@ Read a single vertical column of an event model (one screen, its command, the ev
 
 ## The model is also the test
 
-Event modeling already has the given/when/then shape baked in. The left side of the column is the context, the command is the behavior under test, and the event/read-model blocks are the expected outcome:
+Event modeling gives you the context, action and outcome needed for a given/when/then example. The left side of the column is the context, the command is the behavior under test, and the event/read-model blocks are the expected outcome:
 
 | Event-model block | Specification role |
 |---|---|
@@ -138,21 +138,21 @@ Event modeling already has the given/when/then shape baked in. The left side of 
 | Command or reactor in the column | **When** |
 | New event, projected read model, or side effect | **Then** |
 
-That is why Cratis leans on BDD-style specifications. `Cratis.Specifications.XUnit` gives xUnit the `Establish()` / `Because()` / `[Fact]` lifecycle, and Arc and Chronicle add scenarios in the same language: `CommandScenario<TCommand>` for the command, `EventScenario` with `Given` for past facts, `ReadModelScenario<TReadModel>` for projections, and `ReactorScenario<TReactor>` for automation.
+Cratis uses behavior-driven development (BDD) specifications to express those examples as tests. `Cratis.Specifications.XUnit` gives xUnit the `Establish()` / `Because()` / `[Fact]` lifecycle, and Arc and Chronicle add scenarios in the same language: `CommandScenario<TCommand>` for the command, `EventScenario` with `Given` for past facts, `ReadModelScenario<TReadModel>` for projections, and `ReactorScenario<TReactor>` for automation.
 
 [Testing with Cratis](/testing-with-cratis/) shows a concrete event-model column translated into an executable stack spec, and [spec-driven development](/spec-driven-development/) places those specs in the chain from model to verified code.
 
 ## Cratis from model to running code
 
-Cratis supports the method from the first sticky note to the running system. Each tool has a stated maturity; generated output needs review in every case, and none of the model-first tools is required to use Arc, Chronicle or Components.
+Cratis supports the method from the first sticky note to the running system. Generated output needs review in every case, and none of the model-first tools is required to use Arc, Chronicle or Components. Stage supports only a subset of modeled behavior; its runtime is a disposable sandbox, not a production host. The [capability map](/cratis-stack/) shows how the tools fit together.
 
-| Step | Tool | Maturity |
-|---|---|---|
-| Design the model with your team | [Studio](/studio/), a shared place to design and edit event models | Preview |
-| Write the model as text | [Screenplay](/screenplay/), a declarative `.play` language for events, commands, read models and rules | Experimental |
-| Render, compile and verify it | [Stage](/screenplay/faq/#what-are-stage-and-studio), which compiles Screenplay and verifies specifications | Experimental |
-| Start from an existing system | [Prologue](/prologue/), which proposes a model from captured signals for you to review | Experimental |
-| Build the slices | [Arc](/arc/) commands and read models, [Chronicle](/chronicle/) events, projections and reactors | See the [capability map](/cratis-stack/) |
+| Step | Tool |
+|---|---|
+| Design the model with your team | [Studio](/studio/), a paid product for collaboratively designing and editing event models |
+| Write the model as text | [Screenplay](/screenplay/), a declarative `.play` language for events, commands, read models and rules |
+| Render, compile and verify it | [Stage](/screenplay/faq/#what-are-stage-and-studio), which compiles Screenplay and verifies supported specifications |
+| Start from an existing system | [Prologue](/prologue/), which proposes a model from captured signals for you to review |
+| Build the slices | [Arc](/arc/) commands and read models, [Chronicle](/chronicle/) events, projections and reactors |
 
 Agents can take part at every step. [EventModelers.ai](/eventmodelers-ai/) is a visual event modeling platform whose Build Kits turn a slice marked Planned into a tested Cratis vertical slice. [AI-native development](/ai/) covers the setup.
 
@@ -160,27 +160,21 @@ To see one rule travel the whole way, from a Screenplay model through an Arc com
 
 ## Benefits
 
-- **A shared language.** A domain expert can point at an event and say it only happens after payment. That correction would otherwise show up as a bug three sprints later.
-- **Early detection of gaps.** A screen with no data behind it, or an event nothing produces, shows on the timeline.
-- **Small, buildable slices.** Each slice has a clear input and output, so work divides cleanly between people.
-- **Examples that become tests.** The given/when/then examples are specifications you can run.
+Walking the timeline with a domain expert exposes assumptions: perhaps a reservation is allowed only after payment, or the catalog shows a count that no event supplies. You can correct the flow while it is still a model.
+
+A slice then gives the developer a bounded task with an input, an outcome and examples to test. The model does not write those tests for you; it supplies the cases they need to cover.
 
 ## When it's the wrong fit
 
-Event modeling earns its keep when behavior is interesting: facts accumulate, screens derive state from history, and work flows between contexts. It is overkill when there is not much of a story to tell: a settings form that reads and writes a single row, a static lookup table, a pure request/response with no meaningful event worth keeping. If a feature is plain CRUD over one record, model it as CRUD. Reach for event modeling when the *flow*, not the storage, is where the complexity lives.
+Use event modeling when history affects decisions or work moves between contexts. A settings form that only reads and updates one record may need no timeline at all; ordinary create, read, update and delete (CRUD) design may be enough.
 
-- **It needs the right people in the room.** If domain experts do not take part, you model your assumptions.
-- **It is a design method, not a specification of everything.** It does not describe look and feel, performance targets or infrastructure.
-- **Large models need discipline.** Without clear swimlanes per context, a big board becomes hard to read.
+The workshop needs people who know the domain. Without them, the board records developers' assumptions. It also leaves work outside the model: visual design, performance targets and infrastructure need their own decisions. For larger systems, split the board by context so each flow remains readable.
 
 ## Common pitfalls
 
-- **Naming events like commands.** `ReserveBook` is a command. `BookReserved` is the event. If you cannot use the past tense, you probably have a command.
-- **Starting with the database.** Model the flow of information first. Tables come last, or not at all.
-- **Skipping screens.** Without wireframes, you invent read models no one needs.
-- **Putting decisions in read models.** A read model shows data. Rules belong in the command side.
-- **Modelling in isolation.** A model one developer drew alone is a design, not a shared understanding.
-- **Treating the model as finished.** It changes as you learn. Keep it where the team will update it.
+Name requests and facts differently: `ReserveBook` asks for a change; `BookReserved` records one. Start with that flow rather than database tables, and include the screens so you can explain why each read model exists.
+
+Read models supply state; the command side uses it to decide whether a request is allowed. Review those decisions with the team and update the model as you learn. A board that no longer matches the implementation cannot guide the next change.
 
 ## Frequently asked questions
 
@@ -194,7 +188,7 @@ Not strictly. The method describes information flow and works for any system. It
 
 ### What tool should I use?
 
-A whiteboard or sticky notes work. [Cratis Studio](/studio/) is a collaborative environment for designing and editing event models. It is in Preview at [app.cratis.studio](https://app.cratis.studio). [Screenplay](/screenplay/) lets you write the same model as text.
+A whiteboard or sticky notes work. [Cratis Studio](/studio/) is a collaborative environment for designing and editing event models. It is a paid product at [app.cratis.studio](https://app.cratis.studio). [Screenplay](/screenplay/) lets you write the same model as text.
 
 ### How big should a model be?
 

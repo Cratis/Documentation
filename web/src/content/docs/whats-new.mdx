@@ -1,6 +1,6 @@
 ---
-title: "What's new"
-description: Weekly release digests across the Cratis repositories, and links to each product's and client's own releases.
+title: "Cratis Platform releases: what's new across the stack"
+description: "Review weekly Cratis Platform release digests and product release notes for Chronicle, Arc, and related tools, with versions and upgrade guidance."
 ---
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
@@ -12,7 +12,7 @@ Cratis moves across several repositories, and the clients and tools release on t
   {releaseDigests.slice(0, 2).map((digest, index) => (
     <LinkCard title={index === 0 ? 'Latest release digest' : 'Previous release digest'} description={digest.label} href={`/release-digests/${digest.slug}/`} />
   ))}
-  <LinkCard title="Roadmap" description="What is stable, what is being hardened, what is being explored, and where feedback helps." href="/roadmap/" />
+  <LinkCard title="Roadmap" description="Current capabilities, planned work, and where feedback helps." href="/roadmap/" />
 </CardGrid>
 
 Every weekly digest, newest first, is listed in the **Release Digests** section of the sidebar.

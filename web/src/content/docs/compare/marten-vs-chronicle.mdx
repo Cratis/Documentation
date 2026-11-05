@@ -1,5 +1,5 @@
 ---
-title: "Marten vs Chronicle: .NET event sourcing compared"
+title: "Marten vs Cratis Chronicle: .NET event sourcing compared"
 description: "Marten and Cratis Chronicle side by side: architecture, projections, storage, clients and operations, with sources and versions as of each review."
 head:
   - tag: meta
@@ -10,18 +10,20 @@ head:
 
 import { Aside } from '@astrojs/starlight/components';
 
-Marten is an in-process .NET library that stores events and documents in PostgreSQL. Chronicle is a separate event-sourcing server with its own processing runtime and clients for several languages. This page compares them on the points where they overlap, with a source for every claim about Marten.
+If an event append and a document update must share one PostgreSQL transaction, Marten's in-process .NET model fits that requirement. Cratis Chronicle puts event storage and processing behind a separate server, with clients for several languages. Choosing between them changes your transaction boundary and what you deploy, not just the API you call.
+
+This page compares those overlapping concerns, with sources for the Marten capabilities discussed.
 
 The Cratis team wrote this page, and Chronicle is a Cratis product. The page lists what each product documents and leaves the weighing to you. For a three-way comparison that includes KurrentDB, see [Event sourcing in .NET](/compare-event-sourcing-dotnet/). For the dedicated event-store database, see [KurrentDB vs Chronicle](/compare/kurrentdb-vs-chronicle/). All our comparisons follow the method in [How Cratis writes comparisons](/compare/).
 
 ## Choose Marten or Chronicle
 
 <Aside type="note" title="Summary">
-**Choose Marten if** your application is .NET, PostgreSQL is an accepted dependency, you want events and documents in one database and one transaction, or you already use or plan to use [Wolverine](https://wolverinefx.net) and the rest of the Critter Stack.
+Choose Marten when your application is .NET, PostgreSQL is an accepted dependency, and you want events and documents in one database. It also fits an application using [Wolverine](https://wolverinefx.net) and the rest of the Critter Stack.
 
-**Choose Chronicle if** you want event storage and processing in a separate server, need clients in languages other than .NET, want a storage provider other than PostgreSQL, or prefer to protect personal data by encrypting it with a key per subject (crypto-shredding) rather than rewriting stored events.
+Choose Chronicle when you want event storage and processing in a separate server, clients beyond .NET, or storage-provider choices beyond PostgreSQL. For personal data, compare Chronicle's encryption with a key per subject against Marten's event-data masking. Deleting the subject's key to make encrypted values unreadable is called crypto-shredding.
 
-If both fit, run each against one real slice of your domain before you decide. Neither choice is wrong in the abstract.
+If both fit, try one application feature in each. Include an append, a read-model update, and the failure behavior your application needs.
 </Aside>
 
 ## Method and versions
@@ -39,7 +41,7 @@ Marten's documentation site is not versioned in its URLs, so the links show the 
 
 ## Architecture: library or server
 
-Marten runs inside your application. You register it with the host, and it talks to PostgreSQL through your connection string. Its [event store](https://martendb.io/events) and [document database](https://martendb.io/introduction) share the same database, and Marten's docs call that integration arguably its biggest advantage over many other event stores ([projections overview](https://martendb.io/events/projections)). Background work such as projections and subscriptions runs in the [async daemon](https://martendb.io/events/projections/async-daemon) inside your application process.
+Marten runs inside your application. You register it with the host, and it talks to PostgreSQL through your connection string. Its [event store](https://martendb.io/events) and [document database](https://martendb.io/introduction) share the same database, which lets inline projections update documents in the event-capture transaction ([projections overview](https://martendb.io/events/projections)). Background work such as projections and subscriptions runs in the [async daemon](https://martendb.io/events/projections/async-daemon) inside your application process.
 
 Chronicle runs as a separate server, the Chronicle Kernel, which is built on [Microsoft Orleans](https://learn.microsoft.com/dotnet/orleans/). Your application calls it through a client over gRPC. The kernel appends events and manages the observers that process them. Projections run in the kernel; reducer and reactor handlers run in your application. See [Chronicle architecture](/chronicle/architecture/).
 
@@ -64,7 +66,7 @@ The practical difference is where the boundary sits:
 | Event versioning | Documented ([versioning](https://martendb.io/events/versioning)) | Generations that translate old events ([event evolution](/chronicle/understanding-event-evolution/)) |
 | Personal data | Masking rules that rewrite selected event members on demand ([Removing Protected Information](https://martendb.io/events/protection)) | Encryption of `[PII]` properties with a key per subject, erased by deleting the key, plus event redaction ([compliance](/chronicle/compliance/)) |
 | Operations tooling | [Command line](https://martendb.io/configuration/cli), [OpenTelemetry and metrics](https://martendb.io/otel), [async daemon health checks](https://martendb.io/events/projections/healthchecks) | [Workbench](/chronicle/workbench/), [CLI](/cli/), [MCP server](/chronicle-mcp/), [server telemetry](/chronicle/hosting/configuration/open-telemetry/) |
-| License | MIT ([LICENSE](https://github.com/JasperFx/marten/blob/master/LICENSE)) | MIT ([LICENSE](https://github.com/Cratis/Chronicle/blob/main/LICENSE)) |
+| License | MIT ([NuGet package metadata](https://www.nuget.org/packages/Marten/9.50.3)) | MIT ([LICENSE](https://github.com/Cratis/Chronicle/blob/main/LICENSE)) |
 
 ## Projections and read models
 
@@ -88,7 +90,7 @@ Chronicle exposes gRPC contracts. It has a .NET SDK, and released clients for Ty
 
 ## Operations, observability and AI tooling
 
-Marten's operational surface is the JasperFx command line for schema and projection work, such as [rebuilding projections](https://martendb.io/events/projections/rebuilding), OpenTelemetry spans and metrics ([Open Telemetry and Metrics](https://martendb.io/otel)), and async daemon health checks. Monitoring of a Critter Stack system is a separate JasperFx product line, and we do not compare it here.
+Marten provides command-line tooling for schema and projection work, such as [rebuilding projections](https://martendb.io/events/projections/rebuilding), along with OpenTelemetry spans and metrics ([Open Telemetry and Metrics](https://martendb.io/otel)) and async daemon health checks. The Critter Stack's separate monitoring products are outside this comparison.
 
 Chronicle adds the Workbench, a web interface bundled with the server, the Cratis CLI for inspecting and diagnosing a running server, and an MCP server that connects an AI agent to Chronicle. Its client emits OpenTelemetry spans once you register the instrumentation ([client tracing](/chronicle/hosting/client-tracing/)), and the server exports its own telemetry. Chronicle does not send alerts itself; its docs show [how to alert on observer failures](/chronicle/hosting/alerting-on-observer-failures/) with exported metrics and the CLI.
 
@@ -102,13 +104,13 @@ The difference is where protection happens. Marten rewrites stored event data wh
 
 ## Where Marten is the better choice
 
-Marten is the better fit in these situations, and we mean it:
+Marten fits a requirement for one transaction across events and documents: its inline projections share the append transaction in PostgreSQL. A Chronicle append is a server call, outside your application's database transaction. Marten also avoids a separate event-server deployment; you still operate the application and PostgreSQL.
 
-- **One database, one transaction.** Events and documents share PostgreSQL, and inline projections share the append transaction. With Chronicle, an append is a call to the server and is not part of your application's database transaction.
-- **Fewer moving parts.** There is no server to deploy, secure or upgrade beyond PostgreSQL, which many teams already run.
-- **The Critter Stack.** Marten integrates with Wolverine, and its subscriptions can notify a transactional outbox such as Wolverine's ([subscriptions](https://martendb.io/events/subscriptions), [Wolverine integration tutorial](https://martendb.io/tutorials/wolverine-integration)). Wolverine provides messaging, transports and a durable inbox and outbox. Chronicle belongs to a different product family, and this site documents no equivalent Wolverine integration for it.
-- **Documents and events together.** Marten is also a [document database](https://martendb.io/documents) with LINQ querying. Chronicle stores an append-only history and builds eventually consistent read models from it; it is not a general document store.
-- **Community size.** On 2026-10-19 the [Marten repository](https://github.com/JasperFx/marten) showed 3,467 GitHub stars and the [Chronicle repository](https://github.com/Cratis/Chronicle) showed 61. Marten also states a [support policy](https://martendb.io/support-policy) with paid support plans. Stars measure attention, not quality, but they indicate how many people have used and questioned a product.
+If you already use Wolverine, Marten's subscriptions can notify its transactional outbox ([subscriptions](https://martendb.io/events/subscriptions), [Wolverine integration tutorial](https://martendb.io/tutorials/wolverine-integration)). Wolverine provides messaging, transports, and a durable inbox and outbox. This site documents no equivalent Wolverine integration for Chronicle.
+
+Marten is also a [document database](https://martendb.io/documents) with LINQ querying. It fits when you need that store alongside events. Chronicle builds eventually consistent read models from an append-only history; it is not a general document store.
+
+Marten publishes a [support policy](https://martendb.io/support-policy) with paid support plans; check those terms if support is part of your decision.
 
 ## Moving between them
 
@@ -126,16 +128,15 @@ We found no migration guide for Marten to Chronicle in the public Cratis documen
 
 ## Limitations
 
-- This is a documentation comparison, not a benchmark or a production evaluation.
-- We reviewed the pages linked here. Marten may document more than we found, and its docs change independently of ours.
-- Storage-provider and client availability do not establish parity between providers or clients.
-- Marten belongs to the Critter Stack and Chronicle to the Cratis ecosystem. Each family adds products that this page does not compare.
+This comparison describes the linked documentation, not benchmark results or a production evaluation. Marten may document capabilities we did not find, and its docs change independently of ours. Storage-provider and client availability do not establish parity. Each product's wider family adds tools outside this page.
+
+If the hosting boundary decides the choice, continue with [Marten's documentation](https://martendb.io/) or [Chronicle production hosting](/chronicle/hosting/production/). For a move between them, start with an application-level migration plan rather than a data copy.
 
 ## Sources
 
 Checked 2026-10-19:
 
-- **Marten:** [Marten as Event Store](https://martendb.io/events), [Projections](https://martendb.io/events/projections), [Subscriptions](https://martendb.io/events/subscriptions), [Dynamic Consistency Boundary](https://martendb.io/events/dcb), [Multitenancy](https://martendb.io/events/multitenancy), [Archiving](https://martendb.io/events/archiving), [Removing Protected Information](https://martendb.io/events/protection), [Events versioning](https://martendb.io/events/versioning), [Support policy](https://martendb.io/support-policy), [Command line tooling](https://martendb.io/configuration/cli), [Open Telemetry and metrics](https://martendb.io/otel), [NuGet](https://www.nuget.org/packages/Marten/9.50.3), and the [GitHub repository](https://github.com/JasperFx/marten).
+- **Marten:** [Marten as Event Store](https://martendb.io/events), [Projections](https://martendb.io/events/projections), [Subscriptions](https://martendb.io/events/subscriptions), [Dynamic Consistency Boundary](https://martendb.io/events/dcb), [Multitenancy](https://martendb.io/events/multitenancy), [Archiving](https://martendb.io/events/archiving), [Removing Protected Information](https://martendb.io/events/protection), [Events versioning](https://martendb.io/events/versioning), [Support policy](https://martendb.io/support-policy), [Command line tooling](https://martendb.io/configuration/cli), [Open Telemetry and metrics](https://martendb.io/otel), and [NuGet package and license](https://www.nuget.org/packages/Marten/9.50.3).
 - **Chronicle:** the [Chronicle documentation](/chronicle/), the [Chronicle README](https://github.com/Cratis/Chronicle), the [Chronicle license](https://github.com/Cratis/Chronicle/blob/main/LICENSE), and [releases](https://github.com/Cratis/Chronicle/releases).
 
 ## Corrections and refresh

@@ -156,7 +156,7 @@ export const PRODUCTS = [
     },
     {
         // Screenplay — the modeling language. A single declarative `.play` file describes
-        // a whole bounded context; Stage runs it live and Studio visualizes the same model.
+        // a whole bounded context; Stage renders code from it and Studio visualizes the same model.
         // Content lives in the `screenplay/` subfolder, so point straight at it for clean
         // `/screenplay/<page>` URLs (the outer Documentation/ wrapper isn't a site page).
         key: 'screenplay', label: 'Screenplay', icon: 'pencil', sidebarMode: 'toc',
@@ -177,14 +177,6 @@ export const PRODUCTS = [
         // require independent admission through their reviewed runtime rosters.
         familySources: [
             {
-                label: 'Stage',
-                sidebarLabel: 'Guides',
-                path: 'stage/guides',
-                src: firstExisting(
-                    path.join(reposRoot, 'Stage', 'Documentation', 'guides'),
-                    path.join(docRepoRoot, 'Stage', 'Documentation', 'guides')),
-            },
-            {
                 label: 'Generation',
                 sidebarLabel: 'Guides',
                 path: 'generation/guides',
@@ -203,10 +195,18 @@ export const PRODUCTS = [
         ],
     },
     {
+        // Stage — compiles Screenplay, renders reviewable code, and runs supported
+        // behavior in a disposable sandbox. Mount the full documentation tree.
+        key: 'stage', label: 'Stage', icon: 'rocket', sidebarMode: 'toc',
+        src: firstExisting(
+            path.join(reposRoot, 'Stage', 'Documentation'),
+            path.join(docRepoRoot, 'Stage', 'Documentation')),
+    },
+    {
         // Prologue — captures what an existing system actually does (HTTP commands, database
         // changes, telemetry) and interprets that into an event model. Self-contained: no
         // dependency on Studio or Orleans. Its output is a Screenplay `.play` file, so it sits
-        // right after Screenplay in the product list.
+        // with Screenplay and Stage in the product list.
         key: 'prologue', label: 'Prologue', icon: 'magnifier', sidebarMode: 'toc',
         src: firstExisting(
             path.join(reposRoot, 'Prologue', 'Documentation'),

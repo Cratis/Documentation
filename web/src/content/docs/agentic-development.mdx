@@ -1,6 +1,6 @@
 ---
-title: "Agentic development with event sourcing: a guide"
-description: Why event-sourced systems give AI coding agents verifiable history, explicit contracts and replayable tests, and how to set it up in practice.
+title: "Agentic development with Cratis and event sourcing"
+description: Use Cratis event models, executable specifications, and read-only store inspection to give AI coding agents evidence for changes you can review.
 head:
   - tag: meta
     attrs:
@@ -10,25 +10,25 @@ head:
 
 import { Aside } from '@astrojs/starlight/components';
 
-Agentic development with event sourcing means letting AI coding agents design, change and operate a system whose state is an append-only log of named events, whose behavior is expressed as commands, and whose rules are written as executable Given/When/Then specifications. The agent reads and writes the same explicit contracts a human reviewer reads. The log records what happened, and the specifications state what must stay true. Neither depends on what the agent remembers or guesses.
+An AI coding agent changes a borrowing rule. Before accepting the diff, you need to know which behavior it changed and whether two callers can still borrow the last copy at once. A passing build alone cannot answer that question.
 
-This page explains why that combination helps, which Cratis tools implement each part, how they fit together, and what is still experimental. It is written for tech leads who are adopting coding agents and worry about correctness and auditability. Cratis is built by a team that works this way, and the tooling described here is the tooling we use. Where something is not finished, the page says so.
+Agentic development means giving an AI agent work such as reading code, making changes, or diagnosing a system, while a person sets direction and reviews the result. In a Cratis event-sourced application, named events record what happened, commands express intended actions, and executable specifications check examples of the rules. Those artifacts give both the agent and the reviewer evidence beyond the generated diff.
 
-<Aside type="note" title="Maturity at a glance">
-The Chronicle MCP server, the CLI, Chronicle and Cratis Specifications are released. Cratis AI (rules and skills) and Studio are in Preview. Screenplay, Stage and Prologue are experimental. The [Cratis Stack](/cratis-stack/) page has a capability map with maturity labels.
+Use this guide to set up that workflow around one feature. The borrowing specification below is a concrete starting point; the later sections cover store inspection, repository conventions, and operations that need separate approval.
+
+<Aside type="note" title="Tools and boundaries">
+The [Cratis Stack](/cratis-stack/) page maps each tool to its role. You can start with specifications and read-only inspection without adopting every tool. Studio provides collaborative event modeling; Stage generates code from supported Screenplay models. Both generated code and models proposed by Prologue need human review.
 </Aside>
 
-## Why agents fail on CRUD systems
+<span id="why-agents-fail-on-crud-systems"></span>
 
-A coding agent works from what it can see: the files in the repository, the prompt, and whatever it can query. Three properties of a typical create-read-update-delete (CRUD) system work against it.
+## What an agent needs to understand a change
 
-- **Hidden state.** The current row is the only truth. The agent cannot tell why a value is what it is, which code path last wrote it, or which of three similar columns the business actually relies on.
-- **No history.** An update overwrites the previous value. When an agent's change corrupts data, nothing in the database says what the data looked like before, so a fix is a guess and an audit is a reconstruction from logs.
-- **Implicit contracts.** Behavior lives inside service methods, triggers and ORM hooks. An agent that changes one path cannot see which other behavior depended on it, and neither can the reviewer reading the diff.
+A coding agent works from repository files, instructions, and whatever systems it may query. If all it sees is a current database row, it may know the value without knowing which action produced it or why the business permits it. The reviewer faces the same gap.
 
-None of this is a defect in the agent. A human who joins a CRUD system cold has the same problems and solves them by asking colleagues. An agent cannot ask, so it fills the gap with the most plausible answer, and a plausible wrong answer is the dangerous one.
+A create-read-update-delete (CRUD) application can supply that context through audit history, explicit operations, and tests. Event sourcing takes a different approach: the stored events are the history from which state is derived. Commands name intended actions, and specifications describe expected outcomes.
 
-Event sourcing removes each of these. State is the history of events, so nothing is hidden and nothing is overwritten. Every change is a named command with a typed shape, so the contract is explicit. The rest of this page builds on that.
+That history helps only when the events carry the facts you need and the specifications cover the rule being changed. It does not capture unrecorded intent or prove that an agent understood the domain. Keep domain questions in the review rather than asking the agent to guess.
 
 If you are new to the idea, [what is event sourcing](/concepts/event-sourcing/) covers the basics, and [coming from CRUD](/chronicle/coming-from-crud/) maps the concepts you already use.
 
@@ -38,9 +38,9 @@ Three artifacts carry the contract in a Cratis application. Each is plain code i
 
 | Artifact | What it states | Why it helps an agent |
 | --- | --- | --- |
-| **Command** | One intention a caller can express, with its inputs, validation and the events it may record | The agent finds every way the system can change, named and typed, in one place |
-| **Event** | A fact that happened, named in the past tense (`BookBorrowed`), immutable | The agent sees what the system records and cannot silently rewrite it |
-| **Specification** | A Given/When/Then example of the behavior: facts that already happened, the action, the expected facts | The agent has an executable definition of "correct" that does not depend on its own reading of the code |
+| Command | One intention a caller can express, with its inputs, validation and the events it may record | The agent can trace the inputs and expected events for an operation |
+| Event | A recorded fact, named in the past tense (`BookBorrowed`), kept in the append-only history | The agent can inspect the facts used to derive state |
+| Specification | A Given/When/Then example: facts that already happened, the action, the expected outcome | The agent can check an example of the required behavior |
 
 Given/When/Then maps one to one onto event sourcing. The given is the events that already happened, the when is the command or event under test, and the then is the events, read models or side effects that result. That is why a specification reads in the vocabulary of the event model, and why a domain expert can check it without reading the implementation. [Testing with Cratis](/testing-with-cratis/) shows the mapping in C#, Kotlin, Java and TypeScript, and [Specifications](/specifications/) documents the `Establish()`, `Because()` and `Destroy()` lifecycle.
 
@@ -71,15 +71,15 @@ public class when_the_last_copy_is_borrowed_concurrently : Specification
 
 The scenario seeds one copy, so the validator sees one available copy and passes. A competing `BookBorrowed` is appended after the command reads and before it commits. The command is refused with a concurrency violation and appends nothing. The spec runs in process, without a Chronicle server or a database, so an agent can run it after every change.
 
-An agent that changes `BorrowBook` has a precise target: keep this spec green. An agent that weakens the rule fails the spec, not a reviewer's patience.
+When changing `BorrowBook`, keep these assertions as well as the implementation in view. If the agent makes the command succeed by weakening the conflict check, this scenario should fail. Review any change to the assertions themselves: a passing spec can still encode the wrong rule.
 
 ## Event models as the shared source for humans and AI
 
 Contracts are cheaper to agree on before the code exists. [Event modeling](/event-modeling/) lays a system out as a timeline of screens, commands, events and read models. Because each step is named and typed, a model is a description an agent can read, and a plan a human can review before any code is written.
 
-Cratis puts the model in a file. [Screenplay](/screenplay/) is a declarative `.play` language for one bounded context: its events, commands, queries, projections, screens and rules. [Studio](/studio/) is the collaborative environment for editing Screenplay models. [Stage](https://github.com/Cratis/Stage) compiles Screenplay, verifies the specifications declared in the model, and renders a reviewable Arc and Chronicle application on disk.
+Cratis puts the model in a file. [Screenplay](/screenplay/) is a declarative `.play` language for one bounded context: its events, commands, queries, projections, screens and rules. [Studio](/studio/) is the collaborative environment for editing Screenplay models. [Stage](https://github.com/Cratis/Stage) compiles Screenplay, verifies supported specifications declared in the model, and renders a reviewable Arc and Chronicle application on disk.
 
-The practical effect is a shared source. The model is what the team reviews. The specifications declared in the model are what Stage verifies. The generated application is what the agent starts from and extends. When the model changes, the discussion happens on the model, in terms the business understands, rather than in a diff of generated code.
+Review the model before asking the agent to extend the generated application. The team can discuss a named command, the events it records, and the read model a screen needs without first interpreting an implementation diff. Stage's verification covers the modeled behavior it supports; review the rendered code and its specifications too.
 
 The [event model is also the test](/event-modeling/): one column of a model becomes the Given/When/Then rows of a specification, as the [testing guide](/testing-with-cratis/#the-event-model-becomes-the-spec) shows step by step.
 
@@ -140,7 +140,7 @@ Neither route changes the event log. Both read it and operate observers and jobs
 
 ## Rules and skills that teach agents the conventions
 
-A general-purpose agent dropped into a Cratis codebase invents handler classes, misses the vertical-slice layout and hand-writes the API client that proxy generation already produces. [Cratis AI](/ai/) is a shared corpus of rules, skills, prompts and subagents that carries the conventions to the agent.
+An agent unfamiliar with Cratis may add handler classes where the framework expects a command, or hand-write an API client that proxy generation already supplies. [Cratis AI](/ai/) provides repository rules, skills, prompts, and subagents so the agent can follow those conventions. The vertical-slice layout keeps a feature's command, query, and related code together.
 
 The main path installs the corpus into a repository with the CLI:
 
@@ -167,11 +167,11 @@ Some of what the corpus contains, by name:
 
 Rules and skills do not prove a change is correct. They make the first attempt look like the rest of the codebase, so review and specifications spend their time on behavior instead of style. The [code-analysis rules](/code-analysis/) enforce the same framework contracts during the build, whoever wrote the code.
 
-Cratis AI is in Preview. One practical limit applies to every agent: a large profile such as `cratis/full` can exceed the budget some agents give to skill descriptions, so install the profiles a repository needs rather than everything.
+One practical limit applies to every agent: a large profile such as `cratis/full` can exceed the budget some agents give to skill descriptions, so install the profiles a repository needs rather than everything.
 
 ## Guardrails: specifications, review and replay
 
-An agent that can write code quickly needs checks that are as fast and that do not depend on the agent's judgment. A guardrail model for agent-written changes has four layers. Each one is a mechanism you can point at.
+Check an agent-written change at more than one boundary. A build can catch a contract error, but it cannot decide whether the requested business rule is right. Use specifications, append-time checks, and human review for those different questions.
 
 | Layer | Mechanism | What it catches |
 | --- | --- | --- |
@@ -184,7 +184,7 @@ An agent that can write code quickly needs checks that are as fast and that do n
 
 Specifications give an agent a fast loop. It changes the code, runs the specs and reads the failure. Because specs are written in the language of events, a failing spec names the fact that was expected and the fact that happened. [Testing with Cratis](/testing-with-cratis/) lists the in-process scenarios for each side: command scenarios for the write side, read-model scenarios for projections and reducers, and reactor scenarios for side effects.
 
-The specs prove behavior, so the first review question for an agent-written change is whether the specs describe the behavior you want. An agent can write a spec that passes and asserts the wrong thing. Review the specification diff as carefully as the implementation diff, and prefer specifications written or approved from the event model.
+Specifications check the examples they express. The first review question is therefore whether those examples describe the behavior you want. An agent can write a spec that passes and asserts the wrong thing. Review the specification diff as carefully as the implementation diff, and prefer specifications written or approved from the event model.
 
 ### Constraints and decisions at append time
 
@@ -208,28 +208,30 @@ Most teams are not starting from nothing. The expensive step in moving an existi
 
 Treat the output as another input to human modeling, not a recovered specification. Prologue records no database row values and no HTTP request or response bodies, but endpoint paths, changed column names and telemetry attributes can still be sensitive, so minimize access and protect the capture files. It cannot see a rule the system enforces without leaving a trace. It is the wrong tool for a greenfield system, for a system with no HTTP or database write path to observe, and for data migration. See [why Prologue](/prologue/why-prologue/) for the full list.
 
-Prologue is experimental.
+<span id="what-is-still-experimental"></span>
 
-## What is still experimental
+## Tools and their limits
 
-Maturity labels below follow the [capability map](/cratis-stack/). A label says how far the product has come, not how well it works for you.
+The [capability map](/cratis-stack/) shows how these tools fit together.
 
-| Part | Role in this practice | Maturity |
-| --- | --- | --- |
-| Chronicle, Arc, Specifications | Event store, application framework and spec library | Released |
-| Chronicle MCP server | Agent access to a running store, read-only by default | Released |
-| CLI | Inspection, diagnosis and `cratis ai install` | Released |
-| Cratis AI | Rules, skills, prompts and agents installed into a repository | Preview |
-| Studio | Collaborative design of Screenplay event models | Preview, paid product |
-| Screenplay | The `.play` modeling language | Experimental |
-| Stage | Compiles Screenplay, verifies modeled specifications, renders an application | Experimental |
-| Prologue | Proposes an event model from an existing system | Experimental |
+| Part | Role in this practice |
+| --- | --- |
+| Chronicle, Arc, Specifications | Event store, application framework and spec library |
+| Chronicle MCP server | Agent access to a running store, read-only by default |
+| CLI | Inspection, diagnosis and `cratis ai install` |
+| Cratis AI | Rules, skills, prompts and agents installed into a repository |
+| Studio | Paid product for collaborative design of Screenplay event models |
+| Screenplay | The `.play` modeling language |
+| Stage | Compiles Screenplay, verifies supported modeled specifications, renders reviewable application code |
+| Prologue | Proposes an event model from an existing system for human review |
 
-Three limits are worth stating plainly:
+Stage verifies supported modeled specifications, not every Screenplay construct. Check its supported behavior before treating a model as executable coverage.
 
-- **Stage is partial.** Its renderer is the priority path. Its runtime performs only the subset of modeled backend behavior it understands, and its specification verification is useful but does not prove every Screenplay construct has executable semantics.
-- **Cratis AI is unpinned.** `cratis ai install` reads the current `main` of the Cratis AI repository. To fix a revision, point `--source` at a checkout of a known commit.
-- **Agents still make mistakes.** The mechanisms on this page make mistakes visible and cheap to catch. They do not make an agent correct. Keep the review step, and keep the specs honest.
+By default, `cratis ai install` reads the current `main` of the Cratis AI repository. To use a fixed revision, point `--source` at a checkout of a known commit. Install only the profiles the repository needs.
+
+These mechanisms give you evidence to review; they do not make an agent correct. Keep the human review step, including a check that the specifications still express the intended rule.
+
+For governed agent work beyond repository conventions, [Cratis Direct](/direct/) coordinates engineering journeys with gates and review. It is a separate product from the Cratis AI guidance installed by the CLI, and access requires an enabled account.
 
 The [roadmap](/roadmap/) and [what's new](/whats-new/) track movement on these.
 
@@ -241,7 +243,7 @@ It means an AI agent does a meaningful share of the work: reading the codebase, 
 
 ### Why does event sourcing help AI coding agents?
 
-It makes state, history and behavior explicit. The log records every change as a named fact, so the agent can inspect why state is what it is. Commands name every way the system can change. Specifications give an executable definition of correct behavior. An agent working against explicit contracts has less to guess.
+Events let an agent inspect the recorded facts behind state. Commands make intended actions explicit, and specifications check examples of the behavior you expect. Those contracts reduce guesswork, but only for the facts you record and the rules your specifications cover.
 
 ### Do I have to use Cratis to do this?
 
@@ -269,12 +271,12 @@ Treat the specification diff as the main review artifact, and derive specs from 
 
 ### Is this ready for production?
 
-Chronicle, Arc, Specifications, the CLI and the MCP server are released. See [production readiness](/production-readiness/) for what to check before you depend on them. The model-first layer (Screenplay, Stage, Prologue) is experimental and is best used to explore and draft, with review, rather than as an unattended pipeline.
+Chronicle, Arc, Specifications, the CLI and the MCP server are released. See [production readiness](/production-readiness/) for what to check before you depend on them. Review models proposed by Prologue and code generated from Screenplay. Stage's runtime is a disposable sandbox for supported modeled behavior, not a production host; it does not execute every Screenplay construct.
 
 ## Where to go next
 
-- [AI-native development](/ai/): the full tour of Cratis AI, the CLI and the MCP server.
-- [Chronicle MCP server](/chronicle-mcp/): tools, configuration and deployment profiles.
-- [Testing with Cratis](/testing-with-cratis/) and [Specifications](/specifications/): the specification model in detail.
-- [Event modeling](/event-modeling/): the model the agent and the team share.
-- [The Cratis stack](/cratis-stack/): the products and a capability map with maturity labels.
+Start with [AI-native development](/ai/) to install repository guidance, then use [Testing with Cratis](/testing-with-cratis/) and [Specifications](/specifications/) to cover one feature before changing it.
+
+If the immediate job is diagnosis, follow the [Chronicle MCP server](/chronicle-mcp/) setup and deployment profiles. Keep access read-only unless the task needs an explicitly approved mutation.
+
+For a rule the team has not yet agreed on, start with [Event modeling](/event-modeling/). [The Cratis stack](/cratis-stack/) helps you choose which tools to add after that.

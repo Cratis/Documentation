@@ -1,17 +1,19 @@
 ---
-title: The Dynamic Consistency Boundary
-description: "What the Dynamic Consistency Boundary (DCB) is, how drawing the boundary per decision differs from locking a stream or an aggregate, what an append condition rejects, and where Chronicle and Arc sit."
+title: "Dynamic Consistency Boundary: protect a decision"
+description: "A Dynamic Consistency Boundary rejects an append when relevant events arrive after a decision's read. Learn how Chronicle and Arc apply the pattern."
 ---
 
-A library has one copy of a book left. Two members press Borrow at the same moment. Each request reads the stock, sees one copy and decides that the loan is fine. Each appends a `BookBorrowed` event. The library now has two loans and one copy, and neither request did anything wrong with the information it had.
+A Dynamic Consistency Boundary (DCB) protects a business decision by making its append conditional on the events it read. Use it when a rule must still hold while other requests write: the event store rejects the append if a matching event arrived after the read's recorded position.
 
-The usual fix is to lock something around the decision: one aggregate, or one stream, for the whole entity. The Dynamic Consistency Boundary (DCB) is a different answer to the same question. It does not ask which entity the command belongs to. It asks which facts the decision depended on, and it makes the append fail if any of those facts changed.
+Consider a library with one copy of a book left. Two members press Borrow at the same moment. Each request sees one copy and appends `BookBorrowed`. Without a check at append time, both loans can be accepted.
 
-This page explains the idea without tying it to a product. For how a command guards its reads in code, see [Keeping decisions correct under concurrency](/concepts/keeping-decisions-correct/). For a walk through the whole stack, see [Decisions that hold, from model to frontend](/decisions-that-hold-walkthrough/).
+Optimistic concurrency checks for competing writes rather than holding a lock while a command decides. Checking the version of a whole stream means an unrelated change in that stream can still cause a conflict. DCB instead selects the events that matter to this decision, so the boundary can differ from one command to the next.
+
+Start with the pattern below, then see how Chronicle and Arc apply it. For how a command guards its reads in code, see [Keeping decisions correct under concurrency](/concepts/keeping-decisions-correct/). For a walk through the whole stack, see [Decisions that hold, from model to frontend](/decisions-that-hold-walkthrough/).
 
 ## The idea in one picture
 
-A decision has three steps: read the events it depends on, decide, append. DCB attaches a condition to the append. The condition names the events the decision depended on and the position in the log where the read happened.
+A decision has three steps: read the events it depends on, decide, append. DCB attaches a condition to the append. That condition selects the relevant events and records a position before the read begins. A matching event appended during the read or while the command decides must then cause a conflict.
 
 ```mermaid
 sequenceDiagram
@@ -27,7 +29,7 @@ sequenceDiagram
     Note over B: Nothing was written. B reads again and decides again.
 ```
 
-Request B is not wrong. It decided on facts that are no longer true, and the log refuses to accept the result. The caller can read again, decide again and submit again. No lock was held while either request thought.
+Request B used stock that has since changed, so the log refuses its append. The caller can read again and decide whether to resubmit. No lock was held while either request made its decision.
 
 ## One boundary per decision
 
@@ -35,13 +37,13 @@ The boundary in DCB is not fixed by the model. It is the set of events one decis
 
 | | Boundary per aggregate or stream | Boundary per decision (DCB) |
 | --- | --- | --- |
-| What guards the append | The version of the whole stream | The events the decision read, matched by type and by identifying values |
-| What conflicts | Any append to the same stream since the load | Only an event that the decision's read would have included |
-| An unrelated change to the same entity | Conflicts, so the caller has to retry | Does not conflict |
-| A rule that spans two entities | Needs a process, a saga, or a bigger aggregate | One decision reads both and one condition covers both |
+| What guards the append | The expected version of the whole stream | A position and a query selecting relevant events |
+| What conflicts | Any append to that stream since the load | An append matching the condition after its position |
+| An unrelated change in the same stream | Causes a version conflict | Does not conflict if the query excludes it |
+| A rule that spans two entities | Requires coordination across the chosen boundaries | Can read both and guard one atomic append |
 | What you design up front | The aggregate boundaries | The events and the values that identify them |
 
-In the library, renaming a book does not need to conflict with a borrow of the same book, and a borrow of another book never does. A per-aggregate lock treats the rename as a conflict, because both land on the same stream. A per-decision condition does not, because the borrow decision never read the rename.
+In the library, a rename need not conflict with a borrow if stock does not depend on the book's name. A whole-stream version check conflicts if both events land in that stream. A condition selecting only stock-changing events excludes the rename.
 
 The cost moves in the other direction. A per-decision boundary is only as good as the description of what the decision read. If a read is missed, nothing guards it.
 
@@ -50,7 +52,7 @@ The cost moves in the other direction. A per-decision boundary is only as good a
 An append condition says: reject this append if any event that matches my query was written after the position I read. The query is what makes the boundary dynamic.
 
 - The append fails when a matching event arrived after the read, whatever wrote it: another request, another service, or a process on another node.
-- The append succeeds when only non-matching events arrived. Other types, or other keys, do not conflict.
+- Non-matching events do not violate this condition. The append can still fail another condition or constraint.
 - A failed append writes nothing. The conflicting writer was not blocked, and the loser is not rolled back because it was never applied.
 - Nothing re-runs the decision for you. Arc and Chronicle do not re-run the command; the caller reads again and chooses whether to submit again, because the right reaction to a changed fact is often to look at it again, not to repeat the same request.
 
@@ -58,32 +60,31 @@ A condition can reject an append only for events it was asked about. A rule that
 
 ## Where Chronicle and Arc sit
 
-Chronicle supports DCB-style decision models and append conditions within its own event model. It is not a DCB event store.
+Cratis Chronicle supports DCB-style decision models and append conditions within its own event-source model. It is not a DCB event store and does not implement the DCB specification's API. Cratis Arc can arrange protected reads and their commit for commands that use Chronicle.
 
 | DCB term | In Chronicle | In Arc |
 | --- | --- | --- |
-| Tags that select events | Event source id, event source type, event stream type and event stream id. Each event carries one value for each | The command's key and the read model's key |
-| Decision model | A decision read: a projection that notes the log position before it folds | A read-model parameter of the command or its validator, under read protection `On` |
+| Tags that select events | Event types and single-valued routing metadata: event source id, event source type, event stream type and event stream id. Custom tags do not guard appends | The read model's key and event types supply the guard |
+| Decision model | A decision read: state built from events, with a position captured before the read | A supported read-model parameter of the command or its validator, under read protection `On` |
 | Query item | A concurrency scope | Derived from the events the read model folds |
 | Append condition | The conditions on one atomic append. Any violation rejects the append | Derived for you and carried on the command's append |
 
 Two differences from a DCB store follow from this. An event belongs to exactly one event source, so a fact about two entities is two events appended together in one atomic append. And custom tags on an event are stored and filterable, but they take no part in the consistency check.
 
-[Read this first: write-side consistency](/concepts/read-this-first-write-side-consistency/) maps Chronicle onto the terms of DCB, KurrentDB, Marten and Axon. The Chronicle documentation covers [DCB in Chronicle](/chronicle/dynamic-consistency-boundary/) in depth, including which events make an append fail.
+[Read this first: write-side consistency](/concepts/read-this-first-write-side-consistency/) maps familiar stream and aggregate concepts onto Chronicle's mechanisms. The Chronicle documentation covers [DCB in Chronicle](/chronicle/dynamic-consistency-boundary/) in depth, including which events make an append fail.
 
 ## Limits
 
-- A condition covers the events the read model folds for the key it reads. An event of another type, or for another key, does not conflict.
-- A revision or a redaction of an earlier event does not move the position that a condition compares, so a decision made before the change can still commit.
-- A condition guards the reads it was built from. A writer that decides without one, a read marked as advisory, and state outside the event log are not covered.
-- The condition names the read it protects. It does not name the conflicting event.
-- It protects decisions made against one event sequence. A read across event sequences is not guarded.
+A guard protects only the dependencies it captures. Every writer that decides on the same rule needs a suitable guard, unless the rule is enforced by a kernel constraint. An advisory read or a call to another database is not protected by the append condition.
+
+Chronicle guards apply within one event sequence. Position-only scopes detect appends, not revisions or redactions of earlier events. The .NET decision-read path also captures a history-mutation marker when the kernel supplies one; a revision or redaction then invalidates the read's guard. Do not assume this extra check for a hand-built scope or another client.
+
+A reported conflict can identify the first matching event when the kernel supplies that detail. Its absence is not evidence that no conflict occurred. Several reads can also produce a broader guard than any one read, causing extra conflicts; the [guard derivation guide](/chronicle/dynamic-consistency-boundary/how-guards-are-derived/) explains the merge rules.
 
 ## Next steps
 
-- Learn the Cratis mechanisms and when each fits: [Keeping decisions correct under concurrency](/concepts/keeping-decisions-correct/).
-- Build a protected command from a Screenplay model to a frontend that handles a lost race: [Decisions that hold, from model to frontend](/decisions-that-hold-walkthrough/).
-- Start from the Arc guide: [Getting started with read protection](/arc/backend/csharp/chronicle/consistency/getting-started/).
-- Using Chronicle without Arc: [Choosing how a rule holds in Chronicle](/chronicle/dynamic-consistency-boundary/choosing/).
-- The wider write-side path: [Write-side consistency learning path](/learning-paths/#write-side-consistency).
-- The blog series [Decisions that hold](https://blog.cratis.io/the-bug-you-never-see/) walks through the same ideas from the problem to a [decision guide](https://blog.cratis.io/decisions-that-hold-faq/).
+To choose a mechanism for your rule, continue with [Keeping decisions correct under concurrency](/concepts/keeping-decisions-correct/). Then use [Getting started with read protection](/arc/backend/csharp/chronicle/consistency/getting-started/) for Arc commands, or [Choosing how a rule holds in Chronicle](/chronicle/dynamic-consistency-boundary/choosing/) when using the client directly.
+
+For a connected example from a Screenplay model to a frontend that handles a lost race, follow [Decisions that hold, from model to frontend](/decisions-that-hold-walkthrough/). The [write-side consistency learning path](/learning-paths/#write-side-consistency) links the wider sequence of guides.
+
+The blog series [Decisions that hold](https://blog.cratis.io/the-bug-you-never-see/) approaches the pattern from the problem and ends with a [decision guide](https://blog.cratis.io/decisions-that-hold-faq/).

@@ -1,18 +1,18 @@
 ---
-title: Chronicle in your language
-description: "Event sourcing for .NET, TypeScript, Kotlin, Java, and Elixir: Chronicle is an open-source (MIT) event-sourcing database with idiomatic clients on NuGet, npm, Maven Central, and Hex — plus an experimental Go client."
+title: Cratis Chronicle clients by language
+description: Choose a Cratis Chronicle client for .NET, TypeScript, Kotlin, Java, Elixir or Go, with package setup, client limits and links to language guides.
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 import TopicHero from '@components/TopicHero.astro';
 
 <TopicHero icon="puzzle" eyebrow="Chronicle in your language" title="One event-sourcing database, idiomatic clients">
-Chronicle is an event-sourcing database and processing runtime with a language-agnostic gRPC/protobuf boundary. That means the event store is not tied to one runtime: the first-class .NET SDK and the TypeScript, Kotlin/Java, and Elixir clients all work against the same store, the same events, and the same projections. An experimental Go client is available too, and a Python client is coming soon. Everything is open source and MIT licensed. [Client SDK docs →](/chronicle/clients/)
+Cratis Chronicle stores events and builds read models on the server; your application uses a client in its own language. The clients communicate through gRPC, a remote procedure call protocol, using shared Protocol Buffers message definitions. Choose your language below for the package and setup guide. Client capabilities differ, so check the operations your feature needs before choosing.
 </TopicHero>
 
 ## Event sourcing for .NET
 
-The .NET SDK is the first-class Chronicle client: typed access to event stores, event logs, read models, projections, reducers, reactors, constraints, migrations, namespaces, and hosting integration — including a one-line [.NET Aspire resource](/chronicle/hosting/aspire/).
+The .NET SDK provides typed access to event stores and logs, with APIs for read models, projections, reducers and reactors. It also covers constraints, migrations, namespaces and hosting integration, including a [.NET Aspire resource](/chronicle/hosting/aspire/). Start with the core package:
 
 ```bash
 dotnet add package Cratis.Chronicle
@@ -27,13 +27,13 @@ In an ASP.NET Core application, add `Cratis.Chronicle.AspNetCore` instead; it br
 
 ## Event sourcing for TypeScript and Node.js
 
-`@cratis/chronicle` is the idiomatic TypeScript client for Chronicle, with support for transactions, jobs, webhooks, compliance/PII, and OpenTelemetry. It builds on the `@cratis/chronicle.contracts` gRPC contracts package.
+Use `@cratis/chronicle` from a TypeScript or Node.js application. It builds on the `@cratis/chronicle.contracts` gRPC contracts package and includes APIs for transactions, jobs, webhooks, OpenTelemetry and compliance features for personally identifiable information (PII). Install the client and its dependencies:
 
 ```bash
-npm install @cratis/chronicle reflect-metadata
+npm install @cratis/chronicle @cratis/fundamentals reflect-metadata
 ```
 
-The client uses decorators, so your project also needs `experimentalDecorators` and `emitDecoratorMetadata` enabled and must be an ES module project. The [TypeScript landing page](/event-sourcing/typescript/) lists the setup.
+The client supports standard decorators (TypeScript 5.2 or later) and legacy decorators. Enable `experimentalDecorators` and `emitDecoratorMetadata` only for the legacy option; leave them unset for standard decorators. Use an ES module project. The [TypeScript landing page](/event-sourcing/typescript/) lists the setup.
 
 - [Event sourcing in TypeScript and Node.js](/event-sourcing/typescript/) — the dedicated landing page
 - [TypeScript client docs](/chronicle/clients/typescript/)
@@ -42,7 +42,7 @@ The client uses decorators, so your project also needs `experimentalDecorators` 
 
 ## Event sourcing for Kotlin and Java
 
-`io.cratis:chronicle` is the idiomatic JVM client for Chronicle, usable from Kotlin and Java alike. It ships with a Spring Boot starter and a testing library.
+Kotlin and Java applications use the same JVM client, `io.cratis:chronicle`. Choose the core library or the Spring Boot starter for hosting integration; a testing library is also available.
 
 ```kotlin
 // build.gradle.kts
@@ -62,7 +62,7 @@ Replace `<version>` with the current release from Maven Central.
 
 ## Event sourcing for Elixir
 
-`cratis_chronicle` is the idiomatic Elixir client for Chronicle, with transactions, optimistic concurrency, webhooks, and resilient reconnection.
+Add `cratis_chronicle` to your Mix dependencies for an Elixir application. The client supports transactions, optimistic concurrency checks, webhooks and reconnection.
 
 ```elixir
 # mix.exs
@@ -80,15 +80,17 @@ Use the current version from Hex; `mix hex.info cratis_chronicle` prints it.
 - [`cratis_chronicle` on Hex](https://hex.pm/packages/cratis_chronicle)
 - [Chronicle.Elixir on GitHub](https://github.com/Cratis/Chronicle.Elixir)
 
-## Event sourcing for Go (experimental)
+<span id="event-sourcing-for-go-experimental"></span>
 
-`github.com/cratis/chronicle.go` is the Go client for Chronicle. It is an experimental foundation at v0.x: typed event registration, connection with TLS and OAuth, single and atomic batch appends, and event history reads are implemented. Observers, projections, and automatic lifecycle recovery are not yet implemented.
+## Event sourcing for Go
+
+`github.com/cratis/chronicle.go` is the Go client for Chronicle. It supports typed event registration, connection with TLS and OAuth, single and atomic batch appends, and event history reads. Observers, projections, and automatic lifecycle recovery are not yet implemented.
 
 ```sh
 go get github.com/cratis/chronicle.go@v0.11.0
 ```
 
-[v0.11.0](https://github.com/Cratis/Chronicle.Go/releases/tag/v0.11.0) is the latest released tag checked on 2026-10-20. The client remains experimental.
+[v0.11.0](https://github.com/Cratis/Chronicle.Go/releases/tag/v0.11.0) is the latest released tag checked on 2026-10-20.
 
 - [Event sourcing in Go](/event-sourcing/go/) — the dedicated landing page
 - [Go client docs](/chronicle/go/)
@@ -96,20 +98,20 @@ go get github.com/cratis/chronicle.go@v0.11.0
 
 ## Event sourcing for Python — coming soon
 
-A Python client for Chronicle is in development. It is pre-release and not yet published to PyPI, so there is nothing to install yet — follow the repository for progress.
+A Python client for Chronicle is in development. It is not yet published to PyPI, so there is nothing to install yet — follow the repository for progress.
 
 - [Event sourcing in Python](/event-sourcing/python/) — the coming-soon landing page
 - [Chronicle.Python on GitHub](https://github.com/Cratis/Chronicle.Python)
 
-<Aside type="note" title="Pre-release">
-The Python client is pre-alpha. APIs will change, and no package has been published. Watch the repository or ask in [the community](/community/) if it matters to your project.
+<Aside type="note" title="No Python package published">
+APIs will change, and no package has been published. Watch the repository or ask in [the community](/community/) if it matters to your project.
 </Aside>
 
 ## Any language, one contract
 
-Every client speaks the same gRPC/protobuf contracts, so any language with a gRPC implementation can talk to Chronicle. If your runtime is not listed above, you can implement the contracts directly.
+The [client SDK docs](/chronicle/clients/) describe the language-specific APIs over Chronicle's shared gRPC contracts. A shared protocol does not mean every client exposes every feature; Go, for example, supports appending and reading events but not observers or projections. If your runtime is not listed above, you can implement the contracts directly.
 
-The clients other than .NET are released on their own schedules, and their major version numbers do not match the kernel's. [Compatibility](/compatibility/) explains how to pair a client with a kernel.
+Before installing a client, check [Compatibility](/compatibility/) to pair it with a Chronicle kernel, the server runtime. Clients other than .NET have independent release schedules, and their major versions do not match the kernel's. Then follow your language's setup guide above to connect an application.
 
 <CardGrid>
   <LinkCard title="Building a client" description="Implement the Chronicle gRPC contracts for a new language or runtime." href="/chronicle/building-a-client/" />

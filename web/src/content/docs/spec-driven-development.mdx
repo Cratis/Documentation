@@ -1,35 +1,35 @@
 ---
-title: Spec-driven development with event models and specs
-description: Spec-driven development with Cratis writes the event model and Given/When/Then specs first, then checks code and agents against them. One slice, worked.
+title: Spec-driven development with Cratis
+description: Use event models and Given/When/Then specifications to define a Cratis feature before coding, then check its model and implementation separately.
 ---
 
 import { CardGrid, Aside } from '@astrojs/starlight/components';
 import SimpleCard from '@components/SimpleCard.astro';
 
-Spec-driven development with Cratis means you write down what a feature must do as an event model and as Given/When/Then specifications before the code exists, and the specifications stay the contract the code is checked against. The same specifications guide people and coding agents. The model-first tools in the chain, Screenplay, Stage and Prologue, are experimental; the executable specifications on the code side are not.
+Spec-driven development with Cratis starts by describing a feature in an event model and Given/When/Then examples before implementing it. Those examples state the intended behavior for developers and coding agents. Screenplay checks supported model scenarios in memory; code-side specifications check the implementation separately.
 
-Without that contract, a feature starts as a conversation. Someone remembers what was agreed, the code drifts from it, and the only test is the one that happened to be written afterwards. When an agent writes the code, the problem gets worse: it fills the gaps with plausible guesses and nobody can say which behavior was intended. A specification names the behavior once, in words a domain expert can read, and then fails when the code disagrees.
+Suppose registration must record an author's name. Before choosing a handler or a projection, agree on the example: when a new author registers, which event is recorded, and what should the authors screen show? That gives reviewers something concrete to compare with the code, rather than reconstructing the agreement from a diff.
 
 ## Why write the spec first
 
-- **Shared understanding.** An event model shows commands, events and read models in the order they happen. Given/When/Then speaks the same language: the given is the facts that already happened, the when is the command, the then is the facts and read models that result. See [event modeling](/event-modeling/) for the model itself.
-- **Verifiable change.** A spec that runs turns "does this still do what we agreed?" into a pass or fail. Reviewers read the spec to see intent and look at the result to see whether the code meets it.
-- **Safe for agents.** An agent can generate or change code freely when it has a contract to run. Without one, review has to rediscover the intent from the diff.
+An [event model](/event-modeling/) shows the command, the facts it records and the state a screen reads. Given/When/Then turns that flow into an example: given earlier facts, when a command arrives, then these outcomes should follow.
+
+Writing the example first exposes unanswered questions before implementation. Running it later checks the behavior it actually asserts, not every possible behavior of the feature. That distinction matters when a coding agent supplies the implementation: passing specs are review evidence, not permission to skip review.
 
 ## The chain from model to verified code
 
 Each step produces something the next step reads. You can enter the chain at any point; Arc and Chronicle do not depend on the model-first tools.
 
-| Step | What you have | Where it is documented | Maturity |
-|---|---|---|---|
-| 1. Event model | Slices: a screen, its command, the event, the read model behind the next screen | [Event modeling](/event-modeling/), [Studio](/studio/) | Studio is in Preview |
-| 2. Screenplay specifications | `specification` blocks inside a slice in a `.play` file, compiled and run by the Screenplay tool | [Screenplay](/screenplay/) | Experimental |
-| 3. Stage | Compiles `.play` folders, checks the declared specifications, and renders reviewable Arc and Chronicle code | [Stage](/screenplay/faq/#what-are-stage-and-studio) | Experimental |
-| 4. Arc and Chronicle code | The command, event and projection of the slice | [Build a full app](/build-a-full-app/) | See the [capability map](/cratis-stack/) |
-| 5. Specifications and replay | Executable BDD specs on the code, plus Chronicle replay of read models | [Specifications](/specifications/), [Testing with Cratis](/testing-with-cratis/) | Specifications are in regular use across the Cratis repositories |
-| Alternative start | Prologue captures signals from an existing system and proposes a model for you to review | [Prologue](/prologue/) | Experimental |
+| Step | What you have | Where it is documented |
+|---|---|---|
+| 1. Event model | Slices: a screen, its command, the event, the read model behind the next screen | [Event modeling](/event-modeling/), [Studio](/studio/) |
+| 2. Screenplay specifications | `specification` blocks inside a slice in a `.play` file, compiled and run by the Screenplay tool for supported scenarios | [Screenplay](/screenplay/) |
+| 3. Stage | Compiles `.play` folders, checks supported declared specifications, and renders reviewable Arc and Chronicle code for supported slice shapes | [Stage](/screenplay/faq/#what-are-stage-and-studio) |
+| 4. Arc and Chronicle code | The command, event and projection of the slice | [Build a full app](/build-a-full-app/), [capability map](/cratis-stack/) |
+| 5. Specifications and replay | Executable behavior-driven development (BDD) specs on the code, plus Chronicle replay of read models | [Specifications](/specifications/), [Testing with Cratis](/testing-with-cratis/) |
+| Alternative start | Prologue captures signals from an existing system and proposes a model for you to review | [Prologue](/prologue/) |
 
-The specifications appear twice on purpose. The Screenplay specification checks the model: given these events, when this command, the model says these events follow. The Specifications test checks the code: the implementation really appends them. Keeping both lets you catch a wrong model and a wrong implementation separately.
+The specifications appear twice on purpose. The Screenplay specification checks the model: given these events, when this command, the model says these events follow. The Specifications test checks the code: the implementation really appends them. Keeping both lets you check the modeled behavior separately from its implementation. A passing model scenario does not establish that the business rule itself is correct.
 
 ## One slice, written as spec and as test
 
@@ -104,23 +104,23 @@ Today you write the Screenplay specification and the Specifications test separat
 
 ## How agents use the specs as the contract
 
-An agent works best when the task is "make these specifications pass" rather than "build this feature". In practice that gives three rules:
+Give the agent a reviewed example rather than asking it to infer the rule from a feature name:
 
-1. **Hand the agent the spec, not a description.** The `.play` file or the Given/When/Then table from the event model states the intended behavior. The agent writes or changes the code, then runs the specifications.
-2. **The specification is the done condition.** A failing spec is a precise instruction; a passing spec is evidence you can read. The agent does not get to redefine the behavior to match its code.
-3. **Humans review the specification diff first.** If a change alters a spec, that is a change of intent and needs a decision. If it only touches code, the existing specs say whether behavior held.
+1. Supply the `.play` file or Given/When/Then table and identify the code-side specifications it should satisfy.
+2. Ask it to implement the behavior and run the specifications, without changing their expected outcomes to fit its code.
+3. Review changes to the specifications as changes of intent. Review implementation changes against those examples and the behavior they leave untested.
 
 Cratis AI installs rules and skills into a repository so an agent follows the conventions of the stack, including the specification style; see [AI-native development](/ai/) and the [EventModelers.ai](/eventmodelers-ai/) workflow. For how agents fit into a whole delivery process, read [agentic development](/agentic-development/).
 
-## What is still experimental
+<span id="what-is-still-experimental" />
 
-- **Screenplay, Stage and Prologue are experimental** and in early development. Studio is in Preview. Check the [capability map](/cratis-stack/) for current labels.
-- **Stage's specification runner is model-level verification.** It checks declared specifications against the modeled facts and writes `results.json`. It is not a behavioral run of every slice through a live generated application, and some constructs are reported as unsupported rather than passing.
-- **Stage rendering is narrow.** Generated output needs review, and the Stage docs list what is and is not rendered.
-- **Operation specifications are syntax only.** The reference runner cannot execute them yet.
-- **Ordinary Given/When/Then does not prove race handling.** Concurrent writes need their own specification, as in [decisions that hold](/decisions-that-hold-walkthrough/).
+## Execution and rendering limits
 
-If your team wants executable specs today, start at step 5. [Specifications](/specifications/) and the Arc and Chronicle scenarios work without the model-first tools.
+Check the [capability map](/cratis-stack/) before choosing tools. Stage's specification runner checks declared scenarios against modeled facts and writes `results.json`; it does not exercise every slice through a live generated application. Unsupported constructs are not passing scenarios. Operation specifications are syntax only and cannot be executed by the reference runner.
+
+Stage renders a subset of slice shapes, and generated output needs review. Ordinary Given/When/Then examples also do not prove concurrency handling. [Decisions that hold](/decisions-that-hold-walkthrough/) explains the read protection that guards an append when decision state changes.
+
+If your next task is to test application code, start at step 5. [Specifications](/specifications/) and the Arc and Chronicle scenarios work without the model-first tools.
 
 ## Frequently asked questions
 

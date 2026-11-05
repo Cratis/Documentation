@@ -1,13 +1,13 @@
 ---
-title: Production readiness
-description: Cross-stack checklist for deploying and operating Cratis with versioned artifacts, TLS and encryption certificates, storage, backups, secrets, identity, observability, replay, and support paths.
+title: Cratis production readiness checklist
+description: Prepare a Cratis deployment by checking release versions, storage, certificates, backups, identity and operational recovery before going live.
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
-Production readiness is not one switch. Cratis gives you the event log, generated contracts, operational tools, and hosting configuration, but you still need explicit choices for storage, secrets, identity, deployment, monitoring, replay, and incident handling.
+Use this checklist before deploying Cratis Chronicle or a full Cratis application. It covers the decisions your team must make around the runtime: which versions to deploy, where data and keys live, and how someone recovers the service when it fails.
 
-Use this checklist before deploying Chronicle or a full Cratis application. Each item links to the product page that owns the details.
+A deployment that starts successfully has not yet demonstrated a usable backup or a safe replay. Work through each section with the people responsible for operating the application, and follow the linked product guides for configuration. This checklist is a review aid, not a certification of the deployment.
 
 <CardGrid>
   <LinkCard title="Chronicle production hosting" description="The production image, required certificates, storage, backups, scaling, and health checks." href="/chronicle/hosting/production/" />
@@ -16,10 +16,14 @@ Use this checklist before deploying Chronicle or a full Cratis application. Each
 </CardGrid>
 
 <Aside type="caution" title="The production image will not start on development settings">
-`cratis/chronicle:latest` and the versioned release tags always take the production code path. It needs a storage connection, a **TLS certificate**, and an **encryption certificate** before it starts. The TLS certificate is needed even when a proxy or load balancer terminates TLS in front of Chronicle, because Chronicle serves gRPC and HTTP over its own TLS port. The encryption certificate protects Chronicle's internal OAuth authority and is not needed when you use an external authority instead. A Compose file that works against `latest-development` fails against `latest` for exactly this reason. See [what makes a build a production build](/chronicle/hosting/production/#what-makes-a-build-a-production-build).
+`cratis/chronicle:latest` and versioned release tags take the production code path. They do not provide the development image's database or generated certificates. Configure a storage connection and, by default, a TLS certificate for Chronicle's combined gRPC and HTTP port. Proxy TLS termination alone does not change that default. A private HTTP/2 backend without TLS requires explicitly setting `Tls:Enabled=false` and configuring an HTTPS-terminating proxy; follow [TLS configuration](/chronicle/hosting/configuration/tls/) for that alternative.
+
+An encryption certificate is required when using Chronicle's internal OAuth authority. Disabling that authority or configuring an external one removes that startup requirement, but encrypted values still require an encryption certificate. See [what makes a build a production build](/chronicle/hosting/production/#what-makes-a-build-a-production-build) before adapting a development Compose file.
 </Aside>
 
 ## Release and deployment
+
+Start with the versions you have tested together. A rollback plan needs to cover derived data and configuration as well as the application binary.
 
 - Pin package versions and Docker image tags. Use a specific Chronicle release tag, not `latest`, and never a `latest-development` image outside development and CI.
 - Keep environment-specific configuration outside images.
@@ -28,6 +32,8 @@ Use this checklist before deploying Chronicle or a full Cratis application. Each
 - Record which Chronicle, Arc, Components, CLI, and app versions are deployed together.
 
 ## Storage and data
+
+Treat restore and replay as different operations. Restore recovers stored data and keys from a backup; replay rebuilds derived read models from events. Rebuilding a read model does not recover a lost compliance key.
 
 - Choose the Chronicle storage engine deliberately: MongoDB, PostgreSQL, Microsoft SQL Server, or SQLite.
 - Run MongoDB as a replica set, even with a single node. Chronicle uses MongoDB transactions, which a standalone `mongod` rejects. See [storage requirements](/chronicle/hosting/production/#storage-requirements).
@@ -41,6 +47,8 @@ Use this checklist before deploying Chronicle or a full Cratis application. Each
 
 ## Security and identity
 
+Decide which service establishes identity and where tenant access is enforced. Test requests with missing or invalid identity and tenant information, not only successful sign-in.
+
 - Use TLS for service-to-service and client connections, and configure real certificates, not self-signed development ones.
 - Store secrets and certificate passwords in a real secret manager or platform secret store.
 - Configure authentication, admin bootstrap, clients, and identity-provider certificates intentionally.
@@ -49,6 +57,8 @@ Use this checklist before deploying Chronicle or a full Cratis application. Each
 - Follow the private reporting path on [Security](/security/) for vulnerabilities.
 
 ## Operations
+
+Make recovery tasks actionable for whoever is on call. A failed observer needs an owner who can inspect the failure, decide whether retry or replay is appropriate, and verify the result.
 
 - Enable OpenTelemetry where your environment can collect traces and metrics.
 - Configure health checks for your orchestrator.
@@ -59,6 +69,8 @@ Use this checklist before deploying Chronicle or a full Cratis application. Each
 
 ## User-facing application
 
+Check the paths a user sees when a request is refused or state changes during an edit. Successful command execution alone does not verify those paths.
+
 - Decide where AuthProxy, tenant resolution, authentication, and authorization live.
 - Keep generated TypeScript proxies in the frontend build so drift fails at compile time.
 - Verify command validation, optimistic concurrency, and error handling from the UI.
@@ -67,3 +79,5 @@ Use this checklist before deploying Chronicle or a full Cratis application. Each
 <Aside type="tip" title="Production readiness is a review loop">
 Revisit this page whenever you add a storage engine, identity provider, deployment region, replay strategy, or critical event type migration.
 </Aside>
+
+For the deployment itself, continue with [Chronicle production hosting](/chronicle/hosting/production/). Before a release, check [version compatibility](/compatibility/) against the versions recorded in your deployment plan.

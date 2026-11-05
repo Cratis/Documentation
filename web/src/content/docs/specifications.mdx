@@ -1,13 +1,13 @@
 ---
-title: Specifications
-description: Write BDD-style executable specifications with Cratis.Specifications, xUnit or NUnit, Establish/Because/Destroy lifecycle methods, readable folder structure, exception capture, and Should assertions.
+title: "Cratis Specifications: BDD tests with xUnit and NUnit"
+description: Cratis Specifications adds Given/When/Then lifecycle methods and assertions to xUnit and NUnit so .NET tests describe the behavior they check.
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
-A good spec should read like the behavior it protects. When a new developer opens the test project, they should not have to reverse-engineer a large `FooTests` file. They should be able to follow the folders: for this class, when this behavior happens, under this condition, these facts should be true.
+Cratis Specifications adds a behavior-driven development (BDD) structure to .NET tests while keeping the xUnit or NUnit runner. The `Cratis.Specifications` namespace supplies the Given/When/Then lifecycle: `Establish()` sets up the context, `Because()` performs the action, and `[Fact]` or `[Test]` methods assert outcomes. `Destroy()` releases resources afterward.
 
-`Cratis.Specifications` is the small BDD-style layer we use for that shape. It keeps the familiar xUnit or NUnit runner, but adds the Specification by Example structure: `Establish()` for given, `Because()` for when, `[Fact]` or `[Test]` methods for then, and `Destroy()` for cleanup.
+Use it when the test needs to explain a rule, not just detect a failure. For example, a developer investigating authentication should be able to find what happens for an admin user and which role the resulting token must contain. The class and folder names below make that behavior visible before the developer reads the setup.
 
 <CardGrid>
   <LinkCard title="Testing with Cratis" description="See how Specifications fit together with Arc command scenarios and Chronicle in-process testing." href="/testing-with-cratis/" />
@@ -172,7 +172,7 @@ Use reusable contexts for meaningful givens, not just to avoid a few repeated li
 
 ## NUnit differences
 
-The BDD shape is the same with NUnit. The visible difference is the assertion method attribute.
+NUnit uses the same Given/When/Then shape, with `[Test]` instead of `[Fact]`. The lifecycle also differs: NUnit facts can share fixture state, whereas the default xUnit lifecycle creates a fresh instance per fact.
 
 ```csharp
 using Cratis.Specifications;
@@ -239,14 +239,7 @@ Choose a spec-project analyzer policy that explicitly supports readable BDD name
 
 ## When to use Specifications
 
-Use Specifications when the behavior benefits from an executable sentence:
-
-- Business rules.
-- Domain services.
-- Command handlers and validation.
-- Event-sourced slices.
-- Projection, reducer, and reactor behavior.
-- Edge cases that future readers need to understand.
+Use Specifications for business rules and edge cases that future readers need to understand. A command's validation, a domain service's decision, or a projection's response to an event can each be expressed as a context, one action and observable outcomes.
 
 Use plain xUnit or NUnit tests when the test is pure infrastructure smoke, generated-code verification, or a very small assertion where the BDD structure would add noise.
 
@@ -258,6 +251,8 @@ For Cratis application tests, Specifications are usually the outer shape, while 
 - `ReactorScenario<TReactor>` for event-driven side effects.
 
 ## Where to go next
+
+To test a command or read model in an application, continue with [Testing with Cratis](/testing-with-cratis/). It uses this lifecycle around Arc and Chronicle scenarios; you do not need a Screenplay model to start.
 
 <CardGrid>
   <LinkCard title="Testing with Cratis" description="Use Specifications with Arc command scenarios, Chronicle in-process scenarios, and full-stack slice specs." href="/testing-with-cratis/" />

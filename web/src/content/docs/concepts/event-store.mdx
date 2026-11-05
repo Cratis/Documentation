@@ -1,13 +1,13 @@
 ---
 title: Event store vs. a regular database
-description: "An event store is a database for appending immutable events and reading them in order. See how it differs from a regular database and when to use one."
+description: "An event store keeps an ordered history of business facts. Compare it with a regular database and decide when your application needs one."
 ---
 
-An event store is a database designed for one job: appending immutable events in order and reading them back, either for one entity or across the whole log. It does not update or delete rows. It records what happened and keeps it.
+An event store preserves an ordered history of business events so an application can reconstruct state and build new views from past changes. Use one when those changes are the record you need to keep, rather than just a way to update today's values.
 
-A regular database, relational or document, stores the current state of your data and lets you change it in place. An event store stores the history of changes, and the current state is derived from it. Both are databases. They answer different questions and make different promises.
+A relational or document database can hold either current state or an event log. The distinction is the storage model and the operations around it: a dedicated event store supplies append, ordering and observation capabilities that you would otherwise build yourself. In ordinary business use, changes append new facts instead of overwriting earlier ones.
 
-This page compares the two, shows how an event store such as Cratis Chronicle is used, and covers when an ordinary database is the better choice. It builds on [what is event sourcing?](/concepts/event-sourcing/).
+The comparison below uses Cratis Chronicle to show what that means in practice. Start with [what is event sourcing?](/concepts/event-sourcing/) if you are still deciding whether events should be your source of truth.
 
 ## How an event store works
 
@@ -23,25 +23,27 @@ flowchart LR
     L -->|observers read in order| O[Projections and reactors]
 ```
 
-The store offers a small set of operations:
+An application uses three core operations:
 
-- **Append** an event to an event source, with checks at append time.
-- **Read** the events of one event source, or from a sequence number onward.
-- **Observe** the log: projections, reducers and reactors read new events in order and remember how far they have read.
+- Append an event, identifying its event source and any checks that must hold for the write.
+- Read the events of one event source, or a sequence from a chosen position.
+- Observe new events to build views or run reactions, tracking progress so processing can resume.
 
-Chronicle also tracks event types, observers and projections in the event store, and it can partition data into namespaces, for example per tenant. It stores everything in a database you provide: MongoDB (the default), PostgreSQL, SQL Server or SQLite. Read the [event store concept](/chronicle/concepts/event-store/) for the details.
+In Chronicle, projections and reducers build state from events; reactors run follow-up work. Observation happens after storage, not inside the append.
+
+Chronicle also tracks event types, observers and projections in the event store, and it can partition data into namespaces, for example per tenant. Its event-store data lives in a database you provide: MongoDB (the default), PostgreSQL, SQL Server or SQLite. Read the [event store concept](/chronicle/concepts/event-store/) for the details.
 
 ## Event store vs. a regular database
 
 | | Regular database | Event store |
 | --- | --- | --- |
-| What is stored | Current state of each record | Every change, as an immutable event |
-| Write operation | Insert, update, delete | Append only |
-| History | Lost unless you add audit tables or change capture | The data itself |
-| Typical read | Query the table or collection you wrote to | Query a read model built from events |
-| Ad hoc queries | Rich, built in (SQL, aggregation) | Limited on the log; use read models |
-| Consistency of reads | Read-after-write in one place | Writes are validated at once; read models usually catch up shortly after |
-| Fit | General purpose | Domains where change over time is the point |
+| What is stored | Usually current state, but can also store history | Business changes as events |
+| Ordinary business write | Insert, update, delete | Append a fact |
+| History | Requires a history or audit design | The primary record |
+| Typical read | Query tables or collections | Query a read model built from events |
+| Ad hoc queries | SQL or document queries, depending on the database | Usually run against read models |
+| Consistency of reads | Depends on transactions, replicas and isolation | Materialized views can lag behind accepted appends |
+| Fit | General-purpose data storage | Domains that need changes as durable facts |
 
 The last row is the real decision. Neither is better in general.
 
@@ -49,7 +51,7 @@ An event store does not replace querying. You almost never run business queries 
 
 ## A concrete example: a library
 
-In a relational design, a `Loans` table has a row per book with a `BorrowedBy` column and a `DueDate` column. When a book comes back, you clear them. The row now says the book is on the shelf, and nothing says it was ever on loan.
+Suppose a library keeps only one row per book in a `Loans` table, with `BorrowedBy` and `DueDate` columns. Returning the book clears those values. Without a separate history, that design can show that the book is on the shelf but cannot explain its earlier loans.
 
 In an event store, the same book's history looks like this:
 
@@ -60,13 +62,13 @@ In an event store, the same book's history looks like this:
 #3  BookBorrowed(Member: "Grace", DueDate: 2025-03-22)
 ```
 
-You can still answer "who has the book now?" by folding the events. You can also answer "how often is it borrowed?" and "how long do members keep it?", which the table cannot say.
+Applying these events in order shows that Grace has the book now. Counting the borrow events gives its loan frequency. With the occurrence times of borrow and return events, you can also calculate loan durations. Those questions need history, whether you store it as events or design separate history tables.
 
-In Chronicle you define the events as records and append them to the event log:
+In Chronicle, the lending service appends `BookBorrowed` with the book id as the event source id:
 
 <ChronicleClientTabs snippet="site-concepts/event-store/lending-service" variants="csharp,kotlin,java" />
 
-This excerpt ignores the `AppendResult` for brevity. In real code, check `IsSuccess` as shown in [Appending events](/chronicle/events/appending/). It also assumes a registered Chronicle client; [Get started with Chronicle](/chronicle/get-started/) covers setup.
+This excerpt ignores the `AppendResult`. Application code must check the result and handle rejections and unknown outcomes as described in [Appending events](/chronicle/events/appending/). The example does not check whether the book is already on loan or protect that rule from concurrent requests. It also assumes a registered Chronicle client; [Get started with Chronicle](/chronicle/get-started/) covers setup.
 
 To read the history of one book back, ask the event log for the events of that event source and the event types you care about:
 
@@ -74,17 +76,17 @@ To read the history of one book back, ask the event log for the events of that e
 
 ## What an event store gives you that a regular database does not
 
-- **Append-only guarantees.** Events are not updated or deleted, and each has a fixed place in the order. That is a stronger audit story than a table that anyone with write access can alter.
-- **Checks at append time.** Chronicle validates each event against its schema and can reject an append that breaks a [constraint](/chronicle/constraints/) such as uniqueness, or one that conflicts with a concurrent write.
-- **Ordered observation.** Projections, reducers and reactors read events in order and resume from where they stopped. Building this on top of an ordinary table, with change data capture and offsets, is possible but you own the work.
-- **Replay.** A new read model is built by replaying the history. You do not need a special migration for the past.
+The difference is ready-made event infrastructure, not an inability to store events in SQL or documents. Chronicle tracks sequence positions and observer progress so consumers can resume and read models can be rebuilt from history. You would otherwise own that infrastructure.
+
+Chronicle also validates event schemas and supports append-time [constraints](/chronicle/constraints/) and concurrency checks. You must choose and configure the checks your business rule needs; storing events alone does not stop two callers from making conflicting decisions.
+
+Append-only business writes preserve the sequence of facts, but do not imply tamper-proof storage or unlimited retention. Chronicle has explicit revision and redaction operations. Access controls, backups and personal-data handling remain part of the system design.
 
 ## What it does not give you
 
-- **A query language over your business data.** Use read models for that.
-- **Joins and aggregates on the log.** Do them in projections.
-- **Instant read models.** Views are built from events after the append, so they can lag briefly.
-- **Free-form updates.** Fixing a wrong record means appending a corrective event, not editing a row.
+An event store is not a replacement for the query models your screens and reports need. Build those from events, including joins and aggregates where appropriate. Stored views update after the append and may be stale or stop advancing if processing fails.
+
+It also changes how you correct business data. A mistaken loan normally needs a corrective fact, not a free-form update that removes the original decision from history.
 
 ## When not to use an event store
 
@@ -95,16 +97,16 @@ Choose a regular database when:
 - The team needs read-after-write everywhere and cannot design for lagging views.
 - You need ad hoc reporting over arbitrary fields and have no appetite for building read models first.
 
-You can mix both. Chronicle sits happily beside a relational or document store for the parts that are only current state. See [when to use event sourcing](/chronicle/concepts/when-to-use-event-sourcing/).
+You can mix both. Use Chronicle for the event history and a relational or document store for features that only need current state. See [when to use event sourcing](/chronicle/concepts/when-to-use-event-sourcing/).
 
 ## Common pitfalls
 
 - **Using the event store as a general-purpose database.** Store facts about your domain, not arbitrary documents.
 - **Querying the log for screens.** Serve screens from read models.
 - **Making events too generic.** An event named `RecordChanged` is an update statement with a new name. Name the business fact.
-- **Forgetting storage planning.** The log only grows. Plan retention, backups and the underlying database like any other production datastore.
+- **Forgetting storage planning.** Retained events accumulate. Plan capacity, retention, erasure and backups for the underlying database.
 - **Assuming a message broker is an event store.** A broker delivers messages and may discard them after delivery. An event store keeps events as the system of record. See [event-driven architecture vs. event sourcing](/concepts/event-driven-architecture/).
-- **Skipping idempotency.** After a timeout, an append may or may not have been stored. Use concurrency checks or constraints so a retry cannot duplicate it.
+- **Skipping idempotency.** After a timeout, an append may already be stored. Use an idempotency key on the original append where supported and reuse it on retry, or verify the original attempt before writing again. A generic concurrency check is not automatic duplicate protection.
 
 ## Frequently asked questions
 
@@ -114,11 +116,11 @@ It is a specialised database. Some event stores run on top of NoSQL or SQL datab
 
 ### Can I use PostgreSQL or SQL Server as an event store?
 
-You can build an event log in any relational database with an append-only table, and many teams do. You then own sequencing, concurrency checks, subscriptions and replay. A dedicated event store provides those. Chronicle can also use PostgreSQL or SQL Server as its storage.
+Yes. You can build an event log with an append-only table, but then you own sequencing, concurrency checks, subscriptions and replay. A dedicated event store supplies that infrastructure. Chronicle can use PostgreSQL or SQL Server as its underlying storage.
 
 ### Can I delete personal data from an event store?
 
-Not by editing events. You mark personal values so they are encrypted under a per-person key, and on request you delete the key (crypto-shredding), which makes those values unreadable while the log stays intact. Only values you marked are covered, and read models and copies need their own handling. In Chronicle this is the `[PII]` feature. See [event sourcing and GDPR](/concepts/event-sourcing-gdpr/).
+Erasure needs an explicit design. Chronicle's `[PII]` marking supports encrypting personal values with a subject key; deleting that key is called crypto-shredding. It is not proof that every copy is erased: caches, read models, exports and backups need attention, and unmarked values are not covered by the marking. Start with [event sourcing and GDPR](/concepts/event-sourcing-gdpr/) and check the current limits in [Chronicle compliance](/chronicle/compliance/).
 
 ### Where do my queries run?
 
@@ -134,8 +136,6 @@ Follow the [Chronicle tutorial](/chronicle/tutorial/), or read about [event sour
 
 ## Next steps
 
-- Read the [event store concept](/chronicle/concepts/event-store/) in the Chronicle docs.
-- Choose where to run it with [Get started with Chronicle](/chronicle/get-started/).
-- Learn how [projections and read models](/concepts/projections-and-read-models/) answer queries.
-- Understand [CQRS](/concepts/cqrs/), the read/write split that goes with it.
-- Compare [event sourcing for .NET](/compare-event-sourcing-dotnet/) options, or read [Marten vs Chronicle](/compare/marten-vs-chronicle/).
+If the storage model fits your feature, read Chronicle's [event store concept](/chronicle/concepts/event-store/) and choose a setup in [Get started with Chronicle](/chronicle/get-started/). Continue with [projections and read models](/concepts/projections-and-read-models/) to plan how users will query the facts you store; [CQRS](/concepts/cqrs/) explains why those read and write models can differ.
+
+For an implementation comparison, see [event sourcing for .NET](/compare-event-sourcing-dotnet/) or [Marten vs Chronicle](/compare/marten-vs-chronicle/).

@@ -1,33 +1,36 @@
 ---
-title: API reference
-description: Where to find the generated .NET and TypeScript API reference, and how it's produced.
+title: Cratis API reference for .NET and TypeScript
+description: Find public types, members, and signatures in the generated Cratis .NET and TypeScript API references, with coverage and package-version guidance.
 ---
 
-Use this page to find an exact API signature when a guide does not cover your case. The generated references describe documented public APIs at the version built by the site; check your installed package version when a signature differs.
+The Cratis API reference lets you look up public types, members, and exact signatures for the .NET and TypeScript libraries listed below. Use it when a guide does not cover the call you need. The references describe the source version built by the site, not necessarily your installed package version; compare versions if a signature differs.
 
 ## .NET / C\#
 
-The .NET API reference is generated with **DocFX** from the XML documentation comments across the Chronicle client SDK, Arc, and Fundamentals assemblies.
+[Browse the .NET API reference →](/api/) to find types and members by namespace. DocFX generates it from assemblies and their XML documentation comments. It covers seven assemblies:
 
-**[Browse the .NET API reference →](/api/)** — public types and members from the Chronicle clients, Arc (including Arc.Core and MongoDB), and Fundamentals, organized by namespace. Shared extension classes list their contributing assemblies; existing per-library type and member URLs redirect to the canonical pages.
+- Cratis Chronicle: the .NET client (`Cratis.Chronicle`), ASP.NET Core integration (`Cratis.Chronicle.AspNetCore`), and testing helpers (`Cratis.Chronicle.Testing`).
+- Cratis Arc: the application framework (`Cratis.Arc`), core command and query pipelines (`Cratis.Arc.Core`), and MongoDB read-model persistence (`Cratis.Arc.MongoDB`).
+- Cratis Fundamentals: shared building blocks (`Cratis.Fundamentals`).
 
-XML comments also appear in IDE IntelliSense. Relevant NuGet packages include [`Cratis.Chronicle`](https://www.nuget.org/packages/Cratis.Chronicle), [`Cratis.Arc`](https://www.nuget.org/packages/Cratis.Arc), [`Cratis`](https://www.nuget.org/packages/Cratis), [`Cratis.Testing`](https://www.nuget.org/packages/Cratis.Testing), [`Cratis.Arc.MongoDB`](https://www.nuget.org/packages/Cratis.Arc.MongoDB), and [`Cratis.Specifications.XUnit`](https://www.nuget.org/packages/Cratis.Specifications.XUnit). Install only the packages your application needs.
+Shared namespaces and extension classes have one page listing their contributing assemblies. Existing per-library type and member URLs redirect to those pages.
+
+XML comments also appear in IDE IntelliSense. Package details are available on NuGet for [`Cratis.Chronicle`](https://www.nuget.org/packages/Cratis.Chronicle), [`Cratis.Arc`](https://www.nuget.org/packages/Cratis.Arc), [`Cratis`](https://www.nuget.org/packages/Cratis), [`Cratis.Testing`](https://www.nuget.org/packages/Cratis.Testing), [`Cratis.Arc.MongoDB`](https://www.nuget.org/packages/Cratis.Arc.MongoDB), and [`Cratis.Specifications.XUnit`](https://www.nuget.org/packages/Cratis.Specifications.XUnit). Install only the packages your application needs.
 
 ## TypeScript
 
-The TypeScript API reference is generated with **TypeDoc** from the `@cratis/*` packages and surfaced alongside the rest of the site:
+TypeDoc generates a separate reference for each of these TypeScript packages:
 
 - [`@cratis/arc`](/api/arc/javascript/arc/) — the Arc client core
 - [`@cratis/arc.react`](/api/arc/javascript/arc.react/) — React hooks and bindings
-- [`@cratis/arc.react.mvvm`](/api/arc/javascript/arc.react.mvvm/) — the MVVM layer
+- [`@cratis/arc.react.mvvm`](/api/arc/javascript/arc.react.mvvm/) — model-view-viewmodel (MVVM) integration for React
 - [`@cratis/arc.vite`](/api/arc/javascript/arc.vite/) — Vite integration for metadata and queries; the .NET build generates proxies
 - [`@cratis/fundamentals`](/api/fundamentals/javascript/) — shared utilities and concepts
 
 ## How it's produced (for contributors)
 
-We deliberately **combine tooling**: a modern site for the narrative docs, and the best generator for each kind of API reference. The reference is built in the documentation pipeline from the product source — there's nothing to hand-maintain. See the documentation site's `README.md` for the build details.
+The documentation pipeline runs DocFX and TypeDoc against the product source and serves their generated output under `/api/`. Make API documentation changes in the product source rather than editing generated pages. The documentation site's `README.md`, under “API reference and Storybook,” lists the generation inputs and build requirements.
 
 ## When to reach for what
 
-- **Learning or solving a problem?** Stay in the guides, [tutorial](/chronicle/tutorial/), and [scenarios](/chronicle/scenarios/) — they explain the *why* and the *how*.
-- **Looking up an exact signature?** The API reference and your IDE's IntelliSense are the fastest path.
+Use the API reference or your IDE's IntelliSense when you know the operation and need its signature. For a worked example, follow the [Chronicle tutorial](/chronicle/tutorial/) to build from a first event to a read model, or choose a [Chronicle scenario](/chronicle/scenarios/) for a specific problem.

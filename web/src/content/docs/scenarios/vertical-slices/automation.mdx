@@ -1,12 +1,14 @@
 ---
 title: Automation — cancel expired reservations
-description: Cancel uncollected Library reservations in the background with a Chronicle reactor that sends Arc commands, as an Event Modeling Automation.
+description: Expire uncollected Library reservations with a scheduled event, a Cratis Chronicle reactor and Arc commands that recheck each reservation before expiry.
 ---
 
 import YouWillLearn from '@components/YouWillLearn.astro';
 import Recap from '@components/Recap.astro';
 
-A member reserves a book and never comes to collect it. The copy should not stay unavailable forever. Each day, a clock event prompts a reactor to find the overdue reservations and send each one through a cancellation command. No user clicks a button, and an external scheduler supplies the clock signal, so the slice is an **Automation**. It is shown with a C#, Kotlin, Java or TypeScript (source preview) backend; the [reactor table](#how-each-backend-runs-the-reactor) and the [series' backend table](/scenarios/vertical-slices/#how-the-backends-differ) list where they differ.
+An Automation starts work without a user submitting a command. Here, a daily clock event prompts a Cratis Chronicle reactor to find uncollected Library reservations whose deadlines have passed. The reactor sends Cratis Arc commands to recheck each reservation and record its expiry, so other Library workflows can act on that outcome.
+
+Choose the C#, Kotlin, Java or TypeScript backend example. The TypeScript backend is available from source, not npm. The [reactor table](#how-each-backend-runs-the-reactor) explains each backend's command execution and failure handling; the [series comparison](/scenarios/vertical-slices/#how-the-backends-differ) covers the wider setup.
 
 <YouWillLearn title="What you'll build">
 
@@ -39,7 +41,7 @@ The Reservation slice supplies the events that open and close a reservation. The
 
 <ArcBackendTabs snippet="scenarios/vertical-slices/automation/reservation-domain" />
 
-A `BookReserved` event starts the clock. If the member collects the book (`BookBorrowedFromReservation`), the reservation is closed. If they do not collect it before `ExpiresAt`, the system should cancel it and release the copy back to inventory.
+A `BookReserved` event establishes the deadline. Collection (`BookBorrowedFromReservation`), cancellation or expiry closes the reservation. This slice records `ReservationExpired` when an uncollected reservation is due; updating inventory in response is a separate workflow, not implemented here.
 
 ## Folder structure
 
@@ -60,25 +62,27 @@ There is no `.tsx` file for this slice, because Automation has no UI: everything
 
 ### What is happening here?
 
-**The passive read model** `PendingReservation` exists only to support decisions inside the cancellation command; the frontend is not meant to query it. Because it is passive, [Chronicle](/chronicle/) does not proactively observe and replay the [projection](/chronicle/projections/). Chronicle computes it on demand, by the reservation's key, when the command asks for it. It follows `BookReserved` for matching properties and is removed by each of the three closing events, `ReservationExpired` among them.
+`PendingReservation` supplies the cancellation decision with the reservation's current state. It is a passive [read model](/chronicle/read-models/): Chronicle computes it from events on demand by reservation key instead of maintaining it proactively. `BookReserved` supplies its properties, and any of the three closing events removes it. It is an internal command dependency, not a frontend query.
 
-**The to-do list** `ReservationDueForExpiry` is the active, stored read model the reactor sweeps; the reactor never reads the passive model. Every backend projects it from `BookReserved` and removes it with each closing event, like the passive model. C# reads it from its MongoDB collection, TypeScript through the reactor's `services.readModels`, and Kotlin and Java through Chronicle's read models.
+The reactor needs a list to sweep, so `ReservationDueForExpiry` is an active, stored read model. It follows the same opening and closing events, but keeps only the identity and deadline needed to find candidates. C# reads its MongoDB collection, TypeScript uses the reactor's `services.readModels`, and Kotlin and Java use Chronicle's read models.
 
 The sweep needs each reservation's ID in the model; Kotlin and Java mark `id` with `@FromEventSourceId` so the projection copies the event-source ID into it.
 
 :::note[Kotlin and Java need Chronicle.Kotlin 6.8.0 or later]
-Both JVM read models rely on projection instances being keyed by their event source. Before Chronicle.Kotlin 6.5.0, the client sent a projection key the kernel did not recognize, so every instance collapsed onto one empty key ([Cratis/Chronicle#3924](https://github.com/Cratis/Chronicle/issues/3924)). Arc.Kotlin uses 6.9.0, which includes the client-side fix; the issue remains open for the kernel side.
+Both JVM read models rely on projection instances being keyed by their event source. Use a client with the event-source projection-key fix introduced in Chronicle.Kotlin 6.5.0; older clients could collapse instances onto one empty key ([background](https://github.com/Cratis/Chronicle/issues/3924)).
 
 The `Instant` times in the events and read models need 6.8.0, which serializes `java.time` values as ISO-8601 strings. Earlier versions wrote them as JSON objects, and Chronicle rejects such an append against the event's schema.
 :::
 
-**The cancellation command** `CancelExpiredReservation` provides the current time before its handler runs, so you can also test the decision directly with a fixed timestamp. The handler asks for the pending reservation by the command's `ReservationId`, and the Arc–Chronicle integration resolves that projection on demand. The handler accepts a missing reservation — a nullable parameter in C# and Kotlin, `commandReadModel(PendingReservation, { optional: true })` in TypeScript, and `Optional` in Java. A missing, collected, canceled, or already expired reservation produces no new event; a reservation whose deadline has passed produces `ReservationExpired`.
+`CancelExpiredReservation` provides the current time before its handler runs, letting a direct decision spec supply a fixed timestamp instead. The Arc–Chronicle integration resolves `PendingReservation` by the command's `ReservationId`. The handler accepts a missing model through a nullable parameter in C# and Kotlin, `commandReadModel(PendingReservation, { optional: true })` in TypeScript, or `Optional` in Java.
+
+A pending reservation expires when its deadline is at or before `now`. Missing or not-yet-due reservations produce no event, but the command result differs: C# returns an explicit validation error, while Kotlin, Java and TypeScript return no event as a successful no-op. The C# reactor deliberately tolerates those validation rejections when sweeping stale candidates.
 
 The sweep list can lag behind the event log, so it only nominates candidates. The command rechecks each reservation when it runs, without trusting the earlier collection query, and decides whether it may expire. Read-model injection alone is not a blanket guarantee against a concurrent collection or cancellation; a production lifecycle needs append-time rules or the applicable [consistency controls](/arc/backend/csharp/chronicle/commands/transactional-commands/) for competing terminal transitions.
 
-**The [reactor](/chronicle/reactors/)** runs its daily-tick handler when Chronicle delivers a `DailyTick`. Configure a scheduler or background service to append that event to the application's event log; the reactor does not create its own timer. If the to-do projection has not caught up at a sweep, a later tick can pick up the remaining reservation.
+The [reactor](/chronicle/reactors/) handles `DailyTick` only after a scheduler or background service appends it to the application's event log. It does not create a timer. If the to-do projection has not caught up, a later tick can find a reservation that was absent from an earlier sweep.
 
-**Each cancellation goes through Arc's command pipeline**, so validation and authorization apply exactly as they would for an HTTP caller. A failed command must fail the handler, so Chronicle does not acknowledge the tick as successfully handled.
+Each cancellation goes through Arc's command pipeline, including validation and authorization. Decide which rejected commands are expected and which must fail the tick. The C# example tolerates its business validation rejections but throws on authorization failure or exceptions. The JVM examples and TypeScript result handler throw on any unsuccessful command result.
 
 The reactor has no original HTTP principal. The C# and TypeScript commands here have no authorization rules, and the Kotlin and Java commands are marked `@AllowAnonymous` to match. If these commands require authorization, configure a deliberate execution context: in Kotlin, Java and TypeScript, the reactor's `@ExecuteCommandsAsSystem` or `@executeCommandsAsSystem` marker gives its commands a system principal with the roles you list.
 
@@ -86,32 +90,31 @@ The reactor has no original HTTP principal. The C# and TypeScript commands here 
 
 This is the first reactor in the series; the [Translation tutorial](/scenarios/vertical-slices/translator/) uses the same mechanics.
 
-| Mechanism | C# | Kotlin and Java | TypeScript (preview) |
+| Mechanism | C# | Kotlin and Java | TypeScript |
 | --- | --- | --- | --- |
 | Reactor | An `IReactor` | A `@Reactor` class | A `@reactor()` class |
 | How Chronicle finds the handler | Supported signatures and event parameter types | The event parameter type | The method name: the event class in camelCase (`dailyTick` for `DailyTick`) |
 | How the commands run | The reactor calls the constructor-injected [`ICommandPipeline`](/arc/backend/csharp/commands/command-pipeline/) | The reactor passes each command, its own type and the event context to Arc's [`ChronicleCommandSideEffectHandler`](/arc/backend/kotlin/guides/chronicle/#execute-reactor-command-side-effects) | The handler returns the commands, and Arc's [`reactorCommandResultHandler`](/arc/backend/typescript/chronicle/reactors/command-side-effects/) runs them in order |
-| How a failed command fails the handler | Inspect `IsSuccess` and throw the named exception | Check `isSuccess` and throw the named exception | The result handler stops at the first failure and fails the handler |
+| How a failed command fails the handler | Throw `ReservationExpiryFailed` when `!IsAuthorized` or `HasExceptions`; tolerate validation rejections | Check `isSuccess` and throw the named exception | The result handler stops at the first unsuccessful command result and fails the handler |
 | Once-only marker (Step 2) | `[OnceOnly]` | `@OnceOnly` | `@onceOnly()` |
 
-In C#, a failed command may return a result without throwing, so the reactor inspects `IsSuccess` and throws the named exception to make the failure visible to Chronicle. The TypeScript handler receives the stored event as parsed JSON, so it converts `occurredAt` back to a `Date`. `withChronicle` installs `reactorCommandResultHandler` for a client Arc creates; a Chronicle client you create yourself needs it as its `reactorResultHandler` option.
+Returning an unsuccessful command result does not by itself fail a reactor that calls the pipeline directly. The C# and JVM examples inspect the result and throw for the failures described above, making them visible to Chronicle.
+
+The TypeScript handler receives the stored event as parsed JSON, so it converts `occurredAt` back to a `Date`. `withChronicle` installs `reactorCommandResultHandler` for a client Arc creates; a Chronicle client you create yourself needs it as its `reactorResultHandler` option.
 
 ## Step 2 — Idempotency with once-only handlers
 
 The once-only marker on the daily-tick handler skips the method during replay. Rebuilding projections should not execute today's cancellation logic for every historical clock tick. The projections still consume the recorded `ReservationExpired` events to rebuild their state.
 
-The marker is a replay policy, not exactly-once delivery: a failure can cause the handler to run again after earlier commands succeeded. A later command sees the recorded expiry and returns no event, provided the reservation has already reached that terminal state. External effects, such as releasing a copy through another service, need their own stable idempotency key or equivalent duplicate handling.
+The marker controls replay, not exactly-once delivery. A failed tick can run again after earlier cancellation commands succeeded. When a command sees a recorded expiry, it appends nothing further: C# returns the missing-reservation validation error tolerated by this reactor, and the other examples return no event. External effects, such as releasing a copy through another service, need their own stable idempotency key or equivalent duplicate handling.
 
 ## Step 3 — Error handling
 
 If the daily-tick handler fails, Chronicle's observer failure and recovery policy applies. Earlier successful cancellation commands are not rolled back as a group. Monitor failed partitions and repair or retry the underlying operation; do not swallow the failure.
 
-Design your reactor methods to be safe:
+Keep an already closed reservation out of the append path, whether the command reports a no-op or an expected validation rejection. Match the reactor's result check to that choice. An authorization or infrastructure failure must remain visible rather than being mistaken for a stale candidate.
 
-- Treat an already closed reservation as a successful no-op, not an exceptional failure
-- Return explicit validation results for actual business rejection and fail the handler on unsuccessful command results
-- Use the once-only marker to control replay, and design retries separately
-- Test missing reservations, deadlines before/at/after `now`, and all three closing events; then exercise the scheduler, projection catch-up, and retry path together in a hosted test
+Test the decision with a fixed `now`: a missing reservation, deadlines before, at and after that time, and each of the three closing events. Assert the command result as well as the absence or presence of `ReservationExpired`. Then exercise scheduler delivery, projection catch-up and a partial-sweep retry together in a hosted test. Replay and retry are different paths; the once-only marker only addresses replay.
 
 <Recap>
 

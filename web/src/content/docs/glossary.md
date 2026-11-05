@@ -1,6 +1,6 @@
 ---
-title: Glossary
-description: One place for the vocabulary of the Cratis stack — event sourcing, CQRS, and full-stack terms, each defined once and linked to its full explanation.
+title: Cratis Platform glossary for event sourcing and CQRS
+description: The Cratis Platform glossary defines event sourcing, CQRS, read models, consistency and frontend terms, with links to detailed product explanations.
 ---
 
 Event sourcing comes with its own vocabulary, and the Cratis stack adds a few terms of its own. This page
@@ -60,7 +60,7 @@ How events become the things you read and the actions you take.
 | [Read model](/chronicle/read-models/) | A queryable view shaped for one screen or question, built from events. |
 | **Changeset** | The set of changes an observer applies for a single event. |
 | [Eventual consistency](/chronicle/concepts/consistency/) | A read model that catches up shortly after an event is appended — the default. |
-| [Immediate consistency](/chronicle/concepts/consistency/) | A read model updated synchronously, before the append returns — for reads you must get right now. |
+| [Immediate consistency](/chronicle/concepts/consistency/) | Read-after-write for a specific read: a passive model keyed by its event source id replays that source's events on demand, or the caller waits for the append's observers before reading a materialized model. Materialized projections update asynchronously, not inside the append. Fresh reads alone do not protect write-side decisions; use constraints or decision reads. |
 
 ## Full-stack: CQRS and the frontend
 

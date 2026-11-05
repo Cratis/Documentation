@@ -1,13 +1,30 @@
 ---
-title: Samples
-description: Explore runnable Cratis examples, from focused Chronicle applications to a larger Arc and React experience.
+title: Choose a Cratis sample
+description: Choose a Cratis sample by the result you want, from recording an event to updating a React screen, with source paths and local prerequisites.
 ---
 
 import SampleRoster from '../../components/SampleRoster.astro';
 import SamplesHero from '../../components/SamplesHero.astro';
 import { LinkCard } from '@astrojs/starlight/components';
 
+Cratis Samples gives you local examples to follow a recorded event, build a view from its history, or connect a typed backend to React. Choose the result you want below, then open that sample's README for its setup and run commands.
+
 <SamplesHero />
+
+## Choose by outcome
+
+| What you want to do | Sample and repository path | What to expect |
+| --- | --- | --- |
+| Record a fact and read its history | [Chronicle Backend](https://github.com/Cratis/Samples/tree/main/Chronicle/Backend) — `Chronicle/Backend` | A small HTTP API, without projections or a frontend. |
+| Turn the same events into views and a follow-up event | [Chronicle Processing](https://github.com/Cratis/Samples/tree/main/Chronicle/Processing) — `Chronicle/Processing` | Compare a projection that maps events into a view, a reducer that folds them into state, and a reactor that responds with another event. |
+| Connect a typed backend to React without an event history | [Idea Loom](https://github.com/Cratis/Samples/tree/main/Arc/React) — `Arc/React` | Capture an idea and watch the board update. Its in-memory store clears when the backend restarts; it does not use Chronicle. |
+| Follow one event-backed feature through to a React screen | [Author registration](https://github.com/Cratis/Samples/tree/main/Capstone) — `Capstone` | Register an author and see the list update after Chronicle builds the read model, the view queried by the screen. |
+| Explore separate applications in one local composition | [Library](https://github.com/Cratis/Samples/tree/main/Library) — `Library` | Lending and membership applications with React, Arc, Chronicle, MongoDB, and local authentication. Not every backend flow has a screen. |
+| Inspect a known processing failure | [Operations Diagnosis](https://github.com/Cratis/Samples/tree/main/Chronicle/OperationsDiagnosis) — `Chronicle/OperationsDiagnosis` | Create a deliberate reactor failure, then inspect it with the Cratis command-line interface (CLI) and [Workbench](/chronicle/workbench/). The exercise stops before repair. |
+
+If you're new to Chronicle, start with Backend before Processing. For a guided implementation of the author-registration sample, follow [Build a full-stack feature](/build-a-full-app/).
+
+## Get the source
 
 ```bash
 # Choose a sample after cloning the repository
@@ -15,21 +32,26 @@ git clone https://github.com/Cratis/Samples.git
 cd Samples
 ```
 
+The six examples above use the .NET 10 SDK. Their React frontends also need Node.js 23 or newer: Idea Loom and Library use the repository's Yarn toolchain, while Capstone uses npm. Chronicle examples need Docker; Processing, Capstone, and Operations Diagnosis use Docker Compose. Backend, Processing, and Operations Diagnosis use `curl` for their HTTP calls. Library also needs Bash for its launch script. Operations Diagnosis requires a Cratis CLI version supporting the commands in its README.
+
+Use the selected README for the working directory, infrastructure, and startup order. These differ between samples; Idea Loom, for example, needs no Chronicle container. The full catalog below comes from the repository's `samples.json` and lists prerequisites for the other examples. Open each sample's README for its limits.
+
 <SampleRoster />
 
 ## How to explore a sample
 
-1. **Read its README.** Each sample starts with the shape of the application and the shortest path to running it.
-2. **Run the happy path.** Start the sample as instructed, perform its documented action, and check its expected result before changing code.
-3. **Open Chronicle Workbench when Chronicle is involved.** Compare the resulting events and read-side state with the action you just performed.
-4. **Change one thing.** Add a fact, a view, or a user interaction and see which parts of the slice move together.
+Run the selected sample unchanged first and check the result described in its README. When Chronicle is involved, use Workbench or the CLI to inspect the recorded event. If the sample builds a read model, compare that view with the event history that produced it.
+
+Then change one behavior and follow the sample's verification commands before running the changed flow again. This lets you see which parts of the backend and screen need to change together.
 
 ## Focused examples and full applications
 
-A focused sample intentionally leaves things out so one concept stays easy to see. The larger applications show how those concepts meet in a real repository. Neither is a production template. Follow the selected sample's README for its prerequisites and local-development assumptions. If the sample does not build at your installed package version, report the failure in the Samples repository instead of treating the documentation site's build as a sample check.
+A focused example keeps one behavior visible. Capstone covers author registration and listing, not a complete library application. Library brings lending and membership together but still uses local development infrastructure. Neither is a production template; follow the selected README's local-development assumptions before adapting it.
+
+If you encounter a package-version mismatch, report the failure in the Samples repository with the sample path and version details. A successful documentation-site build does not verify your local sample run.
 
 <LinkCard
   title="Build a full-stack feature"
-  description="Follow the guided Arc, Chronicle, generated-contract, and React journey in the documentation."
+  description="Register an author and trace the recorded event through to an updating React list."
   href="/build-a-full-app/"
 />

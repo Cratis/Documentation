@@ -1,26 +1,21 @@
 ---
-title: Agent harness guide
-description: What the managed Cratis AI install creates for Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, and Pi, and the commands for each native plugin.
+title: Cratis AI harness setup and native plugins
+description: Connect Claude Code, Codex, Copilot, Cursor, OpenCode, or Pi to shared Cratis AI guidance, or install a native plugin for a single coding tool.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-A *harness* is the coding tool that runs the agent: Claude Code, Codex, GitHub
-Copilot, Cursor, OpenCode, or Pi. Each one looks for instructions and skills in
-its own folders. This page lists what Cratis puts in those folders, and how to
-install the native plugin when you only need one tool.
+Use managed Cratis AI setup to share guidance across a team's coding tools,
+or a native plugin to add guidance to one tool. A harness is the tool that
+runs the agent, such as Claude Code or Pi. Each harness has its own discovery
+paths and capabilities, so sharing the corpus does not make the integrations
+identical.
 
-Cratis AI reaches a harness in one of two ways:
-
-- **Managed repository setup.** `cratis ai install` resolves the repository's
-  profiles and languages, installs the shared corpus in `.cratis/ai`, and wires
-  every selected harness to it. See [Start using Cratis AI](/ai/getting-started/).
-- **Native plugin setup.** You install one harness's plugin or package without
-  the Cratis CLI. You get no shared repository copy, no multi-harness wiring,
-  and no protection for local edits on update.
-
-Use the managed path when a team wants the same guidance across tools. Use a
-native plugin when one developer wants Cratis skills in one tool.
+The managed path installs the selected guidance in `.cratis/ai` and creates
+adapters for your chosen harnesses. Start with [Cratis AI setup](/ai/getting-started/)
+to choose profiles and review ownership. If you only want a native plugin,
+skip to your tool below; that route does not create a shared corpus or
+provide CLI conflict checks.
 
 ## Managed harness support
 
@@ -43,37 +38,58 @@ The CLI creates adapters only for the harnesses you select:
 | OpenCode | `AGENTS.md`, plus `.opencode` agents, commands, and skills |
 | Pi | `AGENTS.md`, plus `.pi` extensions (rules loading, path guidance, Screenplay MCP, subagents, quality hooks), agents, prompts, and skills |
 
-Most adapters are symbolic links into `.cratis/ai`, so no harness gets its own
-diverging copy. `AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md`
-are created only when you do not already have your own file at that path.
-Run `cratis ai status` to see local edits to managed files, and
-`cratis ai uninstall` to remove the integrations the CLI created.
+The adapters use symbolic links into `.cratis/ai` instead of independent
+copies. Existing `AGENTS.md`, `CLAUDE.md`, and
+`.github/copilot-instructions.md` files are preserved. If you own one of
+these entry files, check that it directs the agent to
+`.cratis/ai/rules/project.md`.
 
-<Aside type="note" title="The Screenplay profile also registers an MCP server">
-When a selected profile resolves to `cratis/screenplay`, the CLI also adds a managed
-`screenplay` MCP server entry (`cratis screenplay mcp`) to each harness's MCP
-configuration, next to your own entries: `.mcp.json` (Claude Code),
-`.vscode/mcp.json` (Copilot), `.cursor/mcp.json`, `.codex/config.toml` and
-`opencode.json`. Pi reaches the same server through its managed `cratis-mcp`
-extension. To turn it off, set `mcpServers.screenplay.enabled` to `false` in
-`.cratis/ai.json`.
-</Aside>
+Run `cratis ai status` to inspect managed-file changes. Before removing an
+installation, review `cratis ai uninstall --dry-run`; uninstall removes the
+unchanged managed files and integrations recorded in the manifest.
+
+Profiles can also configure Model Context Protocol (MCP) servers, which give
+the agent tools beyond file editing. A selection that includes
+`cratis/screenplay` registers `screenplay` using `cratis screenplay mcp`.
+The CLI owns that entry, not the whole configuration file:
+
+| Harness | Managed MCP configuration |
+| --- | --- |
+| Claude Code | `.mcp.json` |
+| GitHub Copilot | `.vscode/mcp.json` |
+| Cursor | `.cursor/mcp.json` |
+| Codex | `.codex/config.toml` |
+| OpenCode | `opencode.json`, or an existing `opencode.jsonc` |
+| Pi | The managed `cratis-mcp` extension for Screenplay |
+
+Set `mcpServers.screenplay.enabled` to `false` in `.cratis/ai.json` and run
+`cratis ai update` to remove the managed registration. An explicit Screenplay
+model root can cause the installer to create that directory; it does not
+create a default model directory.
+
+Other profiles can select additional servers from the source corpus's
+`mcp-servers.json`. Review `cratis ai install --dry-run` or
+`cratis ai update --dry-run` before applying a selection: a profile can add
+tool access as well as text guidance.
 
 <Aside type="note" title="Your harness folders remain yours">
 The installer refuses to overwrite a file it did not install. You can add your
 own files next to the Cratis links in any harness folder. A folder that is
 itself a link, such as `.claude/skills`, points into `.cratis/ai`: anything you
-put there becomes part of the shared tree that every harness reads. `--force`
-only replaces or removes files already recorded as Cratis-managed.
+put there becomes part of the shared tree, though the manifest does not claim
+it. `--force` can replace or remove edited managed corpus files. It cannot
+replace your files or changed MCP entries.
 </Aside>
 
 ## Native plugins
 
 The Claude Code, Codex, GitHub Copilot, and Cursor plugins come from the
 marketplace manifests in [Cratis/AI](https://github.com/Cratis/AI). They carry
-the **skills only**, read from the repository's current default branch, so
-there is no version to pin. Rules, prompts, agents, and hooks are not included;
-use the managed install for those.
+skills only, read from the repository's current default branch. These install
+commands do not pin a corpus revision; the version in a marketplace manifest
+is not a pin for the source content. Rules, prompts, agents, and hooks are not
+included. Use the managed install for those across tools, or the Pi package
+for Pi.
 
 ## Claude Code plugin
 
@@ -109,8 +125,8 @@ Add `Cratis/AI` in Cursor's plugin settings. Cursor reads the committed
 
 ## Pi package
 
-`@cratis/pi` is published to npm and versioned per release, which makes it the
-one native channel you can pin.
+`@cratis/pi` is published to npm with numbered releases. Pin an exact version
+when you want updates to be a deliberate choice:
 
 ```bash
 # Project-scoped (written to .pi/settings.json)
@@ -131,10 +147,36 @@ selected profiles and languages. Without that file, it exposes every packaged
 skill. Unlike the marketplace plugins, it also contributes rules, prompts,
 agents, a subagent tool, and Cratis quality hooks.
 
-It does not create `.cratis/ai`, configure other harnesses, or protect local
-edits. When the repository already has a managed install
+It does not create `.cratis/ai`, configure other harnesses, or provide CLI
+ownership checks. When the repository already has a managed install
 (`.cratis/ai.manifest.json` exists), the package steps aside so the same rules
 and hooks are not registered twice.
+
+## Public skills distribution
+
+[Cratis/AI.Distribution](https://github.com/Cratis/AI.Distribution) is a separate,
+tagged subset of passive skill instructions. It is not the full `Cratis/AI`
+corpus. It comes without installation support or managed update and
+uninstall checks. Its marketplace plugin is named `public-cratis-ai`, not
+`cratis`.
+
+For example, its Codex instructions pin the marketplace source:
+
+```bash
+codex plugin marketplace add Cratis/AI.Distribution --ref v0.3.0
+codex plugin add public-cratis-ai@cratis
+```
+
+Its Pi route uses a tagged Git package instead of `@cratis/pi`:
+
+```bash
+pi install git:github.com/Cratis/AI.Distribution@v0.3.0
+```
+
+Use the distribution's README for its other harness instructions. Check its
+skill list before choosing it; source-catalog profiles do not select content
+in this bundle. [Distribution and rollback](/ai/trust-and-distribution/)
+explains how this differs from the full-corpus channels.
 
 ## OpenCode without the CLI
 

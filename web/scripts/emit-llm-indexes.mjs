@@ -10,7 +10,7 @@ import yaml from 'js-yaml';
 import { PRODUCTS } from './sync-content.mjs';
 import { LLM_SETS, llmSetSlug } from './llm-sets.mjs';
 import { citeRenderedSet, withoutSnippetSourceLinks } from './llm-set-sources.mjs';
-import { abridgedExport, compactFullText, isCuratedPage, isLogPage, pageSummary, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
+import { abridgedExport, compactFullText, isCuratedPage, isLogPage, isRootFullTextExcluded, pageSummary, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const site = 'https://www.cratis.io';
@@ -193,12 +193,14 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
         if (!await exists(path.join(dist, route.slice(1), 'index.html'))) throw new Error(`Missing cross-product guide: ${route}`);
     }
     const rootIndex = original.replace('## Documentation Sets\n', `${introduction}\n\n## Documentation Sets\n`);
-    // Bulk exports: drop release digests and changelogs from the full text, and replace the
-    // plugin's abridged copy with a compact title-and-summary list (site-wide and per product).
+    // Root full text omits logs, contributor workflows and Go parity ledgers; the latter
+    // two remain in product downloads and mirrors. Replace the plugin's abridged copy
+    // with a compact title-and-summary list (site-wide and per product).
     const allPages = await publishedPages(docsRoot);
     const fullFile = path.join(dist, 'llms-full.txt');
     if (await exists(fullFile)) {
-        output.set('/llms-full.txt', compactFullText(withoutPageMarkers(withoutSnippetSourceLinks(withoutExcludedPages(await fs.readFile(fullFile, 'utf8'), allPages)))));
+        const rootPages = allPages.map(page => ({ ...page, excluded: isRootFullTextExcluded(page.slug) }));
+        output.set('/llms-full.txt', compactFullText(withoutPageMarkers(withoutSnippetSourceLinks(withoutExcludedPages(await fs.readFile(fullFile, 'utf8'), rootPages)))));
     }
     const documented = allPages.filter(page => !page.excluded && page.slug && page.slug !== '404' && !/^api(?:\/|$)/.test(page.slug));
     // The most specific product owns a page (fundamentals/go before fundamentals).

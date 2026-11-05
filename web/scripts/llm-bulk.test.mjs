@@ -3,7 +3,7 @@
 
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { PAGE_MARKER, PAGE_SEPARATOR, SIZE_WARNINGS, budgetResult, compactFullText, isCuratedPage, isLogPage, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
+import { PAGE_MARKER, PAGE_SEPARATOR, SIZE_WARNINGS, budgetResult, compactFullText, isCuratedPage, isLogPage, isRootFullTextExcluded, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
 
 describe('LLM export budgets', () => {
     it('allows missing exports and exports at or below each byte budget even when enforced', () => {
@@ -19,7 +19,7 @@ describe('LLM export budgets', () => {
         const sizes = new Map(SIZE_WARNINGS.map(({ route, bytes }) => [route, bytes + 1]));
         const exceeded = [
             { route: '/llms-small.txt', bytes: 400_001, budgetBytes: 400_000 },
-            { route: '/llms-full.txt', bytes: 18_500_001, budgetBytes: 18_500_000 },
+            { route: '/llms-full.txt', bytes: 19_000_001, budgetBytes: 19_000_000 },
         ];
         assert.deepEqual(budgetResult(sizes), { exceeded, failed: false });
         assert.deepEqual(budgetResult(sizes, true), { exceeded, failed: true });
@@ -38,6 +38,34 @@ describe('log page detection', () => {
         for (const slug of ['fundamentals/go/releases', 'arc/backend/typescript/contributing/releases', 'contributing/consuming-pre-releases',
             'screenplay/screens-release-acceptance', 'chronicle/release-process', 'chronicle/changelog-format'])
             assert.ok(!isLogPage(slug), slug);
+    });
+});
+
+describe('root full-text exclusions', () => {
+    it('omits logs, generated API pages, contributor workflows and verification ledgers', () => {
+        for (const slug of ['release-digests/2026-10-20', 'chronicle/changelog', 'api', 'api/dotnet/type',
+            'contributing', 'contributing/building', 'chronicle/contributing/clients/api',
+            'arc/backend/elixir/contributing/build-and-release', 'arc/go/parity', 'chronicle/go/parity',
+            'fundamentals/go/parity', 'screenplay/screens-release-acceptance', 'stage/reference/corpus-conformance',
+            'components/decisions', 'components/decisions/0003-kernel-boundary',
+            'eventmodelers-ai/csharp/decisions/kit-directory-name',
+            'arc/go/releases', 'chronicle/go/releases', 'fundamentals/go/releases', 'whats-new',
+            'chronicle/building-a-client', 'chronicle/building-a-client/checklist',
+            'ai/cratis-maintainers', 'ai/scenarios/cratis-maintainer']) {
+            assert.equal(isRootFullTextExcluded(slug), true, slug);
+        }
+    });
+
+    it('keeps feature guides, capability limits and release-policy documentation', () => {
+        for (const slug of ['api-reference', 'chronicle/go', 'chronicle/release-process',
+            'chronicle/go/read-models/decision-reads', 'arc/backend/elixir/limits-and-gaps',
+            'arc/backend/kotlin/reference/parity', 'chronicle/go/integrations/authentication-evidence',
+            'screenplay/screens-capability-matrix', 'screenplay/semantic-conformance',
+            'screenplay/contributions', 'cli/reference/release-notes', 'components/migration/3-to-4',
+            'arc/backend/csharp/development/generating-principal', 'chronicle/contributing-guide',
+            'chronicle/workbench/development']) {
+            assert.equal(isRootFullTextExcluded(slug), false, slug);
+        }
     });
 });
 
@@ -94,9 +122,9 @@ describe('curated starting points', () => {
     it('enforces the same budgets for product and nested-product downloads', () => {
         const sizes = new Map([
             ['/chronicle/llms-small.txt', 400_001],
-            ['/fundamentals/go/llms-full.txt', 18_500_001],
+            ['/fundamentals/go/llms-full.txt', 19_000_001],
             ['/arc/llms-small.txt', 400_000],
-            ['/cli/llms-full.txt', 18_500_000],
+            ['/cli/llms-full.txt', 19_000_000],
             ['/other.txt', 20_000_000],
         ]);
         const result = budgetResult(sizes, true);

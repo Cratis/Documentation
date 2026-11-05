@@ -1,19 +1,19 @@
 ---
-title: Auth and compliance end to end
-description: How authentication, tenant resolution, Arc authorization, Chronicle compliance subjects, PII encryption, read models, and erasure fit together across the Cratis stack.
+title: Cratis authentication, authorization, and PII protection
+description: Trace a Cratis request from AuthProxy authentication through Arc authorization to Chronicle PII encryption, tenant isolation, and subject erasure.
 ---
 
 import { Aside, CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-Security in a Cratis application is not one feature in one package. A request crosses the edge, becomes
-an Arc command or query, writes events through Chronicle, builds read models, and comes back to a React
-screen. Authentication, authorization, tenant isolation, and compliance each belong to a different part
-of that journey, and the stack is designed so each concern has one clear owner. This page follows one
-request through those owners and points out where your own decisions still matter.
+A customer places an order, and your application needs to check who they are, whether they may place it,
+and how to protect their email address. In Cratis, those checks happen at different points in the request.
+AuthProxy authenticates the caller and resolves the tenant; Arc authorizes the command or query;
+Chronicle stores events in a tenant namespace and encrypts marked personally identifiable information
+(PII) using a key tied to the person it belongs to.
 
-The short version: **AuthProxy authenticates and resolves tenant context, Arc authorizes the operation,
-Chronicle stores events in the right namespace and encrypts PII by compliance subject, and Arc releases
-PII before query results reach the client.**
+Use this page when connecting those parts. Follow the request from the edge to the read model, including
+Arc's release of encrypted values before a query response reaches the client. Tenant membership,
+access policies, and the handling of copies outside Chronicle remain application decisions.
 
 ```mermaid
 flowchart LR
@@ -78,11 +78,13 @@ This is the operational boundary:
 | Check tenant membership | You | Resolution selects a tenant; your services and policies verify that this caller may use it |
 
 <Aside type="caution" title="A correct resolver is not membership authorization">
-Keep three decisions apart: selection resolves the tenant id, membership authorization checks whether this caller may use it, and storage isolation decides where reads and writes go. None of them replaces the others, and a resolver that produces the right tenant id does not prove the authenticated user belongs to that tenant. Enforce membership in your application services and policies. Isolation is also only as good as the tenant id the resolver produces. A request that arrives without a
-tenant does not fail: Arc maps a missing or default tenant to Chronicle's **default** namespace. In a
-multi-tenant application, decide whether any caller may reach default-namespace data, and reject requests
-without a valid tenant when they may not. Trust tenant headers only when they come from AuthProxy or
-another component you control. [Tenancy with Chronicle](/arc/backend/csharp/chronicle/tenancy/) describes
+Resolving a tenant id selects where the request goes; it does not prove the caller belongs there.
+Check membership in your application services and policies, and trust tenant headers only when they
+come from AuthProxy or another component you control. Storage isolation depends on that resolved id.
+
+A request without a tenant does not fail: Arc maps a missing or default tenant to Chronicle's
+**default** namespace. Decide whether any caller may reach that data, and reject requests without a
+valid tenant when they may not. [Tenancy with Chronicle](/arc/backend/csharp/chronicle/tenancy/) describes
 the mapping, and [database isolation](/arc/backend/csharp/tenancy/database-resolvers/) covers MongoDB and EF Core.
 </Aside>
 
@@ -97,8 +99,9 @@ address in the event belongs to a `CustomerId`. In that case the command should 
 the Chronicle `Subject`. If no explicit subject is provided, Chronicle falls back to the event source id.
 
 Arc's Chronicle integration can resolve the subject from command return values, command properties,
-`ICanProvideSubject`, or a `[Subject]`-marked property. The rule of thumb is simple: **set the subject to
-the identity that owns the PII, not merely the thing being changed.**
+`ICanProvideSubject`, or a `[Subject]`-marked property. Set the subject to the identity that owns the
+PII, not merely the thing being changed. The [subject examples](/arc/backend/csharp/chronicle/compliance/subject/)
+show the command declarations for these choices.
 
 ## PII is protected at write and released at read
 
@@ -146,12 +149,12 @@ needed to finish erasure. If an entire event payload must be removed, review
 
 Key deletion only reaches what Chronicle's key store protects. Plan for the rest:
 
-- **Backups.** A backup taken before the erasure still holds the key. Restoring it brings the key back,
-  so a restore needs its own procedure to re-apply erasures made since the backup.
-- **Copies outside Chronicle.** Decrypted values in exports, warehouses, search indexes, logs, caches, and
-  anything a reactor sent to another system are outside the erasure.
-- **Unmarked data.** Values that were never marked `[PII]`, including command values recorded in causation,
-  were never encrypted and are not affected.
+A backup taken before erasure still holds the key. Restoring it brings the key back, so your restore
+procedure must re-apply erasures made since the backup. Decrypted values in exports, warehouses,
+search indexes, logs, caches, or systems reached by a reactor are outside Chronicle's erasure.
+
+Values that were never marked `[PII]`, including command values recorded in causation, were never
+encrypted and are not affected. Check those paths when deciding whether an erasure request is complete.
 
 [Erasing a subject](/chronicle/compliance/erasing-a-subject/) and
 [key lifecycle](/chronicle/compliance/key-lifecycle/) cover the full procedure.

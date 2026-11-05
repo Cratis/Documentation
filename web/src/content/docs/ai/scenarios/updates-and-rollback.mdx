@@ -1,26 +1,32 @@
 ---
-title: "Scenario: updates and rollback"
-description: How Cratis AI guidance changes for each channel, how to preview an update, and how to get back to a known-good state.
+title: Review Cratis AI updates and roll back guidance
+description: Review Cratis AI updates before applying them, restore managed guidance from a known source revision, or pin an earlier Pi package version.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-An update to Cratis AI changes what your agent is told to do, so you want to
-see it coming and be able to undo it. How you do that depends on the channel
-you installed through.
+Review Cratis AI updates before changing the instructions your agent receives.
+For a managed install, you can inspect the proposed changes and return to a
+known source revision. For Pi, you can pin a package version. Marketplace
+installs follow the default branch, so choose the channel that gives you the
+revision control you need.
 
 <span id="today-install-from-main"></span>
 
 | Channel | What an update takes | How to go back |
 | --- | --- | --- |
-| Managed install | The current `main` of `Cratis/AI` | Reinstall from a checkout of a known-good commit with `--source`, or revert the commit that updated it |
+| Managed install | The current default branch of `Cratis/AI`, unless a local source is supplied | Update from a known-good checkout with `--source`, or revert the repository commit containing the update |
 | `@cratis/pi` | A published npm version | Install the earlier version |
-| Marketplace plugins | The current default branch of `Cratis/AI` | Uninstall the plugin |
+| Marketplace plugins | The current default branch of `Cratis/AI` | Uninstall to remove the guidance; use the managed channel for a fixed source revision |
 
 ## Managed install
 
-`cratis ai update` is not pinned. It takes whatever the source holds when it
-runs. Preview first:
+If you have not installed repository-managed guidance yet, follow
+[Cratis AI setup](/ai/getting-started/) first. `cratis ai update` reuses the
+selection in `.cratis/ai.json`; the recorded source revision is not an update
+pin. By default, status and update download the current default branch of
+`Cratis/AI`, including for a dry run. Inspect the selection and proposed actions
+before applying them:
 
 ```bash
 cratis ai status               # installed revision, available revision, local edits
@@ -28,12 +34,13 @@ cratis ai update --dry-run     # the actions an update would take, without writi
 cratis ai update
 ```
 
-Because the managed content is committed, an update arrives as a diff you can
-review in a pull request, run your gates against, and merge like any other
-change.
+Keep the configuration, manifest, installed corpus, and adapters together in
+repository history. The update then produces a diff you can review and check
+like any other code change.
 
-To stay on a specific revision, or to roll back after an update you do not
-want, point the CLI at a local checkout of that commit:
+To use a specific revision or roll back an unwanted update, point the CLI at
+a local checkout of that commit. The following example creates that checkout;
+if it already exists, use its path with `--source` instead:
 
 ```bash
 git clone https://github.com/Cratis/AI ../cratis-ai
@@ -43,21 +50,30 @@ cratis ai update --source ../cratis-ai
 ```
 
 The source commit of the current install is recorded in
-`.cratis/ai.manifest.json`. If the update is still an unmerged branch,
-discard it; if it was merged, reverting that commit restores the previous files
-as well.
+`.cratis/ai.manifest.json`. Keep the source checkout at the intended revision
+and supply `--source` on later status and update commands too; the CLI does not
+remember that path as a pin. A local checkout also lets those commands work
+offline.
+
+If you committed the whole installation with the update, reverting that
+repository commit is another way to restore the previous guidance. Restore the
+configuration, manifest, corpus, and adapters together, not just individual
+rules.
 
 <Aside type="caution" title="Edited managed files block updates">
 If someone edited a managed file, `update` stops before changing anything.
-Decide whether the edit should be kept (and proposed to `Cratis/AI`) or
-replaced, then restore it or use `--force`.
+Keep a local adaptation in a project-owned file, or propose a reusable change
+to `Cratis/AI`. Restore the managed file before updating, or use `--force` only
+when you intend to replace its edited content. Force does not bypass ownership
+checks or resolve a changed Model Context Protocol (MCP) server registration.
 </Aside>
 
 <span id="the-published-world-designed-not-yet-live"></span>
 
 ## `@cratis/pi`
 
-The Pi package is the one channel with real version numbers:
+The Pi package uses published npm versions. Install an exact version when you
+want updates to leave it in place:
 
 ```bash
 pi install -l npm:@cratis/pi                    # latest release
@@ -72,16 +88,25 @@ that version until you change it.
 
 ## Marketplace plugins
 
-The Claude Code, Codex, GitHub Copilot, and Cursor plugins read the current
-default branch of `Cratis/AI`. There is no version to pin. Updating means
-updating the plugin in your harness; the only way back is to uninstall it. If
-you need a fixed version, use the managed install with `--source` instead.
+The full-corpus Claude Code, Codex, GitHub Copilot, and Cursor marketplace
+installs follow the default branch of `Cratis/AI`. The version field in a
+marketplace manifest does not pin the corpus content. Update through your
+harness, or uninstall the plugin to remove its guidance. For a fixed source
+revision and a rollback path through repository history, use the managed
+install with `--source` instead.
+
+The tagged public skills subset is a separate distribution. Check the
+[public skills installation guide](/ai/harnesses/#public-skills-distribution)
+for its source identifiers and included skills.
 
 ## Uninstalling
 
 `cratis ai uninstall` removes unchanged Cratis-managed files and the adapters
-the CLI created. It never removes files you created yourself, such as your own
-`.cratis/ai` rules and skills or an `AGENTS.md` you wrote. Run it with `--dry-run` first to see the list.
+the CLI created. It preserves user-owned files, such as your own `.cratis/ai`
+rules and skills or an `AGENTS.md` you wrote. Run it with `--dry-run` first to
+see the proposed removals. Edited managed files block removal unless you use
+`--force`; changed MCP entries still require review. Uninstall removes the
+integration rather than restoring an earlier revision.
 
 See [Cratis AI distribution](/ai/trust-and-distribution/) for the channels and
 ownership rules.

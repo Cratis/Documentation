@@ -1,23 +1,23 @@
 ---
-title: Event sourcing in Python — coming soon
-description: "A Python client for Cratis Chronicle, the open-source (MIT) event-sourcing database, is in development. It is pre-alpha and not yet published — the .NET, TypeScript, Kotlin/Java, and Elixir clients ship today."
+title: Event sourcing in Python with Cratis Chronicle
+description: "The Cratis Chronicle Python package has no connect or append API and is not on PyPI. Find the source contribution path or choose another client."
 ---
 
 import { CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
 
-A Python client for Chronicle — the open-source (MIT) event-sourcing database and processing runtime — is in development. It will join the existing [.NET, TypeScript, Kotlin/Java, and Elixir clients](/chronicle-clients/), all of which speak the same language-agnostic gRPC/protobuf contract against the same event store.
+Cratis Chronicle's Python package does not yet provide a client API for connecting, authenticating, or appending events. The source package, `cratis_chronicle`, exposes only `__version__`, so installing it does not let a Python application store events in Chronicle. If you need an application client now, compare the [.NET, TypeScript, Kotlin/Java, and Elixir clients](/chronicle-clients/) and their language-specific capabilities.
 
-<Aside type="note" title="Pre-release">
-The Python client is pre-alpha. APIs will change, no package has been published to PyPI, and no commitment is implied. There is nothing to install yet — follow the repository for progress, or ask in [the community](/community/) if it matters to your project.
+<Aside type="note" title="No Python package published">
+The [Python client repository](https://github.com/Cratis/Chronicle.Python) documents that `cratis-chronicle` is not published to PyPI. A source checkout can be installed for contribution with Python 3.10 or later, but it has no usable client API. Its generated-contract dependency comes from a pinned Chronicle release wheel, not PyPI. Follow the repository's contributor setup if you want to work on the client, or ask in [the community](/community/) about your application's needs.
 </Aside>
 
-In the meantime, Chronicle's gRPC boundary means any language with a gRPC implementation can talk to it — see [Building a client](/chronicle/building-a-client/) — and the [Chronicle MCP server](/chronicle-mcp/) connects AI agents to a running Chronicle regardless of client language.
+Building your own integration is a different task from installing a client. Chronicle exposes gRPC contracts, but generated messages alone do not handle authentication, event registration, or the connection lifecycle. [Building a client](/chronicle/building-a-client/) explains that work. For an AI agent that needs to inspect or operate a running Chronicle, the [Chronicle MCP server](/chronicle-mcp/) provides a separate connection; it is not a Python application SDK.
 
 ## Where to go next
 
 <CardGrid>
-  <LinkCard title="Chronicle.Python on GitHub" description="Follow the Python client's development." href="https://github.com/Cratis/Chronicle.Python" />
-  <LinkCard title="Chronicle in your language" description="The clients that ship today: .NET, TypeScript, Kotlin/Java, and Elixir, plus an experimental Go client." href="/chronicle-clients/" />
+  <LinkCard title="Chronicle.Python on GitHub" description="Read the contribution setup and the first authenticated append milestone." href="https://github.com/Cratis/Chronicle.Python" />
+  <LinkCard title="Chronicle in your language" description="Choose another client and check its setup and supported workflows." href="/chronicle-clients/" />
   <LinkCard title="Get started with Chronicle" description="Run Chronicle locally and build your first event-sourced feature." href="/chronicle/get-started/" />
   <LinkCard title="Building a client" description="Implement the Chronicle gRPC contracts for a new language or runtime." href="/chronicle/building-a-client/" />
 </CardGrid>

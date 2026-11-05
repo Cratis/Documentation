@@ -1,9 +1,13 @@
 ---
-title: Concepts
-description: "Concepts behind event-sourced systems: event sourcing, CQRS, event stores, event modeling, projections, read models and event-driven architecture."
+title: Event sourcing concepts and architectural choices
+description: "Event sourcing records facts, CQRS separates read and write models, and projections build views. Learn when each choice fits your application."
 ---
 
-These pages explain the ideas behind event-sourced systems, independent of any product. Each one defines the concept, shows how it works, gives a short example, and says when not to use it. Examples use [Chronicle](/chronicle/) and [Arc](/arc/) so you can see the idea in real code.
+Event sourcing preserves business changes as facts, CQRS separates writing from reading, and event-driven architecture connects components through events. These are separate choices: needing a history does not automatically mean needing a message broker, and separating commands from queries does not require an event store.
+
+Use these explanations to decide what one feature needs before choosing its implementation. The examples use [Cratis Chronicle](/chronicle/) for event storage and processing and [Cratis Arc](/arc/) for commands and queries. Neither component requires adopting the whole Cratis Platform.
+
+## Find the question you need to answer
 
 | Page | Question it answers |
 | --- | --- |
@@ -15,9 +19,13 @@ These pages explain the ideas behind event-sourced systems, independent of any p
 | [The Dynamic Consistency Boundary](/concepts/dynamic-consistency-boundary/) | What does it mean to draw the consistency boundary per decision, and where do Chronicle and Arc sit? |
 | [Read this first: write-side consistency](/concepts/read-this-first-write-side-consistency/) | How do DCB, stream-version checks and aggregates map onto Chronicle's guards? |
 | [Decisions that hold, from model to frontend](/decisions-that-hold-walkthrough/) | How do you build one guarded rule across Screenplay, Arc, Chronicle and a React frontend? |
-| [Agentic development with event sourcing](/agentic-development/) | Why do explicit events, commands and specifications make AI coding agents safer to rely on? |
+| [Agentic development with event sourcing](/agentic-development/) | How can explicit events, commands and specifications give AI coding agents clearer boundaries? |
 | [Projections and read models](/concepts/projections-and-read-models/) | How do events become queryable views? |
 | [Event-driven architecture vs. event sourcing](/concepts/event-driven-architecture/) | How do messaging between services and event storage relate? |
 | [Event sourcing and GDPR](/concepts/event-sourcing-gdpr/) | How do you erase personal data from an immutable event log? |
 
-Start with [what is event sourcing?](/concepts/event-sourcing/) if the terms are new. When you are ready to build, continue with [Get started with Chronicle](/chronicle/get-started/) or the [Cratis Stack overview](/cratis-stack/).
+## Choose a starting point
+
+Start with [what is event sourcing?](/concepts/event-sourcing/) if you need to explain how today's state came to be. Follow with projections to see how that history becomes a useful screen or report. If your immediate problem is a model that serves both reads and writes poorly, start with CQRS instead.
+
+When you are ready to store a first event, continue with [Get started with Chronicle](/chronicle/get-started/). Use the [Cratis Platform component overview](/cratis-stack/) to understand how the components fit together and which ones your application actually needs.

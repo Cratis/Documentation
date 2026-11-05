@@ -104,11 +104,11 @@ productTopics = productTopics.filter((topic) => !nestedSections.some((section) =
 // web/, not owned by any product): the "why", the capstone, samples, tools.
 const overviewTopic = {
     id: 'overview',
-    label: 'Cratis Stack',
+    label: 'Cratis Platform',
     link: 'cratis-stack',
     icon: 'open-book',
     items: [
-        { label: 'The Cratis Stack', slug: 'cratis-stack' },
+        { label: 'Cratis Platform', slug: 'cratis-stack' },
         { label: 'Why developers choose Cratis', slug: 'why-cratis' },
         {
             label: 'Concepts',
@@ -184,6 +184,7 @@ const overviewTopic = {
             collapsed: true,
             items: [
                 { label: 'Learning paths', slug: 'learning-paths' },
+                { label: 'First projection — C# code walkthrough', link: '/learning-paths/#first-projection' },
                 { label: 'FAQ', slug: 'faq' },
                 { label: 'Version compatibility', slug: 'compatibility' },
                 { label: 'Plan an upgrade', slug: 'upgrade-path' },
@@ -205,8 +206,8 @@ const overviewTopic = {
                 { label: 'Event sourcing in TypeScript', slug: 'event-sourcing/typescript' },
                 { label: 'Event sourcing in Kotlin and Java', slug: 'event-sourcing/kotlin' },
                 { label: 'Event sourcing in Elixir', slug: 'event-sourcing/elixir' },
-                { label: 'Event sourcing in Go', slug: 'event-sourcing/go', badge: { text: 'Experimental', variant: 'caution' } },
-                { label: 'Event sourcing in Python', slug: 'event-sourcing/python', badge: { text: 'Soon', variant: 'tip' } },
+                { label: 'Event sourcing in Go', slug: 'event-sourcing/go' },
+                { label: 'Event sourcing in Python', slug: 'event-sourcing/python' },
             ],
         },
         {
@@ -214,12 +215,12 @@ const overviewTopic = {
             collapsed: true,
             items: [
                 { label: 'CQRS in C# and .NET', slug: 'cqrs/dotnet' },
-                { label: 'CQRS in TypeScript and Node.js', slug: 'cqrs/typescript', badge: { text: 'Preview', variant: 'caution' } },
+                { label: 'CQRS in TypeScript and Node.js', slug: 'cqrs/typescript' },
                 { label: 'CQRS in Kotlin and Java', slug: 'cqrs/kotlin' },
-                { label: 'CQRS in Elixir', slug: 'cqrs/elixir', badge: { text: 'Preview', variant: 'caution' } },
+                { label: 'CQRS in Elixir', slug: 'cqrs/elixir' },
             ],
         },
-        { label: 'Studio', slug: 'studio', badge: { text: 'Preview', variant: 'caution' } },
+        { label: 'Studio', slug: 'studio' },
         { label: 'Event Modeling', slug: 'event-modeling' },
         { label: 'Spec-driven development', slug: 'spec-driven-development' },
         { label: 'Screenplay', link: '/screenplay/' },
@@ -354,7 +355,7 @@ export default defineConfig({
             // get `lastUpdated` frontmatter from their source repository in sync-content.mjs.
             lastUpdated: true,
             description:
-                'Build event-sourced and CQRS applications with Cratis — an open-source (MIT) event-sourcing database and full-stack platform. Chronicle stores events in MongoDB, PostgreSQL, SQL Server, or SQLite and has clients for .NET, TypeScript, Kotlin/Java, and Elixir, with Arc and Components completing the type-safe stack.',
+                'Build event-sourced and CQRS applications with Cratis Platform. Its open-source tools include Chronicle, an MIT-licensed event-sourcing database. Chronicle stores events in MongoDB, PostgreSQL, SQL Server, or SQLite and has clients for .NET, TypeScript, Kotlin/Java, and Elixir, with Arc and Components completing the type-safe stack.',
             // Head.astro chooses the section image; keep the global card type here.
             head: [
                 { tag: 'link', attrs: { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' } },
@@ -432,6 +433,7 @@ export default defineConfig({
                         contributing: ['/contributing', '/contributing/**'],
                         architecture: ['/architecture', '/architecture/**'],
                         screenplay: ['/screenplay', '/screenplay/**'],
+                        stage: ['/stage', '/stage/**'],
                         prologue: ['/prologue', '/prologue/**'],
                     },
                 }),
@@ -457,14 +459,14 @@ export default defineConfig({
                     // The postbuild index adds product and area links for the
                     // sources actually present in this build.
                     description:
-                        'Cratis is an open-source, MIT-licensed platform for building event-sourced and CQRS applications. At its center is Chronicle, an event-sourcing database and processing runtime with a first-class .NET SDK and additional TypeScript, Kotlin/Java (JVM), and Elixir clients, plus an experimental Go client — with a Python client coming soon — plus pluggable storage-provider implementations including MongoDB (default), PostgreSQL, SQL Server, and SQLite.',
+                        'Cratis Platform brings together tools for event-sourced and CQRS applications, collaborative design, and agentic engineering. Chronicle is its event-sourcing database and processing runtime, with a first-class .NET SDK and clients for TypeScript, Kotlin/Java (JVM), Elixir, and Go, each with its own documented capabilities. A Python client is not yet published. Storage-provider implementations include MongoDB (default), PostgreSQL, SQL Server, and SQLite.',
                     details: [
                         '## About Cratis',
                         '',
-                        '- Cratis is an open-source (MIT) event sourcing and CQRS platform for .NET, built around the Chronicle event-sourcing database.',
-                        '- Products: Chronicle (event store and runtime), Arc (CQRS framework with generated TypeScript proxies), Components (React UI library), Fundamentals, Specifications, CLI, Workbench, Chronicle MCP, and Cratis AI (rules and skills for AI agents). Screenplay, Stage, and Prologue are experimental; Studio is a paid product in Preview.',
-                        '- Licence: the open-source Cratis products are MIT licensed. Studio is paid.',
-                        '- Languages: Chronicle has a first-class .NET client and clients for TypeScript, Kotlin/Java, and Elixir, plus an experimental Go client; a Python client is coming soon and not yet published. Arc runs on ASP.NET Core and Spring Boot; Components targets React.',
+                        '- Cratis Platform combines open-source event sourcing and CQRS tools with optional products such as Studio and Direct.',
+                        '- Products: Chronicle (event store and runtime), Arc (CQRS framework with generated TypeScript proxies), Components (React UI library), Fundamentals, Specifications, CLI, Workbench, Chronicle MCP, Cratis AI (rules and skills for AI agents), Screenplay (declarative event-modeling language), Stage (Screenplay compilation, code rendering, and sandbox execution), Prologue (event-model discovery from selected system signals), Studio (paid collaborative design product, open for sign-up with a 14-day trial), and Cratis Direct (control plane for agentic engineering; access opens in stages).',
+                        '- Licence: MIT applies to the open-source Cratis products, not to every Cratis offering. Studio is paid.',
+                        '- Languages: Chronicle has a first-class .NET client and clients for TypeScript, Kotlin/Java, Elixir, and Go, each with its own capability limits; a Python client is not yet published. Arc runs on ASP.NET Core and Spring Boot; its TypeScript backend is available from source and is not published to npm. Components targets React.',
                         '- Storage: MongoDB (default), PostgreSQL, Microsoft SQL Server, or SQLite.',
                         '- Downloads: over 2.5 million downloads across NuGet, npm, Docker Hub and Hex, counted October 2026. Chronicle, including its predecessors Aksio Cratis and the Dolittle Runtime: over 1.5 million downloads. Arc, including Aksio Cratis Applications and the Dolittle SDK: over 1.2 million downloads.',
                         '- Get it from NuGet, npm, Maven Central, Hex, Docker Hub, and GitHub (https://github.com/Cratis).',
@@ -478,6 +480,7 @@ export default defineConfig({
                         '- Components is a React component library aligned with Arc patterns: command dialogs, typed forms, and query-backed data tables.',
                         '- The CLI and Workbench are the inspection and diagnosis surfaces for Chronicle: events, observers, projections, read models, and failed partitions.',
                         '- Screenplay is the declarative event-modeling language that Stage and Studio build on.',
+                        '- Stage compiles Screenplay, renders reviewable code, and runs supported behavior in a disposable sandbox. The sandbox is not a production host, and Stage does not implement the full language.',
                     ].join('\n'),
                 }),
             ],

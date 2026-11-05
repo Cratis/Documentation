@@ -66,14 +66,14 @@ export function deriveDescription(body, sourcePath = 'page.md') {
 const sections = {
     chronicle: 'Chronicle', arc: 'Arc', components: 'Components',
     fundamentals: 'Fundamentals', cli: 'CLI', authproxy: 'AuthProxy', showrunner: 'Showrunner',
-    screenplay: 'Screenplay', prologue: 'Prologue', templates: 'Templates', direct: 'Direct', choreography: 'Choreography',
+    screenplay: 'Screenplay', stage: 'Stage', prologue: 'Prologue', templates: 'Templates', direct: 'Direct', choreography: 'Choreography',
     'chronicle-mcp': 'Chronicle MCP', prompter: 'Prompter', ai: 'AI',
     architecture: 'Architecture', contributing: 'Contributing',
     'eventmodelers-ai': 'EventModelers.ai', 'release-digests': 'Release Digests',
 };
 
 export function pageSection(id) {
-    return sections[id.split('/')[0].toLowerCase()] ?? 'Cratis Stack';
+    return sections[id.split('/')[0].toLowerCase()] ?? 'Cratis Platform';
 }
 
 const genericTitle = /^(glossary|configuration|overview|introduction|getting[ -]started|index|events|projections|observers|concepts|commands|queries|reference)$/i;
@@ -96,7 +96,7 @@ export function pageLanguage(id) {
 
 // Hub pages and the home page get a descriptor instead of a bare "<Product> | Cratis".
 const titleOverrides = new Map([
-    ['', 'Cratis: open-source platform for event-sourced applications'],
+    ['', 'Cratis Platform: event sourcing and CQRS'],
     ['chronicle', 'Chronicle: event store with multi-language clients | Cratis'],
     ['arc', 'Arc: CQRS for ASP.NET Core and Spring Boot | Cratis'],
     ['components', 'Components: React UI for CQRS and event sourcing | Cratis'],
@@ -106,11 +106,12 @@ const titleOverrides = new Map([
     ['chronicle-mcp', 'Chronicle MCP: connect AI agents to Chronicle | Cratis'],
     ['prompter', 'Prompter: Cratis docs assistant on Discord | Cratis'],
     ['templates', 'Templates: dotnet new templates for Cratis | Cratis'],
-    ['direct', 'Direct: run and configure the Direct Agent Runner | Cratis'],
-    ['choreography', 'Choreography: jobs, workflows and state machines | Cratis'],
-    ['screenplay', 'Screenplay: model-first language (experimental) | Cratis'],
+    ['direct', 'Direct: control plane for agentic engineering | Cratis'],
+    ['choreography', 'Cratis Choreography: jobs, workflows and state machines'],
+    ['screenplay', 'Cratis Screenplay modeling language | Cratis'],
+    ['stage', 'Cratis Stage: run models and plan application source'],
     ['fundamentals', 'Fundamentals: .NET and TypeScript utilities | Cratis'],
-    ['prologue', 'Prologue: experimental event-model discovery | Cratis'],
+    ['prologue', 'Prologue: event-model discovery | Cratis'],
     ['architecture', 'Architecture: .NET architectural analyzers | Cratis'],
     ['ai', 'Cratis AI: rules and skills for coding agents'],
 ]);
@@ -162,7 +163,7 @@ export function pageDescription(data, body, sourcePath, id) {
 }
 
 // Product landing pages describe software; everything else is an article, hub or glossary.
-const softwareProducts = new Set(['chronicle', 'arc', 'components', 'authproxy', 'showrunner', 'cli', 'chronicle-mcp', 'prompter', 'templates', 'direct', 'choreography', 'screenplay']);
+const softwareProducts = new Set(['chronicle', 'arc', 'components', 'authproxy', 'showrunner', 'cli', 'chronicle-mcp', 'prompter', 'templates', 'direct', 'choreography', 'screenplay', 'stage']);
 
 /**
  * Schema.org page kind: `glossary`, `software` (product landing), `collection` (a page that
