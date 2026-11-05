@@ -1,0 +1,103 @@
+---
+title: "Self-hosted identity profiles: minimal, bring your own IdP, full"
+description: "Choose a self-hosted Cratis identity profile: which components each runs, what is available or planned, and what a disconnected install means."
+---
+
+import { Aside, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+You run Cratis applications on your own infrastructure. You need to decide how users sign in, how invitations reach people, and how tools such as MCP clients authenticate.
+
+There are three profiles. All of them put [AuthProxy](/authproxy/) at the edge, and we recommend configuring signed forwarded identity between AuthProxy and Arc in every one of them. The profiles differ in where tokens come from.
+
+:::note[Available and planned]
+Some components ship today and others are planned. The tables below say which. Planned items are direction, not a delivery commitment; see the [roadmap](/roadmap/). This page is updated as each profile ships.
+:::
+
+## Choose a profile
+
+| Profile | Who it fits | What signs people in | What API and MCP clients use |
+| --- | --- | --- | --- |
+| Minimal | Small teams that do not want to run an authorization server. | AuthProxy, against the provider you configure. | Personal access tokens (**Planned**), validated inside your install with no call to Cratis cloud. |
+| Bring your own IdP | Organizations with an existing identity provider, for example Microsoft Entra ID or Okta. | AuthProxy, against your OpenID Connect provider. | Access tokens from your authorization server, accepted on bearer routes. Personal access tokens alongside them are **Planned**. |
+| Full | Operators who want the Cratis consent screen, `cratis` CLI sign-in, and remote MCP connectors. | A Cratis Identity realm that you operate yourself (**Planned**). | Tokens issued by that realm (**Planned**). |
+
+## Components and contracts per profile
+
+### Minimal
+
+| Component | Role in this profile | Status | Learn more |
+| --- | --- | --- | --- |
+| Your application (Arc and Chronicle) | Runs your commands, queries, and event store. | Available | [Arc](/arc/), [Chronicle](/chronicle/) |
+| AuthProxy | Signs users in and routes requests. | Available | [Authentication](/authproxy/configuration/authentication/) |
+| Ante | Optional. Runs invitations and registration if you onboard that way. | Available | [Ante on GitHub](https://github.com/Cratis/Ante) |
+| Personal access tokens | Authenticate MCP and API clients. | **Planned** | |
+| Signed forwarded identity | AuthProxy vouches for identity to Arc. | Available, opt-in | [Signing](/authproxy/configuration/forwarded-identity-signing/) |
+
+### Bring your own IdP
+
+| Component | Role in this profile | Status | Learn more |
+| --- | --- | --- | --- |
+| Your application (Arc and Chronicle) | Runs your commands, queries, and event store. | Available | [Arc](/arc/), [Chronicle](/chronicle/) |
+| AuthProxy with your OpenID Connect provider | Browser sign-in. | Available | [Authentication](/authproxy/configuration/authentication/) |
+| AuthProxy bearer routes | API and MCP paths accept tokens from your authorization server. | Available since AuthProxy 2.30.0 | [Bearer routes](/authproxy/configuration/services/#bearer-routes) |
+| Personal access tokens | Used alongside your tokens. | **Planned** | |
+| Ante | Optional. Runs invitations and registration if you onboard that way. | Available | [Ante on GitHub](https://github.com/Cratis/Ante) |
+| Signed forwarded identity | AuthProxy vouches for identity to Arc. | Available, opt-in | [Signing](/authproxy/configuration/forwarded-identity-signing/) |
+
+Signing in through your provider in a browser does not prove that the same provider works as an authorization server for MCP clients. Test both.
+
+### Full
+
+| Component | Role in this profile | Status | Learn more |
+| --- | --- | --- | --- |
+| Your application (Arc and Chronicle) | Runs your commands, queries, and event store. | Available | [Arc](/arc/), [Chronicle](/chronicle/) |
+| AuthProxy | Edge, routing, and sign-in. | Available | [AuthProxy](/authproxy/) |
+| Ante | Invitations and registration. | Available | [Ante on GitHub](https://github.com/Cratis/Ante) |
+| Cratis Identity realm that you operate | Consent screen, CLI sign-in, and remote MCP connectors. | **Planned** | |
+| Signed forwarded identity | AuthProxy vouches for identity to Arc. | Available, opt-in | [Signing](/authproxy/configuration/forwarded-identity-signing/) |
+
+## Sign forwarded identity in every profile
+
+AuthProxy authenticates the caller and forwards identity to Arc. AuthProxy can sign that forwarded identity and Arc can verify it. Signing is opt-in: when both sides are configured, Arc accepts forwarded identity only when its signature verifies.
+
+Signing needs AuthProxy 2.44.0 or later and Arc 22.168.0 or later. See [forwarded identity signing](/authproxy/configuration/forwarded-identity-signing/) in AuthProxy and [signed forwarded identity](/arc/backend/csharp/asp-net-core/signed-forwarded-identity/) in Arc. If you run AuthProxy under Aspire, the [Aspire guide](/authproxy/aspire/#signed-forwarded-identity) covers the pairing.
+
+:::tip
+Turn on signed forwarding for every service in every profile. Signing as the default, with unsigned identity accepted only in local development, is **planned**.
+:::
+
+## Invitations without mail
+
+Ante signs invitation links and runs the lobby. It never sends email. Your application receives the link and decides how to deliver it: through your own mail service, or by showing it to an administrator to copy and send.
+
+AuthProxy validates the link and runs sign-in. See the [lobby](/authproxy/configuration/lobby/) documentation and the [Ante repository](https://github.com/Cratis/Ante). Both are available today.
+
+If you run no onboarding service, your application adds members through its own authenticated administration path. If you run no MCP clients, the browser application works unchanged.
+
+## Disconnected does not mean one process
+
+A disconnected install makes no call to Cratis cloud. It still runs AuthProxy, Ante if you use it, and, in the full profile, an identity host as separate containers on your own network.
+
+Packing those components into one process, or embedding identity in your application's host, would be a different, optional compact deployment. That is not what disconnected means, and it is not offered as a profile.
+
+In the minimal profile, personal access token validation is planned to happen locally, with no outbound call (**Planned**). Browser sign-in still talks to the OIDC provider you configure.
+
+## What to decide up front
+
+| Decision | Ask this | Start here |
+| --- | --- | --- |
+| Identity provider | Where do browser users sign in? | [AuthProxy authentication](/authproxy/configuration/authentication/) |
+| Invitation delivery | How do invitation links reach people? | [AuthProxy lobby](/authproxy/configuration/lobby/) |
+| API and MCP paths | Which paths serve API and MCP clients, and which tokens do they accept? | [Bearer routes](/authproxy/configuration/services/#bearer-routes) |
+| Signing keys | Which signing configuration does each backend use? | [Signed forwarded identity](/arc/backend/csharp/asp-net-core/signed-forwarded-identity/) |
+
+## Go deeper
+
+<CardGrid>
+  <LinkCard title="AuthProxy authentication" description="Configure browser sign-in with OpenID Connect and OAuth providers." href="/authproxy/configuration/authentication/" />
+  <LinkCard title="Bearer routes" description="Accept access tokens from an authorization server on API and MCP paths." href="/authproxy/configuration/services/#bearer-routes" />
+  <LinkCard title="Forwarded identity signing" description="Sign the identity AuthProxy forwards to your services." href="/authproxy/configuration/forwarded-identity-signing/" />
+  <LinkCard title="Arc signed forwarded identity" description="Verify forwarded identity in an Arc backend." href="/arc/backend/csharp/asp-net-core/signed-forwarded-identity/" />
+  <LinkCard title="Auth and compliance" description="Follow a request from authentication through authorization to PII protection." href="/auth-and-compliance/" />
+  <LinkCard title="Production readiness" description="Review the operational checklist for TLS, secrets, storage, observability, and deployment." href="/production-readiness/" />
+</CardGrid>
