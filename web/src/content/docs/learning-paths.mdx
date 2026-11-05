@@ -1,21 +1,21 @@
 ---
 title: Cratis Platform learning paths
-description: Cratis Platform learning paths guide developers, evaluators, and operators from a first task to the next guide for event sourcing, CQRS, or React.
+description: Choose a Cratis Platform learning path for event sourcing, CQRS, or React. Follow a first projection in your language, build a feature, or operate Chronicle.
 ---
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
 What do you need to accomplish: explain today's state from recorded events, build a view of that history, connect a React screen to backend contracts, or agree what a feature should do? Choose a Cratis Platform learning path by that result. Each route introduces the products as you need them; you do not need to learn the whole platform before starting.
 
-To see how events become a view, begin with [First projection](#first-projection), a C# source walkthrough of cart events becoming a read model, a view shaped for a particular question. To build a working API and UI, go straight to [Build a full-stack app](#build-a-full-stack-app). To assess one change without starting a rewrite, use [Evaluate Cratis](#evaluate-cratis) and [Adopting Cratis](/adopting-cratis/). Operators, React developers, and contributors have their own routes below.
+To see how events become a view, begin with [First projection](#first-projection), a source walkthrough with TypeScript, Elixir, and C# tabs. Follow library events into a read model, a view shaped for a particular question. To build a working API and UI, go straight to [Build a full-stack app](#build-a-full-stack-app). To assess one change without starting a rewrite, use [Evaluate Cratis](#evaluate-cratis) and [Adopting Cratis](/adopting-cratis/). Operators, React developers, and contributors have their own routes below.
 
 <CardGrid>
-  <LinkCard title="Derive a view from recorded facts" description="Follow cart events into a read model in a C# source walkthrough." href="#first-projection" />
+  <LinkCard title="Derive a view from recorded facts" description="Follow library events into a read model with code in your language." href="#first-projection" />
   <LinkCard title="Explain state through event history" description="New to event sourcing? Understand facts, projections, and consistency before choosing it." href="#new-to-event-sourcing" />
   <LinkCard title="Build a feature with a live screen" description="Follow a command through an event and a read model to a React list." href="#build-a-full-stack-app" />
   <LinkCard title="Discuss and check expected behavior" description="Model commands, events, views, and scenarios before implementing a feature." href="#discuss-and-check-expected-behavior" />
   <LinkCard title="Keep decisions correct" description="Make a rule that depends on state hold when two requests run at once, from the first protected command to the advanced scenarios." href="#write-side-consistency" />
-  <LinkCard title="Use Chronicle from another language" description="Start from the TypeScript, Kotlin/Java, or Elixir client instead of .NET." href="#use-chronicle-from-another-language" />
+  <LinkCard title="Choose a Chronicle client" description="Find your language's setup guide and check the capabilities your feature needs." href="#use-chronicle-from-another-language" />
   <LinkCard title="Evaluate one bounded change" description="Decide whether one product, or a combination, addresses your system's needs." href="#evaluate-cratis" />
   <LinkCard title="Operate Chronicle" description="Run, inspect, diagnose, replay, and upgrade a Chronicle deployment." href="#operate-chronicle" />
   <LinkCard title="Connect React to backend contracts" description="For frontend developers: use generated proxies and Components on an existing Arc backend." href="#frontend-developer" />
@@ -34,13 +34,49 @@ Before implementing a feature, put the expected behavior where developers, domai
 
 ## First projection
 
-A cart can record every item added or removed, but a caller usually wants a simpler answer: how many items are in it now? Open the [first-projection console example](https://github.com/Cratis/Samples/blob/9010673093b4498165a9f678429bb52b538c2c31/LearningPath/02-FirstProjection/Program.cs) and follow how Chronicle derives that answer. You can read this example without starting Chronicle; it is a C# console program, not an HTTP backend or a React application.
+A library records that a book arrived, was borrowed, and came back. The librarian wants a simpler answer: which books are on loan now? Follow how Chronicle derives that view from recorded facts. Each fact is appended with an event source id identifying the book; a projection uses those facts to build its read model. Appending records the fact, while projection processing happens asynchronously. Wait for processing before reading a result that must include your change, then append another fact with the same id to change the view again.
 
-Start with `cartId` in `Program.cs`. The program uses that id when it appends the [item-added and item-removed facts](https://github.com/Cratis/Samples/blob/9010673093b4498165a9f678429bb52b538c2c31/LearningPath/02-FirstProjection/Events.cs). Open [CartSummary.cs](https://github.com/Cratis/Samples/blob/9010673093b4498165a9f678429bb52b538c2c31/LearningPath/02-FirstProjection/CartSummary.cs) beside it: the projection is declared on the read model itself. Its attributes add or subtract each event's quantity from `ItemCount`, while the cart id identifies which model instance changes. The sequence is intended to leave six items in that cart.
+The tabs below cover **TypeScript, Elixir, and C#**, using existing examples from the [Chronicle tutorial](/chronicle/tutorial/). They are source excerpts, not a standalone application. To run them, first follow [Chronicle getting started](/chronicle/get-started/) and your [client's setup guide](/chronicle-clients/). For other languages, choose a client there and check the [support matrix](/compatibility/#support-matrix); not every client supports the projection and completion APIs shown here.
 
-Back in `Program.cs`, notice what happens between appending and reading. The program checks whether the append succeeded, then calls `WaitForCompletion` and checks that result before `GetInstanceById<CartSummary>` reads the same cart. Recording a fact and making its projected state available are separate steps; the wait lets this caller read its own changes after background processing. If either check fails, the program stops before reading. That distinction matters when you adapt the example: a successful append alone does not mean the projected state is ready.
+### Declare the facts and the view
 
-Finally, follow `CartCheckedOut`. The model's `SetValue` attribute makes that fact set `CheckedOut` to `true`; the program appends it, waits again, and reads the cart again. Its intended before-and-after state keeps the six items while changing the checkout flag. If you want to run the example, continue with the sample's [setup and running instructions](https://github.com/Cratis/Samples/blob/9010673093b4498165a9f678429bb52b538c2c31/LearningPath/README.md#before-you-start) and [step README](https://github.com/Cratis/Samples/blob/9010673093b4498165a9f678429bb52b538c2c31/LearningPath/02-FirstProjection/README.md). Follow those prerequisites before running it; this section is a reading path through the code.
+The first fact records a book's title and ISBN:
+
+<ChronicleClientTabs snippet="tutorial/first-event/book-added" variants="typescript,elixir,csharp" />
+
+Borrowing records the member's name. Returning needs no payload: the book's event source id tells Chronicle which book came back.
+
+<ChronicleClientTabs snippet="tutorial/read-model/a-events" variants="typescript,elixir,csharp" />
+
+The read model describes the answer you want to query. Its projection maps the title and ISBN from the first fact, sets the loan flag when the book is borrowed, and clears that flag when it is returned. The book id connects all three facts to the same model instance.
+
+<ChronicleClientTabs snippet="tutorial/read-model/book" variants="typescript,elixir,csharp" />
+
+### Append a fact with the book id
+
+Keep the id returned by this example. It is the event source id for later facts about this book, not a new id for each event.
+
+<ChronicleClientTabs snippet="tutorial/first-event/append" variants="typescript,elixir,csharp" />
+
+### Distinguish append success from projection readiness
+
+The append above records the book; it does not wait for its read model. When the caller needs to read its own change, check append success, wait for processing, and check the completion result before reading. A failed append has nothing to process, so a successful wait alone does not establish that the fact was recorded.
+
+The following separate example shows the completion API with a generic event. Use this waiting pattern at the book append, rather than treating the append-only example as ready to read. In TypeScript, also check `appendResult.isSuccess` before calling `waitForCompletion`; that excerpt shows the completion check but omits the append-success check. Elixir combines append and wait in one call and returns either a completion result or an error.
+
+<ChronicleClientTabs snippet="events/observing-appends/wait-for-completion-append" variants="typescript,elixir,csharp" />
+
+Do not continue to the read when append or completion fails. [Waiting for observer completion](/chronicle/events/observing-appends/#waiting-for-observer-completion-after-append) explains timeouts and client differences: TypeScript and Elixir waits can include unrelated observers, so filtered observers can hold up a wait.
+
+### Read the model, then change it with another fact
+
+Once processing completes, query the read model. This query returns only books on loan: a newly added book is not in that result yet. The C# excerpt queries the MongoDB sink directly and needs the tutorial's [MongoDB client setup](/chronicle/get-started/console/#configure-the-mongodb-client); TypeScript and Elixir read through the Chronicle client and filter the returned models.
+
+<ChronicleClientTabs snippet="tutorial/read-model/query" variants="typescript,elixir,csharp" />
+
+Now follow the [read-model chapter](/chronicle/tutorial/read-model/): append the borrowing fact with the same book id and a member's name, wait for successful processing, and query again. The book is now on loan and appears in the result. Append the return fact with that id, wait again, and it leaves the on-loan result. The book remains in the catalog; the query filters it out because the projection cleared its loan flag. The recorded history still explains both changes.
+
+For a different domain, the [C# cart console example](https://github.com/Cratis/Samples/blob/9010673093b4498165a9f678429bb52b538c2c31/LearningPath/02-FirstProjection/Program.cs) follows item counts and checkout through the same append, wait, and read sequence. Use its [setup instructions](https://github.com/Cratis/Samples/blob/9010673093b4498165a9f678429bb52b538c2c31/LearningPath/README.md#before-you-start) and [step README](https://github.com/Cratis/Samples/blob/9010673093b4498165a9f678429bb52b538c2c31/LearningPath/02-FirstProjection/README.md) to run it.
 
 ## New to event sourcing
 
@@ -54,7 +90,7 @@ If you have built applications that create, read, update, and delete records (CR
 
 ## Build a full-stack app
 
-Finish one feature that records a change and shows its projected result in a live React screen, then extend it with validation and specifications. This path builds a new .NET information system using Chronicle for history, Arc for commands, queries, and generated contracts, and Components for React. The first guide also offers Kotlin, Java, and TypeScript alternatives; the later C# links below explain the .NET integration.
+Finish one feature that records a change and shows its projected result in a live React screen, then extend it with validation and specifications. Use Chronicle for history, Arc for commands, queries, and generated contracts, and Components for React. The first guide offers C#, Kotlin, Java, and TypeScript backends; the later C# links below explain the .NET integration.
 
 1. Follow [Build a full-stack feature](/build-a-full-app/). It scaffolds an application from the Cratis template and adds one slice end to end.
 2. Read [Vertical slices](/arc/vertical-slices/) to see why the feature lives in one folder.
@@ -63,7 +99,7 @@ Finish one feature that records a change and shows its projected result in a liv
 5. Continue with the [vertical slices scenario](/scenarios/vertical-slices/) for the state view, automation, and translation patterns, and [Testing with Cratis](/testing-with-cratis/) for specs.
 6. Follow [Generated values, from Screenplay to running app](/generated-values/) to have the server own your ids and secrets, from the model through Stage and Arc to pinned specs.
 
-Building on Kotlin or Java instead? The [Cratis Kotlin](/templates/cratis-kotlin/) and [Cratis Java](/templates/cratis-java/) templates scaffold the same full-stack shape on Spring Boot, and the Arc tutorial shows its main slice examples in Kotlin as well as C#. Some backend snippets are C# only.
+For Spring Boot setup, the [Cratis Kotlin](/templates/cratis-kotlin/) and [Cratis Java](/templates/cratis-java/) templates scaffold the full-stack application. The Arc tutorial shows its main slice examples in Kotlin as well as C#; some backend snippets remain C# only. Use the matching backend guide rather than assuming every example has an equivalent.
 
 ## Write-side consistency
 
@@ -82,13 +118,15 @@ When a command depends on a stock level, a limit, or a document someone else may
 5. Walk the whole stack in [Decisions that hold, from model to frontend](/decisions-that-hold-walkthrough/): one rule from a Screenplay model to an Arc command under read protection, a spec that makes the race happen, and a frontend that handles a lost race. For the idea behind it, read [The Dynamic Consistency Boundary](/concepts/dynamic-consistency-boundary/).
 6. Keep the reference close: [Reads](/arc/backend/csharp/chronicle/consistency/reads/), [Validators](/arc/backend/csharp/chronicle/consistency/validators/), [Refusals](/arc/backend/csharp/chronicle/consistency/refusals/), [Pitfalls](/arc/backend/csharp/chronicle/consistency/pitfalls/) and the [FAQ](/arc/backend/csharp/chronicle/consistency/faq/). For the mechanics, read [How guards are derived](/chronicle/dynamic-consistency-boundary/how-guards-are-derived/) and [Read protection in Chronicle](/chronicle/read-models/read-protection/).
 
-## Use Chronicle from another language
+<span id="use-chronicle-from-another-language"></span>
 
-If your service is not written in .NET, choose its Chronicle client before following the shared examples. This path takes TypeScript, Kotlin/Java, and Elixir services from connecting to the kernel to appending events and handling them in a projection or reactor. Check each guide's capability boundary rather than assuming every client implements the same features.
+## Choose a Chronicle client
+
+Choose your service's Chronicle client before following the shared examples. This path starts with language-specific setup, then follows the shared flow from connecting to the kernel to appending events and reading their projected state where supported. Check each guide's capability boundary rather than assuming every client implements the same features.
 
 1. Read [Chronicle in your language](/chronicle-clients/) to see which clients are published and where each is documented.
 2. Start a local kernel and follow the shared loop on [Chronicle getting started](/chronicle/get-started/). Its examples have a tab for each client that implements them.
-3. Follow your client's setup guide: [TypeScript](/chronicle/clients/typescript/getting-started/), [Kotlin and Java](/chronicle/clients/kotlin/get-started/), or [Elixir](/chronicle/clients/elixir/get-started/).
+3. Follow your client's setup guide: [TypeScript](/chronicle/clients/typescript/getting-started/), [Kotlin and Java](/chronicle/clients/kotlin/get-started/), [Elixir](/chronicle/clients/elixir/get-started/), [.NET](/chronicle/clients/dotnet/), or [Go](/chronicle/go/). Go supports appends and event history reads, but not projections.
 4. Build the [Chronicle tutorial](/chronicle/tutorial/) and pick your client's tab where one exists.
 
 The Python client is not published yet; [Event sourcing in Python](/event-sourcing/python/) tracks it.

@@ -10,7 +10,7 @@ hero:
     light: ../../assets/cratis-mark-light.svg
     alt: ""
   actions:
-    - text: First projection — C# code walkthrough
+    - text: First projection — code walkthrough
       link: /learning-paths/#first-projection
       icon: right-arrow
     - text: Explore the Platform
@@ -44,9 +44,9 @@ Cratis Platform helps teams explain current state from recorded facts, answer ne
 
 ## One feature, from facts to a read model
 
-A shopping cart records items added and removed. A caller needs a different answer: what is in this cart now? A projection derives that answer from the events and stores it as a read model, a view of the data shaped for a particular question. The history remains available when you need to explain how the cart reached that state.
+A library records books added, borrowed, and returned. A caller needs a different answer: which books are on loan now? A projection derives that answer from the events and stores it as a read model, a view of the data shaped for a particular question. The history remains available when you need to explain how a book reached that state.
 
-Start with the [first-projection C# code walkthrough](/learning-paths/#first-projection). Follow one cart id from recorded facts to a projected cart summary, then see how a checkout fact changes that summary. The example checks the append and waits for processing before reading the cart. This is a console source walkthrough, not an HTTP backend or a running React screen. To run it, follow the sample's setup instructions.
+Start with the [first-projection code walkthrough](/learning-paths/#first-projection), with tabs for TypeScript, Elixir, and C#. Follow one book id from recorded facts to a queryable read model, and distinguish a successful append from completed projection processing before reading. This is a source walkthrough, not an HTTP backend or a running React screen. Follow the linked client setup before running the examples; [Chronicle clients](/chronicle-clients/) lists the language choices.
 
 <span id="why-this-matters"></span>
 <span id="one-connected-ecosystem--adopt-it-one-piece-at-a-time"></span>
@@ -54,9 +54,9 @@ Start with the [first-projection C# code walkthrough](/learning-paths/#first-pro
 
 ## Extend the feature when you need to
 
-When the feature needs an API and a screen, Arc exposes its commands and queries and generates the TypeScript proxies your React code calls. Components supplies forms, dialogs, and tables that consume them. For a C# backend, changing a contract, regenerating its proxies, and type-checking the frontend reveals incompatible typed usages. That check does not replace runtime integration checks.
+When the feature needs an API and a screen, Arc exposes its commands and queries and generates the TypeScript proxies your React code calls. Components supplies forms, dialogs, and tables that consume them. A C# backend is one option: changing a contract, regenerating its proxies, and type-checking the frontend reveals incompatible typed usages. [Kotlin, Java, and TypeScript backends](/arc/backend/) also generate TypeScript proxies. Check the [support matrix](/compatibility/#support-matrix) for each backend's boundaries; type-checking does not replace runtime integration checks.
 
-[Build a full-stack feature](/build-a-full-app/) follows this handoff from a command to an event, a read model, and a React screen. It is a separate API/UI journey, not a hidden requirement of the cart walkthrough. Once an event-sourced application is running, use the [CLI](/cli/) to inspect events and processing state. [Cratis AI](/ai/) supplies conventions and diagnostics for an assistant; you still review its changes.
+[Build a full-stack feature](/build-a-full-app/) follows this handoff from a command to an event, a read model, and a React screen. It is a separate API/UI journey, not a hidden requirement of the first-projection walkthrough. Once an event-sourced application is running, use the [CLI](/cli/) to inspect events and processing state. [Cratis AI](/ai/) supplies conventions and diagnostics for an assistant; you still review its changes.
 
 To discuss what the feature should do before implementing it, keep its design in [Cratis Screenplay](/screenplay/), a text-based `.play` model of commands, events, views, and specifications. [Cratis Studio](/studio/) lets a team edit that model together. The model can feed [source generation](/cli/reference/screenplay/) as well as implementation by hand, so the design does not have to stop at a diagram. Generated output needs review, and supported constructs and languages depend on the tool you choose.
 
@@ -73,7 +73,7 @@ You can adopt Chronicle without Arc, use Arc without event sourcing, and leave C
 If you need to erase protected personal values without discarding the event sequence, [event sourcing and GDPR](/concepts/event-sourcing-gdpr/) explains Chronicle's mechanism and the responsibilities it leaves with your application.
 
 <Aside type="note" title="Check product terms and language support before choosing">
-Open-source components and hosted products have different terms. Studio is an optional paid workspace; Direct access opens in stages to enabled accounts. Consult the [capability map](/cratis-stack/#capability-map) for product roles and licences and the [support matrix](/compatibility/#support-matrix) for per-component boundaries; the C# example establishes no support or behavior for another language.
+Open-source components and hosted products have different terms. Studio is an optional paid workspace; Direct access opens in stages to enabled accounts. Consult the [capability map](/cratis-stack/#capability-map) for product roles and licences and the [support matrix](/compatibility/#support-matrix) for per-component boundaries. Choose a [Chronicle client](/chronicle-clients/) for your language and check the capabilities your feature needs; the walkthrough tabs cover a specific set of clients.
 </Aside>
 
 <span id="go-deeper"></span>
