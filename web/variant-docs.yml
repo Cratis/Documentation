@@ -397,11 +397,11 @@ products:
               blockedOutput:
                 - "BLOCKED: could not validate the TypeScript snippets"
 
-          # Arc for Elixir is in source preview and Chronicle-only. It mounts its
+          # Arc for Elixir is Chronicle-only. It mounts its
           # own docs and contributes no shared snippets yet, so shared pages show
           # no Elixir tab; its pages carry Elixir code directly.
           elixir:
-            label: Elixir (preview)
+            label: Elixir
             publicDocs:
               key: elixir
               label: Elixir

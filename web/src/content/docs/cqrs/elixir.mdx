@@ -9,22 +9,22 @@ CQRS (Command Query Responsibility Segregation) means commands change state and 
 
 This page is for Elixir developers who want CQRS without writing a controller per operation. If you are still deciding whether CQRS fits, read [CQRS explained](/concepts/cqrs/) first.
 
-:::caution[Source preview, Chronicle only]
-Arc for Elixir is a source preview and its API may still change. It works with Chronicle only: commands record events, and read models are Chronicle projections. There is no Ecto or relational persistence, so if you want CQRS without event sourcing in Elixir, Arc is not the tool today. The [limits and gaps](/arc/backend/elixir/limits-and-gaps/) page states what is and is not verified.
+:::caution[Chronicle only]
+Arc for Elixir works with Chronicle only: commands record events, and read models are Chronicle projections. There is no Ecto or relational persistence, so if you want CQRS without event sourcing in Elixir, Arc is not the tool today. The [limits and gaps](/arc/backend/elixir/limits-and-gaps/) page states what is and is not verified.
 :::
 
 ## What you get in Elixir
 
-| Capability | How it looks in Arc | Maturity |
-| --- | --- | --- |
-| Commands | `use Arc.Command`, a `schema`, and `handle/2` returning `{:append, event}` | Source preview |
-| Queries and read models | `use Arc.ReadModel`; `@query` and `@observe` functions | Source preview |
-| Live queries | `@observe` re-runs when a read model changes; WebSocket and Server-Sent Events | Source preview |
-| Validation | Declared on `field`, plus constraint violations from Chronicle | Source preview |
-| Authorization | `authorize` on a command or read model: roles, `:authenticated` or a named policy | Source preview |
-| Hosting | `Arc.Plug` for Plug and Phoenix; in-process calls and forms for LiveView | Source preview |
-| Typed frontend | Opt-in TypeScript proxies from `mix arc.gen.proxies` | Source preview |
-| Event sourcing | Chronicle through `cratis_chronicle`; returned events are appended | Source preview |
+| Capability | How it looks in Arc |
+| --- | --- |
+| Commands | `use Arc.Command`, a `schema`, and `handle/2` returning `{:append, event}` |
+| Queries and read models | `use Arc.ReadModel`; `@query` and `@observe` functions |
+| Live queries | `@observe` re-runs when a read model changes; WebSocket and Server-Sent Events |
+| Validation | Declared on `field`, plus constraint violations from Chronicle |
+| Authorization | `authorize` on a command or read model: roles, `:authenticated` or a named policy |
+| Hosting | `Arc.Plug` for Plug and Phoenix; in-process calls and forms for LiveView |
+| Typed frontend | Opt-in TypeScript proxies from `mix arc.gen.proxies` |
+| Event sourcing | Chronicle through `cratis_chronicle`; returned events are appended |
 
 Arc for Elixir serves the same [HTTP contract](/arc/http-contract/) as Arc on .NET, with the same `CommandResult` and `QueryResult` envelopes. It does not claim full parity with Arc on .NET; [limits and gaps](/arc/backend/elixir/limits-and-gaps/) records the differences.
 
@@ -101,7 +101,7 @@ It is not worth it for a single form over a single table. Phoenix contexts with 
 
 ### Is there a CQRS framework for Phoenix?
 
-Yes. Arc for Elixir provides commands, queries, validation, authorization, live queries and opt-in generated TypeScript clients for Phoenix and Plug, on Chronicle. It is a source preview and does not claim full parity with Arc on .NET.
+Yes. Arc for Elixir provides commands, queries, validation, authorization, live queries and opt-in generated TypeScript clients for Phoenix and Plug, on Chronicle. It does not claim full parity with Arc on .NET.
 
 ### Do I need Commanded for CQRS in Elixir?
 
