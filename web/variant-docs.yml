@@ -397,6 +397,18 @@ products:
               blockedOutput:
                 - "BLOCKED: could not validate the TypeScript snippets"
 
+          # Arc for Elixir is in source preview and Chronicle-only. It mounts its
+          # own docs and contributes no shared snippets yet, so shared pages show
+          # no Elixir tab; its pages carry Elixir code directly.
+          elixir:
+            label: Elixir (preview)
+            publicDocs:
+              key: elixir
+              label: Elixir
+              paths:
+                - ../../Arc.Elixir/Documentation
+                - ../Arc.Elixir/Documentation
+
 # Site-authored pages under web/src/content/docs.
 #
 # The product walks above only see pages synced from the product repositories.
@@ -445,6 +457,8 @@ sitePages:
       reason: The .NET CQRS landing page for Arc and Chronicle; its code is .NET by design.
     - page: cqrs/kotlin.mdx
       reason: The Kotlin and Java CQRS landing page for Arc and Chronicle; its code is JVM by design.
+    - page: cqrs/elixir.mdx
+      reason: The Elixir CQRS landing page for Arc and Chronicle; its code is Elixir by design.
     - page: spec-driven-development.mdx
       reason: Its worked slice pairs a Screenplay specification with a Cratis.Specifications test, a .NET-only library, and the C# command that test exercises.
     - page: specifications.mdx

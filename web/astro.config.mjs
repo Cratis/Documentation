@@ -217,6 +217,7 @@ const overviewTopic = {
                 { label: 'CQRS in C# and .NET', slug: 'cqrs/dotnet' },
                 { label: 'CQRS in TypeScript and Node.js', slug: 'cqrs/typescript' },
                 { label: 'CQRS in Kotlin and Java', slug: 'cqrs/kotlin' },
+                { label: 'CQRS in Elixir', slug: 'cqrs/elixir', badge: { text: 'Preview', variant: 'caution' } },
             ],
         },
         { label: 'Studio', slug: 'studio' },

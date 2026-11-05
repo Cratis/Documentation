@@ -203,6 +203,18 @@ jobs:
           filter: blob:none
           path: Arc.TypeScript
 
+      - name: Checkout Arc.Elixir
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Arc.Elixir
+          ref: main
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          # Full commit history without file contents, so `git log -- <file>` can date synced pages.
+          fetch-depth: 0
+          filter: blob:none
+          path: Arc.Elixir
+
       - name: Checkout Components
         uses: actions/checkout@v4
         with:
@@ -244,6 +256,15 @@ jobs:
           fetch-depth: 0
           filter: blob:none
           path: AuthProxy
+
+      - name: Checkout Showrunner
+        uses: actions/checkout@v4
+        with:
+          repository: Cratis/Showrunner
+          ref: ${{ env.DOCS_REF }}
+          token: ${{ github.event_name == 'pull_request' && github.token || secrets.DOCS_CHECKOUT_TOKEN || github.token }}
+          persist-credentials: false
+          path: Showrunner
 
       - name: Checkout Fundamentals
         uses: actions/checkout@v4

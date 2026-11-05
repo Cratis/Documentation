@@ -45,6 +45,7 @@ export function resolveRepoCandidate(webRoot, candidate, env = process.env) {
     // A repo override replaces only that checkout, not the root for unrelated products.
     const overrides = {
         Arc: 'CRATIS_REPO_ARC',
+        'Arc.Elixir': 'CRATIS_REPO_ARC_ELIXIR',
         'Arc.Kotlin': 'CRATIS_REPO_ARC_KOTLIN',
         'Arc.TypeScript': 'CRATIS_REPO_ARC_TYPESCRIPT',
     };

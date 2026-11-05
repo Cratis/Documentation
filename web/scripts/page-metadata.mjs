@@ -66,7 +66,7 @@ export function deriveDescription(body, sourcePath = 'page.md') {
 const sections = {
     chronicle: 'Chronicle', arc: 'Arc', components: 'Components',
     fundamentals: 'Fundamentals', cli: 'CLI', authproxy: 'AuthProxy', showrunner: 'Showrunner',
-    screenplay: 'Screenplay', stage: 'Stage', prologue: 'Prologue', templates: 'Templates', direct: 'Direct', choreography: 'Cratis Choreography',
+    screenplay: 'Screenplay', stage: 'Stage', prologue: 'Prologue', templates: 'Templates', direct: 'Direct', choreography: 'Choreography',
     'chronicle-mcp': 'Chronicle MCP', prompter: 'Prompter', ai: 'AI',
     architecture: 'Architecture', contributing: 'Contributing',
     'eventmodelers-ai': 'EventModelers.ai', 'release-digests': 'Release Digests',

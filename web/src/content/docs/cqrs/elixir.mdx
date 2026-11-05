@@ -1,0 +1,129 @@
+---
+title: CQRS in Elixir with Arc on Phoenix and Plug
+description: "Build CQRS in Elixir with Cratis Arc: model-bound commands and queries on Phoenix or Plug, validation, authorization, live queries and LiveView, with events recorded in Cratis Chronicle."
+---
+
+import { CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+CQRS (Command Query Responsibility Segregation) means commands change state and queries read it, each with its own model. In Elixir, Cratis Arc is an open-source (MIT) CQRS framework for Phoenix and Plug, published to Hex as `cratis_arc`. A command is a module that declares its fields and decides in `handle/2`; a query is an annotated function on a read model. Arc binds, validates, authorizes and runs them, records the events a command returns in Chronicle, and serves everything over the Arc HTTP contract, so React, LiveView or any HTTP client can use it.
+
+This page is for Elixir developers who want CQRS without writing a controller per operation. If you are still deciding whether CQRS fits, read [CQRS explained](/concepts/cqrs/) first.
+
+:::caution[Source preview, Chronicle only]
+Arc for Elixir is a source preview and its API may still change. It works with Chronicle only: commands record events, and read models are Chronicle projections. There is no Ecto or relational persistence, so if you want CQRS without event sourcing in Elixir, Arc is not the tool today. The [limits and gaps](/arc/backend/elixir/limits-and-gaps/) page states what is and is not verified.
+:::
+
+## What you get in Elixir
+
+| Capability | How it looks in Arc | Maturity |
+| --- | --- | --- |
+| Commands | `use Arc.Command`, a `schema`, and `handle/2` returning `{:append, event}` | Source preview |
+| Queries and read models | `use Arc.ReadModel`; `@query` and `@observe` functions | Source preview |
+| Live queries | `@observe` re-runs when a read model changes; WebSocket and Server-Sent Events | Source preview |
+| Validation | Declared on `field`, plus constraint violations from Chronicle | Source preview |
+| Authorization | `authorize` on a command or read model: roles, `:authenticated` or a named policy | Source preview |
+| Hosting | `Arc.Plug` for Plug and Phoenix; in-process calls and forms for LiveView | Source preview |
+| Typed frontend | Opt-in TypeScript proxies from `mix arc.gen.proxies` | Source preview |
+| Event sourcing | Chronicle through `cratis_chronicle`; returned events are appended | Source preview |
+
+Arc for Elixir serves the same [HTTP contract](/arc/http-contract/) as Arc on .NET, with the same `CommandResult` and `QueryResult` envelopes. It does not claim full parity with Arc on .NET; [limits and gaps](/arc/backend/elixir/limits-and-gaps/) records the differences.
+
+## A command and a query
+
+A library application registers authors and lists them. The command carries its input as fields and its decision in `handle/2`:
+
+```elixir
+defmodule Library.Authors.Registration.RegisterAuthor do
+  @moduledoc "Registers a new author."
+
+  use Arc.Command
+
+  schema do
+    field :id, Library.Authors.AuthorId, key: true, required: true
+    field :name, :string, required: true, min_length: 2, max_length: 50
+  end
+
+  def handle(%__MODULE__{name: name}, _ctx),
+    do: {:append, %Library.Authors.AuthorRegistered{name: name}}
+end
+```
+
+The `key: true` field is the event source: whatever `handle/2` appends goes to that id. The command never writes a read model itself.
+
+The query side is a read model with an annotated function. Chronicle keeps the model current from the events, and Arc serves the query over HTTP:
+
+```elixir
+defmodule Library.Authors.Listing.Authors do
+  @moduledoc "Queries over the author read model."
+
+  use Arc.ReadModel, model: Library.Authors.Author
+
+  @doc "All authors."
+  @query many: true
+  def all_authors(_args, ctx), do: Chronicle.all(Library.Authors.Author, ctx.chronicle)
+end
+```
+
+These are excerpts; a runnable project also needs the event type, the Chronicle read model, an `Arc.Application` module and `Arc.Plug` in the endpoint. [Get started](/arc/backend/elixir/get-started/) builds the whole feature end to end. Routes come from module names, so the command above is `POST /api/authors/registration/register-author`. The command never returns the author list and the query never changes anything, so you can test, secure and change each on its own.
+
+## Validation, authorization and live queries
+
+Validation and authorization are declared on the model, not inside `handle/2`. Field options such as `required`, `min_length` and `max_length` are checked by the server and, with generated proxies, by the browser. A rule that fails answers status 400 with a validation result for that field, and nothing is recorded.
+
+```elixir
+use Arc.Command
+
+authorize roles: ["editor"]
+```
+
+`authorize :authenticated` requires any signed-in caller, and `authorize policy: :name` names a policy module that decides from the whole context. On a read model, `authorize` applies to every query, and a single query can override it.
+
+An observable query is the same function, run again whenever its inputs change:
+
+```elixir
+@observe many: true, watch: [Library.Authors.Author]
+def all_authors(_args, ctx), do: Chronicle.all(Library.Authors.Author, ctx.chronicle)
+```
+
+Arc then serves the current value and each change over WebSocket or Server-Sent Events, and a LiveView page can assign it directly. See [Queries](/arc/backend/elixir/queries/) and [LiveView](/arc/backend/elixir/live-view/).
+
+## Events and Chronicle
+
+Every command in Arc for Elixir is event sourced. `handle/2` returns `{:append, event}`, and Arc appends it to Chronicle with the caller's identity and correlation id. A Chronicle constraint, such as a unique name, is enforced at append time, and a violation reaches the client as a validation result instead of an error. A Chronicle projection fills the read model, so the query keeps its shape. Chronicle projects asynchronously, so a new author appears a moment after the command returns. For the event store itself, see [event sourcing in Elixir](/event-sourcing/elixir/).
+
+## When CQRS in Elixir is worth it
+
+Use it when reads and writes have different shapes, load or rules, when a frontend needs typed and live data, or when you want events as the source of truth and a validation, authorization and HTTP layer you do not write by hand.
+
+It is not worth it for a single form over a single table. Phoenix contexts with Ecto are simpler there. Arc for Elixir is also a Phoenix and Plug framework on Chronicle, so if you are not using Chronicle it does not apply. It needs Elixir 1.18 or later.
+
+## Frequently asked questions
+
+### Is there a CQRS framework for Phoenix?
+
+Yes. Arc for Elixir provides commands, queries, validation, authorization, live queries and opt-in generated TypeScript clients for Phoenix and Plug, on Chronicle. It is a source preview and does not claim full parity with Arc on .NET.
+
+### Do I need Commanded for CQRS in Elixir?
+
+No. Arc runs on Chronicle, which stores the events, and it does not use aggregate processes: Chronicle constraints and decision reads cover concurrency. If you already run Commanded, you can still call a Commanded router from `handle/2`.
+
+### Can I use CQRS in Elixir without event sourcing?
+
+Not with Arc today. Arc for Elixir works with Chronicle only, and there is no Ecto integration. [CQRS without event sourcing](/arc/arc-without-event-sourcing/) shows that shape with the other Arc backends.
+
+### Does it work with LiveView?
+
+Yes. LiveView calls the same commands and queries in process, with forms that show pipeline errors on the right field, and observable queries update the page. See [LiveView](/arc/backend/elixir/live-view/).
+
+### How does a React frontend call it?
+
+Arc serves the Arc HTTP contract, so `@cratis/arc` and `@cratis/arc.react` work unchanged. Typed proxies are opt-in: add the `:arc` compiler or run `mix arc.gen.proxies`. See [React and generated proxies](/arc/backend/elixir/react-proxies/).
+
+## Where to go next
+
+<CardGrid>
+  <LinkCard title="Arc for Elixir" description="The overview, guides and reference for the Elixir implementation." href="/arc/backend/elixir/" />
+  <LinkCard title="Get started" description="Events, a command, a query, the HTTP API and a LiveView page, end to end." href="/arc/backend/elixir/get-started/" />
+  <LinkCard title="Event sourcing in Elixir" description="The Chronicle Elixir client." href="/event-sourcing/elixir/" />
+  <LinkCard title="Arc.Elixir on GitHub" description="The Elixir source — open source, MIT licensed." href="https://github.com/Cratis/Arc.Elixir" />
+</CardGrid>
