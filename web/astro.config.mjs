@@ -242,6 +242,7 @@ const overviewTopic = {
             ],
         },
         { label: 'Auth and compliance', slug: 'auth-and-compliance' },
+        { label: 'Self-hosted identity profiles', slug: 'self-hosted-identity-profiles' },
         {
             label: 'EventModelers.ai',
             collapsed: true,
@@ -418,7 +419,7 @@ export default defineConfig({
                     // Section-landing pages appear in the nav as collapsible groups,
                     // not listed leaves, so map every page slug to its topic by glob.
                     topics: {
-                        overview: ['/cratis-stack', '/why-cratis', '/compare', '/compare/**', '/compare-event-sourcing-dotnet', '/compare-event-sourcing-jvm', '/adopting-cratis', '/chronicle-clients', '/event-sourcing/**', '/cqrs/**', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/upgrade-path', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/spec-driven-development', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/build-a-full-app', '/generated-values', '/decisions-that-hold-walkthrough', '/eventmodelers-ai', '/eventmodelers-ai/**', '/samples', '/showcase', '/whats-new', '/pulse', '/glossary', '/api-reference'],
+                        overview: ['/cratis-stack', '/why-cratis', '/compare', '/compare/**', '/compare-event-sourcing-dotnet', '/compare-event-sourcing-jvm', '/adopting-cratis', '/chronicle-clients', '/event-sourcing/**', '/cqrs/**', '/scenarios', '/scenarios/**', '/learning-paths', '/faq', '/compatibility', '/upgrade-path', '/production-readiness', '/roadmap', '/governance', '/security', '/work-with-us', '/professional-help', '/community', '/feedback', '/studio', '/event-modeling', '/spec-driven-development', '/testing-with-cratis', '/specifications', '/tools', '/tools/**', '/auth-and-compliance', '/self-hosted-identity-profiles', '/build-a-full-app', '/generated-values', '/decisions-that-hold-walkthrough', '/eventmodelers-ai', '/eventmodelers-ai/**', '/samples', '/showcase', '/whats-new', '/pulse', '/glossary', '/api-reference'],
                         chronicle: ['/chronicle', '/chronicle/**'],
                         arc: ['/arc', '/arc/**'],
                         components: ['/components', '/components/**'],
