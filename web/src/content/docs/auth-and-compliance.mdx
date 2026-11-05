@@ -66,7 +66,7 @@ on the UI hiding a button as the only access-control layer.
 In a multi-tenant Cratis application, the tenant resolved at the edge becomes application context in Arc.
 When Arc is integrated with Chronicle, that tenant context is used as the Chronicle namespace. Events,
 projections, reducers, and read models for one tenant go to that tenant's namespace without every
-command manually choosing one.
+command manually choosing one. Cratis products call that tenant a workspace and keep it apart from the customer's organization; [organization, workspace and namespace](/concepts/organization-workspace-namespace/) defines the three terms and who owns each.
 
 This is the operational boundary:
 

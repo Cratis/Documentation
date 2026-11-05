@@ -27,6 +27,8 @@ explains how they fit together.
 | **Event sourcing** | Storing state as the full history of events, deriving current state by replaying them. See [when to use it](/chronicle/concepts/when-to-use-event-sourcing/). |
 | [Namespace](/chronicle/concepts/namespaces/) | A partition of an event store, used for multi-tenancy. |
 | **Tenant** | An isolated set of data for one customer — see [namespaces](/chronicle/namespaces/). |
+| [Workspace](/concepts/organization-workspace-namespace/#workspace) | The place people work inside one product: the product-facing name for a tenant. The product owns its members and roles. |
+| [Organization](/concepts/organization-workspace-namespace/#organization) | The customer as a whole, across Cratis products. Holds sign-in policies, not members. Platform organizations are planned. |
 | **Identity** | Who or what caused an event. |
 | **Correlation** | Links events that belong to the same logical operation. |
 | [Causation](/chronicle/concepts/correlation-identity-causation/) | The chain of steps that led to an event, such as the root process and the command that appended it. With Arc, the command's name and property values are recorded in the chain, permanently. |
