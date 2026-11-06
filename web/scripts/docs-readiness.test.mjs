@@ -470,6 +470,13 @@ test('the site config registers the documentation artifacts integration after pa
     assert.ok(registration > pageActions, 'the artifacts integration must run after page-actions has copied its files');
 });
 
+test('the release digests navigation includes its generated index before the weekly pages', async () => {
+    const config = await fs.readFile(path.join(webRoot, 'astro.config.mjs'), 'utf8');
+    const navigation = config.match(/const releaseDigestsNavItem = [\s\S]*?;/)?.[0];
+    assert.ok(navigation, 'expected the release digests navigation to be configured');
+    assert.match(navigation, /items:\s*\[\s*\{ label: 'Overview', slug: 'release-digests' \},\s*\.\.\.releaseDigests\.map/);
+});
+
 test('Components buckets classify library and reference sections explicitly', () => {
     const product = PRODUCTS.find(({ key }) => key === 'components');
     assert.ok(product);

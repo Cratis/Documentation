@@ -51,7 +51,10 @@ const releaseDigestsNavItem = releaseDigests.length
     ? {
         label: 'Release Digests',
         collapsed: true,
-        items: releaseDigests.map((digest) => ({ label: digest.label, slug: `release-digests/${digest.slug}` })),
+        items: [
+            { label: 'Overview', slug: 'release-digests' },
+            ...releaseDigests.map((digest) => ({ label: digest.label, slug: `release-digests/${digest.slug}` })),
+        ],
     }
     : null;
 
