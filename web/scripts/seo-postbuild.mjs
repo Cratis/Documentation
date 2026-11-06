@@ -9,10 +9,11 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { budgetResult, sizeWarnings } from './llm-bulk.mjs';
+import { apiPageDescription } from './page-metadata.mjs';
 
 const site = 'https://www.cratis.io';
-// The title text is already HTML-encoded; only quotes can end the attribute early.
-const escapeAttribute = (text) => text.replace(/"/g, '&quot;');
+// Generated descriptions are plain text, including decoded title entities.
+const escapeAttribute = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 async function* htmlFiles(directory) {
     let entries;
@@ -52,7 +53,7 @@ export function withCanonicalAndDescription(html, relativePath) {
     if (!/<meta[^>]+name=["']description["']/i.test(html)) {
         const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1]?.replace(/\s+/g, ' ').trim();
         const name = title?.split(/\s+[|–-]\s+/)[0];
-        if (name) tags.push(`<meta name="description" content="${escapeAttribute(`${name} — API reference in the Cratis documentation.`)}">`);
+        if (name) tags.push(`<meta name="description" content="${escapeAttribute(apiPageDescription(name))}">`);
     }
     return tags.length ? insertIntoHead(html, tags) : html;
 }

@@ -1,6 +1,8 @@
 // Copyright (c) Cratis. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfmFromMarkdown } from 'mdast-util-gfm';
 import { mdxFromMarkdown } from 'mdast-util-mdx';
@@ -33,6 +35,113 @@ function proseText(node, includeLinks = true) {
         return (node.children ?? []).map((child) => proseText(child, includeLinks)).join('');
     }
     return '';
+}
+
+function wordLimitedGeneratedDescription(text) {
+    if (Array.from(text).length <= 160) return text;
+    const words = [];
+    let length = 0;
+    for (const word of text.split(' ')) {
+        const nextLength = length + (words.length ? 1 : 0) + Array.from(word).length;
+        if (nextLength > 159) break; // Leave room for the ellipsis.
+        words.push(word);
+        length = nextLength;
+    }
+    return words.join(' ').replace(/[.,:;]+$/, '') + '…';
+}
+
+/** Bound generator-owned descriptions without changing authored product metadata. */
+export function generatedDescription(subject, suffix) {
+    const description = wordLimitedGeneratedDescription(subject.replace(/\s+/g, ' ').trim());
+    return Array.from(description).length >= 120
+        ? description
+        : wordLimitedGeneratedDescription(`${description} ${suffix}`);
+}
+
+const DIGEST_SECTION_HEADINGS = /^(?:added|changed|fixed|removed|security|deprecated|week in numbers|version movement|summary|releases?|release notes)$/i;
+const DIGEST_DESCRIPTION_SUFFIX = 'Weekly changes across the Cratis repositories, with links to release notes and related pull requests.';
+export const RELEASE_DIGEST_INDEX_DESCRIPTION = 'Weekly Cratis release digests grouped by date, with product changes, published versions and links to the original release notes and pull requests.';
+
+function markdownText(node) {
+    return node.value ?? (node.children ?? []).map(markdownText).join('');
+}
+
+export function loadPrivateRepositories(file) {
+    try {
+        // Match the digest renderer's comment and line-ending handling.
+        return new Set(readFileSync(file, 'utf8').split(/\r?\n/)
+            .map((line) => line.split('#', 1)[0].trim().toLowerCase()).filter(Boolean));
+    } catch {
+        // Unknown privacy status must never expose product names.
+        return undefined;
+    }
+}
+
+function releasedProducts(raw, privateRepositories) {
+    if (!privateRepositories) return [];
+    const tree = fromMarkdown(raw);
+    const releases = new Set();
+    function visit(node) {
+        const match = node.type === 'link' && /^https:\/\/github\.com\/Cratis\/([^/]+)\/releases(?:\/|$)/i.exec(node.url);
+        if (match) {
+            try {
+                releases.add(decodeURIComponent(match[1]));
+            } catch {
+                // An undecodable repository name has unknown privacy status.
+            }
+        }
+        for (const child of node.children ?? []) visit(child);
+    }
+    visit(tree);
+
+    // Existing digests group release bullets by change type; also support
+    // product headings. Code samples and ordinary prose are not products.
+    const headings = tree.children
+        .filter((node) => node.type === 'heading' && node.depth > 1)
+        .map(markdownText)
+        .map((heading) => heading.replace(/\s+(?:[-–—:]\s*)?v?\d+\.\d+.*$/, '').trim())
+        .filter((heading) => !DIGEST_SECTION_HEADINGS.test(heading));
+    return [...new Set(releases.size ? releases : headings)]
+        .filter((product) => product && !/jasperfx/i.test(product))
+        .filter((product) => !product.toLowerCase().split(/[^a-z0-9_.-]+/).some((part) => privateRepositories.has(part)));
+}
+
+export function releaseDigestDescription(longRange, raw, privateRepositories) {
+    const products = releasedProducts(raw, privateRepositories);
+    const subject = products.length ? `Cratis releases for ${longRange}: ${products.join(', ')}.` : `Cratis release digest for ${longRange}.`;
+    return generatedDescription(subject, DIGEST_DESCRIPTION_SUFFIX);
+}
+
+export function releaseDigestIndex(entries, route = 'release-digests') {
+    return [
+        '---',
+        'title: Release digests',
+        `description: ${JSON.stringify(RELEASE_DIGEST_INDEX_DESCRIPTION)}`,
+        'editUrl: false',
+        '---',
+        '',
+        'Weekly release notes across the Cratis repositories, newest first.',
+        '',
+        ...entries.map(({ slug, label }) => `- [${label}](/${route}/${slug}/)`),
+        '',
+    ].join('\n');
+}
+
+function apiIdentifier(name) {
+    const neutralName = name.split('.').filter((segment) => !/jasperfx/i.test(segment)).join('.') || 'Cratis integration';
+    if (neutralName === name && Array.from(name).length <= 64) return name;
+    // Keep a recognizable tail plus a stable discriminator, even when distinct
+    // namespaces share the same trailing type name. The entire identifier fits
+    // before description padding/truncation, so the discriminator cannot be lost.
+    const tail = Array.from(neutralName).slice(-48).join('');
+    const discriminator = createHash('sha256').update(name).digest('hex').slice(0, 12);
+    return `${tail} [${discriminator}]`;
+}
+
+export function apiPageDescription(encodedName) {
+    const name = markdownText(fromMarkdown(encodedName));
+    const subject = `API reference for ${apiIdentifier(name)}.`;
+    return generatedDescription(subject, 'Types, members, signatures and related namespaces in the Cratis documentation, with reference details for integrating libraries into applications.');
 }
 
 export function shortenDescription(text) {
