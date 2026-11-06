@@ -15,7 +15,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
-import { releaseDigestDescription, releaseDigestIndex } from './page-metadata.mjs';
+import { loadPrivateRepositories, releaseDigestDescription, releaseDigestIndex } from './page-metadata.mjs';
 
 import { existsSync, statSync } from 'node:fs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
@@ -1533,18 +1533,18 @@ async function syncReleaseDigests() {
     }
 
     await fs.mkdir(outDir, { recursive: true });
+    const privateRepositories = loadPrivateRepositories(path.join(RELEASE_DIGESTS_SRC, 'private-repositories.txt'));
     const sidebarEntries = [];
     for (const digest of digests) {
         const raw = await fs.readFile(path.join(RELEASE_DIGESTS_SRC, digest.file), 'utf8');
         const { shortRange, longRange, week } = formatReleaseDigestRange(digest.start, digest.end);
         const title = `Release digest: ${longRange} (Week ${week})`;
-        const description = releaseDigestDescription(longRange, raw);
         const body = stripLeadingH1(convertAlerts(raw));
         const editUrl = sourceEditUrl(path.join(RELEASE_DIGESTS_SRC, digest.file), reposRoot, docRepoRoot);
         const frontmatter = [
             '---',
             `title: ${quoteYaml(title)}`,
-            `description: ${quoteYaml(description)}`,
+            `description: ${quoteYaml(releaseDigestDescription(longRange, raw, privateRepositories))}`,
             `editUrl: ${editUrl ? quoteYaml(editUrl) : 'false'}`,
             '---',
             '',

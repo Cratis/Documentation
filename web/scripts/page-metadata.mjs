@@ -1,6 +1,8 @@
 // Copyright (c) Cratis. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfmFromMarkdown } from 'mdast-util-gfm';
 import { mdxFromMarkdown } from 'mdast-util-mdx';
@@ -64,12 +66,30 @@ function markdownText(node) {
     return node.value ?? (node.children ?? []).map(markdownText).join('');
 }
 
-function releasedProducts(raw) {
+export function loadPrivateRepositories(file) {
+    try {
+        // Match the digest renderer's comment and line-ending handling.
+        return new Set(readFileSync(file, 'utf8').split(/\r?\n/)
+            .map((line) => line.split('#', 1)[0].trim().toLowerCase()).filter(Boolean));
+    } catch {
+        // Unknown privacy status must never expose product names.
+        return undefined;
+    }
+}
+
+function releasedProducts(raw, privateRepositories) {
+    if (!privateRepositories) return [];
     const tree = fromMarkdown(raw);
     const releases = new Set();
     function visit(node) {
         const match = node.type === 'link' && /^https:\/\/github\.com\/Cratis\/([^/]+)\/releases(?:\/|$)/i.exec(node.url);
-        if (match) releases.add(match[1]);
+        if (match) {
+            try {
+                releases.add(decodeURIComponent(match[1]));
+            } catch {
+                // An undecodable repository name has unknown privacy status.
+            }
+        }
         for (const child of node.children ?? []) visit(child);
     }
     visit(tree);
@@ -82,11 +102,12 @@ function releasedProducts(raw) {
         .map((heading) => heading.replace(/\s+(?:[-–—:]\s*)?v?\d+\.\d+.*$/, '').trim())
         .filter((heading) => !DIGEST_SECTION_HEADINGS.test(heading));
     return [...new Set(releases.size ? releases : headings)]
-        .filter((product) => product && !/jasperfx/i.test(product));
+        .filter((product) => product && !/jasperfx/i.test(product))
+        .filter((product) => !product.toLowerCase().split(/[^a-z0-9_.-]+/).some((part) => privateRepositories.has(part)));
 }
 
-export function releaseDigestDescription(longRange, raw) {
-    const products = releasedProducts(raw);
+export function releaseDigestDescription(longRange, raw, privateRepositories) {
+    const products = releasedProducts(raw, privateRepositories);
     const subject = products.length ? `Cratis releases for ${longRange}: ${products.join(', ')}.` : `Cratis release digest for ${longRange}.`;
     return generatedDescription(subject, DIGEST_DESCRIPTION_SUFFIX);
 }
@@ -106,9 +127,20 @@ export function releaseDigestIndex(entries, route = 'release-digests') {
     ].join('\n');
 }
 
+function apiIdentifier(name) {
+    const neutralName = name.split('.').filter((segment) => !/jasperfx/i.test(segment)).join('.') || 'Cratis integration';
+    if (neutralName === name && Array.from(name).length <= 64) return name;
+    // Keep a recognizable tail plus a stable discriminator, even when distinct
+    // namespaces share the same trailing type name. The entire identifier fits
+    // before description padding/truncation, so the discriminator cannot be lost.
+    const tail = Array.from(neutralName).slice(-48).join('');
+    const discriminator = createHash('sha256').update(name).digest('hex').slice(0, 12);
+    return `${tail} [${discriminator}]`;
+}
+
 export function apiPageDescription(encodedName) {
     const name = markdownText(fromMarkdown(encodedName));
-    const subject = /jasperfx/i.test(name) ? 'External dependency API reference.' : `API reference for ${name}.`;
+    const subject = `API reference for ${apiIdentifier(name)}.`;
     return generatedDescription(subject, 'Types, members, signatures and related namespaces in the Cratis documentation, with reference details for integrating libraries into applications.');
 }
 

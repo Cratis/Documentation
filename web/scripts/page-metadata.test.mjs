@@ -2,8 +2,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { describe, it } from 'node:test';
-import { RELEASE_DIGEST_INDEX_DESCRIPTION, apiPageDescription, contextualTitle, deriveDescription, glossaryTerms, hubTitle, markdownMirrorHref, pageLanguage, hasDuplicateTitle, normalizedPageKey, pageDescription, releaseDigestDescription, releaseDigestIndex, serializeStructuredData, shortenDescription, structuredData } from './page-metadata.mjs';
+import { RELEASE_DIGEST_INDEX_DESCRIPTION, apiPageDescription, contextualTitle, deriveDescription, glossaryTerms, hubTitle, markdownMirrorHref, pageLanguage, hasDuplicateTitle, loadPrivateRepositories, normalizedPageKey, pageDescription, releaseDigestDescription, releaseDigestIndex, serializeStructuredData, shortenDescription, structuredData } from './page-metadata.mjs';
 
 const prose = 'Chronicle stores events and builds read models for your application.';
 
@@ -16,7 +19,7 @@ describe('generated release digest descriptions', () => {
     it('includes product headings and the full date range', () => {
         const range = 'December 28, 2026 - January 4, 2027';
         const raw = '# Release digest\n\n## **Chronicle** v19.0.0\n\n### Added\n\n## Arc\n\n## Arc\n\n### Fixed\n';
-        const description = releaseDigestDescription(range, raw);
+        const description = releaseDigestDescription(range, raw, new Set());
         assert.ok(description.startsWith(`Cratis releases for ${range}: Chronicle, Arc.`));
         assertDescriptionLength(description);
     });
@@ -34,9 +37,42 @@ describe('generated release digest descriptions', () => {
 [Sample](https://github.com/Cratis/Sample/releases/tag/v1)
 \`\`\`
 `;
-        const description = releaseDigestDescription('May 18 - 25, 2026', raw);
+        const description = releaseDigestDescription('May 18 - 25, 2026', raw, new Set());
         assert.match(description, /: Chronicle, Arc\./);
         assert.doesNotMatch(description, /Unreleased|Example|Sample|Added/);
+    });
+
+    it('filters private URL-derived names and heading fallbacks using the digest privacy-list format', (context) => {
+        const directory = mkdtempSync(path.join(tmpdir(), 'digest-privacy-'));
+        context.after(() => rmSync(directory, { recursive: true, force: true }));
+        const file = path.join(directory, 'private-repositories.txt');
+        writeFileSync(file, '# Private repositories\r\nStudio # Internal\r\n\r\nSTAGEHAND\r\n');
+        const privateRepositories = loadPrivateRepositories(file);
+        assert.deepEqual(privateRepositories, new Set(['studio', 'stagehand']));
+        const inputs = [
+            '[Studio](https://github.com/Cratis/Stu%64io/releases/tag/v1)\n[Arc](https://github.com/Cratis/Arc/releases/tag/v1)',
+            '## STUDIO v1.0.0\n\n## Stagehand — releases\n\n## Arc',
+        ];
+        for (const raw of inputs) {
+            const description = releaseDigestDescription('July 13 - 20, 2026', raw, privateRepositories);
+            assertDescriptionLength(description);
+            assert.match(description, /: Arc\./);
+            assert.doesNotMatch(description, /studio|stagehand/i);
+        }
+    });
+
+    it('fails closed to the generic date-range description when the privacy list is unreadable', () => {
+        const unreadable = loadPrivateRepositories(new URL('./', import.meta.url)); // A directory cannot be read as a list.
+        assert.equal(unreadable, undefined);
+        const range = 'July 13 - 20, 2026';
+        const generic = releaseDigestDescription(range, '');
+        for (const raw of ['## Studio\n\n## Arc', '[Studio](https://github.com/Cratis/Studio/releases/tag/v1)']) {
+            const description = releaseDigestDescription(range, raw, unreadable);
+            assert.equal(description, generic);
+            assertDescriptionLength(description);
+            assert.match(description, /Cratis release digest for July 13 - 20, 2026\./);
+            assert.doesNotMatch(description, /Studio|Arc/);
+        }
     });
 
     it('pads short inputs and respects inclusive length boundaries', () => {
@@ -44,7 +80,7 @@ describe('generated release digest descriptions', () => {
         const prefix = `Cratis releases for ${range}: `;
         for (const length of [119, 120, 159, 160, 161]) {
             const product = 'X'.repeat(length - prefix.length - 1);
-            const description = releaseDigestDescription(range, `## ${product}`);
+            const description = releaseDigestDescription(range, `## ${product}`, new Set());
             assertDescriptionLength(description);
             if (length >= 120 && length <= 160) {
                 assert.equal(description, `${prefix}${product}.`);
@@ -58,17 +94,17 @@ describe('generated release digest descriptions', () => {
 
     it('handles empty and very short content without invented products', () => {
         for (const raw of ['', '## Added\n\nNothing released.', '## A', '## JasperFX\n\n## JasperFX.Tools']) {
-            const description = releaseDigestDescription('May 18 - 25, 2026', raw);
+            const description = releaseDigestDescription('May 18 - 25, 2026', raw, new Set());
             assertDescriptionLength(description);
             assert.match(description, /Weekly changes/);
             assert.doesNotMatch(description, /Added|Nothing|JasperFX|Learn how to|This page/i);
-            assert.equal(description, releaseDigestDescription('May 18 - 25, 2026', raw));
+            assert.equal(description, releaseDigestDescription('May 18 - 25, 2026', raw, new Set()));
         }
     });
 
     it('truncates long inputs at word boundaries and counts Unicode characters', () => {
         const product = `Chronicle ${'extended '.repeat(40).trim()}`;
-        const description = releaseDigestDescription('May 18 - 25, 2026', `## ${product}`);
+        const description = releaseDigestDescription('May 18 - 25, 2026', `## ${product}`, new Set());
         assertDescriptionLength(description);
         assert.match(description, /Chronicle(?: extended)+…$/);
         assert.doesNotMatch(description, /Weekly changes/);
@@ -76,7 +112,7 @@ describe('generated release digest descriptions', () => {
         const range = 'May 18 - 25, 2026';
         const prefix = `Cratis releases for ${range}: `;
         const unicodeProduct = '𐐀'.repeat(159 - prefix.length - 1);
-        assert.equal(releaseDigestDescription(range, `## ${unicodeProduct}`), `${prefix}${unicodeProduct}.`);
+        assert.equal(releaseDigestDescription(range, `## ${unicodeProduct}`, new Set()), `${prefix}${unicodeProduct}.`);
     });
 
     it('gives the generated index its own description and preserves the supplied week order', () => {
@@ -93,7 +129,7 @@ describe('generated release digest descriptions', () => {
     it('stays unique across weeks, years and the index even with identical long content', () => {
         const ranges = ['May 18 - 25, 2026', 'May 25 - June 1, 2026', 'May 18 - 25, 2027'];
         const raw = `## Chronicle ${'extended '.repeat(40)}`;
-        const descriptions = ranges.map((range) => releaseDigestDescription(range, raw));
+        const descriptions = ranges.map((range) => releaseDigestDescription(range, raw, new Set()));
         assert.equal(new Set(descriptions).size, ranges.length);
         ranges.forEach((range, index) => assert.ok(descriptions[index].includes(range)));
         assertDescriptionLength(RELEASE_DIGEST_INDEX_DESCRIPTION);
@@ -109,8 +145,26 @@ describe('generated API descriptions', () => {
             assert.doesNotMatch(description, /Learn how to|This page/i);
             assert.equal(description, apiPageDescription(name));
         }
-        assert.match(apiPageDescription('Long '.repeat(80)), /(?:Long )+Long…$/);
-        assert.doesNotMatch(apiPageDescription('𐐀'.repeat(200)), /𐐀/);
+        assert.match(apiPageDescription('Long '.repeat(80)), /Long\s+\[[a-f0-9]{12}\]/);
+        assert.match(apiPageDescription('𐐀'.repeat(200)), /𐐀+ \[[a-f0-9]{12}\]/);
+    });
+
+    it('retains distinct bounded identifiers for long namespaces even when their tails collide', () => {
+        const names = [`Cratis.${'A'.repeat(200)}`, `Cratis.${'B'.repeat(200)}`, `Cratis.${'A'.repeat(200)}.Shared.Type`, `Cratis.${'B'.repeat(200)}.Shared.Type`];
+        const descriptions = names.map(apiPageDescription);
+        descriptions.forEach(assertDescriptionLength);
+        assert.equal(new Set(descriptions).size, names.length);
+        descriptions.forEach((description) => assert.match(description, /\[[a-f0-9]{12}\]/));
+    });
+
+    it('uses neutral, distinct identifiers for banned namespaces in every casing', () => {
+        const names = ['JasperFX.Logging', 'JASPERFX.Generation.Logging', 'JasperFx', 'Cratis.JasperFX.Logging'];
+        const descriptions = names.map(apiPageDescription);
+        descriptions.forEach(assertDescriptionLength);
+        descriptions.forEach((description) => assert.doesNotMatch(description, /jasperfx/i));
+        assert.match(descriptions[0], /^API reference for Logging \[/);
+        assert.match(descriptions[2], /^API reference for Cratis integration \[/);
+        assert.equal(new Set(descriptions).size, names.length);
     });
 
     it('keeps distinct type names and decodes HTML entities before measuring', () => {
