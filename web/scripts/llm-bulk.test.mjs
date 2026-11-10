@@ -19,7 +19,7 @@ describe('LLM export budgets', () => {
         const sizes = new Map(SIZE_WARNINGS.map(({ route, bytes }) => [route, bytes + 1]));
         const exceeded = [
             { route: '/llms-small.txt', bytes: 400_001, budgetBytes: 400_000 },
-            { route: '/llms-full.txt', bytes: 19_000_001, budgetBytes: 19_000_000 },
+            { route: '/llms-full.txt', bytes: 20_000_001, budgetBytes: 20_000_000 },
         ];
         assert.deepEqual(budgetResult(sizes), { exceeded, failed: false });
         assert.deepEqual(budgetResult(sizes, true), { exceeded, failed: true });
@@ -122,9 +122,9 @@ describe('curated starting points', () => {
     it('enforces the same budgets for product and nested-product downloads', () => {
         const sizes = new Map([
             ['/chronicle/llms-small.txt', 400_001],
-            ['/fundamentals/go/llms-full.txt', 19_000_001],
+            ['/fundamentals/go/llms-full.txt', 20_000_001],
             ['/arc/llms-small.txt', 400_000],
-            ['/cli/llms-full.txt', 19_000_000],
+            ['/cli/llms-full.txt', 20_000_000],
             ['/other.txt', 20_000_000],
         ]);
         const result = budgetResult(sizes, true);
