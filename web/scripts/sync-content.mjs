@@ -161,6 +161,8 @@ export const PRODUCTS = [
         // Content lives in the `screenplay/` subfolder, so point straight at it for clean
         // `/screenplay/<page>` URLs (the outer Documentation/ wrapper isn't a site page).
         key: 'screenplay', label: 'Screenplay', icon: 'pencil', sidebarMode: 'toc',
+        // agents.md is the language page for the `agents` block, not a bootstrap file.
+        includeRootPages: ['agents.md'],
         src: firstExisting(
             path.join(reposRoot, 'Screenplay', 'Documentation', 'screenplay'),
             path.join(docRepoRoot, 'Screenplay', 'Documentation', 'screenplay')),
@@ -972,7 +974,8 @@ export async function walk(srcDir, outDir, product, options = {}) {
         // Skip repository control bootstrap files at the product root only.
         // Nested documentation pages named agents.md, claude.md, or gemini.md
         // elsewhere in the tree remain valid authored content.
-        if (isProductRoot && REPO_BOOTSTRAP_FILES.has(entry.name.toLowerCase())) continue;
+        if (isProductRoot && REPO_BOOTSTRAP_FILES.has(entry.name.toLowerCase())
+            && !isDeclaredRootPage(entry.name, srcDir, product)) continue;
         // Product-declared root files that are repository context, not site pages.
         if (isProductRoot && product.excludeRootFiles?.some((name) => name.toLowerCase() === entry.name.toLowerCase())) continue;
         const ext = path.extname(entry.name).toLowerCase();
@@ -1142,6 +1145,15 @@ function resolvedTocSlug(href, slugBase) {
         throw new Error(`[sync] toc href "${href}" escapes the ${productSlug} documentation root`);
     }
     return slugify(joined);
+}
+
+// A product can declare a root page whose name collides with a repository bootstrap
+// file (Screenplay documents its `agents` block in agents.md). The declaration applies
+// to the product's own source root only, never to family sources mounted under it.
+export function isDeclaredRootPage(name, dirAbs, product) {
+    return Boolean(product.src && product.includeRootPages?.length
+        && path.resolve(dirAbs) === path.resolve(product.src)
+        && product.includeRootPages.some((page) => page.toLowerCase() === name.toLowerCase()));
 }
 
 // A product's own excludeRootFiles (e.g. project-context.md) are deliberately
