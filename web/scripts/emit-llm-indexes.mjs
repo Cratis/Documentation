@@ -10,7 +10,8 @@ import yaml from 'js-yaml';
 import { PRODUCTS } from './sync-content.mjs';
 import { LLM_SETS, llmSetSlug } from './llm-sets.mjs';
 import { citeRenderedSet, withoutSnippetSourceLinks } from './llm-set-sources.mjs';
-import { abridgedExport, compactFullText, isCuratedPage, isLogPage, isRootFullTextExcluded, pageSummary, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
+import { abridgedExport, compactFullText, isCuratedPage, isLogPage, pageSummary, sizeWarnings, withoutPageMarkers } from './llm-bulk.mjs';
+import { fullTextExports, isBundledExport, pageSection } from './llm-family-exports.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const site = 'https://www.cratis.io';
@@ -57,7 +58,7 @@ function frontmatterOf(content) {
     return { data: (match && yaml.load(match[1])) || {}, body: match ? content.slice(match[0].length) : content };
 }
 
-// Every published page, for filtering the plugin's full export and summarising the small one.
+// Every published page, for full-text exports and curated summaries.
 async function publishedPages(docsRoot) {
     const pages = [];
     for await (const file of markdownFiles(docsRoot)) {
@@ -170,39 +171,10 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
         const content = await fs.readFile(path.join(dist, route.slice(1)), 'utf8');
         output.set(route, citeRenderedSet(withoutSnippetSourceLinks(withoutPageMarkers(content)), selectedPages.get(set), set.label));
     }
-    const root = path.join(dist, 'llms.txt');
-    if (!await exists(root)) throw new Error('Missing site-wide llms.txt');
-    const original = (await fs.readFile(root, 'utf8'))
-        .replace(/\n## Product documentation\n[\s\S]*?(?=\n## Documentation Sets\n)/, '');
-    if (!original.includes('## Documentation Sets\n')) throw new Error('Missing documentation sets in site-wide llms.txt');
-    const introduction = [
-        '## Product documentation',
-        '',
-        'Choose a product and then a task area. The full-site downloads below are bulk archives, not the best default context for one question.',
-        '',
-        ...productLinks,
-        ...productDownloads,
-        '',
-        '## Cross-product starting points',
-        '',
-        link('Cratis stack', '/cratis-stack/'),
-        link('Build a full-stack feature', '/build-a-full-app/'),
-        link('Samples', '/samples/'),
-    ].join('\n');
-    for (const route of ['/cratis-stack/', '/build-a-full-app/', '/samples/']) {
-        if (!await exists(path.join(dist, route.slice(1), 'index.html'))) throw new Error(`Missing cross-product guide: ${route}`);
-    }
-    const rootIndex = original.replace('## Documentation Sets\n', `${introduction}\n\n## Documentation Sets\n`);
-    // Root full text omits logs, contributor workflows and Go parity ledgers; the latter
-    // two remain in product downloads and mirrors. Replace the plugin's abridged copy
-    // with a compact title-and-summary list (site-wide and per product).
+    // Platform and family full text share the root exclusions; product downloads keep
+    // contributor workflows and ledgers. Small exports remain curated starting points.
     const allPages = await publishedPages(docsRoot);
-    const fullFile = path.join(dist, 'llms-full.txt');
-    if (await exists(fullFile)) {
-        const rootPages = allPages.map(page => ({ ...page, excluded: isRootFullTextExcluded(page.slug) }));
-        output.set('/llms-full.txt', compactFullText(withoutPageMarkers(withoutSnippetSourceLinks(withoutExcludedPages(await fs.readFile(fullFile, 'utf8'), rootPages)))));
-    }
-    const documented = allPages.filter(page => !page.excluded && page.slug && page.slug !== '404' && !/^api(?:\/|$)/.test(page.slug));
+    const documented = allPages.filter(page => !page.excluded && page.slug !== '404' && !/^api(?:\/|$)/.test(page.slug));
     // The most specific product owns a page (fundamentals/go before fundamentals).
     const productOf = (page) => products.filter(product => page.slug === product.key || page.slug.startsWith(`${product.key}/`))
         .sort((a, b) => b.key.length - a.key.length)[0];
@@ -217,18 +189,39 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
         .map(([key, pages]) => ({ key, label: labelOf(key), pages }));
     const curatedGroups = orderedGroups.map(group => ({ ...group, pages: group.pages.filter(page => isCuratedPage(page.slug, group.key)) }));
     output.set('/llms-small.txt', abridgedExport('Cratis documentation (abridged)', curatedGroups));
-    for (const { key, label, pages } of orderedGroups.filter(group => group.key && productLinks.some(item => item.includes(`${site}/${group.key}/llms.txt`)))) {
+    const emittedGroups = products.flatMap(product => output.has(`/${product.key}/llms.txt`) ? orderedGroups.filter(group => group.key === product.key) : []);
+    const { files, links: familyLinks } = await fullTextExports([{ key: '', pages: groups.get('') ?? [] }, ...emittedGroups], async (page) => {
+        const mirror = await fs.readFile(path.join(dist, page.slug ? `${page.slug}.md` : 'index.md'), 'utf8');
+        return pageSection(page, frontmatterOf(mirror).body);
+    }, link);
+    for (const [route, content] of files) output.set(route, compactFullText(isBundledExport(route) ? withoutSnippetSourceLinks(content) : content));
+    for (const { key, label, pages } of emittedGroups) {
         const curated = pages.filter(page => isCuratedPage(page.slug, key));
         output.set(`/${key}/llms-small.txt`, abridgedExport(`${label} documentation (abridged)`, [{ label, pages: curated }]));
-        const fullText = [`# ${label} documentation`, '', '> Readable Markdown; HTML page URLs are canonical.', ''];
-        for (const page of pages) {
-            const mirror = await fs.readFile(path.join(dist, `${page.slug}.md`), 'utf8');
-            fullText.push(`# ${page.title}`, '', `Source: ${page.url}`, '', frontmatterOf(mirror).body.trim(), '');
-        }
-        output.set(`/${key}/llms-full.txt`, compactFullText(fullText.join('\n')));
         const overview = output.get(`/${key}/llms.txt`);
         output.set(`/${key}/llms.txt`, `${overview.trimEnd()}\n\n## Downloads\n\n${link(`${label} curated starting points`, `/${key}/llms-small.txt`)}\n${link(`${label} full text`, `/${key}/llms-full.txt`)}\n`);
     }
+    const root = path.join(dist, 'llms.txt');
+    if (!await exists(root)) throw new Error('Missing site-wide llms.txt');
+    const original = (await fs.readFile(root, 'utf8'))
+        .replace(/\n## Product documentation\n[\s\S]*?(?=\n## Documentation Sets\n)/, '');
+    if (!original.includes('## Documentation Sets\n')) throw new Error('Missing documentation sets in site-wide llms.txt');
+    const introduction = [
+        '## Product documentation', '',
+        'Choose a product and then a task area. The root full text is the platform export; family downloads are bulk archives, not the best default context for one question.', '',
+        ...productLinks, ...productDownloads, '',
+        '## Product family downloads', '',
+        'Readable Markdown for related products, with canonical page URLs and the same exclusions as the platform export.', '',
+        ...familyLinks, '',
+        '## Cross-product starting points', '',
+        link('Cratis stack', '/cratis-stack/'),
+        link('Build a full-stack feature', '/build-a-full-app/'),
+        link('Samples', '/samples/'),
+    ].join('\n');
+    for (const route of ['/cratis-stack/', '/build-a-full-app/', '/samples/']) {
+        if (!await exists(path.join(dist, route.slice(1), 'index.html'))) throw new Error(`Missing cross-product guide: ${route}`);
+    }
+    const rootIndex = original.replace('## Documentation Sets\n', `${introduction}\n\n## Documentation Sets\n`);
     for (const [route, content] of output) {
         output.set(route, `${content.trimEnd()}\n`);
         const file = path.join(dist, route.slice(1));
@@ -237,7 +230,7 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
     }
     await fs.writeFile(root, rootIndex);
     const sizes = new Map([...output].map(([route, content]) => [route, Buffer.byteLength(content)]));
-    for (const route of ['/llms-full.txt', '/llms-small.txt']) {
+    for (const route of ['/llms-full.txt', '/llms-small.txt', ...[...files.keys()].filter(route => route.startsWith('/families/'))]) {
         if (sizes.has(route)) console.log(`[postbuild] ${route}: ${sizes.get(route)} bytes`);
     }
     for (const warning of sizeWarnings(sizes)) console.warn(warning);

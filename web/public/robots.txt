@@ -5,8 +5,9 @@
 # the intent is unambiguous.
 #
 # AI assistants: start with https://www.cratis.io/llms.txt for a curated,
-# LLM-friendly index of this documentation (llms-full.txt and llms-small.txt
-# variants are available at the site root as well).
+# LLM-friendly index. /llms-full.txt contains platform pages; bulk product-family
+# downloads live at /families/<id>/llms-full.txt (listed in /llms.txt).
+# /llms-small.txt is the curated starting-point summary.
 
 User-agent: *
 Allow: /

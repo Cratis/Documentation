@@ -3,9 +3,18 @@
 
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { PAGE_MARKER, PAGE_SEPARATOR, SIZE_WARNINGS, budgetResult, compactFullText, isCuratedPage, isLogPage, isRootFullTextExcluded, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
+import { PAGE_MARKER, PAGE_SEPARATOR, SIZE_WARNINGS, budgetResult, compactFullText, llmBudget, isCuratedPage, isLogPage, isRootFullTextExcluded, sizeWarnings, withoutExcludedPages, withoutPageMarkers } from './llm-bulk.mjs';
 
 describe('LLM export budgets', () => {
+    it('enforces the full-text budget on family downloads', () => {
+        const route = '/families/chronicle/llms-full.txt';
+        assert.equal(llmBudget(route), 19_000_000);
+        assert.deepEqual(budgetResult(new Map([[route, 19_000_001]]), true), {
+            exceeded: [{ route, bytes: 19_000_001, budgetBytes: 19_000_000 }], failed: true,
+        });
+        assert.equal(budgetResult(new Map([[route, 19_000_000]]), true).failed, false);
+    });
+
     it('allows missing exports and exports at or below each byte budget even when enforced', () => {
         assert.deepEqual(budgetResult(new Map(), true), { exceeded: [], failed: false });
         for (const { route, bytes } of SIZE_WARNINGS) {
@@ -19,7 +28,7 @@ describe('LLM export budgets', () => {
         const sizes = new Map(SIZE_WARNINGS.map(({ route, bytes }) => [route, bytes + 1]));
         const exceeded = [
             { route: '/llms-small.txt', bytes: 400_001, budgetBytes: 400_000 },
-            { route: '/llms-full.txt', bytes: 20_000_001, budgetBytes: 20_000_000 },
+            { route: '/llms-full.txt', bytes: 19_000_001, budgetBytes: 19_000_000 },
         ];
         assert.deepEqual(budgetResult(sizes), { exceeded, failed: false });
         assert.deepEqual(budgetResult(sizes, true), { exceeded, failed: true });
@@ -122,10 +131,10 @@ describe('curated starting points', () => {
     it('enforces the same budgets for product and nested-product downloads', () => {
         const sizes = new Map([
             ['/chronicle/llms-small.txt', 400_001],
-            ['/fundamentals/go/llms-full.txt', 20_000_001],
+            ['/fundamentals/go/llms-full.txt', 19_000_001],
             ['/arc/llms-small.txt', 400_000],
-            ['/cli/llms-full.txt', 20_000_000],
-            ['/other.txt', 20_000_000],
+            ['/cli/llms-full.txt', 19_000_000],
+            ['/other.txt', 19_000_001],
         ]);
         const result = budgetResult(sizes, true);
         assert.equal(result.failed, true);

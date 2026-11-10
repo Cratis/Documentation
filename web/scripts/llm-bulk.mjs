@@ -1,11 +1,11 @@
 // Copyright (c) Cratis. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-// The site-wide bulk exports (llms-full.txt, llms-small.txt) must stay usable as
-// context. Release digests and changelogs are time-ordered logs, not documentation
-// to answer questions from, so they are left out; llms-small.txt is a compact
-// curated starting-point summary rather than a second copy of the full text. The full export is also
-// compacted (see compactFullText) so it stays under its size budget.
+// Platform, product and family bulk exports must stay usable as context. Release
+// digests and changelogs are time-ordered logs, not documentation to answer questions
+// from, so they are left out; llms-small.txt is a compact curated starting-point
+// summary rather than a second copy of the full text. Full exports are also
+// compacted (see compactFullText) so they stay under the same size budget.
 import { deriveDescription, shortenDescription } from './page-metadata.mjs';
 
 /** Separates pages inside the plugin's exports so they can be filtered afterwards. */
@@ -18,8 +18,7 @@ export const PAGE_SEPARATOR = `\n\n${PAGE_MARKER}\n\n`;
  */
 export const SIZE_WARNINGS = [
     { route: '/llms-small.txt', bytes: 400_000 },
-    // Temporary until https://github.com/Cratis/Documentation/issues/262 (family exports); restore 19_000_000 there.
-    { route: '/llms-full.txt', bytes: 20_000_000 },
+    { route: '/llms-full.txt', bytes: 19_000_000 },
 ];
 
 // Only the weekly release digests and pages literally named changelog; docs about the release
@@ -60,6 +59,7 @@ export const withoutPageMarkers = (content) => content.replaceAll(PAGE_SEPARATOR
 const sectionTitleLine = /^\[Section titled [“"].*[”"]\]\(#[^)]*\)$/;
 const fenceLine = /^ {0,3}(`{3,}|~{3,})/;
 const tableDelimiterRow = /^\|(?:\s*:?-+:?\s*\|)+\s*$/;
+const closesFence = (line, marker, fence) => marker && marker[0] === fence[0] && marker.length >= fence.length && !line.trim().slice(marker.length);
 
 /** Collapses only the padding next to unescaped cell pipes, so cell content stays intact. */
 const compactTableRow = (line) => tableDelimiterRow.test(line)
@@ -78,7 +78,7 @@ export function compactFullText(content) {
     for (const line of content.split('\n')) {
         const marker = fenceLine.exec(line)?.[1];
         if (fence) {
-            if (marker && marker[0] === fence[0] && marker.length >= fence.length && !line.trim().slice(marker.length)) fence = null;
+            if (closesFence(line, marker, fence)) fence = null;
         } else if (marker) {
             fence = marker;
         } else if (sectionTitleLine.test(line)) {
@@ -136,7 +136,7 @@ export function abridgedExport(heading, groups) {
     return lines.join('\n');
 }
 
-/** Product downloads use the same explicit budgets as the corresponding site-wide export. */
+/** Product and family downloads use the same explicit budgets as the site-wide export. */
 export function llmBudget(route) {
     const name = /^\/(?:[a-z0-9_-]+\/)*llms-(small|full)\.txt$/.exec(route)?.[1];
     return name ? SIZE_WARNINGS.find(item => item.route === `/llms-${name}.txt`).bytes : undefined;
