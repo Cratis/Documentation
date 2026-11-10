@@ -16,7 +16,7 @@ const distRoot = path.join(webRoot, 'dist');
 // Exact page and target only; each entry names its fix and is removed when it ships.
 const KNOWN_BROKEN = new Set([
     // Arc docs link to generate.cs; fixed on Arc branch docs/fix-generate-cs-link.
-    // Remove when Arc #3797 ships.
+    // Remove when Arc #3797 ships (tracked by #281).
     '/arc/backend/csharp/asp-net-core/signed-forwarded-identity-v2/index.html -> /arc/backend/csharp/asp-net-core/forwarded-identity-v2/generate-vectors/generatecs/',
 ]);
 
