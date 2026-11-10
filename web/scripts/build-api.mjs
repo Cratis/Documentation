@@ -56,11 +56,14 @@ if (!existsSync(typeDoc)) throw new Error('TypeDoc is missing. Restore the docum
 console.log('== [1/4] Build reference assemblies with warnings treated as errors ==');
 const repositoriesOf = libraries => [...new Set(libraries.map(sourceRepositoryOf))].join(', ') || 'none';
 console.log(`Compiling: ${repositoriesOf(plan.build)}. Reusing restored assemblies: ${repositoriesOf(plan.reuse)}.`);
-for (const { project } of plan.reuse) {
-    run('dotnet', ['restore', path.join(repositories, project)]);
+// Run each build from its own repository so that repository's global.json selects the SDK
+// (and therefore the analyzers) it is maintained with, not the documentation site's SDK.
+const repositoryOf = library => path.join(repositories, sourceRepositoryOf(library));
+for (const library of plan.reuse) {
+    run('dotnet', ['restore', path.join(repositories, library.project)], repositoryOf(library));
 }
-for (const { project } of plan.build) {
-    run('dotnet', ['build', path.join(repositories, project), '-c', 'Release', '-warnaserror', '-p:CratisProxiesOutputPath=']);
+for (const library of plan.build) {
+    run('dotnet', ['build', path.join(repositories, library.project), '-c', 'Release', '-warnaserror', '-p:CratisProxiesOutputPath='], repositoryOf(library));
 }
 
 console.log('== [2/4] Generate DocFX API reference ==');
