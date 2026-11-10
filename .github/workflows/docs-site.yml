@@ -635,7 +635,11 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          # .NET 11 is this repository's SDK; .NET 10 stays for DocFX and for API
+          # source repositories whose global.json still pins a 10.0 SDK.
+          dotnet-version: |
+            10.0.x
+            11.0.x
 
       - name: Install DocFX
         run: dotnet tool install -g docfx || dotnet tool update -g docfx

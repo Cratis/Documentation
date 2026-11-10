@@ -209,7 +209,7 @@ CI builds these before the site, and they are served under `/api/`, `/storybook/
 
 | Command | Builds | Needs |
 | --- | --- | --- |
-| `npm run build:api` | The .NET API reference (DocFX, from `api-build/`) and the TypeScript reference for `@cratis/arc`, its React, MVVM and Vite packages, and `@cratis/fundamentals` (TypeDoc), into `public/api/` | The .NET 10 SDK (this repository's `global.json`), DocFX as a .NET tool, and sibling `Chronicle`, `Arc` and `Fundamentals` checkouts. It builds the referenced projects in Release with warnings as errors. |
+| `npm run build:api` | The .NET API reference (DocFX, from `api-build/`) and the TypeScript reference for `@cratis/arc`, its React, MVVM and Vite packages, and `@cratis/fundamentals` (TypeDoc), into `public/api/` | The .NET 11 SDK (this repository's `global.json`), the .NET 10 SDK for DocFX and for source repositories still pinned to it, DocFX as a .NET tool, and sibling `Chronicle`, `Arc` and `Fundamentals` checkouts. It builds the referenced projects in Release with warnings as errors. |
 | `npm run build:storybook` | The Components Storybook, into `public/storybook/` | A sibling `Components` checkout with its dependencies installed, and Node 23 or newer. |
 | `npm run build:storybook:arc` | The Arc React Storybook, into `public/storybook-arc/` | A sibling `Arc` checkout with `Source/JavaScript` dependencies installed. |
 | `npm run build:storybooks` | Both Storybooks | Both of the above. |
