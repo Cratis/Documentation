@@ -53,3 +53,8 @@ test('root files are skipped for bootstrap names and a product\'s own excluded r
     assert.equal(isSkippedRootFile('Project-Context.md', '/docs/arc', product), true);
     assert.equal(isSkippedRootFile('index.md', '/docs/arc', product), false);
 });
+
+test('an excluded root file stays skipped even when it is also declared as a root page', () => {
+    const product = { key: 'arc', src: '/docs/arc', includeRootPages: ['agents.md'], excludeRootFiles: ['AGENTS.md'] };
+    assert.equal(isSkippedRootFile('agents.md', '/docs/arc', product), true);
+});

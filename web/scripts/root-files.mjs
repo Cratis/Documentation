@@ -24,6 +24,6 @@ export function isDeclaredRootPage(name, dirAbs, product) {
 // site page: a bootstrap file the product did not declare as a page, or one of the
 // product's own excludeRootFiles. Nested files of the same names stay authored content.
 export function isSkippedRootFile(name, dirAbs, product) {
-    if (REPO_BOOTSTRAP_FILES.has(name.toLowerCase())) return !isDeclaredRootPage(name, dirAbs, product);
-    return Boolean(product.excludeRootFiles?.some((excluded) => sameName(excluded, name)));
+    const undeclaredBootstrap = REPO_BOOTSTRAP_FILES.has(name.toLowerCase()) && !isDeclaredRootPage(name, dirAbs, product);
+    return undeclaredBootstrap || Boolean(product.excludeRootFiles?.some((excluded) => sameName(excluded, name)));
 }
