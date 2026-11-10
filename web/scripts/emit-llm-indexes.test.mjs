@@ -135,6 +135,14 @@ it('drops per-tab snippet source links from rendered sets and bulk exports', asy
     assert.match(readFileSync(path.join(dist, '_llms-txt/chronicle-events.txt'), 'utf8'), /Source: https:\/\/www\.cratis\.io\/chronicle\/events\/append\//);
 });
 
+it('keeps snippet source links in product full text but drops them from family full text', async () => {
+    const sourceLink = '[View Kotlin snippet source on GitHub](https://github.com/Cratis/Chronicle.Kotlin/blob/main/Documentation/client-snippets/events/append.md)';
+    file('chronicle/events/append.md', `---\ntitle: Append an event\n---\nAppend\n\n${sourceLink}\n`);
+    await emitLlmIndexes(dist, products, sets, docsRoot);
+    assert.match(readFileSync(path.join(dist, 'chronicle/llms-full.txt'), 'utf8'), /snippet source on GitHub/);
+    assert.doesNotMatch(readFileSync(path.join(dist, 'families/chronicle/llms-full.txt'), 'utf8'), /snippet source on GitHub/);
+});
+
 it('rejects a valid-sized set missing an expected page', async () => {
     file('_llms-txt/chronicle-events.txt', `# Events\n${'Content. '.repeat(30)}`);
     await assert.rejects(emitLlmIndexes(dist, products, sets, docsRoot), /Missing rendered pages in Chronicle events: Append an event/);
