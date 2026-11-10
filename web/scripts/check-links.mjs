@@ -12,6 +12,14 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..');
 const distRoot = path.join(webRoot, 'dist');
 
+// Known broken links whose fix lives in another repository's pending release.
+// Exact page and target only; each entry names its fix and is removed when it ships.
+const KNOWN_BROKEN = new Set([
+    // Arc docs link to generate.cs; fixed on Arc branch docs/fix-generate-cs-link.
+    // Remove when Arc #3797 ships (tracked by #281).
+    '/arc/backend/csharp/asp-net-core/signed-forwarded-identity-v2/index.html -> /arc/backend/csharp/asp-net-core/forwarded-identity-v2/generate-vectors/generatecs/',
+]);
+
 async function* walk(dir) {
     for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
         const full = path.join(dir, entry.name);
@@ -92,6 +100,7 @@ for await (const file of walk(distRoot)) {
         if (!target) continue;
 
         checked++;
+        if (KNOWN_BROKEN.has(`${page} -> ${target}`)) continue;
         if (!await existsUrlPath(target)) {
             broken++;
             console.log(`  BROKEN ${page}  ->  ${rawTarget}  (resolved: ${target})`);

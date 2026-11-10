@@ -18,7 +18,8 @@ export const PAGE_SEPARATOR = `\n\n${PAGE_MARKER}\n\n`;
  */
 export const SIZE_WARNINGS = [
     { route: '/llms-small.txt', bytes: 400_000 },
-    { route: '/llms-full.txt', bytes: 19_000_000 },
+    // Temporary until https://github.com/Cratis/Documentation/issues/262 (family exports); restore 19_000_000 there.
+    { route: '/llms-full.txt', bytes: 20_000_000 },
 ];
 
 // Only the weekly release digests and pages literally named changelog; docs about the release
