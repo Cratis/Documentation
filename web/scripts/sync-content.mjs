@@ -15,6 +15,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
+import { isSkippedRootFile } from './root-files.mjs';
 import { loadPrivateRepositories, releaseDigestDescription, releaseDigestIndex } from './page-metadata.mjs';
 
 import { existsSync, statSync } from 'node:fs';
@@ -399,11 +400,6 @@ const SKIP_DIRS = new Set([
     '.cratis',
 ]);
 
-// Repository control files that live at the repo root for tooling/AI but are
-// not documentation. Checked case-insensitively at the product source root only.
-const REPO_BOOTSTRAP_FILES = new Set([
-    'agents.md', 'claude.md', 'gemini.md',
-]);
 const ALERT_MAP = { NOTE: 'note', TIP: 'tip', IMPORTANT: 'note', WARNING: 'caution', CAUTION: 'danger' };
 
 const only = process.argv[2];
@@ -971,13 +967,8 @@ export async function walk(srcDir, outDir, product, options = {}) {
         }
         // Skip repo READMEs (e.g. the .github org landing) — not site content.
         if (entry.name.toLowerCase() === 'readme.md') continue;
-        // Skip repository control bootstrap files at the product root only.
-        // Nested documentation pages named agents.md, claude.md, or gemini.md
-        // elsewhere in the tree remain valid authored content.
-        if (isProductRoot && REPO_BOOTSTRAP_FILES.has(entry.name.toLowerCase())
-            && !isDeclaredRootPage(entry.name, srcDir, product)) continue;
-        // Product-declared root files that are repository context, not site pages.
-        if (isProductRoot && product.excludeRootFiles?.some((name) => name.toLowerCase() === entry.name.toLowerCase())) continue;
+        // Repository bootstrap files and product-declared repository context at the product root only.
+        if (isProductRoot && isSkippedRootFile(entry.name, srcDir, product)) continue;
         const ext = path.extname(entry.name).toLowerCase();
         const srcPath = path.join(srcDir, entry.name);
         if (ext === '.md' || ext === '.mdx') {
@@ -1145,15 +1136,6 @@ function resolvedTocSlug(href, slugBase) {
         throw new Error(`[sync] toc href "${href}" escapes the ${productSlug} documentation root`);
     }
     return slugify(joined);
-}
-
-// A product can declare a root page whose name collides with a repository bootstrap
-// file (Screenplay documents its `agents` block in agents.md). The declaration applies
-// to the product's own source root only, never to family sources mounted under it.
-export function isDeclaredRootPage(name, dirAbs, product) {
-    return Boolean(product.src && product.includeRootPages?.length
-        && path.resolve(dirAbs) === path.resolve(product.src)
-        && product.includeRootPages.some((page) => page.toLowerCase() === name.toLowerCase()));
 }
 
 // A product's own excludeRootFiles (e.g. project-context.md) are deliberately

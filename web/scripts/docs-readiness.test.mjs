@@ -390,26 +390,6 @@ test('bootstrap file exclusion applies to family sources and contentRoot overrid
     assert.ok(await fs.access(path.join(output, 'getting-started.md')).then(() => true, () => false));
 });
 
-test('a declared root page named like a bootstrap file is synced only from the product root', async (context) => {
-    const root = await fixture(context);
-    const source = path.join(root, 'screenplay');
-    const familySource = path.join(root, 'stage-guides');
-    const output = path.join(root, 'generated');
-    const familyOutput = path.join(root, 'family-generated');
-    await put(source, 'agents.md', '# Agents\n\nAn agents block lists what an agent may call.\n');
-    await put(source, 'claude.md', '@.cratis/PROJECT.md\n');
-    await put(familySource, 'agents.md', '# Stage Agents\n\nStage-specific bootstrap.\n');
-
-    const product = { key: 'screenplay', src: source, includeRootPages: ['agents.md'] };
-    await walk(source, output, product);
-    await walk(familySource, familyOutput, product, { contentRoot: familySource, slugBase: 'screenplay/stage/guides' });
-
-    assert.match(await fs.readFile(path.join(output, 'agents.md'), 'utf8'), /An agents block/);
-    await assert.rejects(fs.access(path.join(output, 'claude.md')), { code: 'ENOENT' });
-    await assert.rejects(fs.access(path.join(familyOutput, 'agents.md')), { code: 'ENOENT' });
-    assert.deepEqual(PRODUCTS.find((candidate) => candidate.key === 'screenplay').includeRootPages, ['agents.md']);
-});
-
 test('artifact preflight rejects private inputs before emitting any public or private file', async (context) => {
     const root = await fixture(context);
     for (const [index, directory] of privateDirectories.entries()) {
