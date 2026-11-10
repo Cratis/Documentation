@@ -15,17 +15,18 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
-import { loadPrivateRepositories, releaseDigestDescription, releaseDigestIndex } from './page-metadata.mjs';
+import { isSkippedRootFile } from './root-files.mjs';
+import { loadPrivateRepositories, pageDescription, releaseDigestDescription, releaseDigestIndex } from './page-metadata.mjs';
 
 import { existsSync, statSync } from 'node:fs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { assertPublicDocPath, assertPublicDocSource, isPrivateDocPath } from './private-doc-paths.mjs';
 import { parseMarkdownCode } from './markdown-code-ranges.mjs';
+import { STATIC_ASSET_EXT as ASSET_EXT, assetLinkTarget } from './published-assets.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 import { markdownCommentsForMdx } from './markdown-comments-for-mdx.mjs';
 import { sourceEditUrl, sourceTreeUrl, sourceViewUrl } from './source-edit-url.mjs';
 import { reposRootFor, resolveRepoCandidate } from './repos-root.mjs';
-import { pageDescription } from './page-metadata.mjs';
 import { sourceLastModified } from './source-last-modified.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -161,6 +162,8 @@ export const PRODUCTS = [
         // Content lives in the `screenplay/` subfolder, so point straight at it for clean
         // `/screenplay/<page>` URLs (the outer Documentation/ wrapper isn't a site page).
         key: 'screenplay', label: 'Screenplay', icon: 'pencil', sidebarMode: 'toc',
+        // agents.md is the language page for the `agents` block, not a bootstrap file.
+        includeRootPages: ['agents.md'],
         src: firstExisting(
             path.join(reposRoot, 'Screenplay', 'Documentation', 'screenplay'),
             path.join(docRepoRoot, 'Screenplay', 'Documentation', 'screenplay')),
@@ -376,7 +379,6 @@ const RELEASE_DIGESTS_SRC = firstExisting(
     path.join(docRepoRoot, 'GitHubLanding', 'release-digests'));
 
 const RAW_IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp']);
-const ASSET_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.html', '.js', '.css', '.json']);
 const SKIP_DIRS = new Set([
     'node_modules', 'obj', 'bin', '.git', 'storybook-static', '.vitepress',
     // Shared Markdown snippets are included into pages but should not become pages.
@@ -397,11 +399,6 @@ const SKIP_DIRS = new Set([
     '.cratis',
 ]);
 
-// Repository control files that live at the repo root for tooling/AI but are
-// not documentation. Checked case-insensitively at the product source root only.
-const REPO_BOOTSTRAP_FILES = new Set([
-    'agents.md', 'claude.md', 'gemini.md',
-]);
 const ALERT_MAP = { NOTE: 'note', TIP: 'tip', IMPORTANT: 'note', WARNING: 'caution', CAUTION: 'danger' };
 
 const only = process.argv[2];
@@ -597,7 +594,8 @@ function resolveInternalLink(ctx, target) {
     } else {
         assertPublicDocPath(originalPathPart);
     }
-    if (ASSET_EXT.has(path.extname(originalPathPart).toLowerCase())) return target;
+    const assetTarget = assetLinkTarget(ctx, originalPathPart, target, urlSuffix + titleSuffix);
+    if (assetTarget) return assetTarget;
 
     const strippedPath = stripDocTarget(originalPathPart);
     let resolvedPath;
@@ -969,12 +967,8 @@ export async function walk(srcDir, outDir, product, options = {}) {
         }
         // Skip repo READMEs (e.g. the .github org landing) — not site content.
         if (entry.name.toLowerCase() === 'readme.md') continue;
-        // Skip repository control bootstrap files at the product root only.
-        // Nested documentation pages named agents.md, claude.md, or gemini.md
-        // elsewhere in the tree remain valid authored content.
-        if (isProductRoot && REPO_BOOTSTRAP_FILES.has(entry.name.toLowerCase())) continue;
-        // Product-declared root files that are repository context, not site pages.
-        if (isProductRoot && product.excludeRootFiles?.some((name) => name.toLowerCase() === entry.name.toLowerCase())) continue;
+        // Repository bootstrap files and product-declared repository context at the product root only.
+        if (isProductRoot && isSkippedRootFile(entry.name, srcDir, product)) continue;
         const ext = path.extname(entry.name).toLowerCase();
         const srcPath = path.join(srcDir, entry.name);
         if (ext === '.md' || ext === '.mdx') {
