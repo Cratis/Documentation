@@ -13,19 +13,10 @@ import { emitLlmIndexes } from './emit-llm-indexes.mjs';
 import { expandVariantTabs, splitFrontmatter } from './sync-content.mjs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { stripMdxSyntax } from './strip-mdx-syntax.mjs';
+import { STATIC_ASSET_EXT, publishedAssetPath, slugifyAssetDirectory as slugifyPath } from './published-assets.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..');
-const STATIC_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.html', '.js', '.css', '.json']);
-
-function slugifyPath(relativePath) {
-    return relativePath
-        .replace(/\\/g, '/')
-        .split('/')
-        .map((segment) => segment.toLowerCase().replace(/[^a-z0-9_-]+/g, ''))
-        .filter(Boolean)
-        .join('/');
-}
 
 async function* walk(root, directory = root) {
     for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
@@ -59,10 +50,8 @@ export async function emitDocArtifacts(docsRoot, distRoot, options = {}) {
             const slug = slugifyPath(withoutExtension.replace(/(^|\/)index$/i, '$1'));
             output = path.join(distRoot, slug ? `${slug}.md` : 'index.md');
             markdownMirrors++;
-        } else if (STATIC_EXT.has(extension)) {
-            const directory = slugifyPath(path.dirname(relativeFile));
-            const name = path.basename(relativeFile).toLowerCase().replace(/[^a-z0-9._-]+/g, '');
-            output = path.join(distRoot, directory, name);
+        } else if (STATIC_ASSET_EXT.has(extension)) {
+            output = path.join(distRoot, publishedAssetPath(relativeFile));
             staticFiles++;
         } else {
             continue;

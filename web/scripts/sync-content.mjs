@@ -16,17 +16,17 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { isSkippedRootFile } from './root-files.mjs';
-import { loadPrivateRepositories, releaseDigestDescription, releaseDigestIndex } from './page-metadata.mjs';
+import { loadPrivateRepositories, pageDescription, releaseDigestDescription, releaseDigestIndex } from './page-metadata.mjs';
 
 import { existsSync, statSync } from 'node:fs';
 import { loadVariantDocsConfig } from './variant-docs-config.mjs';
 import { assertPublicDocPath, assertPublicDocSource, isPrivateDocPath } from './private-doc-paths.mjs';
 import { parseMarkdownCode } from './markdown-code-ranges.mjs';
+import { STATIC_ASSET_EXT as ASSET_EXT, assetLinkTarget } from './published-assets.mjs';
 import { normalizeMarkdownTables } from './normalize-markdown-tables.mjs';
 import { markdownCommentsForMdx } from './markdown-comments-for-mdx.mjs';
 import { sourceEditUrl, sourceTreeUrl, sourceViewUrl } from './source-edit-url.mjs';
 import { reposRootFor, resolveRepoCandidate } from './repos-root.mjs';
-import { pageDescription } from './page-metadata.mjs';
 import { sourceLastModified } from './source-last-modified.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -379,7 +379,6 @@ const RELEASE_DIGESTS_SRC = firstExisting(
     path.join(docRepoRoot, 'GitHubLanding', 'release-digests'));
 
 const RAW_IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp']);
-const ASSET_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.avif', '.html', '.js', '.css', '.json']);
 const SKIP_DIRS = new Set([
     'node_modules', 'obj', 'bin', '.git', 'storybook-static', '.vitepress',
     // Shared Markdown snippets are included into pages but should not become pages.
@@ -595,7 +594,8 @@ function resolveInternalLink(ctx, target) {
     } else {
         assertPublicDocPath(originalPathPart);
     }
-    if (ASSET_EXT.has(path.extname(originalPathPart).toLowerCase())) return target;
+    const assetTarget = assetLinkTarget(ctx, originalPathPart, target, urlSuffix + titleSuffix);
+    if (assetTarget) return assetTarget;
 
     const strippedPath = stripDocTarget(originalPathPart);
     let resolvedPath;
