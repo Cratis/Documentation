@@ -48,8 +48,11 @@ it('publishes product and area indexes with valid routes and rendered sets', asy
     assert.match(readFileSync(path.join(dist, 'llms.txt'), 'utf8'), /https:\/\/www\.cratis\.io\/chronicle\/llms\.txt/);
     assert.match(readFileSync(path.join(dist, 'chronicle/llms.txt'), 'utf8'), /https:\/\/www\.cratis\.io\/_llms-txt\/chronicle-events\.txt/);
     assert.match(readFileSync(path.join(dist, 'chronicle/events/llms.txt'), 'utf8'), /\[Append an event\]\(https:\/\/www\.cratis\.io\/chronicle\/events\/append\/\)/);
+    const exports = ['llms-full.txt', 'chronicle/llms-full.txt', 'families/chronicle/llms-full.txt'];
+    const first = exports.map(route => readFileSync(path.join(dist, route), 'utf8'));
     await emitLlmIndexes(dist, products, sets, docsRoot);
     assert.equal(readFileSync(path.join(dist, 'llms.txt'), 'utf8').match(/## Product documentation/g)?.length, 1);
+    assert.deepEqual(exports.map(route => readFileSync(path.join(dist, route), 'utf8')), first);
 });
 
 it('indexes a nested product once, as its own product', async () => {
@@ -64,6 +67,9 @@ it('indexes a nested product once, as its own product', async () => {
     assert.doesNotMatch(readFileSync(path.join(dist, 'chronicle/llms.txt'), 'utf8'), /chronicle\/go\//);
     assert.doesNotMatch(readFileSync(path.join(dist, 'chronicle/llms-full.txt'), 'utf8'), /Chronicle for Go/);
     assert.match(readFileSync(path.join(dist, 'chronicle/go/llms-full.txt'), 'utf8'), /Chronicle for Go/);
+    const family = readFileSync(path.join(dist, 'families/chronicle/llms-full.txt'), 'utf8');
+    assert.equal(family.match(/# Chronicle for Go\n/g)?.length, 1);
+    assert.ok(family.indexOf('# Append an event') < family.indexOf('# Chronicle for Go'));
     assert.match(readFileSync(path.join(dist, 'chronicle/go/llms.txt'), 'utf8'), /## Start here\n\n- \[Getting started\]\(https:\/\/www\.cratis\.io\/chronicle\/go\/getting-started\/\)/);
 });
 
@@ -159,6 +165,12 @@ it('curates the small download but retains detailed pages in described product f
         assert.ok(root.includes(`/${key}/llms-full.txt): Readable Markdown for`), key);
         assert.ok(existsSync(path.join(dist, key, 'llms-full.txt')), key);
     }
+    for (const id of ['chronicle', 'arc', 'components', 'fundamentals', 'tooling']) {
+        assert.ok(root.includes(`/families/${id}/llms-full.txt`), id);
+        assert.ok(existsSync(path.join(dist, 'families', id, 'llms-full.txt')), id);
+    }
+    assert.doesNotMatch(root, /families\/screenplay-stage/);
+    assert.equal(existsSync(path.join(dist, 'families/screenplay-stage/llms-full.txt')), false);
     const full = readFileSync(path.join(dist, 'chronicle/llms-full.txt'), 'utf8');
     assert.match(full, /# Append an event\n\nSource: https:\/\/www\.cratis\.io\/chronicle\/events\/append\//);
     assert.doesNotMatch(full, /title: Chronicle|---/);
@@ -175,7 +187,12 @@ it('keeps root-only exclusions discoverable in product downloads and the root in
         ['chronicle/building-a-client/checklist', 'Client implementation checklist'],
         ['api/dotnet/type', 'Generated type'],
         ['release-digests/2026-10-20', 'Weekly digest'],
+        ['ai/cratis-maintainers', 'Maintainer workflow'],
     ];
+    source('samples.md', '---\ntitle: Samples\n---\nPlatform examples.\n');
+    file('samples.md', '---\ntitle: Samples\n---\nPlatform examples.\n');
+    source('index.md', '---\ntitle: Cratis platform\n---\nPlatform home.\n');
+    file('index.md', '---\ntitle: Cratis platform\n---\nPlatform home.\n');
     for (const [slug, title] of pages) {
         const content = `---\ntitle: ${title}\n---\nDetailed evidence.\n`;
         source(`${slug}.md`, content);
@@ -185,8 +202,14 @@ it('keeps root-only exclusions discoverable in product downloads and the root in
     file('llms-full.txt', ['# Events\n\nFeature guide.', ...pages.map(([, title]) => `# ${title}\n\nDetailed evidence.`)].join(PAGE_SEPARATOR));
     await emitLlmIndexes(dist, products, sets, docsRoot);
     const root = readFileSync(path.join(dist, 'llms-full.txt'), 'utf8');
-    assert.match(root, /Feature guide/);
+    assert.match(root, /# Samples\n\nSource: https:\/\/www\.cratis\.io\/samples\//);
+    assert.match(root, /Platform home/);
+    assert.doesNotMatch(root, /Feature guide|# Events|# Append an event|# Chronicle\n/);
+    assert.match(root, /\/families\/chronicle\/llms-full\.txt/);
     for (const [, title] of pages) assert.ok(!root.includes(title), title);
+    const family = readFileSync(path.join(dist, 'families/chronicle/llms-full.txt'), 'utf8');
+    assert.match(family, /# Append an event/);
+    for (const [, title] of pages) assert.ok(!family.includes(title), title);
     assert.match(readFileSync(path.join(dist, 'llms.txt'), 'utf8'), /https:\/\/www\.cratis\.io\/chronicle\/llms-full\.txt/);
     for (const name of ['chronicle/llms.txt', 'chronicle/llms-full.txt']) {
         const content = readFileSync(path.join(dist, name), 'utf8');
