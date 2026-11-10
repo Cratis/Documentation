@@ -4,7 +4,13 @@
 import assert from 'node:assert/strict';
 import { it } from 'node:test';
 import { LLM_FAMILIES } from './llm-families.mjs';
-import { familyFullText, fullTextExports, pageSection, platformFullText } from './llm-family-exports.mjs';
+import { familyFullText, fullTextExports, isBundledExport, pageSection, platformFullText } from './llm-family-exports.mjs';
+
+it('treats the site-wide and family files as bundled exports, not product downloads', () => {
+    assert.ok(isBundledExport('/llms-full.txt'));
+    assert.ok(isBundledExport('/families/chronicle/llms-full.txt'));
+    assert.equal(isBundledExport('/chronicle/llms-full.txt'), false);
+});
 
 const chronicle = LLM_FAMILIES.find(family => family.id === 'chronicle');
 const page = (slug, title = slug) => ({ slug, title, url: `https://www.cratis.io/${slug}/`, section: `# ${title}\n\nBody for ${slug}.\n` });

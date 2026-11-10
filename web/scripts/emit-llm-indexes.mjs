@@ -11,7 +11,7 @@ import { PRODUCTS } from './sync-content.mjs';
 import { LLM_SETS, llmSetSlug } from './llm-sets.mjs';
 import { citeRenderedSet, withoutSnippetSourceLinks } from './llm-set-sources.mjs';
 import { abridgedExport, compactFullText, isCuratedPage, isLogPage, pageSummary, sizeWarnings, withoutPageMarkers } from './llm-bulk.mjs';
-import { fullTextExports, pageSection } from './llm-family-exports.mjs';
+import { fullTextExports, isBundledExport, pageSection } from './llm-family-exports.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const site = 'https://www.cratis.io';
@@ -194,7 +194,7 @@ export async function emitLlmIndexes(dist, products = PRODUCTS, sets = LLM_SETS,
         const mirror = await fs.readFile(path.join(dist, page.slug ? `${page.slug}.md` : 'index.md'), 'utf8');
         return pageSection(page, frontmatterOf(mirror).body);
     }, link);
-    for (const [route, content] of files) output.set(route, compactFullText(content));
+    for (const [route, content] of files) output.set(route, compactFullText(isBundledExport(route) ? withoutSnippetSourceLinks(content) : content));
     for (const { key, label, pages } of emittedGroups) {
         const curated = pages.filter(page => isCuratedPage(page.slug, key));
         output.set(`/${key}/llms-small.txt`, abridgedExport(`${label} documentation (abridged)`, [{ label, pages: curated }]));

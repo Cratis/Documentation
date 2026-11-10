@@ -4,6 +4,9 @@
 import { isRootFullTextExcluded } from './llm-bulk.mjs';
 import { LLM_FAMILIES, familyRoute } from './llm-families.mjs';
 
+/** The site-wide and family files bundle many products, so they drop per-tab snippet source links as the root export did. */
+export const isBundledExport = (route) => route === '/llms-full.txt' || route.startsWith('/families/');
+
 export const pageSection = (page, body) => `# ${page.title}\n\nSource: ${page.url}\n\n${body.trim()}\n`;
 
 const fullText = (label, pages) => [`# ${label} documentation`, '', '> Readable Markdown; HTML page URLs are canonical.', '', ...pages.map(page => page.section)].join('\n');
