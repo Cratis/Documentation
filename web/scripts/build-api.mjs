@@ -11,6 +11,8 @@
 // because DocFX resolves package references through each assembly's deps.json from the
 // NuGet package folder. DocFX and TypeDoc still regenerate the whole reference, and
 // missing reused inputs fail the build. Without --reuse, every library is compiled.
+// After builds/restores, select each library's highest available net<major>.<minor>
+// Release directory and require both its DLL and XML documentation.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
@@ -19,6 +21,7 @@ import { parseArgs } from 'node:util';
 import { verifyApiLinks } from './verify-api-links.mjs';
 import { apiLibraries, metadataConfiguration, planLibraryBuilds, readMetadata, reconcileMetadata, saveMetadata, sourceRepositoryOf } from './api-metadata.mjs';
 import { writeApiRedirects } from './api-redirects.mjs';
+import { resolveApiAssemblyInputs } from './api-assembly-inputs.mjs';
 
 const web = path.resolve(import.meta.dirname, '..');
 const repositories = path.resolve(web, '..', '..');
@@ -29,7 +32,6 @@ const typeDoc = path.join(web, 'node_modules', '.bin', 'typedoc');
 const localDocFx = path.join(os.homedir(), '.dotnet', 'tools', 'docfx');
 const docFx = existsSync(localDocFx) ? localDocFx : 'docfx';
 const config = JSON.parse(readFileSync(path.join(apiBuild, 'docfx.json'), 'utf8'));
-const metadataConfig = metadataConfiguration(config, apiBuild);
 const { values: options } = parseArgs({ options: { reuse: { type: 'string', default: '' } } });
 const plan = planLibraryBuilds(apiLibraries, options.reuse.split(',').map(name => name.trim()).filter(Boolean));
 const typeScriptPackages = [
@@ -70,12 +72,7 @@ console.log('== [2/4] Generate DocFX API reference ==');
 for (const directory of ['_site', '_meta', 'dotnet', 'chronicle', 'arc', 'fundamentals']) {
     rmSync(path.join(apiBuild, directory), { recursive: true, force: true });
 }
-// Check exact assembly and XML inputs: a missing glob must never look like a successful empty batch.
-for (const source of metadataConfig.metadata.at(-1).src) {
-    for (const filename of [source.files[0], source.files[0].replace(/\.dll$/, '.xml')]) {
-        if (!existsSync(path.join(source.src, filename))) throw new Error(`Missing compiled API input: ${path.join(source.src, filename)}`);
-    }
-}
+const metadataConfig = resolveApiAssemblyInputs(metadataConfiguration(config, apiBuild));
 mkdirSync(path.join(apiBuild, '_meta'), { recursive: true });
 const metadataConfigPath = path.join(apiBuild, '_meta', 'metadata.json');
 writeFileSync(metadataConfigPath, `${JSON.stringify(metadataConfig, null, 2)}\n`);
