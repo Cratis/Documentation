@@ -9,6 +9,9 @@
       "backend": {
         "upgrading/generated-values.mdx": {
           "csharp": 3
+        },
+        "upgrading/mcp-gated-by-default.md": {
+          "csharp": 1
         }
       }
     }

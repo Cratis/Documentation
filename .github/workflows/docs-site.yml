@@ -637,11 +637,11 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          # .NET 11 is this repository's SDK; .NET 10 stays for DocFX and for API
-          # source repositories whose global.json still pins a 10.0 SDK.
+          # Chronicle, Arc, Fundamentals and Documentation pin 11.0.100.
+          # .NET 10 stays for the DocFX runtime and multi-targeted API libraries.
           dotnet-version: |
             10.0.x
-            11.0.x
+            11.0.100
 
       - name: Install DocFX
         run: dotnet tool install -g docfx || dotnet tool update -g docfx
@@ -652,18 +652,18 @@ jobs:
 
       # One cache entry per API source repository, keyed on the exact commit checked out
       # (plus the SDK and the API build script), so a hit is always that commit's own
-      # Release output. The paths are the DocFX inputs in web/api-build/docfx.json; a
-      # restore that lacks one fails build:api rather than publishing a partial reference.
+      # Release output for every built TFM. build:api selects the highest available
+      # .NET TFM per library and rejects missing DLL/XML inputs before running DocFX.
       - name: Resolve API assembly cache keys
         id: api-keys
         env:
-          BUILD_SCRIPT_HASH: ${{ hashFiles('Documentation/web/scripts/build-api.mjs') }}
+          BUILD_SCRIPT_HASH: ${{ hashFiles('Documentation/web/scripts/build-api.mjs', 'Documentation/web/scripts/api-assembly-inputs.mjs', 'Documentation/web/scripts/api-metadata.mjs', 'Documentation/web/api-build/docfx.json') }}
         run: |
           set -euo pipefail
-          sdk="$(dotnet --version)"
           for repo in Chronicle Arc Fundamentals; do
+            sdk="$(cd "$repo" && dotnet --version)"
             sha="$(git -C "$repo" rev-parse HEAD)"
-            echo "${repo,,}=docs-api-v1-${RUNNER_OS}-${repo}-${sha}-sdk${sdk}-${BUILD_SCRIPT_HASH}" >> "$GITHUB_OUTPUT"
+            echo "${repo,,}=docs-api-v2-${RUNNER_OS}-${repo}-${sha}-sdk${sdk}-${BUILD_SCRIPT_HASH}" >> "$GITHUB_OUTPUT"
           done
 
       - name: Restore Chronicle API assemblies
@@ -673,9 +673,9 @@ jobs:
         with:
           key: ${{ steps.api-keys.outputs.chronicle }}
           path: |
-            Chronicle/Source/Clients/DotNET/bin/Release/net10.0
-            Chronicle/Source/Clients/AspNetCore/bin/Release/net10.0
-            Chronicle/Source/Clients/Testing/bin/Release/net10.0
+            Chronicle/Source/Clients/DotNET/bin/Release/net*
+            Chronicle/Source/Clients/AspNetCore/bin/Release/net*
+            Chronicle/Source/Clients/Testing/bin/Release/net*
 
       - name: Restore Arc API assemblies
         id: api-arc
@@ -684,9 +684,9 @@ jobs:
         with:
           key: ${{ steps.api-keys.outputs.arc }}
           path: |
-            Arc/Source/DotNET/Arc/bin/Release/net10.0
-            Arc/Source/DotNET/Arc.Core/bin/Release/net10.0
-            Arc/Source/DotNET/MongoDB/bin/Release/net10.0
+            Arc/Source/DotNET/Arc/bin/Release/net*
+            Arc/Source/DotNET/Arc.Core/bin/Release/net*
+            Arc/Source/DotNET/MongoDB/bin/Release/net*
 
       - name: Restore Fundamentals API assemblies
         id: api-fundamentals
@@ -694,7 +694,7 @@ jobs:
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           key: ${{ steps.api-keys.outputs.fundamentals }}
-          path: Fundamentals/Source/DotNET/Fundamentals/bin/Release/net10.0
+          path: Fundamentals/Source/DotNET/Fundamentals/bin/Release/net*
 
       - name: Decide which API assemblies to compile
         id: api-plan
@@ -756,9 +756,9 @@ jobs:
         with:
           key: ${{ steps.api-keys.outputs.chronicle }}
           path: |
-            Chronicle/Source/Clients/DotNET/bin/Release/net10.0
-            Chronicle/Source/Clients/AspNetCore/bin/Release/net10.0
-            Chronicle/Source/Clients/Testing/bin/Release/net10.0
+            Chronicle/Source/Clients/DotNET/bin/Release/net*
+            Chronicle/Source/Clients/AspNetCore/bin/Release/net*
+            Chronicle/Source/Clients/Testing/bin/Release/net*
 
       - name: Save Arc API assemblies
         if: github.event_name != 'pull_request' && contains(format(',{0},', steps.api-plan.outputs.compile), ',Arc,')
@@ -766,16 +766,16 @@ jobs:
         with:
           key: ${{ steps.api-keys.outputs.arc }}
           path: |
-            Arc/Source/DotNET/Arc/bin/Release/net10.0
-            Arc/Source/DotNET/Arc.Core/bin/Release/net10.0
-            Arc/Source/DotNET/MongoDB/bin/Release/net10.0
+            Arc/Source/DotNET/Arc/bin/Release/net*
+            Arc/Source/DotNET/Arc.Core/bin/Release/net*
+            Arc/Source/DotNET/MongoDB/bin/Release/net*
 
       - name: Save Fundamentals API assemblies
         if: github.event_name != 'pull_request' && contains(format(',{0},', steps.api-plan.outputs.compile), ',Fundamentals,')
         uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           key: ${{ steps.api-keys.outputs.fundamentals }}
-          path: Fundamentals/Source/DotNET/Fundamentals/bin/Release/net10.0
+          path: Fundamentals/Source/DotNET/Fundamentals/bin/Release/net*
 
       - name: Lint docs
         working-directory: Documentation/web
