@@ -16,6 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { isSkippedRootFile } from './root-files.mjs';
+import { ARC_EXCLUDED_PAGES, isExcludedPage, isExcludedPageTocHref, isExcludedRootTocHref, validateExcludedPages } from './excluded-doc-pages.mjs';
 import { loadPrivateRepositories, pageDescription, releaseDigestDescription, releaseDigestIndex } from './page-metadata.mjs';
 
 import { existsSync, statSync } from 'node:fs';
@@ -87,6 +88,7 @@ export const PRODUCTS = [
     },
     {
         key: 'arc', label: 'Arc', icon: 'puzzle', sidebarMode: 'toc',
+        excludePages: ARC_EXCLUDED_PAGES,
         src: firstExisting(
             resolveRepoCandidate(webRoot, '../../Arc/Documentation'),
             path.join(docRepoRoot, 'Arc', 'Documentation')),
@@ -940,7 +942,23 @@ async function hasSiblingLanding(parentDir, dirName) {
     }
 }
 
+async function writeConvertedPage(srcPath, outDir, { product, options, demoteIndex }) {
+    const basename = path.basename(srcPath);
+    const raw = await fs.readFile(srcPath, 'utf8');
+    const { contentRoot, slugBase } = options;
+    const converted = await convertFile(raw, { dir: path.dirname(srcPath), basename, srcPath, product, contentRoot, slugBase });
+    // Keep the source extension: `.md` stays Markdown, `.mdx` stays MDX so
+    // authored getting-started pages can use Starlight components (<Steps>,
+    // <Tabs>, <Aside>, <FileTree>). The converter's transforms are safe on MDX.
+    let outName = basename;
+    if (demoteIndex && /^index\.mdx?$/i.test(basename)) {
+        outName = path.extname(basename).toLowerCase() === '.mdx' ? 'overview.mdx' : 'overview.md';
+    }
+    await fs.writeFile(path.join(outDir, outName), converted, 'utf8');
+}
+
 export async function walk(srcDir, outDir, product, options = {}) {
+    if (path.resolve(srcDir) === path.resolve(product.src)) await validateExcludedPages(product);
     const entries = await fs.readdir(srcDir, { withFileTypes: true });
     await fs.mkdir(outDir, { recursive: true });
     const demoteIndex = await hasSiblingLanding(path.dirname(srcDir), path.basename(srcDir));
@@ -971,24 +989,9 @@ export async function walk(srcDir, outDir, product, options = {}) {
         if (isProductRoot && isSkippedRootFile(entry.name, srcDir, product)) continue;
         const ext = path.extname(entry.name).toLowerCase();
         const srcPath = path.join(srcDir, entry.name);
+        if (isExcludedPage(srcPath, product)) continue;
         if (ext === '.md' || ext === '.mdx') {
-            const raw = await fs.readFile(srcPath, 'utf8');
-            const converted = await convertFile(raw, {
-                dir: srcDir,
-                basename: entry.name,
-                srcPath,
-                product,
-                contentRoot: options.contentRoot,
-                slugBase: options.slugBase,
-            });
-            // Keep the source extension: `.md` stays Markdown, `.mdx` stays MDX so
-            // authored getting-started pages can use Starlight components (<Steps>,
-            // <Tabs>, <Aside>, <FileTree>). The converter's transforms are safe on MDX.
-            let outName = entry.name;
-            if (demoteIndex && /^index\.mdx?$/i.test(entry.name)) {
-                outName = ext === '.mdx' ? 'overview.mdx' : 'overview.md';
-            }
-            await fs.writeFile(path.join(outDir, outName), converted, 'utf8');
+            await writeConvertedPage(srcPath, outDir, { product, options, demoteIndex });
         } else if (ASSET_EXT.has(ext)) {
             await fs.copyFile(srcPath, path.join(outDir, entry.name));
         }
@@ -1138,18 +1141,7 @@ function resolvedTocSlug(href, slugBase) {
     return slugify(joined);
 }
 
-// A product's own excludeRootFiles (e.g. project-context.md) are deliberately
-// never generated (see `walk`'s isProductRoot check); a root toc.yml entry
-// pointing at one is not a broken link, so it must not trip the dropped-entry
-// gate.
-export function isExcludedRootTocHref(href, dirAbs, products = PRODUCTS) {
-    // Compare the whole normalised href, so only the product-root file itself
-    // matches; a nested page of the same name (nested/project-context.md) does not.
-    const normalized = href.split(/[#?]/)[0].replace(/\\/g, '/').replace(/^(\.\/)+/, '').toLowerCase();
-    return products.some((product) => product.src && product.excludeRootFiles?.length
-        && path.resolve(dirAbs) === path.resolve(product.src)
-        && product.excludeRootFiles.some((excluded) => excluded.toLowerCase() === normalized));
-}
+export { isExcludedRootTocHref };
 
 /** The toc entries dropped so far in this process (a copy). */
 export function droppedSidebarEntriesSnapshot() {
@@ -1157,10 +1149,11 @@ export function droppedSidebarEntriesSnapshot() {
 }
 
 function pageTocItem(label, href, slugBase, slugs, dirAbs) {
+    if (isExcludedPageTocHref(href, dirAbs, PRODUCTS)) return null;
     const pageSlug = resolvedTocSlug(href, slugBase);
     if (!pageSlug) return null;
     if (!slugs.has(pageSlug)) {
-        if (isExcludedRootTocHref(href, dirAbs)) return null;
+        if (isExcludedRootTocHref(href, dirAbs, PRODUCTS)) return null;
         // Record what was dropped and where it was declared, so the failure the
         // gate raises in `main` names a toc entry someone can go and fix.
         droppedSidebarEntries.push({
