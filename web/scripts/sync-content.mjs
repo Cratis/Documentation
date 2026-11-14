@@ -16,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { isSkippedRootFile } from './root-files.mjs';
-import { ARC_EXCLUDED_PAGES, isExcludedPage, isExcludedPageTocHref, isExcludedRootTocHref, validateExcludedPages } from './excluded-doc-pages.mjs';
+import { ARC_EXCLUDED_PAGES, isExcludedPage, isExcludedPageTocHref, isExcludedRootTocHref as isExcludedProductRootTocHref, validateExcludedPages } from './excluded-doc-pages.mjs';
 import { loadPrivateRepositories, pageDescription, releaseDigestDescription, releaseDigestIndex } from './page-metadata.mjs';
 
 import { existsSync, statSync } from 'node:fs';
@@ -1141,7 +1141,7 @@ function resolvedTocSlug(href, slugBase) {
     return slugify(joined);
 }
 
-export { isExcludedRootTocHref };
+export const isExcludedRootTocHref = (href, dirAbs, products = PRODUCTS) => isExcludedProductRootTocHref(href, dirAbs, products);
 
 /** The toc entries dropped so far in this process (a copy). */
 export function droppedSidebarEntriesSnapshot() {

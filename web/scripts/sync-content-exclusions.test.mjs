@@ -6,7 +6,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { isExcludedPageTocHref } from './excluded-doc-pages.mjs';
-import { PRODUCTS, droppedSidebarEntriesSnapshot, entryToItem, walk } from './sync-content.mjs';
+import { PRODUCTS, droppedSidebarEntriesSnapshot, entryToItem, isExcludedRootTocHref, walk } from './sync-content.mjs';
 
 const fixturesRoot = new URL('../../.ai-work/285/exclusions/', import.meta.url);
 const excludedPath = 'backend/csharp/mcp/capability-manifest.md';
@@ -26,6 +26,13 @@ async function put(root, relative, content) {
     await fs.mkdir(path.dirname(file), { recursive: true });
     await fs.writeFile(file, content);
 }
+
+test('isExcludedRootTocHref still defaults to the configured products when called with two arguments', () => {
+    const product = PRODUCTS.find((candidate) => candidate.src && candidate.excludeRootFiles?.length);
+    assert.ok(product, 'expected a product with excludeRootFiles');
+    assert.equal(isExcludedRootTocHref(product.excludeRootFiles[0], product.src), true);
+    assert.equal(isExcludedRootTocHref('not-excluded-page.md', product.src), false);
+});
 
 test('Arc excludes the unimplemented capability manifest with a reason and removal condition', () => {
     const arc = PRODUCTS.find((product) => product.key === 'arc');
