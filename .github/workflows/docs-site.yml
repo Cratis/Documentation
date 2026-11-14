@@ -781,6 +781,7 @@ jobs:
         working-directory: Documentation/web
         env:
           SEO_LINT_ENFORCE: ${{ github.event_name == 'pull_request' && '1' || '' }}
+          SEO_STRICT_DESCRIPTIONS: '1'
         run: npm run sync && npm run lint:docs && npm run lint:seo
 
       - name: Check variant docs (product and site pages)
