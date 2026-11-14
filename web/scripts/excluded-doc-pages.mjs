@@ -32,6 +32,23 @@ export function isExcludedRootTocHref(href, dirAbs, products) {
         && product.excludeRootFiles.some((excluded) => excluded.toLowerCase() === normalized));
 }
 
+const MARKDOWN_LINK = /(!?)\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
+
+/**
+ * Turns inline Markdown links whose target is a page excluded from the sync into
+ * their plain text, so excluded pages leave no broken links. Images, absolute and
+ * external targets, and anything the caller reports as code are left untouched.
+ */
+export function unlinkExcludedPages(body, { dir, product }, inCode = () => false) {
+    if (!product?.excludePages?.length) return body;
+    return body.replace(MARKDOWN_LINK, (whole, bang, text, target, offset) => {
+        if (bang || inCode(offset)) return whole;
+        const pathPart = target.split(/[#?]/)[0];
+        if (!/\.mdx?$/i.test(pathPart) || /^(?:[a-z][a-z0-9+.-]*:|\/)/i.test(pathPart)) return whole;
+        return isExcludedPage(path.resolve(dir, pathPart.replace(/\\/g, '/')), product) ? text : whole;
+    });
+}
+
 export function isExcludedPageTocHref(href, dirAbs, products) {
     if (!dirAbs) return false;
     const target = path.resolve(dirAbs, href.split(/[#?]/)[0].replace(/\\/g, '/'));

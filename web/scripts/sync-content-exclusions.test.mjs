@@ -120,6 +120,32 @@ test('a marker-free excluded page warns once without failing or publishing it', 
     await assert.rejects(fs.access(path.join(output, excludedPath)), { code: 'ENOENT' });
 });
 
+test('links to an excluded page become plain text; siblings, images and code stay untouched', async (context) => {
+    const { product, output } = await fixture(context);
+    await put(product.src, excludedPath, '# Capability manifest\n\n<!-- TODO: implement -->\n');
+    await put(product.src, 'backend/csharp/mcp/other.md', '# Other\n');
+    await put(product.src, 'backend/csharp/mcp/index.md', [
+        '# MCP',
+        '',
+        '| Declare | [Capability manifest](capability-manifest.md) |',
+        'See [the contract](./capability-manifest.md#contract) and [full](../mcp/Capability-Manifest.md?view=full).',
+        'Read [Other](other.md) and [elsewhere](../../../capability-manifest.md).',
+        '![diagram](capability-manifest.md)',
+        '`[inline](capability-manifest.md)`',
+        '',
+    ].join('\n'));
+
+    await walk(product.src, output, product);
+
+    const page = await fs.readFile(path.join(output, 'backend/csharp/mcp/index.md'), 'utf8');
+    assert.match(page, /\| Declare \| Capability manifest \|/);
+    assert.match(page, /See the contract and full\./);
+    assert.match(page, /\[Other\]\(\/fixture\/backend\/csharp\/mcp\/other\/\)/);
+    assert.match(page, /\[elsewhere\]\(/);
+    assert.match(page, /!\[diagram\]\(/);
+    assert.match(page, /`\[inline\]\(capability-manifest\.md\)`/);
+});
+
 for (const marker of ['TODO', 'FIXME', 'TBD']) {
     test(`an excluded page containing ${marker} does not warn`, async (context) => {
         const { product, output } = await fixture(context);

@@ -16,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
 import { isSkippedRootFile } from './root-files.mjs';
-import { ARC_EXCLUDED_PAGES, isExcludedPage, isExcludedPageTocHref, isExcludedRootTocHref as isExcludedProductRootTocHref, validateExcludedPages } from './excluded-doc-pages.mjs';
+import { ARC_EXCLUDED_PAGES, isExcludedPage, isExcludedPageTocHref, isExcludedRootTocHref as isExcludedProductRootTocHref, unlinkExcludedPages, validateExcludedPages } from './excluded-doc-pages.mjs';
 import { loadPrivateRepositories, pageDescription, releaseDigestDescription, releaseDigestIndex } from './page-metadata.mjs';
 
 import { existsSync, statSync } from 'node:fs';
@@ -631,7 +631,9 @@ function literalCodeRanges(body, srcPath) {
     return [...ranges, ...inlineRanges];
 }
 
-function fixLinks(body, ctx) {
+function fixLinks(source, ctx) {
+    const body = unlinkExcludedPages(source, ctx, (offset) => literalCodeRanges(source, ctx.srcPath ?? ctx.basename)
+        .some(([start, end]) => offset >= start && offset < end));
     // Code is literal: Go generics such as `di.Resolve[*T](ctx, s)`, in a code
     // block or an inline code span, look like Markdown link syntax and must not
     // be rewritten into site routes.
