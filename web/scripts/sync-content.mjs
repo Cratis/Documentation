@@ -154,7 +154,7 @@ export const PRODUCTS = [
         // Payments, Herald) and the Stage Manager Kubernetes operator, each a set of NuGet/npm
         // packages or a Helm chart, plus a packages reference.
         // Each part has its own toc.yml, nested from the product's root toc.yml.
-        key: 'showrunner', label: 'Showrunner', icon: 'bell', sidebarMode: 'toc',
+        key: 'showrunner', label: 'Showrunner', icon: 'comment-alt', sidebarMode: 'toc',
         src: firstExisting(
             path.join(reposRoot, 'Showrunner', 'Documentation'),
             path.join(docRepoRoot, 'Showrunner', 'Documentation')),
