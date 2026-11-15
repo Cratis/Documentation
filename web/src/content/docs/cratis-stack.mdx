@@ -155,7 +155,8 @@ The table lists product responsibilities and licences. Open-source components an
 | Chronicle | Event-sourcing database and runtime with an Orleans-based .NET kernel and gRPC/protobuf contracts | MIT | [Chronicle](/chronicle/) |
 | Arc | CQRS application framework with commands, queries, validation, and generated TypeScript proxies | MIT | [Arc](/arc/) |
 | Components | React component library: command dialogs, typed forms, and query-backed data tables | MIT | [Components](/components/) |
-| Cratis Choreography | Runtime for durable business processes on Orleans: jobs, workflows, state machines, workers, and startup patching | MIT | [Cratis Choreography](/choreography/) |
+| Cratis Choreography | Runtime for durable business processes on Orleans: jobs, workflows, state machines, workers, startup patching, and the availability engine | MIT | [Cratis Choreography](/choreography/) |
+| Showrunner | Ready-made product parts for Cratis applications: support, licensing, announcements, guided tours, audiences, feedback, payments and email, plus a Kubernetes operator | MIT | [Showrunner](/showrunner/) |
 | Fundamentals | Shared .NET and TypeScript building blocks beneath the other products | MIT | [Fundamentals](/fundamentals/) |
 | Specifications | BDD-style Given/When/Then specs for .NET with xUnit and NUnit | MIT | [Specifications](/specifications/) |
 | CLI | Terminal tool (`cratis`) to inspect and diagnose Chronicle and install Cratis AI | MIT | [CLI](/cli/) |
@@ -203,7 +204,10 @@ The .NET client ships with Chronicle itself. See [Chronicle in your language](/c
     Full-stack CQRS with typed TypeScript proxies generated from a TypeScript, Kotlin, Java, Elixir, or C# backend. It pairs naturally with Chronicle, and can also run over MongoDB or a relational database: EF Core in C#, Spring Data JPA on the JVM, or Drizzle in TypeScript.
   </SimpleCard>
   <SimpleCard title="Cratis Choreography — durable processes" icon="list-format" link="/choreography/">
-    Jobs, workflows and state machines on Orleans that survive restarts, with pluggable storage and startup patching.
+    Jobs, workflows and state machines on Orleans that survive restarts, with pluggable storage, startup patching and an availability engine.
+  </SimpleCard>
+  <SimpleCard title="Showrunner — product parts" icon="bell" link="/showrunner/">
+    Support, licensing, announcements, guided tours, audiences, feedback, payments and email as packages you add to an Arc and Chronicle application, plus a Kubernetes operator that runs it.
   </SimpleCard>
   <SimpleCard title="Components — React" icon="laptop" link="/components/">
     Command dialogs, forms, and live data tables that consume Arc's generated command and query proxies.

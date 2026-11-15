@@ -134,7 +134,7 @@ export const PRODUCTS = [
             path.join(docRepoRoot, 'Choreography', 'Documentation')),
         buckets: [
             { label: 'Start here', sections: ['Getting started', 'Choosing a building block'] },
-            { label: 'Building blocks', sections: ['Jobs', 'Workflows', 'State machines', 'Workers'] },
+            { label: 'Building blocks', sections: ['Jobs', 'Workflows', 'State machines', 'Operations and undo/redo', 'Workers', 'Live collaboration', 'Availability'] },
             { label: 'Running Choreography', sections: ['Hosting', 'Storage', 'Patching', 'Tenancy', 'Serializers and grain keys'] },
             { label: 'Upgrading and testing', sections: ['Upgrading and compatibility', 'Testing'] },
             { label: 'Reference', sections: ['Reference'] },
@@ -150,8 +150,9 @@ export const PRODUCTS = [
             path.join(docRepoRoot, 'AuthProxy', 'Documentation')),
     },
     {
-        // Showrunner — ready-made product parts (Usher, Box Office, Marquee, Notes, Herald) and
-        // the Stage Manager Kubernetes operator, each a set of NuGet/npm packages or a Helm chart.
+        // Showrunner — ready-made product parts (Usher, Box Office, Marquee, Cue, GuestList, Notes,
+        // Payments, Herald) and the Stage Manager Kubernetes operator, each a set of NuGet/npm
+        // packages or a Helm chart, plus a packages reference.
         // Each part has its own toc.yml, nested from the product's root toc.yml.
         key: 'showrunner', label: 'Showrunner', icon: 'bell', sidebarMode: 'toc',
         src: firstExisting(
