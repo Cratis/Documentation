@@ -371,8 +371,8 @@ products:
               args:
                 - Documentation/validate-doc-snippets.py
 
-          # Arc for TypeScript is a Node.js implementation available from source;
-          # its backend packages are not published to npm. Its validator compiles
+          # Arc for TypeScript is a Node.js implementation whose backend packages are
+          # published on npm. Its validator compiles
           # each snippet against the checkout's own packages, so the checkout needs
           # `yarn install --immutable && yarn build` first; without them it exits 2
           # and prints the blocked marker below. Every backend tab set shares this
