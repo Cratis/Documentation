@@ -24,7 +24,7 @@ Each step produces something the next step reads. You can enter the chain at any
 |---|---|---|
 | 1. Event model | Slices: a screen, its command, the event, the read model behind the next screen | [Event modeling](/event-modeling/), [Studio](/studio/) |
 | 2. Screenplay specifications | `specification` blocks inside a slice in a `.play` file, compiled and run by the Screenplay tool for supported scenarios | [Screenplay](/screenplay/) |
-| 3. Stage | Compiles `.play` folders, checks supported declared specifications, and renders reviewable Arc and Chronicle code for supported slice shapes | [Stage](/screenplay/faq/#what-are-stage-and-studio) |
+| 3. Stage | Compiles `.play` folders, checks supported declared specifications, and renders reviewable Arc and Chronicle code for supported slice shapes | [Stage](/stage/), [specification runner](/stage/docker/spec-runner/) |
 | 4. Arc and Chronicle code | The command, event and projection of the slice | [Build a full app](/build-a-full-app/), [capability map](/cratis-stack/) |
 | 5. Code-side specs and replay | Executable behavior-driven development (BDD) specs in your backend's test framework, plus Chronicle replay of read models | [Testing with Cratis](/testing-with-cratis/); [Specifications](/specifications/) for the .NET lifecycle |
 | Alternative start | Prologue captures signals from an existing system and proposes a model for you to review | [Prologue](/prologue/) |
@@ -93,7 +93,7 @@ Cratis AI installs rules and skills into a repository so an agent follows the co
 
 ## Execution and rendering limits
 
-Check the [capability map](/cratis-stack/) before choosing tools. Stage's specification runner checks declared scenarios against modeled facts and writes `results.json`; it does not exercise every slice through a live generated application. Unsupported constructs are not passing scenarios. Operation specifications are syntax only and cannot be executed by the reference runner.
+Check the [capability map](/cratis-stack/) before choosing tools. Stage's [specification runner](/stage/docker/spec-runner/) has two engines. `--engine semantic` executes supported modeled behavior against the specifications' expectations and writes a `stage-spec-run/1` report; choose it for new runs. The default, `--engine structural`, is deprecated: it checks model consistency, not behavior, and writes a legacy report. Both can write to a file named `results.json`, so the file name does not tell you which engine produced it. Neither engine exercises slices through a live generated application. Unsupported constructs are not passing scenarios. Operation specifications are syntax only and cannot be executed by the reference runner.
 
 Stage renders a subset of slice shapes, and generated output needs review. Ordinary Given/When/Then examples also do not prove concurrency handling. [Decisions that hold](/decisions-that-hold-walkthrough/) explains the read protection that guards an append when decision state changes.
 

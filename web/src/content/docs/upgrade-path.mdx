@@ -29,6 +29,11 @@ The kernel and .NET client must move together across these boundaries. For examp
 upgrade crosses wire changes at both 16-to-17 and 17-to-18; read both entries before choosing a
 client version.
 
+A cluster boundary concerns running kernel silos, not clients or stored data: silos of the two majors
+cannot share a cluster. Only boundaries marked Cluster carry this; at 19-to-20, stop every kernel
+silo and start them all on 20 together instead of rolling them one at a time. Boundaries marked
+Config or endpoints change deployment and configuration rather than your code.
+
 Chronicle verifies compatibility across released minors within one major; crossing a major permits
 a protocol change. The TypeScript, Kotlin/Java, and Elixir clients have their own version numbers
 and check wire compatibility with the kernel when they connect. Check the pairings in

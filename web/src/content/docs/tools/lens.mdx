@@ -29,9 +29,12 @@ it with the page origin. Open the popup on the intended app before running an
 operation; if detection fails, the command, query, and diagnostics tabs stay
 disabled. Lens does not read Chronicle CLI connection contexts.
 
-When you switch user or tenant, Lens clears Arc's `.cratis-identity` cookie for
-the detected backend and page origins and reloads matching tabs. This lets the
-next request establish a new identity instead of reusing the previous cookie.
+Current Arc derives the identity from each request's authentication and exposes
+it through the `/.cratis/me` endpoint, so the headers below are what changes the
+identity. When you switch user or tenant, Lens also clears the `.cratis-identity`
+cookie for the detected backend and page origins and reloads matching tabs. That
+cookie is only written by older Arc backends; current Arc neither reads nor
+writes it, and clearing it is compatibility behavior for those older backends.
 Lens sends the tenant in `x-cratis-tenant-id` by default and the selected user's
 identity in `x-ms-client-principal`, `x-ms-client-principal-id`, and
 `x-ms-client-principal-name` headers.
