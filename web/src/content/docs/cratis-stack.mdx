@@ -30,7 +30,7 @@ Compare responsibilities in the [capability map](#capability-map), or [choose an
 
 Start with the question your feature must answer. If it needs to explain how it reached its current state, [Chronicle](/chronicle/) keeps the event history and derives read models from it. [Arc](/arc/) supplies the application boundary, separating changes from reads through CQRS. You can [use either independently](/why-cratis/), including Arc over current-state storage without Chronicle.
 
-Arc generates the [typed TypeScript client](/arc/understanding-the-proxy-boundary/) your frontend calls from commands and queries declared in a supported backend. Choose among [TypeScript, Kotlin/Java, Elixir, and C#](/arc/backend/) and configure that backend's generation step. [Components](/components/) consumes that contract in React forms, dialogs, and tables. Configure generation in the backend before connecting the screen; you still implement the feature's behavior and check its runtime integration.
+Arc generates the [typed TypeScript client](/arc/understanding-the-proxy-boundary/) your frontend calls from commands and queries declared in a supported backend. Choose among [TypeScript, Kotlin/Java, Elixir, and C#](/arc/backend/) and configure that backend's generation step. [Arc for Go](/arc/go/) also generates TypeScript proxies, with a bounded scope recorded in its parity reference rather than full parity with the React integration. [Components](/components/) consumes that contract in React forms, dialogs, and tables. Configure generation in the backend before connecting the screen; you still implement the feature's behavior and check its runtime integration.
 
 Before writing code, an [event model](/event-modeling/) lets you name the commands, events, and views together. [Cratis Screenplay](/screenplay/) keeps that model in a `.play` file, and [Studio](/studio/) provides a collaborative workspace for editing it. The same model can feed [source generation](/cli/reference/screenplay/) for review and further implementation. Check the renderer's supported constructs and languages before choosing that route. For an existing system, [Prologue](/prologue/) offers a separate capture-and-model path.
 
@@ -201,7 +201,7 @@ The .NET client ships with Chronicle itself. See [Chronicle in your language](/c
     How authenticated tenant-aware requests become authorized operations, protected events, and released read models.
   </SimpleCard>
   <SimpleCard title="Arc — CQRS + proxies" icon="puzzle" link="/arc/">
-    Full-stack CQRS with typed TypeScript proxies generated from a TypeScript, Kotlin, Java, Elixir, or C# backend. It pairs naturally with Chronicle, and can also run over MongoDB or a relational database: EF Core in C#, Spring Data JPA on the JVM, or Drizzle in TypeScript.
+    Full-stack CQRS with typed TypeScript proxies generated from a TypeScript, Kotlin, Java, Elixir, or C# backend, and bounded proxy generation from Go. It pairs naturally with Chronicle, and can also run over MongoDB or a relational database: EF Core in C#, Spring Data JPA on the JVM, or Drizzle in TypeScript.
   </SimpleCard>
   <SimpleCard title="Cratis Choreography — durable processes" icon="list-format" link="/choreography/">
     Jobs, workflows and state machines on Orleans that survive restarts, with pluggable storage, startup patching and an availability engine.
