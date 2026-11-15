@@ -25,6 +25,21 @@ const webRoot = fileURLToPath(new URL('../', import.meta.url));
 const fixturesRoot = path.resolve(webRoot, '../.ai-work/docs-readiness');
 const privateDirectories = ['.ai-work', '.pi', '.agents', '.ai', '.claude', '.git', '.github', '.vscode'];
 
+// Some tests exercise the real, checked-out client repositories (the sibling clones the
+// docs-site workflow provides). On a machine without them they cannot say anything
+// true, so they skip with the missing paths named instead of failing for an
+// environment reason. In CI a missing checkout is a real fault, so nothing is skipped there.
+async function skipUnlessCheckedOut(productKey) {
+    const config = await loadVariantDocsConfig();
+    const missing = config.axesFor(productKey)
+        .flatMap((axis) => [...axis.snippetVariants, ...axis.publicDocsVariants])
+        .map((variant) => variant.src)
+        .filter((src) => !existsSync(src));
+    return missing.length === 0 || process.env.CI
+        ? false
+        : `needs the ${productKey} variant checkouts, missing: ${[...new Set(missing)].join(', ')}`;
+}
+
 async function fixture(context) {
     await fs.mkdir(fixturesRoot, { recursive: true });
     const root = await fs.mkdtemp(path.join(fixturesRoot, 'regression-'));
@@ -655,7 +670,7 @@ test('the generated Chronicle client SDKs landing carries its configured descrip
     assert.doesNotMatch(await fs.readFile(path.join(root, 'plain', axis.mount.route, 'index.md'), 'utf8'), /^description:/m);
 });
 
-test('each configured client tab links its exact snippet file in the owning repository', async (context) => {
+test('each configured client tab links its exact snippet file in the owning repository', { skip: await skipUnlessCheckedOut('chronicle') }, async (context) => {
     const root = await fixture(context);
     const config = await loadVariantDocsConfig();
     const axis = config.getAxis('chronicle', 'client');
@@ -1177,7 +1192,7 @@ test('a missing variant snippet is reported only when the axis asks for it', asy
 // that group would sit inside the axis group and repeat its label, so the
 // reader would open "Kotlin and Java" to find "Kotlin and Java"; a single
 // variant is hoisted instead. Either way no group may contain its namesake.
-test('the Arc backend group does not nest a group inside its own group', async () => {
+test('the Arc backend group does not nest a group inside its own group', { skip: await skipUnlessCheckedOut('arc') }, async () => {
     const arc = PRODUCTS.find((product) => product.key === 'arc');
     assert.ok(arc, 'the arc product must be configured for this to mean anything');
 
