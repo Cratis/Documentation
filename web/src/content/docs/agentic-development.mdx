@@ -44,34 +44,33 @@ Three artifacts carry the contract in a Cratis application. Each is plain code i
 
 Given/When/Then maps one to one onto event sourcing. The given is the events that already happened, the when is the command or event under test, and the then is the events, read models or side effects that result. That is why a specification reads in the vocabulary of the event model, and why a domain expert can check it without reading the implementation. [Testing with Cratis](/testing-with-cratis/) shows the mapping in C#, Kotlin, Java and TypeScript, and [Specifications](/specifications/) documents the `Establish()`, `Because()` and `Destroy()` lifecycle.
 
-Here is a C# specification from the [Decisions that hold](/decisions-that-hold-walkthrough/) walkthrough. It checks a rule that is easy to get wrong: two callers borrow the last copy of a book at the same time. This example uses the .NET command scenario's concurrency hook; it is not an API shared by every backend. For a first command-and-event spec in TypeScript, Kotlin, Java, or C#, use [Testing with Cratis](/testing-with-cratis/#spec-the-command).
+Here is a C# specification for the `BorrowBook` command from the [Decisions that hold](/decisions-that-hold-walkthrough/) walkthrough. It checks the business rule: a member cannot borrow a book when no copy is available. For a first command-and-event spec in TypeScript, Kotlin, Java, or C#, use [Testing with Cratis](/testing-with-cratis/#spec-the-command).
 
 ```csharp
-public class when_the_last_copy_is_borrowed_concurrently : Specification
+public class when_no_copy_is_available : Specification
 {
     static readonly ISBN _isbn = new("978-0316389704");
     readonly CommandScenario<BorrowBook> _scenario = new();
     CommandResult _result;
 
-    void Establish()
-    {
-        _scenario.Given.ForEventSource(_isbn).Events(new BookAddedToInventory("The Last Wish", AuthorId.New(), 1));
-        _scenario.AppendConcurrently(_isbn, new BookBorrowed(_isbn, "The Last Wish", MemberId.New(), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(21)));
-    }
+    void Establish() =>
+        _scenario.Given.ForEventSource(_isbn).ReadModel(new BookAvailability(_isbn, AvailableCount: 0));
 
     async Task Because() => _result = await _scenario.Execute(new BorrowBook(_isbn, MemberId.New()));
 
     void Destroy() => _scenario.Dispose();
 
     [Fact] void should_not_succeed() => _result.ShouldNotBeSuccessful();
-    [Fact] void should_report_a_conflict() => _result.ShouldHaveValidationErrorBecauseOf(ValidationResultReason.ConcurrencyViolation);
+    [Fact] void should_report_that_no_copy_is_available() => _result.ShouldHaveValidationErrorFor("No copies of this book are available to borrow.");
     [Fact] void should_append_nothing() => _scenario.AppendedEvents.Count.ShouldEqual(0);
 }
 ```
 
-The scenario seeds one copy, so the validator sees one available copy and passes. A competing `BookBorrowed` is appended after the command reads and before it commits. The command is refused with a concurrency violation and appends nothing. The spec runs in process, without a Chronicle server or a database, so an agent can run it after every change.
+`ReadModel(...)` gives the validator's `BookAvailability` a known state with no copies left, so the validator refuses the command and nothing is appended. Asserting the message identifies the intended rejection: a spec that only checks for failure would also pass if a dependency were missing. The spec runs in process, without a Chronicle server or a database, so an agent can run it after every change.
 
-When changing `BorrowBook`, keep these assertions as well as the implementation in view. If the agent makes the command succeed by weakening the conflict check, this scenario should fail. Review any change to the assertions themselves: a passing spec can still encode the wrong rule.
+The spec gives state and asserts the outcome; it does not simulate a second writer. Whether a concurrent borrow is caught at append time is Arc and Chronicle's guarantee under read protection, verified in their own framework specs. See [Testing Chronicle commands](/arc/backend/csharp/testing/chronicle/#give-a-protected-read-model-its-state).
+
+When changing `BorrowBook`, keep these assertions as well as the implementation in view. If the agent makes the command succeed by weakening the rule, this scenario should fail. Review any change to the assertions themselves: a passing spec can still encode the wrong rule.
 
 ## Event models as the shared source for humans and AI
 
