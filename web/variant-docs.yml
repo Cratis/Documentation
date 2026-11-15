@@ -371,8 +371,8 @@ products:
               args:
                 - Documentation/validate-doc-snippets.py
 
-          # Arc for TypeScript is a Node.js implementation available from source;
-          # its backend packages are not published to npm. Its validator compiles
+          # Arc for TypeScript is a Node.js implementation whose backend packages are
+          # published on npm. Its validator compiles
           # each snippet against the checkout's own packages, so the checkout needs
           # `yarn install --immutable && yarn build` first; without them it exits 2
           # and prints the blocked marker below. Every backend tab set shares this
@@ -481,7 +481,7 @@ sitePages:
       reason: The Aspire AppHost. Aspire is .NET-only, so there is no other backend to tab.
     - page: agentic-development.mdx
       language: csharp
-      contains: when_the_last_copy_is_borrowed_concurrently
+      contains: when_no_copy_is_available
       reason: An excerpt of the compiled .NET Library/Lending sample from the Decisions that hold walkthrough; read protection and CommandScenario exist only in the .NET stack.
     - page: chronicle-clients.mdx
       language: kotlin

@@ -447,7 +447,7 @@ A pinned value is the same on every execution, so a pin is also how you reuse an
 ```csharp title="Shop.Specs/Orders/Placing/for_PlaceOrder/when_placing_an_order/with_an_occupied_order_id.cs"
 public class with_an_occupied_order_id : Specification
 {
-    readonly CommandScenario<PlaceOrder> _scenario = new CommandScenario<PlaceOrder>().UseDecisionReads();
+    readonly CommandScenario<PlaceOrder> _scenario = new();
     readonly CustomerId _customerId = new("cus_01m4t7txm0hrn5rwemy2dkwtgq");
     readonly OrderId _orderId = new("order_01m4t7txm0fgx9p7tehmp6mprg");
     CommandResult _result = null!;
@@ -476,7 +476,7 @@ public class with_an_occupied_order_id : Specification
 }
 ```
 
-`UseDecisionReads()` makes `Given` append the seeded event to the scenario's event log, which is what the guard checks; without it, `Given` only seeds read-model state, the log stays empty and the command succeeds. `Given` and `UseDecisionReads` come from `Cratis.Arc.Chronicle.Testing.Commands`, and `ValidationResultReason` from `Cratis.Arc.Validation`. Run the same command twice with one pin and the second run collides with the first, instead of silently continuing it.
+Because `PlaceOrder` takes a guarded `[GeneratedValue]` parameter, the scenario selects a shared in-process event log on its own. `Given` appends the seeded event to that log, which is the log the guard checks, so no extra setup call is needed. `Given` comes from `Cratis.Arc.Chronicle.Testing.Commands`, and `ValidationResultReason` from `Cratis.Arc.Validation`. Run the same command twice with one pin and the second run collides with the first, instead of silently continuing it.
 
 ## 5. Test it
 

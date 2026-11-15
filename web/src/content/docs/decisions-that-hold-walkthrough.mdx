@@ -101,7 +101,7 @@ The `reads` line records what the command consults, giving the model its read-mo
 
 ## 2. Write the Arc command and validator
 
-The sample's `Lending` project turns read protection on for every command in the project file. Arc's default is `Off`:
+The sample's `Lending` project declares read protection `On` for every command in the project file. From Arc 23, `On` is also the default for a project that declares no mode; the sample states it explicitly so the setting is visible. See [Read protection is on by default](/arc/upgrading/read-protection-default/) for the change from Arc 22:
 
 ```xml title="Lending/Lending.csproj"
 <CratisReadProtection>On</CratisReadProtection>
@@ -208,7 +208,7 @@ public class when_the_last_copy_is_borrowed_concurrently : Specification
 
 The scenario seeds one copy, so the validator sees availability 1 and passes. The competing `BookBorrowed` is appended after the command's read and before its commit. The command is refused with a `concurrencyViolation` and appends nothing. The competing event stays in the log, and `AppendedEvents` counts only the command's own appends.
 
-`CommandScenario` uses the command's declared read protection to select its in-process log; creating a scenario does not turn an `Off` command into an `On` command. This sample enables `On` in the project file. The spec shows the race from the command's side only; the next step follows the refusal to the caller.
+`CommandScenario` uses the command's resolved read protection to select its in-process log; creating a scenario does not turn an explicitly `Off` command into an `On` command. Omitting a declaration does not mean `Off`: with current Arc and Chronicle, a command with no declaration resolves to `On`. This sample declares `On` in the project file. The spec shows the race from the command's side only; the next step follows the refusal to the caller.
 
 The rule itself has its own spec, [`when_no_copy_is_available`](https://github.com/Cratis/Samples/blob/main/Library/Lending/Lending/Borrowing/for_BorrowBook/when_no_copy_is_available.cs), and a second one proves that a caller cannot switch the rule off. A caller that sends `X-Allowed-Severity` at `Error` asks Arc to drop validation results at that severity. Because `BorrowBook` runs under `On`, Arc keeps the validator's result anyway. The spec sends that severity through the command pipeline:
 

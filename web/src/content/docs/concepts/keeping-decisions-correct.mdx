@@ -31,9 +31,11 @@ Read protection carries a description of the command's reads into its append. Cr
 
 | Mode | What an injected read model is | Use it when |
 | --- | --- | --- |
-| `Off` (default) | A plain read. It returns a snapshot and guards nothing | Nothing changes for existing commands |
-| `Measure` | A plain read. Arc measures reads without enforcing protection | You assess an existing application before changing its behavior |
-| `On` | Read fresh and guarded. A read that cannot be guarded is refused | New code, and migrated code |
+| `Off` | A plain read. It returns a snapshot and guards nothing | You explicitly keep the Arc 22 behavior for a command or project |
+| `Measure` | A plain read. Arc measures reads without enforcing protection | You migrate an existing application and want to see what `On` would refuse before enforcing it |
+| `On` (default from Arc 23) | Read fresh and guarded. A read that cannot be guarded is refused | New code, and migrated code |
+
+With `Cratis.Arc.Chronicle`, `On` is the default from Arc 23 for every command that neither the command nor its project declares a mode for. Upgrading from Arc 22 therefore protects commands that declared nothing, and a read Arc cannot guard is refused; see [the default changed in Arc 23](/arc/backend/csharp/chronicle/consistency/#the-default-changed-in-arc-23).
 
 The mode is the Arc switch. Underneath it is the Chronicle API that refuses unguarded reads inside one unit of work, see [Read protection in Chronicle](/chronicle/read-models/read-protection/). The two layers have similar names: Chronicle gives you the mechanism, and the Arc mode turns it on for your commands.
 
@@ -61,11 +63,11 @@ A library lets a member borrow a book only while a copy is available. The read m
 
 The full code, with the read model, command, validator and a test of the race, is in [Getting started with read protection](/arc/backend/csharp/chronicle/consistency/getting-started/#2-write-a-protected-command).
 
-Turn the mode on in the project file:
+From Arc 23 a project that declares no mode already runs `On`. To opt a project out explicitly, or to measure before enforcing, set the mode in the project file:
 
 ```xml
 <PropertyGroup>
-    <CratisReadProtection>On</CratisReadProtection>
+    <CratisReadProtection>Measure</CratisReadProtection>
 </PropertyGroup>
 ```
 

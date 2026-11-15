@@ -84,13 +84,16 @@ Use the current version from Hex; `mix hex.info cratis_chronicle` prints it.
 
 ## Event sourcing for Go
 
-`github.com/cratis/chronicle.go` is the Go client for Chronicle. It supports typed event registration, connection with TLS and OAuth, single and atomic batch appends, and event history reads. Observers, projections, and automatic lifecycle recovery are not yet implemented.
+`github.com/cratis/chronicle.go` is the Go client for Chronicle. It supports typed event registration, connection with TLS and OAuth, single and atomic batch appends, and event history reads. What else is available depends on the version you install:
+
+- [v0.11.0](https://github.com/Cratis/Chronicle.Go/releases/tag/v0.11.0) does not implement observers, projections, or automatic lifecycle recovery.
+- Later releases, up to [v0.16.0](https://github.com/Cratis/Chronicle.Go/releases/tag/v0.16.0) (the latest release checked on 2026-11-15), and the current source include observers, projections, and normal-session recovery, with restrictions for each workflow.
+
+Check the [capability reference](/chronicle/go/parity/) and the selected version's release notes before depending on a feature.
 
 ```sh
-go get github.com/cratis/chronicle.go@v0.11.0
+go get github.com/cratis/chronicle.go@v0.16.0
 ```
-
-[v0.11.0](https://github.com/Cratis/Chronicle.Go/releases/tag/v0.11.0) is the latest released tag checked on 2026-10-20.
 
 - [Event sourcing in Go](/event-sourcing/go/) — the dedicated landing page
 - [Go client docs](/chronicle/go/)
@@ -109,7 +112,7 @@ APIs will change, and no package has been published. Watch the repository or ask
 
 ## Any language, one contract
 
-The [client SDK docs](/chronicle/clients/) describe the language-specific APIs over Chronicle's shared gRPC contracts. A shared protocol does not mean every client exposes every feature; Go, for example, supports appending and reading events but not observers or projections. If your runtime is not listed above, you can implement the contracts directly.
+The [client SDK docs](/chronicle/clients/) describe the language-specific APIs over Chronicle's shared gRPC contracts. A shared protocol does not mean every client exposes every feature; Go, for example, supports observers and projections only with the restrictions its [capability reference](/chronicle/go/parity/) records, and not at all in v0.11.0. If your runtime is not listed above, you can implement the contracts directly.
 
 Before installing a client, check [Compatibility](/compatibility/) to pair it with a Chronicle kernel, the server runtime. Clients other than .NET have independent release schedules, and their major versions do not match the kernel's. Then follow your language's setup guide above to connect an application.
 
@@ -117,5 +120,5 @@ Before installing a client, check [Compatibility](/compatibility/) to pair it wi
   <LinkCard title="Building a client" description="Implement the Chronicle gRPC contracts for a new language or runtime." href="/chronicle/building-a-client/" />
   <LinkCard title="Chronicle architecture" description="How the kernel, the gRPC boundary, and the storage providers fit together." href="/chronicle/architecture/" />
   <LinkCard title="Chronicle MCP server" description="Connect an AI agent to a running Chronicle — it works regardless of which client language your app uses." href="/chronicle-mcp/" />
-  <LinkCard title="Storage choice" description="Run Chronicle over MongoDB (default), PostgreSQL, Microsoft SQL Server, or SQLite." href="/chronicle/hosting/configuration/storage/" />
+  <LinkCard title="Storage choice" description="Run Chronicle over MongoDB (default), PostgreSQL, Microsoft SQL Server, SQLite, or in-memory (non-durable)." href="/chronicle/hosting/configuration/storage/" />
 </CardGrid>
