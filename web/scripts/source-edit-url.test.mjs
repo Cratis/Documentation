@@ -15,6 +15,8 @@ it('links a product page to its authored sibling checkout', () => {
         'https://github.com/Cratis/Chronicle/edit/main/Documentation/get-started/index.mdx');
     assert.equal(edit(path.join(repos, 'Chronicle.Kotlin/Documentation/guides/client.md')),
         'https://github.com/Cratis/Chronicle.Kotlin/edit/main/Documentation/guides/client.md');
+    assert.equal(edit(path.join(repos, 'Chronicle.Go/Documentation/clients/go/getting-started.md')),
+        'https://github.com/Cratis/Chronicle.Go/edit/main/Documentation/clients/go/getting-started.md');
     assert.equal(edit(path.join(repos, 'Arc.Kotlin/Documentation/guides/command.md')),
         'https://github.com/Cratis/Arc.Kotlin/edit/main/Documentation/guides/command.md');
     assert.equal(edit(path.join(repos, 'Arc.TypeScript/Documentation/commands/model-bound/index.md')),
@@ -46,6 +48,8 @@ it('links explicitly overridden Arc worktrees to their public owning repositorie
 it('links fallback submodules and the organization contributing source', () => {
     assert.equal(edit(path.join(site, 'Arc/Documentation/tutorial/first-slice.mdx')),
         'https://github.com/Cratis/Arc/edit/main/Documentation/tutorial/first-slice.mdx');
+    assert.equal(edit(path.join(site, 'Chronicle.Go/Documentation/index.md')),
+        'https://github.com/Cratis/Chronicle.Go/edit/main/Documentation/index.md');
     assert.equal(edit(path.join(site, 'GitHubLanding/contributing.md')),
         'https://github.com/Cratis/.github/edit/main/contributing.md');
     assert.equal(edit(path.join(site, 'CLI/Documentation/new.md')),
@@ -57,6 +61,8 @@ it('views a snippet file in its owning repository with the same allowlist as edi
         'https://github.com/Cratis/Chronicle.Kotlin/blob/main/Documentation/client-snippets-java/events/append.md');
     assert.equal(sourceViewUrl(path.join(repos, 'Arc.TypeScript/Documentation/client-snippets/tutorial/first-slice/author-slice.md'), repos, site),
         'https://github.com/Cratis/Arc.TypeScript/blob/main/Documentation/client-snippets/tutorial/first-slice/author-slice.md');
+    assert.equal(sourceViewUrl(path.join(repos, 'Chronicle.Go/Documentation/clients/go/getting-started.md'), repos, site),
+        'https://github.com/Cratis/Chronicle.Go/blob/main/Documentation/clients/go/getting-started.md');
     assert.equal(sourceViewUrl(path.join(repos, 'Unrelated/Documentation/snippet.md'), repos, site), false);
     assert.equal(sourceViewUrl(path.join(site, '.ai-work/snippet.md'), repos, site), false);
 });
