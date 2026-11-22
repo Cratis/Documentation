@@ -8,7 +8,7 @@ import SimpleCard from '@components/SimpleCard.astro';
 import TopicHero from '@components/TopicHero.astro';
 import StackJourney from '@components/StackJourney.astro';
 
-To explain how a business record reached its current state, build another view of its history, or find the frontend code affected by a backend change, choose the capability your feature needs first. Cratis Platform products supply those capabilities through event sourcing, generated contracts, and shared models. This reference maps each result to the products involved, their dependencies, and their terms.
+Use this reference to identify which products supply a capability and what must be configured where they meet. The tables map responsibilities, dependencies, and terms; the linked product guides own the setup instructions.
 
 <TopicHero icon="rocket" eyebrow="Cratis Platform" title="Choose the parts your application needs">
 Compare responsibilities in the [capability map](#capability-map), or [choose an adoption boundary](/adopting-cratis/) for an existing system. Ready to implement a slice? [Build a full-stack feature](/build-a-full-app/). For the trade-offs, read [Why developers choose Cratis](/why-cratis/).
@@ -34,13 +34,13 @@ Arc generates the [typed TypeScript client](/arc/understanding-the-proxy-boundar
 
 Before writing code, an [event model](/event-modeling/) lets you name the commands, events, and views together. [Cratis Screenplay](/screenplay/) keeps that model in a `.play` file, and [Studio](/studio/) provides a collaborative workspace for editing it. The same model can feed [source generation](/cli/reference/screenplay/) for review and further implementation. Check the renderer's supported constructs and languages before choosing that route. For an existing system, [Prologue](/prologue/) offers a separate capture-and-model path.
 
-Add [AuthProxy](/authproxy/) when the application needs authentication, tenant resolution, and routing at the edge. For local .NET hosting, the [Aspire integration](/chronicle/hosting/aspire/) lets your AppHost manage the Chronicle kernel, its separate server process. Once the application is running, use the [CLI](/cli/) and Workbench to inspect events and processing state.
+Add [AuthProxy](/authproxy/) when the application needs authentication, tenant resolution, and routing at the edge. For local .NET hosting, the [Aspire integration](/chronicle/hosting/aspire/) lets your AppHost manage the Chronicle kernel, its separate server process. Once the application is running, use the [CLI](/cli/) and Workbench to inspect events and processing state. [Observability in Cratis](/observability/) maps the telemetry emitted by the application and kernel; [Collect Cratis telemetry](/collect-telemetry/) configures export from each process.
 
 <Aside type="note" title="Modeling tools are optional">
 Studio, Screenplay, Stage, Scene, and Prologue support design before implementation. Studio is a paid collaborative workspace built on Chronicle. Arc, Chronicle, and Components do not depend on these modeling tools, so you can build directly in code. Generated output still needs review.
 </Aside>
 
-In .NET, the [`Cratis` package](/arc/backend/csharp/chronicle/cratis-package/)'s `AddCratis`/`UseCratis` calls configure and activate Arc and the Chronicle client in the application host. The Chronicle kernel runs separately; the client connects to it over gRPC. Kotlin, Java, and TypeScript backends wire Arc and Chronicle through their own hosts: `io.cratis:cratis` is the single dependency for a Spring Boot application, and [`@cratis/platform`](/arc/backend/typescript/chronicle/cratis-package/) registers both with one builder call in Node.js (published on npm at 1.0.0). [Arc backends](/arc/backend/) compares the hosts.
+In .NET, the [`Cratis` package](/arc/backend/csharp/chronicle/cratis-package/)'s `AddCratis`/`UseCratis` calls configure and activate Arc and the Chronicle client in the application host. The Chronicle kernel runs separately; the client connects to it over gRPC. Kotlin, Java, and TypeScript backends wire Arc and Chronicle through their own hosts: `io.cratis:cratis` is the single dependency for a Spring Boot application, and [`@cratis/platform`](/arc/backend/typescript/chronicle/cratis-package/) registers both with one builder call in Node.js. [Arc backends](/arc/backend/) compares the hosts.
 
 To connect Arc and Chronicle, follow the guide for your backend: [TypeScript](/arc/backend/typescript/chronicle/), [Kotlin and Java](/arc/backend/kotlin/guides/chronicle/), [Elixir](/cqrs/elixir/), or [C#](/arc/backend/csharp/chronicle/). Each explains how a handler's return becomes an event, how the event source id selects its stream, and how a query serves the projected read model.
 
@@ -60,7 +60,7 @@ Follow only the handoffs your application needs. The map below connects modeling
 
 ## .NET hosting example: one Aspire AppHost
 
-For the Chronicle-backed .NET path shown here, the application connects to a separately running Chronicle kernel. The .NET Aspire resource lets your AppHost manage that kernel alongside the API; it does not move the kernel into the API process. Add the `Cratis.Chronicle.Aspire` package to the AppHost project, then register the resource and pass its reference to the API:
+For the Chronicle-backed .NET path shown here, the application connects to a separately running Chronicle kernel. The .NET Aspire resource lets your AppHost manage that kernel alongside the API; it does not move the kernel into the API process. Add the `Cratis.Chronicle.Aspire` package to the AppHost project, then register the resource and pass its reference to the API. This excerpt assumes an existing Aspire solution with a project reference that generates `Projects.MyApi`; it is not a standalone application:
 
 ```csharp title="AppHost/Program.cs"
 var builder = DistributedApplication.CreateBuilder(args);
@@ -95,7 +95,7 @@ images, storage options, ports, and connecting .NET clients.
 
 Authentication, authorization, tenancy, and compliance are separate concerns, but they travel through the
 same request. AuthProxy authenticates and resolves tenant context. Arc authorizes the command or query.
-The Arc + Chronicle integration writes events into the tenant's Chronicle namespace. Chronicle encrypts
+The Arc + Chronicle integration writes events into the tenant's Chronicle namespace. [Organization, workspace and namespace](/concepts/organization-workspace-namespace/) explains the naming scopes without treating a namespace as an authorization boundary. Chronicle encrypts
 personally identifiable information (PII) by compliance subject, and Arc releases protected read models before serving query responses.
 
 [Auth and compliance end to end](/auth-and-compliance/) shows that flow across the stack: where identity
@@ -233,7 +233,7 @@ The .NET client ships with Chronicle itself. See [Chronicle in your language](/c
 
 <CardGrid>
   <SimpleCard title="Build a full-stack feature" icon="open-book" link="/build-a-full-app/">
-    Add one slice — command, event, projection, query, and React screen. C# and JVM paths start from a template; the TypeScript backend is published on npm at 1.0.0 and starts from a sample.
+    Add one slice — command, event, projection, query, and React screen. C# and JVM paths start from a template; the TypeScript path starts from a sample.
   </SimpleCard>
   <SimpleCard title="Get started with Chronicle" icon="rocket" link="/chronicle/get-started/">
     Start a local kernel and watch one event flow through a projection and a reactor, in the client language you use.
