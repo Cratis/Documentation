@@ -54,8 +54,8 @@ These terms describe different products and deployment choices, not a universal 
 
 | Term | Definition |
 | --- | --- |
-| [Project (Studio)](/studio/reference/glossary/#project) | The team's top-level unit of work within a Studio organization, grouping applications. It is not necessarily one .NET project file (`.csproj`). |
-| [Application (Studio)](/studio/reference/glossary/#application) | One system being built inside a project. Its model/render identity need not equal an output directory, project filename, root namespace or Chronicle event-store name. |
+| Project ([Studio](/studio/)) | The team's top-level unit of work within a Studio organization, grouping applications. It is not necessarily one .NET project file (`.csproj`). |
+| Application ([Studio](/studio/)) | One system being built inside a project. Its model/render identity need not equal an output directory, project filename, root namespace or Chronicle event-store name. |
 | [Environment (CLI)](/cli/environments/) | A deployment or runtime configuration selection, such as Development or Production. An environment is not a customer's identity and does not automatically select a Chronicle namespace. |
 | [Cluster (Chronicle)](/chronicle/hosting/configuration/clustering/) | An Orleans deployment of cooperating Chronicle server nodes. A hosting boundary, not a customer membership boundary. |
 | [Context (CLI)](/cli/context/) | A locally saved Chronicle connection profile with a server and defaults such as event store and namespace. It does not grant tenant membership, select a deployment environment or choose an Arc HTTP endpoint. |

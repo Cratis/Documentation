@@ -6,7 +6,7 @@ description: "Distinguish Studio organizations, product workspaces and Chronicle
 The meaning of *organization* and *workspace* depends on the product. Studio's organization owns people and projects. In the shared Identity contract, a platform organization holds cross-product policy, while a product workspace owns membership. A Chronicle namespace partitions data within an event store. Keeping these meanings apart helps you distinguish who grants access from where data is stored.
 
 :::note[Available and planned]
-Studio's organization and Chronicle's namespaces are existing product concepts. The cross-product platform organization is **planned**. The [Identity tenant-model contract](https://github.com/Cratis/Identity/blob/e70b6d48a2df7c76fa8147166d33c3299fb0cd2c/Documentation/specs/identity-tenant-model-v1.md) defines ownership and authorization requirements; it does not claim deployed behavior or a migration of Studio's organization. Planned items are direction, not a delivery commitment; see the [roadmap](/roadmap/).
+Studio's organization and Chronicle's namespaces are existing product concepts. The cross-product platform organization is **planned**. The Identity tenant-model contract defines ownership and authorization requirements; it does not claim deployed behavior or a migration of Studio's organization. Planned items are direction, not a delivery commitment; see the [roadmap](/roadmap/).
 :::
 
 ## The three terms at a glance
@@ -20,7 +20,7 @@ Studio's organization and Chronicle's namespaces are existing product concepts. 
 
 ## Organization
 
-In [Studio](/studio/), an organization is the team's existing product scope. It contains members and projects and owns settings such as AI setup, integrations and billing. This is the organization named in Studio's screens and [glossary](/studio/reference/glossary/#organization).
+In [Studio](/studio/), an organization is the team's existing product scope. It contains members and projects and owns settings such as AI setup, integrations and billing. This is the organization named in Studio's screens.
 
 The **planned platform organization** has a different responsibility: verified email domains, sign-in policies and confirmed links to product tenants. Under the Identity contract, administering this organization does not make anyone a product member or give them a product role. A confirmed link applies organization policy without adding members; products must keep their own authorization checks.
 

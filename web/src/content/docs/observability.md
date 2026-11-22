@@ -33,7 +33,7 @@ An instrumentation scope identifies a library. It is distinct from the resource 
 | Chronicle Go | No built-in OTel scope in 0.18.0 | Application-level gRPC instrumentation is separate from Chronicle instrumentation. |
 | Chronicle Python | No built-in OTel scope established | The client is experimental; do not assume telemetry parity with released clients. |
 
-Dapr telemetry is unreleased work tracked in [Chronicle.Dapr #96](https://github.com/Cratis/Chronicle.Dapr/issues/96). Do not configure a released adapter on the assumption that planned spans and meters are already available. Wolverine has its own instrumentation scope, `Cratis.Chronicle.Wolverine`; check its package's instrumentation and release status before subscribing.
+Dapr telemetry is unreleased work. Do not configure a released adapter on the assumption that planned spans and meters are already available. Wolverine has its own instrumentation scope, `Cratis.Chronicle.Wolverine`; check its package's instrumentation and release status before subscribing.
 
 ### Common names and units
 
