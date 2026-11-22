@@ -261,7 +261,10 @@ products:
         #   - compensation.md: documents the Kotlin/Java @CompensationFor annotation and
         #     compensate append API. The shared events/compensation page covers the concept
         #     and kernel rules only, with no multi-client snippet coverage.
-        kotlin: 14
+        #   - patterns.md: documents the Kotlin behavior-patterns client (getPatternsAt and
+        #     the facet-set query). The shared Chronicle docs have no behavior-patterns
+        #     page or multi-client snippet coverage for it.
+        kotlin: 15
         elixir: 0
         typescript: 0
 
