@@ -1,117 +1,72 @@
 ---
 title: "Java and Kotlin event sourcing: Axon, KurrentDB, and Cratis Chronicle"
-description: "Compare Axon Framework, KurrentDB, and Cratis Chronicle for Java and Kotlin event sourcing: framework or server, Spring Boot, processing, and dated sources."
+description: "Choose JVM event-sourcing tools by framework, server, and Spring integration boundaries: Axon Framework, KurrentDB, and Cratis Chronicle."
 head:
   - tag: meta
     attrs:
       name: keywords
-      content: "event sourcing JVM comparison, event sourcing Kotlin, event sourcing Java, Axon Framework vs KurrentDB vs Cratis Chronicle, Axon Framework alternatives, event store Java comparison, Kotlin event sourcing framework, Spring Boot event sourcing, choosing an event sourcing framework for the JVM, event sourcing database Java"
+      content: "event sourcing JVM comparison, event sourcing Kotlin, event sourcing Java, Axon Framework vs KurrentDB vs Cratis Chronicle"
 ---
 
-import { Aside } from '@astrojs/starlight/components';
+For Java or Kotlin, first decide whether you want a framework to organize commands, queries, and handlers, or an event server behind an application model you choose. Axon Framework supplies application infrastructure. KurrentDB and Cratis Chronicle are separate servers used through client SDKs.
 
-Choosing event-sourcing tools for Java or Kotlin starts with an application decision: do you want a framework to organize your commands and handlers, or an event server behind an application model you choose? Axon Framework provides command, event, and query infrastructure with pluggable event storage. KurrentDB and Cratis Chronicle are separate servers accessed through client SDKs.
-
-Use this page to compare those boundaries, Spring Boot integration, and event processing at the versions listed below. [How Cratis writes comparisons](/compare/) explains the method and lists the other comparisons.
+The Cratis team wrote this guide; Chronicle is our product. This selection guide replaces the historical capability matrix without treating frameworks and database clients as equivalent bundles.
 
 ## Comparison layers
 
-For example, when a handler updates an application read model, you need to know who invokes it, records its progress, and retries failed work. That responsibility may sit in an application framework, a client subscription, or a server-managed observer. It is a different question from where the events are stored.
-
-Axon Framework supplies the application model, with Axon Server as one storage and routing option. KurrentDB and Chronicle supply event servers and clients. The table names which part owns each concern rather than treating all three as equivalent feature bundles. CQRS, used below, means separating operations that change state from queries that read it; DDD means domain-driven design.
+A handler that updates a view needs someone to invoke it, checkpoint progress, and retry failures. That responsibility can sit in a framework, a subscription consumer, or a server-managed observer. It is separate from where the events are stored.
 
 ## What is being compared
 
-- **Axon Framework with Axon Server or another storage engine** — a JVM framework for DDD, CQRS, command and query handling, event sourcing, and event processing. Axon Server is the default event store and message-routing option, while PostgreSQL and JPA storage engines are also documented.
-- **KurrentDB with its Java client** — a dedicated event database with an official JVM client; see [KurrentDB vs Chronicle](/compare/kurrentdb-vs-chronicle/) for a two-product view. Application-layer CQRS, aggregates, and read-model code remain application concerns.
-- **Cratis Chronicle with its JVM client** — a separate event-sourcing server and processing runtime with Kotlin and Java APIs, artifact discovery, and an official Spring Boot starter.
+Axon Framework and Axon Server are distinct products. Likewise, a KurrentDB or Chronicle client has its own release cycle, independent of its server. Compare the framework, server, and SDK versions separately.
 
 ## Method and versions
 
-<Aside type="note" title="Method">
-The table records released, documented capabilities at named versions. Sources come from each product's own documentation, repository, license, or package registry and were checked on 2026-08-30. A listed capability is not a claim about performance, maturity, reliability, production suitability, or feature parity.
-</Aside>
+Sources reviewed on **2026-11-22**:
 
-<Aside type="caution" title="This is a dated comparison">
-The rows describe the named versions as documented on 2026-08-30, not current releases. Since that review, Chronicle's .NET client and server have reached 19.x, the TypeScript and Kotlin/Java clients 6.x, and the Elixir client 3.x. Arc has added Kotlin and Java backends on Spring Boot ([Arc for Kotlin and Java](/arc/backend/kotlin/)). Other products may also have changed. This table has not been re-verified against those later releases; check the cited sources for your intended release and [Version compatibility](/compatibility/) for Cratis pairings.
-</Aside>
+- [Axon Framework 5.4.2](https://github.com/AxonIQ/AxonFramework/releases/tag/axon-5.4.2), released November 16. This guide does not establish an Axon Server version or edition.
+- [KurrentDB 26.2.3](https://github.com/kurrent-io/KurrentDB/releases/tag/v26.2.3), released October 19, and [Java client 1.2.1](https://github.com/kurrent-io/KurrentDB-Client-Java/releases/tag/v1.2.1), released June 25.
+- [Chronicle 19.181.2](https://github.com/Cratis/Chronicle/releases/tag/v19.181.2), released November 22, and [JVM client 7.13.0](https://github.com/Cratis/Chronicle.Kotlin/releases/tag/v7.13.0), released November 21.
 
-| Tool | Compared version | Version source |
-| --- | --- | --- |
-| Axon Framework | 5.3.1; Axon Server documentation from the current installation and 2026.1 reference series where applicable | [Axon Framework 5.3.1 on Maven Central](https://central.sonatype.com/artifact/org.axonframework/axon-messaging/5.3.1), [Axon 5.3 reference](https://docs.axoniq.io/axon-framework-reference/5.3/) |
-| KurrentDB | Server 26.0 documentation series; Java client 1.2.1 | [KurrentDB 26.0 installation documentation](https://docs.kurrent.io/server/v26.0/quick-start/installation.html), [Java client 1.2.1 on Maven Central](https://central.sonatype.com/artifact/io.kurrent/kurrentdb-client/1.2.1) |
-| Cratis Chronicle | Server and .NET distribution 16.42.0; JVM client 2.10.0 | [Cratis.Chronicle 16.42.0 on NuGet](https://www.nuget.org/packages/Cratis.Chronicle/16.42.0), [JVM client 2.10.0 on Maven Central](https://central.sonatype.com/artifact/io.cratis/chronicle/2.10.0) |
+Release dates do not establish package-publication dates or compatibility between independently released components. See [our comparison method](/compare/).
 
 ## Core comparison
 
-| Question | Axon Framework 5.3.1 | KurrentDB 26.0 with Java client 1.2.1 | Cratis Chronicle 16.42.0 with JVM client 2.10.0 |
-| --- | --- | --- | --- |
-| What is the product boundary? | A JVM application framework covering commands, events, queries, event-sourced entities, repositories, buses, and event processors. Event storage is pluggable. | A separate event-native database server. The Java client provides access from JVM applications without prescribing their application architecture. | A separate event-sourcing server and processing runtime. The JVM client declares event types, read models, projections, reducers, reactors, and constraints. |
-| Where are events stored? | Axon Server is the default event store. Axon 5.3 also documents a PostgreSQL 16+ storage engine, a JPA-compatible aggregate storage engine, and an in-memory testing engine. | In streams managed by KurrentDB's storage engine. | Through Chronicle's documented server storage providers. The same server is used by the .NET, TypeScript, JVM, and Elixir clients. |
-| What is the JVM programming model? | Annotated or declarative command, event, and query handlers; event-sourced entities; repositories; command, event, and query buses; and configurable event processors. | An official Java gRPC client for reading, appending, and subscribing to events. DDD, CQRS, aggregate, and read-model patterns are implemented by the application or other libraries. | Kotlin data classes or Java records annotated as events, annotated read models, and declarative or imperative processing artifacts discovered and registered with the server. Kotlin uses suspending APIs; Java uses blocking bridges. |
-| What does Spring Boot integration provide? | The official starter detects handlers and event-sourced entities, configures command, event, and query buses, sets up event processors, and wires repositories and infrastructure. Auto-configured components can be replaced. | No Spring application framework is supplied by the server or Java client sources used for this page. This says nothing about community integration or ordinary Spring configuration around the client. | The official starter brings in the JVM client, discovers and registers application artifacts, activates them through the Spring container, and documents request identity, causation, units of work, and tenant routing. |
-| How are events processed? | Subscribing and streaming processors invoke event handlers. Pooled streaming is the documented default; processor configuration covers segmentation, parallel processing, tracking, and replay. | Catch-up subscriptions keep position in the client. Persistent subscriptions keep position on the server and support consumer groups, acknowledgements, retries, parked events, and replay. KurrentDB documents at-least-once delivery and no ordering guarantee for persistent subscriptions. | Reactors handle event-driven application work, Reducers derive typed read models, and Observers provide low-level subscriptions. The JVM client declares Reactors and Reducers with annotations. |
-| How are read models produced? | Event-handling components assigned to event processors update application-owned read models; streaming processors support replay through reset tokens and reset handlers. | Built-in and user-defined JavaScript projections can emit or link events. KurrentDB also documents catch-up subscriptions as the better fit for many application read models. | Reducers and declarative projections produce typed read models retrievable through the JVM client. |
-| How can events reach other systems? | Axon documents event distribution within and across bounded contexts through Axon Server contexts or a separate message broker, with explicit context mapping recommended. | Server-side Connectors filter or transform events and send them to external sinks; clients can also consume subscriptions directly. | The server exposes gRPC and REST APIs; Reactors and JVM webhook definers provide application-defined paths for event-driven work outside the process. |
-| What runs in production? | Axon Framework runs inside the JVM application. Axon Server, when selected, runs separately; PostgreSQL or JPA storage can be selected instead. Available Axon Server capabilities depend on the chosen edition and license. | A separate KurrentDB server, as a single node or documented cluster topology, plus the Java client in the application. Some features require a license key. | The Chronicle Kernel runs as a separate Docker-hosted server; the JVM client and optional Spring Boot starter run in the application. Workbench is bundled with the server. |
-| What is the license boundary? | Axon Framework is Apache License 2.0. Axon Server has free and paid editions with different capabilities. | Kurrent License v1 for the server; KurrentDB states that it is not an OSI-approved open-source license. The Java client is Apache License 2.0. | MIT License for Chronicle and the JVM client. Other Cratis products retain their own license and release boundaries. |
+Axon Framework's [Spring integration](https://docs.axoniq.io/axon-framework-reference/5.4/spring-boot-integration/) discovers handlers and configures command, query, and event infrastructure. KurrentDB's [Java SDK](https://github.com/kurrent-io/KurrentDB-Client-Java/blob/v1.2.1/README.md) provides database access; choose your application wiring around it. Chronicle's [Spring starter](https://github.com/Cratis/Chronicle.Kotlin/blob/v7.13.0/Documentation/guides/spring-boot.md) registers processing artifacts with the kernel. Its request integration is for Spring Boot 4 with servlet MVC, not WebFlux.
 
 ## Where each option fits
 
-Choose the responsibility you want the tool to take on before comparing individual features.
-
 ### Axon Framework and Axon Server
 
-Axon fits when you want one JVM framework to organize command and query handling, event-sourced entities, repositories, and event processors. Its Spring Boot integration configures those pieces together. Axon Server adds event storage and message routing; documented PostgreSQL and JPA storage paths let you choose different infrastructure. If that application model is what you need, compare it as a framework rather than as a database client.
+Choose Axon Framework when you want its command, query, and [event-processor model](https://docs.axoniq.io/axon-framework-reference/5.4/events/event-processors/) to structure a JVM application. Its [storage infrastructure](https://docs.axoniq.io/axon-framework-reference/5.4/events/infrastructure/) includes Axon Server, PostgreSQL, aggregate-based JPA, and in-memory options. Aggregate-based storage is not interchangeable with a global event stream. Review the selected engine's contract and Axon Server's own edition and license terms separately from the framework.
 
 ### KurrentDB
 
-KurrentDB fits when you want dedicated event infrastructure while keeping the JVM application architecture in your own code. Its Java client gives you access to the store, with clients for other languages available too. Server-managed persistent subscriptions and connectors cover event consumption and delivery; command handling and application read-model code remain your responsibility.
+Choose KurrentDB when you want its stream database and [persistent subscriptions](https://docs.kurrent.io/server/v26.2/features/persistent-subscriptions.html) while retaining your application model. Persistent subscriptions checkpoint on the server and deliver at least once; they do not guarantee ordering. Your consumer must tolerate duplicates. See [KurrentDB vs Chronicle](/compare/kurrentdb-vs-chronicle/) for processing and hosting details.
 
 ### Cratis Chronicle
 
-Chronicle fits when you want a separate runtime to manage event storage and processing while your Kotlin or Java application declares the events and handlers. Its Spring Boot starter discovers and registers those application artifacts. You still operate the Chronicle server and its storage.
-
-At these compared versions, the broader Cratis application path centered on .NET and React. Evaluate the JVM client and Spring Boot starter on their documented behavior rather than assuming parity. Arc's Kotlin and Java backends were released later and are outside this comparison.
+Choose Chronicle when you want the kernel to coordinate event processing and read-model production. The [architecture](https://github.com/Cratis/Chronicle/blob/v19.181.2/Documentation/architecture.mdx) separates kernel projections from reducer and reactor handlers in your application. The JVM starter supplies artifact discovery and activation; it does not remove the kernel deployment or make application side effects atomic with an append.
 
 ## Questions to answer before choosing
 
-1. **Framework boundary:** Do you want a JVM framework to own commands, queries, entities, repositories, and event processing, or do you want an event server behind an application model you choose separately?
-2. **Storage boundary:** Should events live in Axon Server, PostgreSQL or JPA through Axon, KurrentDB's own engine, or one of Chronicle's documented providers?
-3. **Spring boundary:** Do you need Axon's CQRS application framework integrated with Spring, a Spring-configured database client, or Chronicle artifact registration and request integration?
-4. **Processing model:** Which handlers must share a transaction, which processors must be replayable, and where should checkpoints, retries, and failed work be owned?
-5. **Language boundary:** Is the JVM the only system boundary, or must several language clients use the same event server?
-6. **Operations:** How will your team inspect processor or subscription progress, failed processing, projections, replay, and recovery for the exact topology you deploy?
-7. **Commercial and license boundary:** Which server edition, support terms, and licenses apply to the exact components you intend to run?
+- Should a framework own command and query dispatch, or will you choose that layer separately?
+- Which process owns checkpoints and retries?
+- Does the Spring integration match your servlet or reactive application?
+- Which SDK operations and server versions does your feature require?
 
 ## Decision criteria to verify separately
 
-This comparison does not score several decision-critical dimensions that depend on the exact deployment profile:
-
-- append and side-effect atomicity, plus read consistency;
-- event schema evolution, replay, and migration behavior;
-- backup, restore, upgrade, failure, and recovery procedures;
-- authentication, tenancy, encryption, PII, and redaction controls; and
-- support, commercial terms, and operational responsibility.
-
-Verify each dimension against the exact product versions and deployment profiles before choosing.
+Evaluate a conflicting append, a failed handler, replay, and a consumer restart on the intended storage engine. Check authentication, tenant isolation, backup, restore, and license terms for the actual deployment. This guide does not compare Axon Server editions.
 
 ## Limitations
 
-This is a documentation comparison, not a benchmark or production evaluation. Axon Framework covers more application concerns than a database client; that boundary is a fit decision, not a score. The availability of a client or storage engine does not establish parity, and product-family membership does not establish integration depth, compatibility, support, or shared commercial terms.
-
-For a closer look at the two event-server options, continue to [KurrentDB vs Chronicle](/compare/kurrentdb-vs-chronicle/). Verify the cited sources against the releases you plan to adopt.
+This is an architectural selection guide, not a benchmark, reliability assessment, or client-parity claim. A framework covering more application concerns is a fit decision, not a higher score.
 
 ## Sources
 
-Sources checked 2026-08-30:
-
-- **Axon:** [Axon Framework repository](https://github.com/AxonIQ/AxonFramework), [event infrastructure and storage engines](https://docs.axoniq.io/axon-framework-reference/5.3/events/infrastructure/), [Spring Boot integration](https://docs.axoniq.io/axon-framework-reference/5.3/spring-boot-integration/), [event processors](https://docs.axoniq.io/axon-framework-reference/5.3/events/event-processors/), [Axon Server installation](https://docs.axoniq.io/axon-server-installation/), and [Apache-2.0 license](https://github.com/AxonIQ/AxonFramework/blob/master/LICENSE.txt).
-- **KurrentDB:** [introduction and clients](https://docs.kurrent.io/server/v26.0/quick-start/), [installation](https://docs.kurrent.io/server/v26.0/quick-start/installation.html), [persistent subscriptions](https://docs.kurrent.io/server/v26.0/features/persistent-subscriptions.html), [projections](https://docs.kurrent.io/server/v26.0/features/projections/), [Connectors](https://docs.kurrent.io/server/v26.0/features/connectors/), [Java client](https://github.com/kurrent-io/KurrentDB-Client-Java), and [Java-client license](https://github.com/kurrent-io/KurrentDB-Client-Java/blob/trunk/LICENSE).
-- **Cratis Chronicle:** [Chronicle repository](https://github.com/Cratis/Chronicle), [JVM client repository](https://github.com/Cratis/Chronicle.Kotlin), [Spring Boot guide](https://github.com/Cratis/Chronicle.Kotlin/blob/main/Documentation/guides/spring-boot.md), [Chronicle license](https://github.com/Cratis/Chronicle/blob/main/LICENSE), [JVM-client license](https://github.com/Cratis/Chronicle.Kotlin/blob/main/LICENSE), [NuGet](https://www.nuget.org/packages/Cratis.Chronicle/16.42.0), [Maven Central](https://central.sonatype.com/artifact/io.cratis/chronicle/2.10.0), and [Docker Hub](https://hub.docker.com/r/cratis/chronicle/tags).
+The versioned framework guides and tagged client sources above support the programming-model distinctions. For server choices, continue to [KurrentDB vs Chronicle](/compare/kurrentdb-vs-chronicle/); for available Cratis client operations, see [Chronicle clients](/chronicle-clients/).
 
 ## Corrections and refresh
 
-We recheck this page when a compared product changes a relevant major or minor release, license, client list, or documented capability, and at least every 90 days. If a statement cannot be confirmed from the named product's own current public sources, we correct or remove it.
-
-If you find a factual error or a better first-party source, [send the correction](/feedback/).
+Check the intended release before adoption. [Send corrections](/feedback/) with a version and first-party source.
