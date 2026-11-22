@@ -81,7 +81,7 @@ and operate it; installing guidance is not permission to change production.
 
 ### `cratis init` — the CLI, made AI-aware
 
-Run it once inside your project:
+First [install the CLI](/cli/getting-started/). Run this inside the project whose assistant files you want to configure:
 
 ```bash
 cratis init
@@ -93,10 +93,15 @@ Cursor, Windsurf, and Pi), and adds a **`chronicle-diagnose`** slash command.
 Detection looks at the project's files and at environment variables each tool
 sets. If it detects none, it configures none; pass `--tool <name>` to target one.
 
-From then on your assistant can browse events, watch observers, and diagnose a
-failed partition through the [CLI](/cli/), because the command catalog is in its
-context. After a CLI upgrade, refresh the catalog with `cratis init --refresh`.
+The catalog tells your assistant which [CLI](/cli/) commands inspect events,
+observers, and failed partitions. Running them still requires a configured
+connection, credentials, and your authorization for the target and action. After a CLI upgrade, refresh the catalog with `cratis init --refresh`.
 The [CLI getting started](/cli/getting-started/) guide covers it in full.
+
+For a latency or error investigation, [Observability in Cratis](/observability/)
+explains which signals the application and kernel emit. Follow
+[Collect Cratis telemetry](/collect-telemetry/) to export them; the CLI catalog
+and an MCP connection do not configure telemetry collection.
 
 ### The Chronicle MCP server — an agent, connected to the store
 
@@ -171,7 +176,7 @@ flowchart LR
   <SimpleCard title="Distribution" icon="approve-check" link="/ai/trust-and-distribution/">
     The three channels, how each is versioned, and how your own guidance stays yours.
   </SimpleCard>
-  <SimpleCard title="The Cratis Stack" icon="rocket" link="/cratis-stack/">
+  <SimpleCard title="Cratis Platform components and capabilities" icon="rocket" link="/cratis-stack/">
     How design, build, and operate fit together end to end.
   </SimpleCard>
   <SimpleCard title="CLI getting started" icon="rocket" link="/cli/getting-started/">

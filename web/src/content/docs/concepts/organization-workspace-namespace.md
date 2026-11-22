@@ -1,47 +1,56 @@
 ---
 title: Organization, workspace and namespace
-description: "Cratis keeps organization, workspace and namespace apart. Learn what each term means, who owns it, and how Direct, Studio and a Stage application use them."
+description: "Distinguish Studio organizations, product workspaces and Chronicle namespaces from the planned cross-product Identity contract."
 ---
 
-Cratis products use three words for three different things. An *organization* is the customer as a whole, such as Acme. A *workspace* is where people work inside one product. A *namespace* is where Chronicle stores one workspace's data. Each has one owner, and keeping them apart decides who can add members, who sets sign-in policy, and where data lives.
+The meaning of *organization* and *workspace* depends on the product. Studio's organization owns people and projects. In the shared Identity contract, a platform organization holds cross-product policy, while a product workspace owns membership. A Chronicle namespace partitions data within an event store. Keeping these meanings apart helps you distinguish who grants access from where data is stored.
 
 :::note[Available and planned]
-Workspaces and namespaces exist in Cratis products today. A platform organization that spans products is **planned**; until it ships, each product's workspaces stand alone. Planned items are direction, not a delivery commitment; see the [roadmap](/roadmap/).
+Studio's organization and Chronicle's namespaces are existing product concepts. The cross-product platform organization is **planned**. The Identity tenant-model contract defines ownership and authorization requirements; it does not claim deployed behavior or a migration of Studio's organization. Planned items are direction, not a delivery commitment; see the [roadmap](/roadmap/).
 :::
 
 ## The three terms at a glance
 
-| Term | What it is | Who owns it | What it holds | What it never does |
-| --- | --- | --- | --- | --- |
-| Organization | The customer as a whole, across Cratis products | Cratis platform organization administration (**Planned**), not any one product | Verified email domains, sign-in policies (for example "members sign in with our Microsoft Entra ID"), links to the customer's workspaces | Hold members or roles in a product |
-| Workspace | Where people work inside one product. AuthProxy, Arc, Chronicle and Stage call it a *tenant* | The product | Members, roles and business data | Mean anything outside the product installation that created it |
-| Namespace | The Chronicle partition that stores one workspace's events and read models | The product installation | That workspace's Chronicle data | Get chosen by, or shown to, the people using the product |
+| Term | Meaning in this context | Ownership boundary |
+| --- | --- | --- |
+| Organization in Studio | The team's scope for people, projects, AI setup, integrations and billing | Studio manages its own members and roles |
+| Platform organization (**Planned**) | The customer's cross-product policy scope: verified domains, sign-in policies and confirmed tenant links | Under the Identity contract, organization administration does not grant product membership |
+| Product workspace | The product-facing name for a tenant in the Identity contract, not a second identifier | The product owns membership, roles and business data; tenant identity is scoped to a resource and installation |
+| Chronicle namespace | A named isolation partition within an event store | The product installation owns the tenant-to-namespace mapping; a storage partition does not authorize a caller |
 
 ## Organization
 
-An organization represents the customer for things that span products: verified email domains, sign-in policies, and links to the customer's workspaces in each product. Organizations and their links are **planned**.
+In [Studio](/studio/), an organization is the team's existing product scope. It contains members and projects and owns settings such as AI setup, integrations and billing. This is the organization named in Studio's screens.
 
-Administering an organization does not make anyone a member of a workspace or give them a role in a product. Linking an organization to a workspace applies the organization's policies there; it never adds members. Products keep their own authorization checks.
+The **planned platform organization** has a different responsibility: verified email domains, sign-in policies and confirmed links to product tenants. Under the Identity contract, administering this organization does not make anyone a product member or give them a product role. A confirmed link applies organization policy without adding members; products must keep their own authorization checks.
+
+These meanings coexist. The contract does not establish a rename or migration of Studio's organization, nor does this vocabulary make a platform organization a prerequisite for standalone products. Identity specifications use the spelling *organisation*; preserve that spelling wherever it is part of an exact contract or wire name.
 
 ## Workspace
 
-The product creates workspaces and decides who belongs and with which role. Arc, AuthProxy and Chronicle call it a tenant and identify it by a tenant id.
+In the shared Identity contract, *workspace* is the product-facing name for a tenant. The product creates the tenant and owns membership and roles. The tenant id belongs to that product's resource and installation; it is not a global customer identifier. This terminology does not replace each product's existing labels.
 
-When someone has more than one workspace, AuthProxy's [tenant selection page](/authproxy/configuration/tenant-selection/) shows the ones the product offers. Being listed or selected does not grant access: the product checks membership and roles on every request.
+AuthProxy's [tenant selection page](/authproxy/configuration/tenant-selection/) shows the tenants the product offers. Under the contract, being listed or selected must not grant access: the product must check live membership and roles on every request.
+
+A **Screenplay workspace file** means something else. It packages a model application and its release baseline for rendering. It is not a customer tenant, a membership list or a Chronicle namespace.
 
 ## Namespace
 
-The product installation maps each workspace to a [Chronicle namespace](/chronicle/concepts/namespaces/), so one workspace's events, projections and read models stay apart from another's. With Arc's [Chronicle integration](/arc/backend/csharp/chronicle/tenancy/), the tenant id is the namespace name; see [Chronicle tenancy](/chronicle/tenancy/).
+A [Chronicle namespace](/chronicle/concepts/namespaces/) isolates events, observer progress and namespace read-model data **within an event store**. One namespace per tenant is a common pattern. A namespace name alone does not identify a customer across event stores, product installations or environments, and storage isolation does not grant access.
 
-The namespace follows from the workspace, never the other way round. A request never chooses its namespace, and the namespace is not shown to the people using the product or used to work out which workspace a request belongs to.
+With Arc's [Chronicle integration](/arc/backend/csharp/chronicle/tenancy/), the current tenant id supplies the namespace name; the default tenant maps to Chronicle's `Default` namespace. This is a specific resolver behavior, not a universal cross-product registry. See [Chronicle tenancy](/chronicle/tenancy/).
 
-Chronicle namespaces can also separate environments or domains. In Cratis products, one namespace holds one workspace's data.
+The Identity contract requires the installation's registered mapping to select the namespace from the verified tenant. Resource, installation and environment identify the requested target alongside the tenant. A namespace must not be accepted from caller input or used to infer a tenant under that contract. These are application authorization requirements, not restrictions on Chronicle's administrative namespace-selection tools.
+
+Chronicle namespaces can also separate environments or domains. An environment label does not automatically create a namespace or establish a tenant mapping. For storage operations, see [managing namespaces](/chronicle/namespaces/).
 
 ## Who can change what
 
-- Organization administrators manage the organization's domains, policies and links (**Planned**). That role is not workspace membership.
-- Workspace administrators manage members and roles inside the product.
-- The product installation decides which namespace each workspace uses. Nobody picks it at sign-in.
+Under the shared Identity contract:
+
+- Platform organization administrators manage domains, policies and confirmed links (**Planned**). That role is not product membership.
+- Tenant administrators manage members and roles inside the product.
+- The product installation owns namespace resolution. A person selects a product workspace at sign-in, not its storage namespace.
 
 ## Examples
 
@@ -51,7 +60,7 @@ Direct schedules AI agents across the repositories of a GitHub organization. In 
 
 ### Studio
 
-Each team that signs up for [Studio](/studio/) gets its own **workspace** with its event models. Studio decides who is a member and which roles they hold. A platform organization above it is planned.
+[Studio](/studio/) calls its team scope an **organization**. Its projects group applications, and those applications contain the domains and event models the team works on. Studio owns organization membership and roles. Calling this scope a product workspace in a cross-product discussion must not imply that Studio has renamed it or adopted a platform-organization migration.
 
 ### A Stage-rendered application
 
@@ -59,13 +68,18 @@ When someone signs up, or accepts an invitation to create a workspace, a Stage-r
 
 ## Words you will see elsewhere
 
-- **Tenant** (AuthProxy, Arc, Chronicle, Stage) means a workspace.
-- **Your organization**, in Direct and Studio screens and docs, currently means the workspace you work in. That is not the organization defined on this page.
+- **Tenant** means the product's group and data scope; *workspace* is its product-facing name in the shared Identity contract.
+- **Your organization** in Studio means Studio's member-owning organization, not the planned platform policy scope. Keep the product qualifier when comparing them.
+- **Screenplay workspace file** describes a model package, not product tenancy.
+- **C# namespace** and **Kubernetes namespace** are unrelated to Chronicle storage namespaces.
+- **Project**, **application**, **environment**, **cluster** and **CLI context** describe other product or deployment scopes. See the [glossary](/glossary/#product-and-deployment-scopes); they do not form a single cross-product hierarchy.
 - **Microsoft Entra ID tenant** is your identity provider's directory, not a Cratis workspace. Stage's [Entra ID guide](/stage/guides/sign-in-with-entra-id/) uses it this way.
 
 ## If you build a multi-tenant Cratis application
 
-- Let people choose a workspace by its name. Never show or accept a namespace.
-- Check membership in the product on every request. A selected workspace is not proof of membership. See [auth and compliance](/auth-and-compliance/).
-- Do not derive a workspace from an organization, or an organization from a workspace.
-- Keep the three identifiers apart in labels and in storage.
+For an application adopting the shared Identity contract:
+
+- Let people choose a product workspace by its name. Resolve its storage namespace inside the application rather than accepting a namespace from the caller.
+- Check live membership and roles in the product on every request. A selected workspace is not proof of membership. See [auth and compliance](/auth-and-compliance/).
+- Do not derive a tenant from a platform organization, or a platform organization from a tenant.
+- Keep organization identity, tenant identity and namespace names distinct in labels and storage, even when a particular resolver uses the tenant id as the namespace name.

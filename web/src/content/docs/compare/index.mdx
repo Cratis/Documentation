@@ -14,8 +14,8 @@ The Cratis team writes these pages, and Chronicle is our product. Each compariso
 | [Marten vs Chronicle](/compare/marten-vs-chronicle/) | A head-to-head of the in-process .NET library on PostgreSQL and the Chronicle server, including where Marten is the better choice. |
 | [KurrentDB vs Chronicle](/compare/kurrentdb-vs-chronicle/) | A head-to-head of the dedicated event-store database (formerly EventStoreDB) and the Chronicle server, including where KurrentDB is the better choice. |
 | [Event sourcing in TypeScript and Node.js](/compare/typescript-event-sourcing/) | Chronicle with Arc.TypeScript, Emmett, and the KurrentDB Node client: library and server boundaries, package availability, and when each fits. |
-| [Event sourcing in .NET](/compare-event-sourcing-dotnet/) | KurrentDB, Marten and Chronicle across product boundary, storage, languages, projections and licenses. |
-| [Event sourcing on the JVM](/compare-event-sourcing-jvm/) | Axon Framework, KurrentDB and Chronicle for JVM applications. |
+| [Event sourcing in .NET](/compare-event-sourcing-dotnet/) | A concise selection guide to KurrentDB, Marten, and Chronicle, with links to the focused comparisons. |
+| [Event sourcing on the JVM](/compare-event-sourcing-jvm/) | A selection guide to Axon Framework, KurrentDB, and Chronicle by framework, server, and Spring integration needs. |
 
 ## How we write them
 
@@ -23,12 +23,12 @@ First, check what runs where. An in-process library executes in your application
 
 Read each table as a snapshot of its named versions and review date. A link to unversioned documentation may describe newer behavior. Before choosing, check the versions you intend to deploy and the client APIs your application needs. A shared protocol does not mean equal client coverage, and source in a repository does not establish that a package is published.
 
-Claims about another product link to its own documentation, repository, license or package registry. Chronicle claims use its documentation and README. "Not publicly documented" means we did not find a documented capability in those sources; it does not establish that the capability is absent.
+Claims about another product link to its own documentation, repository, license, or package registry. Chronicle claims use its documentation and source. We remove or narrow unverified claims rather than turning a failed search into a negative capability rating. Release dates and package-publication dates are separate evidence; a GitHub release alone does not establish registry availability.
 
 A documented capability is not evidence of throughput, latency or production suitability. We do not score or rank products. Use the comparison to narrow your options, then try one feature from your own domain on the storage and server versions you plan to run.
 
 ## Corrections and refresh
 
-We recheck a page when a compared product ships a relevant major or minor release or changes its license, and at least every 90 days. If a statement cannot be confirmed from a product's current public sources, we correct or remove it.
+The current comparisons were reviewed on **2026-11-22**. They are dated snapshots, not a promise that every subsequent release is covered. Check the versions and license terms you intend to deploy. If a statement cannot be confirmed from first-party sources, it should be corrected or removed.
 
 If you find an error or a better source, [send the correction](/feedback/).

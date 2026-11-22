@@ -4,8 +4,8 @@ description: The Cratis Platform glossary defines event sourcing, CQRS, read mod
 ---
 
 Event sourcing comes with its own vocabulary, and the Cratis stack adds a few terms of its own. This page
-gives a short definition of each term across the stack, so the same word means the same thing on every
-page. Where a term has a fuller explanation, the name links to it. The products keep their own, more
+gives short definitions and identifies product-specific meanings where the same word describes different
+things. Where a term has a fuller explanation, the name links to it. The products keep their own, more
 detailed glossaries: [Chronicle](/chronicle/concepts/glossary/), [Arc](/arc/glossary/), and
 [Screenplay](/screenplay/glossary/).
 
@@ -23,12 +23,12 @@ explains how they fit together.
 | **Event stream** | A named part of an event source's history, such as an account's monthly transactions. Identified by a stream type and a stream id. |
 | [Event sequence](/chronicle/concepts/event-sequence/) | An ordered, append-only stream of events you can subscribe to. The **event log** is the primary one — your source of truth. |
 | **Sequence number** | An event's position within a sequence. |
-| [Event store](/chronicle/concepts/event-store/) | The database that holds event sequences. |
+| [Event store](/chronicle/concepts/event-store/) | Chronicle's named logical container for related events and configuration, containing namespaces. It is not necessarily one storage database or one cluster. |
 | **Event sourcing** | Storing state as the full history of events, deriving current state by replaying them. See [when to use it](/chronicle/concepts/when-to-use-event-sourcing/). |
-| [Namespace](/chronicle/concepts/namespaces/) | A partition of an event store, used for multi-tenancy. |
-| **Tenant** | An isolated set of data for one customer — see [namespaces](/chronicle/namespaces/). |
-| [Workspace](/concepts/organization-workspace-namespace/#workspace) | The place people work inside one product: the product-facing name for a tenant. The product owns its members and roles. |
-| [Organization](/concepts/organization-workspace-namespace/#organization) | The customer as a whole, across Cratis products. Holds sign-in policies, not members. Platform organizations are planned. |
+| [Namespace](/chronicle/concepts/namespaces/) | A named isolation partition within a Chronicle event store, commonly one per tenant. It does not authorize the caller. Unrelated to a C# or Kubernetes namespace. |
+| **Tenant** | A product-owned group and data scope, with membership and authorization owned by the product. A common storage mapping is one [Chronicle namespace](/chronicle/concepts/namespaces/) per tenant; tenant identity is not a global customer identity. |
+| [Workspace](/concepts/organization-workspace-namespace/#workspace) | In the shared Identity contract, the product-facing name for a tenant, not another identifier. A **Screenplay workspace file** instead packages a model application and its release baseline for rendering; it is not a customer tenant. |
+| [Organization](/concepts/organization-workspace-namespace/#organization) | In Studio, the team's scope for members, projects and billing. The **planned platform organization** is a separate cross-product policy scope that does not own product membership. Neither meaning implies a migration or rename of the other. |
 | **Identity** | Who or what caused an event. |
 | **Correlation** | Links events that belong to the same logical operation. |
 | [Causation](/chronicle/concepts/correlation-identity-causation/) | The chain of steps that led to an event, such as the root process and the command that appended it. With Arc, the command's name and property values are recorded in the chain, permanently. |
@@ -47,6 +47,18 @@ explains how they fit together.
 | [Stream decision](/arc/backend/csharp/chronicle/commands/stream-decisions/) | In Arc's .NET backend, a command reads the raw events of one stream through `IStreamReads` and returns `StreamDecision.Append(...)`, which guards that stream at the tail it read. |
 | [Subject](/chronicle/concepts/subject/) | The person or entity whose personal data an event contains. PII is encrypted under a key per subject, which defaults to the event source id. |
 | [PII](/chronicle/compliance/pii/) | Personal data marked for encryption at append time so it can be erased by deleting the subject's key. Marking syntax varies by client; .NET uses `[PII]`. See [event sourcing and GDPR](/concepts/event-sourcing-gdpr/). |
+
+## Product and deployment scopes
+
+These terms describe different products and deployment choices, not a universal hierarchy.
+
+| Term | Definition |
+| --- | --- |
+| Project ([Studio](/studio/)) | The team's top-level unit of work within a Studio organization, grouping applications. It is not necessarily one .NET project file (`.csproj`). |
+| Application ([Studio](/studio/)) | One system being built inside a project. Its model/render identity need not equal an output directory, project filename, root namespace or Chronicle event-store name. |
+| [Environment (CLI)](/cli/environments/) | A deployment or runtime configuration selection, such as Development or Production. An environment is not a customer's identity and does not automatically select a Chronicle namespace. |
+| [Cluster (Chronicle)](/chronicle/hosting/configuration/clustering/) | An Orleans deployment of cooperating Chronicle server nodes. A hosting boundary, not a customer membership boundary. |
+| [Context (CLI)](/cli/context/) | A locally saved Chronicle connection profile with a server and defaults such as event store and namespace. It does not grant tenant membership, select a deployment environment or choose an Arc HTTP endpoint. |
 
 ## Turning events into state
 

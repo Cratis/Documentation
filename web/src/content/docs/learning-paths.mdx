@@ -5,7 +5,7 @@ description: Choose a Cratis Platform learning path for event sourcing, CQRS, or
 
 import { CardGrid, LinkCard } from '@astrojs/starlight/components';
 
-What do you need to accomplish: explain today's state from recorded events, build a view of that history, connect a React screen to backend contracts, or agree what a feature should do? Choose a Cratis Platform learning path by that result. Each route introduces the products as you need them; you do not need to learn the whole platform before starting.
+Choose a route for the work in front of you: reading a first projection, building a feature, evaluating a component, or operating a deployment. Each path orders the guides you need; you do not need to learn the whole platform before starting.
 
 To see how events become a view, begin with [First projection](#first-projection), a source walkthrough with TypeScript, Elixir, and C# tabs. Follow library events into a read model, a view shaped for a particular question. To build a working API and UI, go straight to [Build a full-stack app](#build-a-full-stack-app). To assess one change without starting a rewrite, use [Evaluate Cratis](#evaluate-cratis) and [Adopting Cratis](/adopting-cratis/). Operators, React developers, and contributors have their own routes below.
 
@@ -92,12 +92,12 @@ If you have built applications that create, read, update, and delete records (CR
 
 Finish one feature that records a change and shows its projected result in a live React screen, then extend it with validation and specifications. Use Chronicle for history, Arc for commands, queries, and generated contracts, and Components for React. The first guide offers C#, Kotlin, Java, and TypeScript backends; the later C# links below explain the .NET integration.
 
-1. Follow [Build a full-stack feature](/build-a-full-app/). It scaffolds an application from the Cratis template and adds one slice end to end.
+1. Follow [Build a full-stack feature](/build-a-full-app/). Use its backend-specific setup to add one slice end to end; the TypeScript path uses a sample rather than the .NET or JVM templates.
 2. Read [Vertical slices](/arc/vertical-slices/) to see why the feature lives in one folder.
 3. Work through the [Arc tutorial](/arc/tutorial/) for validation, related slices, live queries, and authorization. It runs over a plain database, which keeps the focus on commands, queries, and generated proxies.
 4. Read [Add event sourcing to an Arc slice](/arc/backend/csharp/chronicle/add-event-sourcing/) to see what changes when a slice's writes move to Chronicle, and what does not.
 5. Continue with the [vertical slices scenario](/scenarios/vertical-slices/) for the state view, automation, and translation patterns, and [Testing with Cratis](/testing-with-cratis/) for specs.
-6. Follow [Generated values, from Screenplay to running app](/generated-values/) to have the server own your ids and secrets, from the model through Stage and Arc to pinned specs.
+6. Read [Generate values with Screenplay, Stage and Arc](/generated-values/) to follow server-owned identifiers through the historical Shop sample and its pinned specifications. Check its toolchain limits before applying the example to a newer release; the recorded results are not a run of your application.
 
 For Spring Boot setup, the [Cratis Kotlin](/templates/cratis-kotlin/) and [Cratis Java](/templates/cratis-java/) templates scaffold the full-stack application. The Arc tutorial shows its main slice examples in Kotlin as well as C#; some backend snippets remain C# only. Use the matching backend guide rather than assuming every example has an equivalent.
 
@@ -137,7 +137,7 @@ Choose one feature where you need recorded history, another view of existing fac
 
 1. Read [Why developers choose Cratis](/why-cratis/), including when it is not a good fit.
 2. Read [Adopting Cratis](/adopting-cratis/) to pick an entry point for a new or existing system.
-3. If you are comparing event stores, read [Compare event sourcing for .NET](/compare-event-sourcing-dotnet/) or [Compare event sourcing on the JVM](/compare-event-sourcing-jvm/). [Marten vs Chronicle](/compare/marten-vs-chronicle/) is a head-to-head for .NET teams on PostgreSQL.
+3. Use [Cratis Chronicle comparisons: choose an event-sourcing tool](/compare/) to find the .NET, JVM, or TypeScript comparison. For a specific alternative, read [Marten vs Cratis Chronicle](/compare/marten-vs-chronicle/) or [KurrentDB vs Chronicle](/compare/kurrentdb-vs-chronicle/).
 4. Check the [FAQ](/faq/), [Version compatibility](/compatibility/), and [Production readiness](/production-readiness/).
 5. Run one [sample](/samples/) that matches the shape you would build.
 6. Ask adoption questions in [Community and help](/community/), or [Work with us](/work-with-us/) for a dedicated review.
@@ -149,8 +149,9 @@ To deploy and run Chronicle, start with hosting and configuration before moving 
 1. Read [Chronicle hosting](/chronicle/hosting/) and [Production hosting](/chronicle/hosting/production/).
 2. Review [Chronicle configuration](/chronicle/hosting/configuration/), including [storage](/chronicle/hosting/configuration/storage/).
 3. Learn the [CLI](/cli/) and the [Workbench](/chronicle/workbench/), then keep [Chronicle troubleshooting](/chronicle/troubleshooting/) close.
-4. Use [Production readiness](/production-readiness/) as the cross-stack checklist.
-5. Before each upgrade, use [Plan an upgrade](/upgrade-path/) and [What's new](/whats-new/). Follow [Security](/security/) for vulnerability reporting.
+4. Follow [Collect Cratis telemetry](/collect-telemetry/) to configure export from the application and kernel separately. Keep [Observability in Cratis](/observability/) close for signal names, privacy boundaries, and client differences.
+5. Use [Production readiness](/production-readiness/) as the cross-stack checklist.
+6. Before each upgrade, use [Plan an upgrade](/upgrade-path/) and [What's new](/whats-new/). Follow [Security](/security/) for vulnerability reporting.
 
 ## Frontend developer
 

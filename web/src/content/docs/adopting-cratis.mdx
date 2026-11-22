@@ -6,7 +6,7 @@ description: Choose a Cratis Platform entry point for a new or existing system, 
 import { Aside, CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
 import TopicHero from '@components/TopicHero.astro';
 
-Improve one feature without making a rewrite the starting point. With Cratis Platform, you can find typed frontend usages affected by a backend contract change, keep the history behind one business process, or build a new view from facts you already recorded. Choose the result you can check while the rest of the application keeps its existing path.
+Improve one feature without making a rewrite the starting point. Choose an entry point below, then follow the new-project or existing-system path. Keep the first change small enough to check while the rest of the application keeps its existing behavior.
 
 <span id="where-to-start"></span>
 
@@ -50,7 +50,7 @@ Keep the feature's commands, events, and views together in Cratis Screenplay, th
 
 For a new information system, follow [Build a full-stack feature](/build-a-full-app/) to implement one behavior through the whole loop: command → event → projection → query → React. A projection turns recorded events into a read model shaped for the screen. The event log keeps the history behind that view.
 
-The C# and JVM paths start from the [Cratis templates](/templates/getting-started/). The TypeScript backend is published on npm at 1.0.0 (`npm install @cratis/arc.core`, or `@cratis/platform` for Arc and Chronicle together) and starts from a sample rather than a scaffold. In C#, the [Cratis package](/arc/backend/csharp/chronicle/cratis-package/)'s `AddCratis`/`UseCratis` calls register Arc and the Chronicle client in the application host. The Chronicle server runs separately; those calls do not embed it in your API.
+The C# and JVM paths start from the [Cratis templates](/templates/getting-started/). For TypeScript, follow the [Arc backend guide](/arc/backend/typescript/) and its sample setup; do not assume the template instructions apply to Node.js. In C#, the [Cratis package](/arc/backend/csharp/chronicle/cratis-package/)'s `AddCratis`/`UseCratis` calls register Arc and the Chronicle client in the application host. The Chronicle server runs separately; those calls do not embed it in your API.
 
 If a bounded part of the app needs only current state, such as reference data or settings, choose [Arc over a database](/arc/arc-without-event-sourcing/) for that part. You still get CQRS, generated proxies, and live queries. To add Chronicle later, change the write side to record events and build a read model with a projection. The query contract and React screen can stay the same, while the query implementation and storage wiring may need to change.
 
@@ -86,7 +86,7 @@ Appending an event alongside an existing write is a dual write: the two can succ
 
 1. Model the facts for that area as [events](/chronicle/concepts/event/). For new behavior, append the event when it happens. If an existing write must remain, appending alongside it requires the dual-write plan above. Existing rows do not become events on their own; decide whether you need historical events and, if so, write them deliberately.
 2. Build [projections](/chronicle/projections/) that turn those events into the read models the context needs. They can sit alongside existing tables. Follow one event into its projected result before moving another feature.
-3. Keep the rest of the system on its existing path. Use the first context's events and read models to check the new behavior before expanding the adoption.
+3. Keep the rest of the system on its existing path. Use the first context's events and read models to check the new behavior before expanding the adoption. [Collect Cratis telemetry](/collect-telemetry/) when you need to diagnose latency or failures across the application and kernel; event inspection and request tracing answer different questions.
 
 </Steps>
 

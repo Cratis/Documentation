@@ -189,7 +189,7 @@ flowchart LR
     Q -->|typed proxy| UI
 ```
 
-You write the command, event, and read-model definition on your chosen backend. Arc generates the client contract, and Components uses it in the screen. Chronicle keeps the events in the selected tenant's namespace. You must still configure tenant membership checks and the storage isolation your application requires.
+You write the command, event, and read-model definition on your chosen backend. Arc generates the client contract, and Components uses it in the screen. Chronicle keeps the events in the selected tenant's namespace. You must still configure tenant membership checks and the storage isolation your application requires. [Organization, workspace and namespace](/concepts/organization-workspace-namespace/) distinguishes those scopes; a namespace does not authorize a caller.
 
 <Aside type="note" title="Regenerate and type-check after contract changes">
 When a backend command's shape changes, regenerate the TypeScript proxies and type-check the frontend to find incompatible typed usages. This checks the generated contract; it does not replace runtime integration checks.
@@ -205,7 +205,7 @@ Configuration still matters where responsibilities meet. Follow [identity and ac
 
 ## When Cratis is a good fit — and when it isn't
 
-Because the products are separable, "is Cratis a good fit?" is really a set of connected questions.
+Because the products are separable, "is Cratis a good fit?" is really a set of connected questions. If you are choosing an event-sourcing tool, [Cratis Chronicle comparisons](/compare/) narrows the decision by runtime, transaction boundary, and who maintains the read models.
 
 Arc is worth evaluating when you maintain the same contract in your backend and again in the frontend. Choose among [TypeScript on Node.js](/cqrs/typescript/), [Kotlin or Java on Spring Boot](/cqrs/kotlin/), [Elixir on Plug or Phoenix](/cqrs/elixir/), and [C# on ASP.NET Core](/cqrs/dotnet/). Its command/query boundary and generated proxies replace that duplication. You adopt its conventions for declaring and discovering endpoints, so try one feature before applying them across an existing application.
 
