@@ -307,7 +307,7 @@ describe('page metadata', () => {
     });
 
     it('keeps every hub title within 60 characters', () => {
-        for (const id of ['chronicle', 'arc', 'components', 'cli', 'authproxy', 'chronicle-mcp', 'prompter', 'templates', 'direct', 'choreography', 'screenplay', 'stage', 'fundamentals', 'prologue', 'architecture', 'ai', '']) {
+        for (const id of ['chronicle', 'arc', 'components', 'cli', 'authproxy', 'chronicle-mcp', 'prompter', 'templates', 'choreography', 'screenplay', 'stage', 'fundamentals', 'prologue', 'architecture', 'ai', '']) {
             assert.ok(hubTitle(id).length <= 60, hubTitle(id));
         }
     });

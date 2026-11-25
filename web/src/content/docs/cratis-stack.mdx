@@ -144,7 +144,7 @@ For a question about the framework, [Prompter](/prompter/) is the community's Di
 
 To set how far agent work may progress and inspect the evidence behind each next step, use [Cratis Direct](https://cratis.direct/), the control plane for agentic engineering. A person sets the progression ceiling. Journeys define stages of work, gates evaluate recorded evidence, and five loops organize the work: **Deliver, Assure, Operate, Publish, and Steer**. Direct is GitHub-first, lets you bring your own model provider, and is event-sourced on Chronicle. It coordinates agent work; [Cratis AI](/ai/) supplies framework conventions and guidance.
 
-Direct runs Cratis's own engineering today. Access opens in stages to enabled accounts, who [sign in with GitHub](https://app.cratis.direct/); a GitHub account alone does not grant access. Gates depend on the rules you activate, and an LLM assessment is a judgment, not proof. The [public Direct documentation](/direct/) covers the Direct Agent Runner, not a complete service manual.
+Direct runs Cratis's own engineering today. Access opens in stages to enabled accounts, who [sign in with GitHub](https://app.cratis.direct/); a GitHub account alone does not grant access. Gates depend on the rules you activate, and an LLM assessment is a judgment, not proof. The [public Direct documentation](https://docs.cratis.direct/) covers the Direct Agent Runner, not a complete service manual.
 
 ## Capability map
 
@@ -167,7 +167,7 @@ The table lists product responsibilities and licences. Open-source components an
 | Stage | Screenplay compilation, supported specification verification, and disposable sandbox tooling | MIT | [Stage](/stage/) · [Source](https://github.com/Cratis/Stage) |
 | Prologue | Captures signals from an existing system and proposes an event model for review | MIT | [Prologue](/prologue/) |
 | Studio | Collaborative Screenplay modeling workspace built on Chronicle; optional for application development | Paid product; 14-day free trial, per-seat pricing | [Studio](/studio/) |
-| Direct | Control plane for agentic engineering: journeys, gates, and evidence; enabled-account access | Service; pricing not publicly stated | [Direct](/direct/) · [Product overview](https://cratis.direct/) |
+| Direct | Control plane for agentic engineering: journeys, gates, and evidence; enabled-account access | Service; pricing not publicly stated | [Direct](https://docs.cratis.direct/) · [Product overview](https://cratis.direct/) |
 | TypeScript client | `@cratis/chronicle` for Chronicle from Node.js | MIT | [TypeScript](/event-sourcing/typescript/) |
 | Kotlin/Java client | `io.cratis:chronicle` with a Spring Boot starter | MIT | [Kotlin](/event-sourcing/kotlin/) |
 | Elixir client | `cratis_chronicle` on Hex | MIT | [Elixir](/event-sourcing/elixir/) |
@@ -212,7 +212,7 @@ The .NET client ships with Chronicle itself. See [Chronicle in your language](/c
   <SimpleCard title="Components — React" icon="laptop" link="/components/">
     Command dialogs, forms, and live data tables that consume Arc's generated command and query proxies.
   </SimpleCard>
-  <SimpleCard title="Direct — govern agent work" icon="list-format" link="/direct/">
+  <SimpleCard title="Direct — govern agent work" icon="list-format" link="https://docs.cratis.direct/">
     Coordinate agent work across GitHub repositories through defined stages and gates that evaluate recorded evidence. Direct runs Cratis's engineering today; external access opens in stages to enabled accounts.
   </SimpleCard>
   <SimpleCard title="CLI — operate" icon="rocket" link="/cli/">

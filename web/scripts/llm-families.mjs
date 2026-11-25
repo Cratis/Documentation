@@ -9,7 +9,7 @@ export const LLM_FAMILIES = [
     { id: 'fundamentals', label: 'Fundamentals', products: ['fundamentals', 'fundamentals/go'] },
     {
         id: 'tooling', label: 'Tooling and services',
-        products: ['cli', 'templates', 'direct', 'choreography', 'authproxy', 'showrunner', 'prompter', 'contributing', 'architecture', 'eventmodelers-ai/csharp', 'eventmodelers-ai/kotlin', 'eventmodelers-ai/java'],
+        products: ['cli', 'templates', 'choreography', 'authproxy', 'showrunner', 'prompter', 'contributing', 'architecture', 'eventmodelers-ai/csharp', 'eventmodelers-ai/kotlin', 'eventmodelers-ai/java'],
     },
 ];
 
