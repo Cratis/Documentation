@@ -56,7 +56,7 @@ Under the shared Identity contract:
 
 ### Direct
 
-Direct schedules AI agents across the repositories of a GitHub organization. In this vocabulary, that GitHub organization's space in Direct is a **workspace**. Direct decides who belongs to it and who is a maintainer, for example who may approve a [runner](/direct/runner/). Direct keeps each workspace's data apart from the others', and you never see or pick where it is stored. A platform organization above it is planned.
+Direct schedules AI agents across the repositories of a GitHub organization. In this vocabulary, that GitHub organization's space in Direct is a **workspace**. Direct decides who belongs to it and who is a maintainer, for example who may approve a [runner](https://docs.cratis.direct/runner/). Direct keeps each workspace's data apart from the others', and you never see or pick where it is stored. A platform organization above it is planned.
 
 ### Studio
 
