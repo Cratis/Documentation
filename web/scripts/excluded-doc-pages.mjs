@@ -16,7 +16,12 @@ function normalizedPage(page) {
 
 export function isExcludedPage(sourcePath, product) {
     const relative = normalizedPage(path.relative(product.src, sourcePath));
-    return (product.excludePages ?? []).some((entry) => normalizedPage(entry.path) === relative);
+    return (product.excludePages ?? []).some((entry) => {
+        const excluded = normalizedPage(entry.path);
+        return excluded.endsWith('/')
+            ? relative === excluded.slice(0, -1) || relative.startsWith(excluded)
+            : relative === excluded;
+    });
 }
 
 // A product's own excludeRootFiles (e.g. project-context.md) are deliberately
@@ -57,7 +62,7 @@ export function isExcludedPageTocHref(href, dirAbs, products) {
 
 async function excludedSourcePath(product, entry) {
     let source = product.src;
-    for (const segment of normalizedPage(entry.path).split('/')) {
+    for (const segment of normalizedPage(entry.path).split('/').filter(Boolean)) {
         const names = await fs.readdir(source);
         const name = names.find((candidate) => candidate.toLowerCase() === segment);
         if (!name) throw new Error(`[sync] Stale exclusion for ${product.key}: excluded page "${entry.path}" does not exist`);
@@ -68,7 +73,13 @@ async function excludedSourcePath(product, entry) {
 
 async function excludedSourceText(product, entry) {
     try {
-        return await fs.readFile(await excludedSourcePath(product, entry), 'utf8');
+        const source = await excludedSourcePath(product, entry);
+        // A trailing slash excludes a whole internal directory, including future notes.
+        if (entry.path.endsWith('/')) {
+            await fs.readdir(source);
+            return null;
+        }
+        return await fs.readFile(source, 'utf8');
     } catch (error) {
         if (['ENOENT', 'ENOTDIR', 'EISDIR'].includes(error.code)) {
             throw new Error(`[sync] Stale exclusion for ${product.key}: excluded page "${entry.path}" is not a source file`, { cause: error });

@@ -174,7 +174,7 @@ export function deriveDescription(body, sourcePath = 'page.md') {
 
 const sections = {
     chronicle: 'Chronicle', arc: 'Arc', components: 'Components',
-    fundamentals: 'Fundamentals', cli: 'CLI', authproxy: 'AuthProxy', showrunner: 'Showrunner',
+    fundamentals: 'Fundamentals', cli: 'CLI', authproxy: 'AuthProxy', identity: 'Identity', showrunner: 'Showrunner',
     screenplay: 'Screenplay', stage: 'Stage', prologue: 'Prologue', templates: 'Templates', choreography: 'Choreography',
     'chronicle-mcp': 'Chronicle MCP', prompter: 'Prompter', ai: 'AI',
     architecture: 'Architecture', contributing: 'Contributing',
@@ -211,6 +211,7 @@ const titleOverrides = new Map([
     ['components', 'Components: React UI for CQRS and event sourcing | Cratis'],
     ['cli', 'CLI: operate Chronicle from the command line | Cratis'],
     ['authproxy', 'AuthProxy: .NET gateway for auth and tenancy | Cratis'],
+    ['identity', 'Identity: sign-in and identity contracts | Cratis'],
     ['showrunner', 'Showrunner: ready-made product parts for Cratis | Cratis'],
     ['chronicle-mcp', 'Chronicle MCP: connect AI agents to Chronicle | Cratis'],
     ['prompter', 'Prompter: Cratis docs assistant on Discord | Cratis'],
@@ -271,7 +272,7 @@ export function pageDescription(data, body, sourcePath, id) {
 }
 
 // Product landing pages describe software; everything else is an article, hub or glossary.
-const softwareProducts = new Set(['chronicle', 'arc', 'components', 'authproxy', 'showrunner', 'cli', 'chronicle-mcp', 'prompter', 'templates', 'choreography', 'screenplay', 'stage']);
+const softwareProducts = new Set(['chronicle', 'arc', 'components', 'authproxy', 'identity', 'showrunner', 'cli', 'chronicle-mcp', 'prompter', 'templates', 'choreography', 'screenplay', 'stage']);
 
 /**
  * Schema.org page kind: `glossary`, `software` (product landing), `collection` (a page that

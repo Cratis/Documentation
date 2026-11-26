@@ -29,6 +29,7 @@ import { markdownCommentsForMdx } from './markdown-comments-for-mdx.mjs';
 import { sourceEditUrl, sourceTreeUrl, sourceViewUrl } from './source-edit-url.mjs';
 import { reposRootFor, resolveRepoCandidate } from './repos-root.mjs';
 import { sourceLastModified } from './source-last-modified.mjs';
+import { readmeIndexTarget, readmeIndexFilename, skipPublicationEntry, skipReadme, productSidebarItems } from './readme-index.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..'); // Documentation/web
@@ -148,6 +149,21 @@ export const PRODUCTS = [
         src: firstExisting(
             path.join(reposRoot, 'AuthProxy', 'Documentation'),
             path.join(docRepoRoot, 'AuthProxy', 'Documentation')),
+    },
+    {
+        key: 'identity', label: 'Identity', icon: 'seti:lock', sidebarMode: 'toc', readmeIndex: true,
+        src: firstExisting(
+            path.join(reposRoot, 'Identity', 'Documentation'),
+            path.join(docRepoRoot, 'Identity', 'Documentation')),
+        excludePages: ['inventory/', 'e2e/', 'design/'].map((directory) => ({
+            path: directory, reason: 'Internal inventories, test checklists and design work notes are not public documentation.',
+        })),
+        buckets: [
+            { label: 'Start here', sections: ['Local development profile', 'Sign in local MCP clients for Direct and Studio'] },
+            { label: 'Guides', sections: ['Manage connected apps', 'Client ID Metadata Documents', 'Token exchange'] },
+            { label: 'Operations', sections: ['Security', 'Deployment'] },
+            { label: 'Reference', sections: ['Specifications', 'Protocol conformance'] },
+        ],
     },
     {
         // Showrunner — ready-made product parts (Usher, Box Office, Marquee, Cue, GuestList, Notes,
@@ -591,7 +607,7 @@ function resolveInternalLink(ctx, target) {
     const assetTarget = assetLinkTarget(ctx, originalPathPart, target, urlSuffix + titleSuffix);
     if (assetTarget) return assetTarget;
 
-    const strippedPath = stripDocTarget(originalPathPart);
+    const strippedPath = stripDocTarget(readmeIndexTarget(originalPathPart, ctx.product));
     let resolvedPath;
 
     if (strippedPath.startsWith('/')) {
@@ -944,8 +960,8 @@ async function writeConvertedPage(srcPath, outDir, { product, options, demoteInd
     // Keep the source extension: `.md` stays Markdown, `.mdx` stays MDX so
     // authored getting-started pages can use Starlight components (<Steps>,
     // <Tabs>, <Aside>, <FileTree>). The converter's transforms are safe on MDX.
-    let outName = basename;
-    if (demoteIndex && /^index\.mdx?$/i.test(basename)) {
+    let outName = readmeIndexFilename(basename, product);
+    if (demoteIndex && /^index\.mdx?$/i.test(outName)) {
         outName = path.extname(basename).toLowerCase() === '.mdx' ? 'overview.mdx' : 'overview.md';
     }
     await fs.writeFile(path.join(outDir, outName), converted, 'utf8');
@@ -959,7 +975,7 @@ export async function walk(srcDir, outDir, product, options = {}) {
     const contentRoot = options.contentRoot ?? product.src;
     const isProductRoot = path.resolve(srcDir) === path.resolve(contentRoot);
     for (const entry of entries) {
-        if (isPrivateDocPath(entry.name)) continue;
+        if (skipPublicationEntry(srcDir, entry, product)) continue;
         if (entry.isSymbolicLink()) {
             const source = path.join(srcDir, entry.name);
             await assertPublicDocSource(source, contentRoot);
@@ -977,8 +993,8 @@ export async function walk(srcDir, outDir, product, options = {}) {
             await walk(path.join(srcDir, entry.name), path.join(outDir, entry.name), product, options);
             continue;
         }
-        // Skip repo READMEs (e.g. the .github org landing) — not site content.
-        if (entry.name.toLowerCase() === 'readme.md') continue;
+        // README indexes are opt-in; existing index pages always take precedence.
+        if (skipReadme(entry.name, product.readmeIndex, entries)) continue;
         // Repository bootstrap files and product-declared repository context at the product root only.
         if (isProductRoot && isSkippedRootFile(entry.name, srcDir, product)) continue;
         const ext = path.extname(entry.name).toLowerCase();
@@ -1556,7 +1572,7 @@ async function generateSidebar() {
             validSlugs = new Set();
             currentSidebarProduct = product.key;
             await collectSlugs(path.join(webRoot, 'src', 'content', 'docs', product.key), product.key, validSlugs);
-            items = await tocToSidebar(product.src, product.key);
+            items = await productSidebarItems(product, path.join(webRoot, 'src', 'content', 'docs', product.key), tocToSidebar);
             const injections = await variantSidebarInjections(product);
             if (items.length === 0) items = [{ autogenerate: { directory: product.key } }];
             else {

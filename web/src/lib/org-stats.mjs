@@ -40,7 +40,7 @@ const repositories = {
     'arc/backend/kotlin': 'Arc.Kotlin', 'arc/backend/typescript': 'Arc.TypeScript',
     specifications: 'Specifications', screenplay: 'Screenplay',
     'screenplay/ecosystem-examples/critter-stack': 'Screenplay.CritterStack',
-    prologue: 'Prologue', cli: 'cli', ai: 'AI', authproxy: 'AuthProxy',
+    prologue: 'Prologue', cli: 'cli', ai: 'AI', authproxy: 'AuthProxy', identity: 'Identity',
     'chronicle-mcp': 'Chronicle.Mcp', prompter: 'Prompter', templates: 'Templates', choreography: 'Choreography',
     'tools/lens': 'Lens', 'tools/vscode-extension': 'Narrator',
 };
