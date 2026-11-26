@@ -29,7 +29,7 @@ import { markdownCommentsForMdx } from './markdown-comments-for-mdx.mjs';
 import { sourceEditUrl, sourceTreeUrl, sourceViewUrl } from './source-edit-url.mjs';
 import { reposRootFor, resolveRepoCandidate } from './repos-root.mjs';
 import { sourceLastModified } from './source-last-modified.mjs';
-import { readmeNavigation, skipReadme } from './readme-navigation.mjs';
+import { readmeIndexTarget, readmeIndexFilename, skipPublicationEntry, skipReadme, productSidebarItems } from './readme-index.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const webRoot = path.resolve(here, '..'); // Documentation/web
@@ -509,14 +509,13 @@ function isExternalOrSpecial(url) {
     return /^(https?:|mailto:|tel:|#|data:|javascript:|blob:)/i.test(url) || url.startsWith('//');
 }
 
-function stripDocTarget(pathPart, readmeIndex = false) {
+function stripDocTarget(pathPart) {
     let out = pathPart;
     if (/\/?toc\.ya?ml$/i.test(out)) {
         out = out.replace(/\/?toc\.ya?ml$/i, '');
     } else if (/\.mdx?$/i.test(out)) {
         out = out.replace(/\.mdx?$/i, '');
         out = out.replace(/\/index$/i, '/').replace(/(^|\/)index$/i, '$1');
-        if (readmeIndex) out = out.replace(/(^|\/)readme$/i, '$1');
     }
     return out;
 }
@@ -608,7 +607,7 @@ function resolveInternalLink(ctx, target) {
     const assetTarget = assetLinkTarget(ctx, originalPathPart, target, urlSuffix + titleSuffix);
     if (assetTarget) return assetTarget;
 
-    const strippedPath = stripDocTarget(originalPathPart, ctx.product.readmeIndex);
+    const strippedPath = stripDocTarget(readmeIndexTarget(originalPathPart, ctx.product));
     let resolvedPath;
 
     if (strippedPath.startsWith('/')) {
@@ -961,7 +960,7 @@ async function writeConvertedPage(srcPath, outDir, { product, options, demoteInd
     // Keep the source extension: `.md` stays Markdown, `.mdx` stays MDX so
     // authored getting-started pages can use Starlight components (<Steps>,
     // <Tabs>, <Aside>, <FileTree>). The converter's transforms are safe on MDX.
-    let outName = product.readmeIndex && /^readme\.md$/i.test(basename) ? 'index.md' : basename;
+    let outName = readmeIndexFilename(basename, product);
     if (demoteIndex && /^index\.mdx?$/i.test(outName)) {
         outName = path.extname(basename).toLowerCase() === '.mdx' ? 'overview.mdx' : 'overview.md';
     }
@@ -976,7 +975,7 @@ export async function walk(srcDir, outDir, product, options = {}) {
     const contentRoot = options.contentRoot ?? product.src;
     const isProductRoot = path.resolve(srcDir) === path.resolve(contentRoot);
     for (const entry of entries) {
-        if (isPrivateDocPath(entry.name) || isExcludedPage(path.join(srcDir, entry.name), product)) continue;
+        if (skipPublicationEntry(srcDir, entry, product)) continue;
         if (entry.isSymbolicLink()) {
             const source = path.join(srcDir, entry.name);
             await assertPublicDocSource(source, contentRoot);
@@ -1573,9 +1572,7 @@ async function generateSidebar() {
             validSlugs = new Set();
             currentSidebarProduct = product.key;
             await collectSlugs(path.join(webRoot, 'src', 'content', 'docs', product.key), product.key, validSlugs);
-            items = product.readmeIndex
-                ? (await readmeNavigation(path.join(webRoot, 'src', 'content', 'docs', product.key), product.key)).items
-                : await tocToSidebar(product.src, product.key);
+            items = await productSidebarItems(product, path.join(webRoot, 'src', 'content', 'docs', product.key), tocToSidebar);
             const injections = await variantSidebarInjections(product);
             if (items.length === 0) items = [{ autogenerate: { directory: product.key } }];
             else {
