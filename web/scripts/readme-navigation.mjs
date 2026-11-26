@@ -32,8 +32,17 @@ async function navigationEntry(directory, slugBase, entry) {
     return { label: metadata?.title ?? titleFromName(basename), slug: basename === 'index' ? slugBase : slug };
 }
 
+async function navigationEntries(directory) {
+    try {
+        return await fs.readdir(directory, { withFileTypes: true });
+    } catch (error) {
+        if (error.code === 'ENOENT') return [];
+        throw error;
+    }
+}
+
 export async function readmeNavigation(directory, slugBase) {
-    const entries = await fs.readdir(directory, { withFileTypes: true });
+    const entries = await navigationEntries(directory);
     entries.sort((left, right) => left.name.localeCompare(right.name));
     const items = [];
     let label = titleFromName(path.basename(directory));

@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -110,6 +111,37 @@ test('directory exclusions cover future notes, leave similarly named public dire
     for (const directory of ['security', 'deployment', 'design-guide']) {
         await fs.access(path.join(output, directory, 'guide.md'));
     }
+});
+
+test('a targeted AuthProxy sync succeeds with Identity sources but no generated Identity pages', async (context) => {
+    const { product } = await fixture(context);
+    const root = path.dirname(product.src);
+    const web = path.join(root, 'Documentation/web');
+    await fs.cp(path.join(webRoot, 'scripts'), path.join(web, 'scripts'), {
+        recursive: true, filter: (file) => !file.endsWith('.test.mjs'),
+    });
+    await fs.copyFile(path.join(webRoot, 'variant-docs.yml'), path.join(web, 'variant-docs.yml'));
+    await fs.symlink(path.join(webRoot, 'node_modules'), path.join(web, 'node_modules'), 'dir');
+    await put(root, 'AuthProxy/Documentation/index.md', '# AuthProxy\n\nA public gateway guide.\n');
+    await put(root, 'AuthProxy/Documentation/toc.yml', '- name: Overview\n  href: index.md\n');
+    await put(root, 'Identity/Documentation/README.md', '# Identity documentation\n');
+
+    const result = spawnSync(process.execPath, [path.join(web, 'scripts/sync-content.mjs'), 'authproxy'], {
+        env: { ...process.env, CRATIS_REPOS_ROOT: root }, encoding: 'utf8', timeout: 10000,
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /\[sync\] authproxy: 1 pages/);
+    await fs.access(path.join(web, 'src/content/docs/authproxy/index.md'));
+    await assert.rejects(fs.access(path.join(web, 'src/content/docs/identity')), { code: 'ENOENT' });
+    const topics = JSON.parse(await fs.readFile(path.join(web, 'src/generated/topics.json'), 'utf8'));
+    assert.deepEqual(topics.find((topic) => topic.id === 'identity').items, [{ autogenerate: { directory: 'identity' } }]);
+});
+
+test('README navigation rethrows directory errors other than ENOENT', async (context) => {
+    const { output } = await fixture(context);
+    await fs.writeFile(output, 'This is a file, not a directory.');
+    const { readmeNavigation } = await import('./readme-navigation.mjs');
+    await assert.rejects(readmeNavigation(output, 'identity'), { code: 'ENOTDIR' });
 });
 
 test('README navigation exposes the landing, specifications and nested runbooks with titles from synced pages', async (context) => {
