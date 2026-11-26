@@ -21,9 +21,10 @@ const routeSections = {
     cli: 'tools',
     templates: 'tools',
     choreography: 'tools',
+    identity: 'authproxy',
 };
 
-const routeLabels = { 'chronicle-mcp': 'Chronicle MCP', 'eventmodelers-ai': 'AI', cli: 'CLI', templates: 'Templates', choreography: 'Choreography' };
+const routeLabels = { 'chronicle-mcp': 'Chronicle MCP', 'eventmodelers-ai': 'AI', cli: 'CLI', templates: 'Templates', choreography: 'Choreography', identity: 'Identity' };
 const imageTags = new Set(['og:image', 'og:image:width', 'og:image:height', 'og:image:alt', 'twitter:image', 'twitter:image:alt']);
 
 export function socialPreview(pathname) {

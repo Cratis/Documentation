@@ -6,7 +6,7 @@ description: "Distinguish Studio organizations, product workspaces and Chronicle
 The meaning of *organization* and *workspace* depends on the product. Studio's organization owns people and projects. In the shared Identity contract, a platform organization holds cross-product policy, while a product workspace owns membership. A Chronicle namespace partitions data within an event store. Keeping these meanings apart helps you distinguish who grants access from where data is stored.
 
 :::note[Available and planned]
-Studio's organization and Chronicle's namespaces are existing product concepts. The cross-product platform organization is **planned**. The Identity tenant-model contract defines ownership and authorization requirements; it does not claim deployed behavior or a migration of Studio's organization. Planned items are direction, not a delivery commitment; see the [roadmap](/roadmap/).
+Studio's organization and Chronicle's namespaces are existing product concepts. The cross-product platform organization is **planned**. The [Identity tenant-model contract](/identity/specs/identity-tenant-model-v1/) defines ownership and authorization requirements; it does not claim deployed behavior or a migration of Studio's organization. Planned items are direction, not a delivery commitment; see the [roadmap](/roadmap/).
 :::
 
 ## The three terms at a glance
@@ -46,7 +46,7 @@ Chronicle namespaces can also separate environments or domains. An environment l
 
 ## Who can change what
 
-Under the shared Identity contract:
+Under the shared [Identity contract](/identity/specs/):
 
 - Platform organization administrators manage domains, policies and confirmed links (**Planned**). That role is not product membership.
 - Tenant administrators manage members and roles inside the product.
